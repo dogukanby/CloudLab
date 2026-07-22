@@ -10,6 +10,7 @@ function createWindow(){
     minHeight: 560,
     backgroundColor: "#0a0d13",
     autoHideMenuBar: true,
+    title: "CloudLab v" + app.getVersion(),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -17,6 +18,13 @@ function createWindow(){
     }
   });
   Menu.setApplicationMenu(null);
+  // index.html sets document.title on load and again on every language
+  // switch, which would silently drop the version suffix from the
+  // titlebar each time — intercept every title change and re-append it.
+  win.on("page-title-updated", function(event, title){
+    event.preventDefault();
+    win.setTitle(title + " v" + app.getVersion());
+  });
   win.loadFile(path.join(__dirname, "index.html"));
   return win;
 }
@@ -27,6 +35,14 @@ function createWindow(){
 function setupAutoUpdater(win){
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
+  // The installer is signed with a self-signed certificate, which doesn't
+  // chain to a trusted root the way a paid CA cert would. electron-updater's
+  // default Windows behavior is to verify the downloaded update's publisher
+  // matches the running app's publisher via that trust chain, which always
+  // fails for a self-signed cert — silently, since the failure surfaces as
+  // an "error" event rather than blocking downloadUpdate() with a message.
+  // Integrity is still verified via the sha512 checksum in latest.yml.
+  autoUpdater.verifyUpdateCodeSignature = false;
 
   autoUpdater.on("update-available", function(info){
     dialog.showMessageBox(win, {
@@ -57,7 +73,14 @@ function setupAutoUpdater(win){
   });
 
   autoUpdater.on("error", function(err){
+    const message = err && err.message ? err.message : String(err);
     console.error("[auto-updater]", err && err.stack ? err.stack : err);
+    dialog.showMessageBox(win, {
+      type: "error",
+      title: "Update failed",
+      message: "Checking for or downloading the CloudLab update failed.",
+      detail: message
+    });
   });
 
   autoUpdater.checkForUpdates();
