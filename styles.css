@@ -109,6 +109,19 @@ button, select, input{ font:inherit; color:inherit; }
 
 .dek{ padding:14px 22px 0; color:var(--ink-dim); max-width:62ch; font-size:0.9rem; }
 
+.eyebrow{ font-family:var(--font-mono); font-size:0.66rem; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+.eyebrow.accent{ color:var(--accent); }
+.eyebrow.faint{ color:var(--ink-faint); }
+
+.analogy{ padding:14px 22px 0; max-width:64ch; }
+.analogy p{ margin:0; font-size:0.94rem; color:var(--ink); line-height:1.65; }
+
+.tech-note{ margin-top:2px; }
+
+.panel-lead{ padding:20px 22px 28px; display:flex; flex-direction:column; gap:14px; max-width:72ch; }
+.panel-lead p{ margin:0; font-size:1rem; color:var(--ink-dim); line-height:1.7; }
+.panel-lead p:first-child{ color:var(--ink); }
+
 .panel-body{ display:grid; grid-template-columns:1.3fr 1fr; align-items:stretch; }
 @media (max-width:880px){ .panel-body{ grid-template-columns:1fr; } }
 

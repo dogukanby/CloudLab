@@ -7,12 +7,18 @@
     en: {
       common: {
         wordmark:"Systems Console",
-        nav:{ lb:"01 Load balancing", consistency:"02 Consistency", cache:"03 Caching", failover:"04 Failover" },
+        nav:{ cloud101:"00 What is the cloud?", lb:"01 Load balancing", consistency:"02 Consistency", cache:"03 Caching", failover:"04 Failover" },
         uptime:"UPTIME",
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"Cloud Systems, Simulated",
         statusChanged:"status → {status}",
+        analogyLabel:"In plain terms", technicalLabel:"Under the hood",
         footer:"Everything above runs client-side in JavaScript — no real servers, nodes, or network calls involved. Reload the page to reset all four modules."
+      },
+      cloud101:{
+        modId:"MODULE 00", title:"What Is \"The Cloud,\" Really?",
+        p1:"When you save a photo, send a message, or stream a video, it usually doesn't stay on your phone or laptop — it travels to a computer somewhere else, does its job, and sends the result back. That's the cloud: not a mysterious place in the sky, just someone else's computers — owned by companies like Amazon, Google, or Microsoft — built to serve millions of people at once, all day, every day, without going down.",
+        p2:"Making that work — never going down, never running out of room, never getting confused about who changed what last — takes a handful of core tricks that every cloud provider relies on. The four modules below let you play with each one and watch, live, what's actually happening underneath a phrase like \"it's in the cloud.\""
       },
       intro:{
         title:"Cloud systems, taken apart",
@@ -22,6 +28,7 @@
       lb:{
         modId:"MODULE 01", title:"Load Balancing & Auto-Scaling",
         dek:"Requests arrive faster than any one server can handle, so a balancer spreads them across a pool — and spins up new servers when the pool falls behind.",
+        analogy:"Think of a grocery store at rush hour: one checkout lane backs up fast, so the manager opens more lanes as the line grows — and closes them again once it's quiet. That's load balancing and auto-scaling: spreading customers (requests) across cashiers (servers), and adding or removing cashiers as needed.",
         incoming:"Incoming traffic", node:"LOAD BALANCER",
         rateLabel:"Traffic rate —", rateUnit:"req/s",
         strategyLabel:"Balancing strategy", strategyRR:"Round robin", strategyLeast:"Least connections", strategyRandom:"Random",
@@ -39,6 +46,7 @@
       consistency:{
         modId:"MODULE 02", title:"Distributed Consistency",
         dek:"Copies of the same data live on five machines. When a write happens, how fast — and how safely — do the copies agree?",
+        analogy:"Imagine texting your friends in different cities that the plan changed. Do you wait until everyone has replied \"got it\" before you consider it official — slower, but nobody shows up confused? Or do you just send it and move on, trusting they'll catch up — faster, but for a moment someone might still be working off the old plan. That trade-off is what \"consistency\" means for computers holding copies of the same data.",
         partitionLabel:"Split the network into {N1,N2,N3} | {N4,N5}",
         modeLabel:"Consistency mode", modeEventual:"Eventual", modeStrong:"Strong (quorum)",
         lagLabel:"Replication lag —",
@@ -62,6 +70,7 @@
       cache:{
         modId:"MODULE 03", title:"Caching & CDN",
         dek:"Edge caches sit between clients and the origin so repeat requests don't have to travel as far. A hit is fast; a miss pays the round trip once and remembers it.",
+        analogy:"It's like keeping snacks in your desk drawer instead of walking to the kitchen every time you're hungry. Grabbing from the drawer (a cache hit) is instant; the first trip to restock it (a cache miss) takes longer — and eventually the snacks go stale and need replacing. That's caching and CDNs, just for web pages instead of chips.",
         origin:"ORIGIN — authoritative source",
         edgeEU:"EDGE — EU", edgeUS:"EDGE — US", edgeAPAC:"EDGE — APAC",
         edgeEUOpt:"EU", edgeUSOpt:"US", edgeAPACOpt:"APAC",
@@ -84,6 +93,7 @@
       failover:{
         modId:"MODULE 04", title:"Fault Tolerance & Failover",
         dek:"One node in the cluster does the writing. If it disappears, something else has to notice, take over, and keep serving — without anyone downstream needing to know it happened.",
+        analogy:"Picture a classroom with a substitute teacher on standby down the hall. If the main teacher suddenly can't continue, someone who already knows the class steps in — so the lesson keeps going and most students barely notice the switch. That's failover: a backup that's ready to take over the moment the primary goes quiet.",
         targetLabel:"Target node", killBtn:"Kill selected node", reviveBtn:"Revive last failed node",
         statHealthy:"Healthy nodes", statPrimary:"Current primary", statFailovers:"Failovers", statQueue:"Down queue",
         note:"Production clusters (Postgres + Patroni, Redis Sentinel, Kubernetes leader election) use the same shape: heartbeats, a detection timeout, then a promotion step — tuned so failover is fast but a network blip doesn't trigger a false alarm.",
@@ -108,12 +118,18 @@
     tr: {
       common: {
         wordmark:"Sistem Konsolu",
-        nav:{ lb:"01 Yük dengeleme", consistency:"02 Tutarlılık", cache:"03 Önbellekleme", failover:"04 Yük devretme" },
+        nav:{ cloud101:"00 Bulut nedir?", lb:"01 Yük dengeleme", consistency:"02 Tutarlılık", cache:"03 Önbellekleme", failover:"04 Yük devretme" },
         uptime:"ÇALIŞMA SÜRESİ",
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"Bulut Sistemleri, Simülasyon",
         statusChanged:"durum → {status}",
+        analogyLabel:"Basitçe söylemek gerekirse", technicalLabel:"Perde arkasında",
         footer:"Yukarıdaki her şey tarayıcınızda JavaScript ile çalışır — gerçek sunucu, düğüm veya ağ isteği yoktur. Dört modülü sıfırlamak için sayfayı yenileyin."
+      },
+      cloud101:{
+        modId:"MODÜL 00", title:"\"Bulut\" Gerçekte Nedir?",
+        p1:"Bir fotoğraf kaydettiğinizde, bir mesaj gönderdiğinizde ya da bir video izlediğinizde, bu genelde telefonunuzda ya da bilgisayarınızda kalmaz — başka bir yerdeki bir bilgisayara gider, işini yapar ve sonucu geri gönderir. İşte bulut budur: gökyüzünde gizemli bir yer değil, sadece başkasının bilgisayarları — Amazon, Google ya da Microsoft gibi şirketlere ait — milyonlarca kişiye aynı anda, gün boyu, hiç durmadan hizmet verecek şekilde inşa edilmiş.",
+        p2:"Bunun çalışmasını sağlamak — hiç durmamak, hiç yer bitirmemek, en son kimin neyi değiştirdiği konusunda hiç kafası karışmamak — her bulut sağlayıcısının dayandığı birkaç temel yönteme bağlı. Aşağıdaki dört modül, her birini canlı olarak deneyip \"bulutta\" demenin altında gerçekte ne olduğunu izlemenizi sağlıyor."
       },
       intro:{
         title:"Bulut sistemleri, parçalarına ayrıldı",
@@ -123,6 +139,7 @@
       lb:{
         modId:"MODÜL 01", title:"Yük Dengeleme ve Otomatik Ölçekleme",
         dek:"İstekler tek bir sunucunun kaldırabileceğinden daha hızlı geliyor; bu yüzden bir dengeleyici onları bir havuza dağıtır — ve havuz yetişemediğinde yeni sunucular devreye sokar.",
+        analogy:"Yoğun saatteki bir marketi düşünün: tek bir kasa hızla kuyruk yapar, bu yüzden müdür kuyruk uzadıkça yeni kasalar açar — sakinleşince de kapatır. Yük dengeleme ve otomatik ölçekleme tam olarak bu: müşterileri (istekleri) kasiyerlere (sunuculara) dağıtmak, gerektikçe kasiyer eklemek ya da azaltmak.",
         incoming:"Gelen trafik", node:"YÜK DENGELEYİCİ",
         rateLabel:"Trafik oranı —", rateUnit:"istek/sn",
         strategyLabel:"Dengeleme stratejisi", strategyRR:"Sırayla (round robin)", strategyLeast:"En az bağlantı", strategyRandom:"Rastgele",
@@ -140,6 +157,7 @@
       consistency:{
         modId:"MODÜL 02", title:"Dağıtık Tutarlılık",
         dek:"Aynı verinin kopyaları beş makinede yaşıyor. Bir yazma işlemi olduğunda, kopyalar ne kadar hızlı — ve ne kadar güvenli — anlaşıyor?",
+        analogy:"Farklı şehirlerdeki arkadaşlarınıza planın değiştiğini yazdığınızı düşünün. Herkes \"anladım\" diyene kadar bekleyip mi resmiyet kazandırırsınız — daha yavaş ama kimse kafası karışık gelmez? Yoksa gönderip devam mı edersiniz, yetişeceklerine güvenerek — daha hızlı ama bir an için biri hâlâ eski planla hareket ediyor olabilir. İşte aynı verinin kopyalarını tutan bilgisayarlar için \"tutarlılık\" tam olarak bu ödünleşim.",
         partitionLabel:"Ağı {N1,N2,N3} | {N4,N5} olarak ikiye ayır",
         modeLabel:"Tutarlılık modu", modeEventual:"Sonunda tutarlı (eventual)", modeStrong:"Güçlü (quorum)",
         lagLabel:"Çoğaltma gecikmesi —",
@@ -163,6 +181,7 @@
       cache:{
         modId:"MODÜL 03", title:"Önbellekleme ve CDN",
         dek:"Uç önbellekler istemciler ile kaynak arasında durur; böylece tekrarlanan istekler o kadar uzağa gitmek zorunda kalmaz. İsabet hızlıdır; ıskalama gidiş-dönüşü bir kez öder ve sonucu hatırlar.",
+        analogy:"Her acıktığınızda mutfağa gitmek yerine masanızın çekmecesinde atıştırmalık bulundurmak gibi. Çekmeceden almak (önbellek isabeti) anındadır; ilk kez stok yapmak için gitmek (önbellek ıskalaması) daha uzun sürer — ve zamanla atıştırmalıklar bayatlar, değiştirilmesi gerekir. Önbellekleme ve CDN'ler de tam olarak bu, sadece cips yerine web sayfaları için.",
         origin:"KAYNAK — yetkili sunucu",
         edgeEU:"UÇ — AB", edgeUS:"UÇ — ABD", edgeAPAC:"UÇ — APAC",
         edgeEUOpt:"AB", edgeUSOpt:"ABD", edgeAPACOpt:"APAC",
@@ -185,6 +204,7 @@
       failover:{
         modId:"MODÜL 04", title:"Hata Toleransı ve Yük Devretme",
         dek:"Kümedeki bir düğüm yazma işini yapar. Kaybolursa, başka bir şeyin bunu fark etmesi, devralması ve servise devam etmesi gerekir — akış aşağısındaki hiç kimsenin bunu fark etmesine gerek kalmadan.",
+        analogy:"Koridorun ilerisinde hazırda bekleyen bir vekil öğretmenli bir sınıf düşünün. Asıl öğretmen aniden derse devam edemezse, sınıfı zaten tanıyan biri devreye girer — ders devam eder ve çoğu öğrenci değişikliği neredeyse fark etmez. Yük devretme (failover) tam olarak bu: birincil sessiz kaldığı anda devralmaya hazır bir yedek.",
         targetLabel:"Hedef düğüm", killBtn:"Seçili düğümü çökert", reviveBtn:"Son arızalanan düğümü canlandır",
         statHealthy:"Sağlıklı düğüm", statPrimary:"Mevcut birincil", statFailovers:"Yük devretme", statQueue:"Devre dışı sırası",
         note:"Üretim kümeleri (Postgres + Patroni, Redis Sentinel, Kubernetes lider seçimi) aynı yapıyı kullanır: kalp atışları, bir tespit zaman aşımı, sonra bir yükseltme adımı — yük devretme hızlı olsun ama kısa bir ağ kesintisi yanlış alarm tetiklemesin diye ayarlanmış.",

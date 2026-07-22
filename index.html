@@ -22,6 +22,7 @@
   <div class="topbar-inner">
     <span class="wordmark"><span class="dot"></span><span data-i18n="common.wordmark">Systems Console</span></span>
     <nav class="jumpnav">
+      <a href="#cloud101" data-i18n="common.nav.cloud101">00 What is the cloud?</a>
       <a href="#lb" data-i18n="common.nav.lb">01 Load balancing</a>
       <a href="#consistency" data-i18n="common.nav.consistency">02 Consistency</a>
       <a href="#cache" data-i18n="common.nav.cache">03 Caching</a>
@@ -45,6 +46,18 @@
     <div class="meta" data-i18n="intro.meta">4 modules · runs entirely in your browser · no real infrastructure</div>
   </div>
 
+  <!-- MODULE 00 — WHAT IS THE CLOUD -->
+  <section class="panel" id="cloud101">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="cloud101.modId">MODULE 00</span>
+      <h2 data-i18n="cloud101.title">What Is "The Cloud," Really?</h2>
+    </header>
+    <div class="panel-lead">
+      <p data-i18n="cloud101.p1">When you save a photo, send a message, or stream a video, it usually doesn't stay on your phone or laptop.</p>
+      <p data-i18n="cloud101.p2">Making that work takes a handful of core tricks that every cloud provider relies on.</p>
+    </div>
+  </section>
+
   <!-- MODULE 01 — LOAD BALANCING -->
   <section class="panel" id="lb">
     <header class="panel-head">
@@ -53,6 +66,7 @@
       <span class="status-pill good" id="lbStatus">STABLE</span>
     </header>
     <p class="dek" data-i18n="lb.dek">Requests arrive faster than any one server can handle.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="lb.analogy">Think of a grocery store at rush hour.</p></div>
     <div class="panel-body">
       <div class="stage">
         <div class="stage-row incoming">
@@ -84,7 +98,7 @@
           <div class="stat"><span class="stat-label" data-i18n="lb.statDropped">Requests dropped</span><span class="stat-value" id="lbDropped">0</span></div>
         </div>
         <div class="log" id="lbLog"></div>
-        <p class="note" data-i18n="lb.note">Mirrors an ALB / Envoy / nginx pool.</p>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="lb.note">Mirrors an ALB / Envoy / nginx pool.</p></div>
       </aside>
     </div>
   </section>
@@ -97,6 +111,7 @@
       <span class="status-pill good" id="consStatus">CONSISTENT</span>
     </header>
     <p class="dek" data-i18n="consistency.dek">Copies of the same data live on five machines.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="consistency.analogy">Imagine texting your friends in different cities that the plan changed.</p></div>
     <div class="panel-body">
       <div class="stage">
         <div class="node-row" id="consRow"></div>
@@ -124,7 +139,7 @@
           <div class="stat"><span class="stat-label" data-i18n="consistency.statNetwork">Network</span><span class="stat-value" id="consPartitionState">JOINED</span></div>
         </div>
         <div class="log" id="consLog"></div>
-        <p class="note" data-i18n="consistency.note">This is the CAP theorem in miniature.</p>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="consistency.note">This is the CAP theorem in miniature.</p></div>
       </aside>
     </div>
   </section>
@@ -137,6 +152,7 @@
       <span class="status-pill warn" id="cacheStatus">WARMING</span>
     </header>
     <p class="dek" data-i18n="cache.dek">Edge caches sit between clients and the origin.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="cache.analogy">It's like keeping snacks in your desk drawer.</p></div>
     <div class="panel-body">
       <div class="stage">
         <div class="origin-card" id="cacheOrigin"><span class="dotpin"></span><span data-i18n="cache.origin">ORIGIN — authoritative source</span></div>
@@ -190,7 +206,7 @@
           <div class="stat"><span class="stat-label" data-i18n="cache.statPurges">Purges</span><span class="stat-value" id="cachePurgesEl">0</span></div>
         </div>
         <div class="log" id="cacheLog"></div>
-        <p class="note" data-i18n="cache.note">Real CDNs work the same way.</p>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="cache.note">Real CDNs work the same way.</p></div>
       </aside>
     </div>
   </section>
@@ -203,6 +219,7 @@
       <span class="status-pill good" id="foStatus">HEALTHY</span>
     </header>
     <p class="dek" data-i18n="failover.dek">One node in the cluster does the writing.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="failover.analogy">Picture a classroom with a substitute teacher on standby.</p></div>
     <div class="panel-body">
       <div class="stage">
         <div class="cluster-row" id="foNodes"></div>
@@ -222,7 +239,7 @@
           <div class="stat"><span class="stat-label" data-i18n="failover.statQueue">Down queue</span><span class="stat-value" id="foQueue">0</span></div>
         </div>
         <div class="log" id="foLog"></div>
-        <p class="note" data-i18n="failover.note">Production clusters use the same shape.</p>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="failover.note">Production clusters use the same shape.</p></div>
       </aside>
     </div>
   </section>
