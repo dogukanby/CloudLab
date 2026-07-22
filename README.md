@@ -10,19 +10,23 @@ Available in English and Turkish (toggle in the top bar). Light/dark theme follo
 ## Modules
 
 0. **What Is "The Cloud," Really?** — a jargon-free explanation of cloud computing for anyone who's never thought about what happens after they hit "upload."
-1. **Load Balancing & Auto-Scaling** — a server pool takes traffic under a strategy you pick (round robin / least connections / random), scales up under sustained load, scales down when idle.
-2. **Distributed Consistency** — a 5-node cluster where you can split the network in two and write under eventual or strong (quorum) consistency, watching nodes go stale or writes get rejected depending on the mode. A hands-on look at the CAP theorem.
-3. **Caching & CDN** — three regional edge caches in front of an origin, with TTL-based expiry, cache hits/misses, and a rolling hit-rate sparkline.
-4. **Fault Tolerance & Failover** — a primary + replica cluster where killing the primary triggers heartbeat-miss detection and promotes a replica; a revive flow resyncs a dead node back in.
-5. **VPC: Networks & Security Groups** — public vs. private subnets and security-group rules; a private instance stays unreachable from the internet no matter what the firewall says.
-6. **EC2: Instances & Idle Cost** — launch, stop, and terminate instances, and watch cost accrue every second an instance runs — even at 0% load.
-7. **Elastic Beanstalk: Deploys & Rollback** — deploy a new version with an optional bug baked in, and watch the health check catch it and roll back automatically.
-8. **Route 53: DNS Routing Policies** — simple, weighted, latency-based, and failover routing across three simulated regions.
-9. **SNS: One Event, Many Subscribers** — a published event fans out to Email/SMS/Queue subscribers at once, with retries and a dead-letter path on failure.
-10. **Snowball Edge: When the Network Loses** — a live calculator comparing network transfer time against physically shipping a device, with a real crossover point.
-11. **Signing In: Federated & Passwordless** — simulated Google OAuth, email magic-link, and phone-OTP flows — client-side only, no real accounts, no real credentials.
+1. **Signing In: Federated & Passwordless** — simulated Google OAuth, email magic-link, and phone-OTP flows — client-side only, no real accounts, no real credentials.
+2. **IAM: Permissions & Least Privilege** — attach permissions to a role, try actions against it, and watch a wildcard grant turn a leaked credential into full account access.
+3. **VPC: Networks & Security Groups** — public vs. private subnets and security-group rules; a private instance stays unreachable from the internet no matter what the firewall says.
+4. **EC2: Instances & Idle Cost** — launch, stop, and terminate instances, and watch cost accrue every second an instance runs — even at 0% load.
+5. **S3: Object Storage & Versioning** — upload, delete, and restore versions of the same object; watch how versioning turns a delete into a recoverable marker instead of data loss, and how public-access settings actually gate exposure.
+6. **Lambda: Serverless & Cold Starts** — invoke a function and watch the difference between a cold start (new execution environment) and a warm one, and how a burst of concurrent traffic after idle time forces cold starts across the board.
+7. **Load Balancing & Auto-Scaling** — a server pool takes traffic under a strategy you pick (round robin / least connections / random), scales up under sustained load, scales down when idle.
+8. **Elastic Beanstalk: Deploys & Rollback** — deploy a new version with an optional bug baked in, and watch the health check catch it and roll back automatically.
+9. **Route 53: DNS Routing Policies** — simple, weighted, latency-based, and failover routing across three simulated regions.
+10. **Caching & CDN** — three regional edge caches in front of an origin, with TTL-based expiry, cache hits/misses, and a rolling hit-rate sparkline.
+11. **Distributed Consistency** — a 5-node cluster where you can split the network in two and write under eventual or strong (quorum) consistency, watching nodes go stale or writes get rejected depending on the mode. A hands-on look at the CAP theorem.
+12. **Fault Tolerance & Failover** — a primary + replica cluster where killing the primary triggers heartbeat-miss detection and promotes a replica; a revive flow resyncs a dead node back in.
+13. **SNS: One Event, Many Subscribers** — a published event fans out to Email/SMS/Queue subscribers at once, with retries and a dead-letter path on failure.
+14. **CloudWatch: Monitoring & Alarms** — a live metric feeds an alarm that waits for three consecutive breaches before firing, and goes to a distinct "insufficient data" state if the agent stops reporting instead of silently assuming health.
+15. **Snowball Edge: When the Network Loses** — a live calculator comparing network transfer time against physically shipping a device, with a real crossover point.
 
-Every module pairs an "In plain terms" everyday analogy with a "Try this" checklist, a live simulation, and a "Real incident" — a fact-checked, real-world outage or breach the concept maps to (HealthCare.gov, GitHub, Fastly, GitLab, Capital One, Code Spaces, Knight Capital, Dyn, AWS Kinesis, and a Jack Dorsey SIM-swap), plus an "Under the hood" note tying it to the real service or pattern it's modeled on.
+Every module pairs an "In plain terms" everyday analogy with a "Try this" checklist, a live simulation, and a "Real incident" — a fact-checked, real-world outage or breach the concept maps to (HealthCare.gov, Uber, GitHub, Fastly, GitLab, Capital One, Verizon/NICE Systems, Code Spaces, Knight Capital, Dyn, AWS Kinesis, two separate AWS US-EAST-1 incidents, and a Jack Dorsey SIM-swap), plus an "Under the hood" note tying it to the real service or pattern it's modeled on.
 
 ## Ask the Console
 
@@ -74,7 +78,7 @@ npx serve .
 
 Vanilla HTML, CSS, and JavaScript for the app itself — no framework, no build tooling. Electron wraps it for the desktop build.
 
-- `index.html` / `styles.css` / `app.js` — the app: twelve modules plus the chat widget, the EN/TR i18n layer, and the theme toggle
+- `index.html` / `styles.css` / `app.js` — the app: sixteen modules plus the chat widget, the EN/TR i18n layer, and the theme toggle
 - `main.js` / `package.json` — the Electron shell, `electron-builder` packaging config, and the `electron-updater`-based update check
 
 ---
@@ -85,6 +89,6 @@ Bulut mimarilerinde sürekli karşımıza çıkan fikirlerin küçük, istemci t
 
 İngilizce ve Türkçe olarak kullanılabilir (üst çubuktaki dil seçici). Açık/koyu tema sisteminizi takip eder, elle de değiştirilebilir. Sağ alttaki "Konsola Sor" sohbet asistanı (Groq ile çalışır) anlamadığınız her şeyi sormanızı sağlar — kendi ücretsiz Groq API anahtarınızı gerektirir, sadece tarayıcınızda saklanır.
 
-On iki modül: bulut nedir, yük dengeleme, dağıtık tutarlılık, önbellekleme/CDN, yük devretme, VPC, EC2, Elastic Beanstalk, Route 53, SNS, Snowball Edge ve oturum açma akışları.
+On altı modül: bulut nedir, oturum açma, IAM ve izinler, VPC, EC2, S3, Lambda, yük dengeleme, Elastic Beanstalk, Route 53, önbellekleme/CDN, dağıtık tutarlılık, yük devretme, SNS, CloudWatch ve Snowball Edge.
 
 Yukarıdaki rozet imzalı bir Windows kurulum dosyasına bağlanır. Kendinden imzalı bir sertifika kullanıldığından Windows SmartScreen ilk çalıştırmada "bilinmeyen yayımcı" uyarısı gösterebilir — **Diğer bilgiler → Yine de çalıştır** yeterli. Kurulumu yalnızca bir kez indirmeniz yeterli: uygulama her açılışta yeni bir sürüm olup olmadığını kontrol eder ve varsa, siz onaylamadan hiçbir şeyi indirip kurmaz.

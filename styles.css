@@ -76,6 +76,8 @@ body{
 }
 :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
 button, select, input{ font:inherit; color:inherit; }
+a{ color:var(--accent); }
+a:hover{ color:var(--ink); }
 
 .topbar{ position:sticky; top:0; z-index:20; background:var(--bg-translucent); backdrop-filter:blur(8px); border-bottom:1px solid var(--border); }
 .topbar-inner{ max-width:1180px; margin:0 auto; padding:12px 24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
@@ -235,6 +237,7 @@ select, .btn{ font-size:0.82rem; padding:8px 10px; border-radius:var(--radius); 
 .sparkline{ display:flex; align-items:flex-end; gap:2px; height:36px; }
 .sparkline i{ display:block; width:4px; min-height:3px; background:var(--ink-faint); border-radius:1px 1px 0 0; }
 .sparkline i.hit{ background:var(--good); }
+.sparkline i.breach{ background:var(--bad); }
 
 /* module 04 — failover */
 .cluster-row{ display:flex; gap:12px; flex-wrap:wrap; }

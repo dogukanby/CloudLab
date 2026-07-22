@@ -7,7 +7,7 @@
     en: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 What is the cloud?", lb:"01 Load balancing", consistency:"02 Consistency", cache:"03 Caching", failover:"04 Failover", vpc:"05 VPC", ec2:"06 EC2", beanstalk:"07 Beanstalk", route53:"08 Route 53", sns:"09 SNS", snowball:"10 Snowball Edge", auth:"11 Sign-in" },
+        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge" },
         uptime:"UPTIME",
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"CloudLab",
@@ -15,7 +15,7 @@
         analogyLabel:"In plain terms", technicalLabel:"Under the hood",
         tryThisLabel:"Try this", realIncidentLabel:"Real incident",
         footer:"Everything above runs client-side in JavaScript — no real servers, nodes, or network calls involved.",
-        resetAll:"Reset all modules"
+        resetAll:"Reset all modules", resetAllShort:"Reset"
       },
       cloud101:{
         modId:"MODULE 00", title:"What Is \"The Cloud,\" Really?",
@@ -24,11 +24,12 @@
       },
       intro:{
         title:"Cloud systems, taken apart",
-        p:"Twelve small, live simulations of the mechanisms that keep large systems running — no real servers behind any of it, just the logic. Turn the dials and watch what actually happens under load, under a network partition, under a cache miss, under a failure.",
-        meta:"12 modules · runs entirely in your browser · no real infrastructure"
+        p:"Sixteen small, live simulations of the mechanisms that keep large systems running — no real servers behind any of it, just the logic. Turn the dials and watch what actually happens under load, under a network partition, under a cache miss, under a failure.",
+        meta:"16 modules · runs entirely in your browser · no real infrastructure"
       },
       lb:{
-        modId:"MODULE 01", title:"Load Balancing & Auto-Scaling",
+        modId:"MODULE 07", title:"Load Balancing & Auto-Scaling",
+        titleAzure:"Azure Load Balancer: Load Balancing & Auto-Scaling", titleGcp:"Cloud Load Balancing: Load Balancing & Auto-Scaling",
         dek:"Requests arrive faster than any one server can handle, so a balancer spreads them across a pool — and spins up new servers when the pool falls behind.",
         analogy:"Think of a grocery store at rush hour: one checkout lane backs up fast, so the manager opens more lanes as the line grows — and closes them again once it's quiet. That's load balancing and auto-scaling: spreading customers (requests) across cashiers (servers), and adding or removing cashiers as needed.",
         incoming:"Incoming traffic", node:"LOAD BALANCER",
@@ -53,7 +54,8 @@
         }
       },
       consistency:{
-        modId:"MODULE 02", title:"Distributed Consistency",
+        modId:"MODULE 11", title:"Distributed Consistency",
+        titleAzure:"Distributed Consistency (Azure Cosmos DB)", titleGcp:"Distributed Consistency (Cloud Spanner)",
         dek:"Copies of the same data live on five machines. When a write happens, how fast — and how safely — do the copies agree?",
         analogy:"Imagine texting your friends in different cities that the plan changed. Do you wait until everyone has replied \"got it\" before you consider it official — slower, but nobody shows up confused? Or do you just send it and move on, trusting they'll catch up — faster, but for a moment someone might still be working off the old plan. That trade-off is what \"consistency\" means for computers holding copies of the same data.",
         partitionLabel:"Split the network into {N1,N2,N3} | {N4,N5}",
@@ -84,7 +86,8 @@
         }
       },
       cache:{
-        modId:"MODULE 03", title:"Caching & CDN",
+        modId:"MODULE 10", title:"Caching & CDN",
+        titleAzure:"Caching & Azure CDN", titleGcp:"Caching & Cloud CDN",
         dek:"Edge caches sit between clients and the origin so repeat requests don't have to travel as far. A hit is fast; a miss pays the round trip once and remembers it.",
         analogy:"It's like keeping snacks in your desk drawer instead of walking to the kitchen every time you're hungry. Grabbing from the drawer (a cache hit) is instant; the first trip to restock it (a cache miss) takes longer — and eventually the snacks go stale and need replacing. That's caching and CDNs, just for web pages instead of chips.",
         origin:"ORIGIN — authoritative source",
@@ -114,7 +117,8 @@
         }
       },
       failover:{
-        modId:"MODULE 04", title:"Fault Tolerance & Failover",
+        modId:"MODULE 12", title:"Fault Tolerance & Failover",
+        titleAzure:"Fault Tolerance & Failover (Azure SQL Failover Groups)", titleGcp:"Fault Tolerance & Failover (Cloud SQL High Availability)",
         dek:"One node in the cluster does the writing. If it disappears, something else has to notice, take over, and keep serving — without anyone downstream needing to know it happened.",
         analogy:"Picture a classroom with a substitute teacher on standby down the hall. If the main teacher suddenly can't continue, someone who already knows the class steps in — so the lesson keeps going and most students barely notice the switch. That's failover: a backup that's ready to take over the moment the primary goes quiet.",
         targetLabel:"Target node", killBtn:"Kill selected node", reviveBtn:"Revive last failed node",
@@ -145,7 +149,8 @@
         }
       },
       vpc:{
-        modId:"MODULE 05", title:"VPC: Networks & Security Groups",
+        modId:"MODULE 03", title:"VPC: Networks & Security Groups",
+        titleAzure:"Virtual Network: Networks & Security Groups", titleGcp:"VPC Network: Networks & Security Groups",
         dek:"A cloud network is carved into subnets — some reachable from the internet, some deliberately not — and a security group decides which ports may even knock on the door.",
         analogy:"Think of an office building: the lobby (public subnet) is open to anyone off the street, but the server room (private subnet) has no door to the street at all — you can only reach it from inside the building. A security guard's checklist (security group) then decides which visitors get past the lobby, port by port.",
         publicSubnet:"PUBLIC SUBNET", privateSubnet:"PRIVATE SUBNET",
@@ -172,7 +177,8 @@
         }
       },
       ec2:{
-        modId:"MODULE 06", title:"EC2: Instances & Idle Cost",
+        modId:"MODULE 04", title:"EC2: Instances & Idle Cost",
+        titleAzure:"Virtual Machines: Instances & Idle Cost", titleGcp:"Compute Engine: Instances & Idle Cost",
         dek:"An instance isn't a request — it's a rented machine that keeps costing money for every second it's running, whether it's doing anything or not.",
         analogy:"It's like renting a car for the week instead of paying per ride. Handy if you're driving constantly — but if it sits in the driveway for four of those days, you're still paying for all seven, whether you drove it or not.",
         sizeLabel:"Instance size",
@@ -181,7 +187,7 @@
         loadLabel:"Simulated CPU load —", loadUnit:"%",
         statRunning:"Running instances", statCost:"Accrued cost", statVcpu:"Total vCPUs", statIdle:"Idle but running",
         stopBtn:"Stop", terminateBtn:"Terminate",
-        note:"This is why cost dashboards matter: AWS bills for a running instance whether its CPU sits at 2% or 90%. Auto-scaling (module 01) removes idle capacity automatically; without it, \"launch and forget\" is the single most common way cloud bills balloon.",
+        note:"This is why cost dashboards matter: AWS bills for a running instance whether its CPU sits at 2% or 90%. Auto-scaling (module 07) removes idle capacity automatically; without it, \"launch and forget\" is the single most common way cloud bills balloon.",
         tryStep1:"Launch two or three instances and watch the accrued cost tick up even at 0% load.",
         tryStep2:"Push simulated load up — notice the cost doesn't change, only the CPU bars do.",
         tryStep3:"Stop an instance instead of terminating it — cost stops, but it's still listed, ready to start again.",
@@ -199,13 +205,14 @@
         }
       },
       beanstalk:{
-        modId:"MODULE 07", title:"Elastic Beanstalk: Deploys & Rollback",
+        modId:"MODULE 08", title:"Elastic Beanstalk: Deploys & Rollback",
+        titleAzure:"Azure App Service: Deploys & Rollback", titleGcp:"App Engine: Deploys & Rollback",
         dek:"You upload code; the platform provisions the servers, load balancer, and health checks for you — and refuses to finish rolling out a version that fails them.",
         analogy:"It's like a stage manager who won't bring the new set piece into view until it's passed a safety check — if it wobbles, the old set stays up and nobody in the audience ever sees the broken one.",
         liveVersion:"LIVE VERSION",
         bugLabel:"Introduce a bug in this deploy", deployBtn:"Deploy new version",
         statVersion:"Live version", statDeploys:"Deployments", statRollbacks:"Rollbacks", statHealth:"Environment health",
-        note:"This mirrors what Beanstalk (and similar platforms — Heroku, Cloud Run, App Engine) actually do under the hood: a rolling or immutable deployment behind the same load balancer and auto-scaling group from module 01, gated by a health check before old capacity is ever removed.",
+        note:"This mirrors what Beanstalk (and similar platforms — Heroku, Cloud Run, App Engine) actually do under the hood: a rolling or immutable deployment behind the same load balancer and auto-scaling group from module 07, gated by a health check before old capacity is ever removed.",
         tryStep1:"Deploy a clean version and watch it go live in seconds.",
         tryStep2:"Check \"introduce a bug\" and deploy again — watch the health check fail and the rollback happen automatically.",
         tryStep3:"Notice the live version number never changes during a failed deploy — nothing broken ever reaches the audience.",
@@ -225,7 +232,8 @@
         }
       },
       route53:{
-        modId:"MODULE 08", title:"Route 53: DNS Routing Policies",
+        modId:"MODULE 09", title:"Route 53: DNS Routing Policies",
+        titleAzure:"Azure DNS: DNS Routing Policies", titleGcp:"Cloud DNS: DNS Routing Policies",
         dek:"Before anything reaches a server, a name has to become an address — and which address it becomes can depend on load, distance, or whether anything answers at all.",
         analogy:"It's like calling a company's main phone number and being routed to whichever branch is least busy, or nearest to you, or — if your usual branch stopped answering — automatically sent to the backup office instead, without you ever dialing a different number.",
         regionEU:"REGION — EU", regionUS:"REGION — US", regionAPAC:"REGION — APAC",
@@ -234,7 +242,7 @@
         primaryDownLabel:"Primary region's health check is failing",
         resolveBtn:"Resolve example.com",
         statQueries:"Queries resolved", statPolicy:"Policy", statLastResolved:"Last resolved to", statPrimaryHealth:"Primary health",
-        note:"This is genuinely how Route 53 works: simple routing always answers the same way, weighted splits traffic by percentage (handy for canary releases), latency-based answers with whichever region is measured fastest for that resolver, and failover routing depends on active health checks — exactly the mechanism module 04 simulates, just one layer up at the DNS level.",
+        note:"This is genuinely how Route 53 works: simple routing always answers the same way, weighted splits traffic by percentage (handy for canary releases), latency-based answers with whichever region is measured fastest for that resolver, and failover routing depends on active health checks — exactly the mechanism module 12 simulates, just one layer up at the DNS level.",
         reasonSimple:"simple", reasonWeighted:"weighted", reasonLatency:"lowest latency", reasonFailoverDown:"failover — primary down", reasonFailoverUp:"primary healthy",
         tryStep1:"Resolve a few times under \"Weighted\" and watch the split roughly match the configured weights.",
         tryStep2:"Switch to \"Failover\" and fail the primary's health check — resolves now go to the secondary.",
@@ -252,7 +260,8 @@
         }
       },
       sns:{
-        modId:"MODULE 09", title:"SNS: One Event, Many Subscribers",
+        modId:"MODULE 13", title:"SNS: One Event, Many Subscribers",
+        titleAzure:"Event Grid: One Event, Many Subscribers", titleGcp:"Pub/Sub: One Event, Many Subscribers",
         dek:"A single published event fans out to every subscriber at once — email, text message, another service — without the publisher knowing or caring who's listening.",
         analogy:"It's like a school's PA announcement instead of the principal calling every classroom one by one: say it once, and every room subscribed to that speaker hears it at the same moment, whether it's 3 rooms or 300.",
         topicLabel:"TOPIC — order.placed",
@@ -279,7 +288,8 @@
         }
       },
       snowball:{
-        modId:"MODULE 10", title:"Snowball Edge: When the Network Loses",
+        modId:"MODULE 15", title:"Snowball Edge: When the Network Loses",
+        titleAzure:"Azure Data Box: When the Network Loses", titleGcp:"Transfer Appliance: When the Network Loses",
         dek:"Past a certain size, the fastest way to move data isn't a bigger pipe — it's a physical box on a truck.",
         analogy:"If you needed to send someone 10TB of family photos, emailing them one at a time would take forever — at some point it's genuinely faster to copy them to a hard drive and mail it. Snowball Edge is that instinct, turned into an actual AWS product.",
         dataSizeLabel:"Dataset size —", dataSizeUnit:"TB",
@@ -295,10 +305,12 @@
           body:"Computer scientist Andrew Tanenbaum put this in a networking textbook back in 1996: \"Never underestimate the bandwidth of a station wagon full of tapes hurtling down the highway.\" AWS took the joke seriously enough to build Snowmobile — a literal 45-foot shipping container on a truck, holding up to 100 petabytes and moving it at up to 1 terabit per second once plugged in, for customers whose datasets were too large to move any other way. (AWS retired the Snowmobile service in 2024; Snowball Edge, its smaller sibling, is still very real.)"
         },
         status:{ networkWins:"NETWORK WINS", snowballWins:"SNOWBALL WINS" },
-        log:{ init:"calculator ready" }
+        log:{ init:"calculator ready" },
+        unitSeconds:" sec", unitMinutes:" min", unitHours:" hr", unitDays:" days"
       },
       auth:{
-        modId:"MODULE 11", title:"Signing In: Federated & Passwordless",
+        modId:"MODULE 01", title:"Signing In: Federated & Passwordless",
+        titleAzure:"Signing In: Federated & Passwordless (Microsoft Entra ID)", titleGcp:"Signing In: Federated & Passwordless (Google Identity Platform)",
         dek:"None of these methods ever hand your password to this app — they either ask someone else to vouch for you, or prove you control something only you should have.",
         analogy:"It's the difference between showing a bouncer your actual house keys versus showing a wristband a trusted friend already checked you in with. \"Sign in with Google\" is the wristband — this app never sees what unlocked it.",
         flowLabel:"Choose a method",
@@ -340,6 +352,122 @@
           reset:"session cleared — signed out"
         }
       },
+      iam:{
+        modId:"MODULE 02", title:"IAM: Permissions & Least Privilege",
+        titleAzure:"Microsoft Entra ID: Permissions & Least Privilege", titleGcp:"Cloud IAM: Permissions & Least Privilege",
+        dek:"A role isn't secure or insecure by itself — it's exactly as dangerous as the permissions attached to it, and nothing more.",
+        analogy:"It's the difference between a hotel key card that only opens one room versus a master key that opens every door in the building. Both look identical in your hand. The damage from losing one is completely different from losing the other.",
+        permsLabel:"Permissions attached to this role",
+        permRead:"s3:GetObject — read files", permWrite:"s3:PutObject — write files",
+        permLaunch:"ec2:RunInstances — launch servers", permWildcard:"*:* — administrator access",
+        actionsLabel:"Try an action with this role",
+        actionRead:"Read a file", actionWrite:"Write a file", actionLaunch:"Launch a server", actionLeak:"Simulate a leaked credential (attempt everything)",
+        statGranted:"Permissions granted", statAllowed:"Actions allowed", statDenied:"Actions denied", statBlast:"Blast radius if leaked",
+        blastLow:"Low", blastHigh:"High — full account access",
+        note:"This is the actual mechanism behind every IAM policy: each action a credential attempts is checked against an explicit allow list, and anything not listed is denied by default. \"Least privilege\" just means that list should be as short as the job requires — a wildcard (*) isn't a convenience, it's a promise that a single leaked key can do anything to the whole account.",
+        tryStep1:"Leave only \"read\" checked and try each action — only reading a file succeeds.",
+        tryStep2:"Check \"administrator access\" and click \"simulate a leaked credential\" — watch every action succeed at once.",
+        tryStep3:"Uncheck the wildcard, grant only what the job needs, and compare the blast-radius stat.",
+        incident:{
+          meta:"Uber · November 2016",
+          body:"Attackers found AWS credentials hardcoded in a private GitHub repository used by Uber engineers. Those credentials weren't scoped to one small task — they had broad access to a data store holding personal information for 57 million riders and drivers. Uber didn't disclose the breach for over a year, and paid the attackers $100,000 to delete the data and stay quiet, a decision that later triggered FTC action and state settlements once it came to light. A narrowly scoped credential would have handed the attackers a locked door instead of the building's master key."
+        },
+        status:{ leastPriv:"LEAST PRIVILEGE", overPermissioned:"OVER-PERMISSIONED" },
+        log:{
+          init:"role attached — no permissions granted",
+          allowed:"ALLOWED — {action} permitted by attached policy",
+          denied:"DENIED — {action} not in attached policy (default deny)",
+          leakStart:"simulating a leaked credential — attempting every action..."
+        }
+      },
+      s3:{
+        modId:"MODULE 05", title:"S3: Object Storage & Versioning",
+        titleAzure:"Blob Storage: Object Storage & Versioning", titleGcp:"Cloud Storage: Object Storage & Versioning",
+        dek:"An object store doesn't overwrite — by default every PUT to the same name is a brand-new version sitting on top of the last one.",
+        analogy:"It's like a shared document with \"track changes\" always on: saving over the old draft doesn't erase it, it just files the old draft underneath and makes yours the one people see. Nothing is really gone until someone deliberately shreds a specific draft.",
+        keyLabel:"Object key", keyValue:"photos/family.jpg",
+        uploadBtn:"Upload new version", deleteBtn:"Delete object", restoreBtn:"Restore previous version",
+        versioningLabel:"Versioning enabled",
+        blockPublicLabel:"Block Public Access (on by default)",
+        publicPolicyLabel:"Public-read bucket policy attached",
+        testPublicBtn:"Test an anonymous read",
+        statVersions:"Versions stored", statState:"Object state", statPublic:"Public access", statSize:"Approx. storage used",
+        badgeCurrent:"current", badgePrevious:"previous",
+        note:"This is genuinely how S3 versioning works: turning it on means a DELETE without a specific version ID just adds an invisible \"delete marker\" on top — the object looks gone, but every prior version is still billed and still recoverable until someone deletes that exact version ID. Public access is a separate axis entirely: Block Public Access and a bucket/object policy both have to agree to expose anything.",
+        tryStep1:"Upload a couple of versions, delete the object, then restore it — nothing was actually lost.",
+        tryStep2:"Turn versioning off, delete the object, and try to restore it — this time it's actually gone.",
+        tryStep3:"Turn off Block Public Access, attach the public-read policy, and test an anonymous read.",
+        incident:{
+          meta:"Verizon / NICE Systems · July 2017",
+          body:"A security researcher scanning for open Amazon S3 buckets found one, run by Verizon partner NICE Systems, with no access restriction at all — anyone with the URL could browse it. It held call and account records for roughly 14 million Verizon customers. Nothing was hacked in the traditional sense; the bucket's permissions were simply left open, which any anonymous visitor could just... read. Verizon secured it after being notified, but the data had been publicly reachable for an unknown stretch of time before that."
+        },
+        status:{ secure:"SECURE", exposed:"PUBLICLY EXPOSED", available:"AVAILABLE", deleted:"DELETED (recoverable)", gone:"DELETED (unrecoverable)", empty:"NO OBJECT YET" },
+        log:{
+          init:"bucket ready — versioning off, public access blocked",
+          uploaded:"v{v} uploaded — {size} — now the current version",
+          deletedMarker:"delete marker added — object hidden, {n} version(s) still stored",
+          deletedHard:"object permanently deleted — versioning was off, nothing to recover",
+          restored:"delete marker removed — v{v} is the current version again",
+          restoreNoop:"object isn't deleted — nothing to restore",
+          publicBlocked:"anonymous GET → 403 Forbidden — Block Public Access is on",
+          publicNoPolicy:"anonymous GET → 403 Forbidden — no public-read policy attached",
+          publicExposed:"anonymous GET → 200 OK — object contents returned to an unauthenticated caller"
+        }
+      },
+      lambda:{
+        modId:"MODULE 06", title:"Lambda: Serverless & Cold Starts",
+        titleAzure:"Azure Functions: Serverless & Cold Starts", titleGcp:"Cloud Functions: Serverless & Cold Starts",
+        dek:"There's no server sitting around waiting for a request — an execution environment is built the moment one arrives, and that construction time is the price of not renting anything while idle.",
+        analogy:"It's like a pop-up coffee stand that only assembles itself the moment the first customer of the day shows up — that first person waits while the stand gets built, but everyone right behind them gets served instantly, because it's already standing. Leave it alone too long and it packs itself away again.",
+        invokeBtn:"Invoke once", burstLabel:"Concurrent requests to send —", burstBtn:"Send burst",
+        idleBtn:"Let the pool go idle",
+        statInvocations:"Total invocations", statCold:"Cold starts", statWarm:"Warm starts", statAvgLatency:"Average latency", statCost:"Accrued cost",
+        badgeWarm:"warm",
+        note:"This is genuinely how Lambda works: AWS keeps a pool of \"warm\" execution environments per function, and reuses one instantly if a request arrives while it's idle-but-alive. If every environment is busy or the pool has spun down from inactivity, a brand-new one has to be provisioned first — the \"cold start\" — which is why a burst of concurrent traffic after a quiet period is the single most common cause of a slow first request.",
+        tryStep1:"Invoke once — with an empty pool, it's a cold start.",
+        tryStep2:"Invoke once more right away — same environment is still warm, so it's fast.",
+        tryStep3:"Let the pool go idle, then send a burst of 20 concurrent requests, and watch how many have to start cold.",
+        incident:{
+          meta:"AWS US-EAST-1 · December 7, 2021",
+          body:"An automated process meant to scale capacity for an internal AWS network triggered unexpected behavior in that network, saturating its devices and disrupting communication between other internal AWS services. Lambda's own invocation rate dropped sharply for hours, alongside failures launching new EC2 instances and errors in several other services that depend on that internal network — a reminder that \"serverless\" still runs on physical infrastructure someone else operates, and that infrastructure can still have a bad day."
+        },
+        status:{ warmPool:"WARM POOL READY", cold:"POOL COLD" },
+        log:{
+          init:"pool empty — next invocation will cold start",
+          cold:"cold start — new execution environment provisioned ({ms}ms)",
+          warm:"warm start — reused an idle environment ({ms}ms)",
+          burst:"burst of {n} requests — {cold} cold, {warm} warm",
+          idled:"pool recycled after inactivity — {n} environment(s) shut down"
+        }
+      },
+      cloudwatch:{
+        modId:"MODULE 14", title:"CloudWatch: Monitoring & Alarms",
+        titleAzure:"Azure Monitor: Monitoring & Alarms", titleGcp:"Cloud Monitoring: Monitoring & Alarms",
+        dek:"An alarm doesn't fire the moment a metric crosses a line — it waits for that breach to repeat, so a single noisy spike doesn't page anyone at 3AM.",
+        analogy:"It's a smoke detector with a short delay built in, not a hair-trigger: a few seconds of steam from a hot shower shouldn't set it off, but smoke that keeps building for a while genuinely should. The delay is what makes it trustworthy enough to actually act on.",
+        metricLabel:"Simulated CPU metric —", thresholdLabel:"Alarm threshold —",
+        spikeBtn:"Spike the metric", silentLabel:"Metric agent stopped reporting",
+        statLatest:"Latest datapoint", statStreak:"Consecutive breaches", statAlarm:"Alarm state", statThreshold:"Alarm threshold",
+        note:"This mirrors real CloudWatch alarms closely: they evaluate over a configurable number of consecutive periods (three, here) before changing state, specifically to avoid flapping on a single noisy datapoint. And when an agent stops reporting, a real alarm doesn't quietly assume \"OK\" — it can be configured to treat missing data as its own distinct state, because silence isn't the same thing as health.",
+        tryStep1:"Watch the metric sit under the threshold — the alarm stays OK.",
+        tryStep2:"Click \"spike the metric\" and count the consecutive breaches it takes before ALARM fires.",
+        tryStep3:"Check \"metric agent stopped reporting\" and watch the state go to INSUFFICIENT DATA instead of staying OK.",
+        incident:{
+          meta:"AWS S3 US-EAST-1 · February 28, 2017",
+          body:"During routine debugging, an authorized engineer ran a command intended to remove a small number of servers from an S3 subsystem — a typo in the command's input removed far more capacity than intended, taking a large portion of S3 in US-EAST-1 offline for hours and disrupting huge parts of the internet that depended on it. The detail that made it a monitoring lesson: AWS's own public Service Health Dashboard couldn't be updated to show the outage, because the icons and images the dashboard itself depended on were hosted on the very S3 servers that had just gone down."
+        },
+        status:{ ok:"OK", alarm:"ALARM", insufficient:"INSUFFICIENT DATA" },
+        log:{
+          init:"alarm created — state OK, threshold {threshold}%",
+          datapointOk:"datapoint {value}% — below threshold ({threshold}%)",
+          datapointBreach:"datapoint {value}% — breach {streak}/3",
+          alarmFired:"ALARM — 3 consecutive breaches past {threshold}% — would notify SNS / trigger auto-scaling",
+          alarmCleared:"state → OK — datapoint back under threshold",
+          noData:"no datapoint received — {n}/3 missed periods",
+          insufficientFired:"state → INSUFFICIENT DATA — agent has been silent too long",
+          spiked:"metric spike triggered"
+        }
+      },
       chat:{
         title:"Ask the Console", fabAria:"Ask a question", closeAria:"Close",
         setupIntro:"This runs entirely in your browser through Groq's free API — nothing is sent anywhere except directly to Groq. Paste your own key to turn it on; it's saved only on this device, never on any server.",
@@ -356,7 +484,7 @@
     tr: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 Bulut nedir?", lb:"01 Yük dengeleme", consistency:"02 Tutarlılık", cache:"03 Önbellekleme", failover:"04 Yük devretme", vpc:"05 VPC", ec2:"06 EC2", beanstalk:"07 Beanstalk", route53:"08 Route 53", sns:"09 SNS", snowball:"10 Snowball Edge", auth:"11 Giriş" },
+        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge" },
         uptime:"ÇALIŞMA SÜRESİ",
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"CloudLab",
@@ -364,7 +492,7 @@
         analogyLabel:"Basitçe söylemek gerekirse", technicalLabel:"Perde arkasında",
         tryThisLabel:"Dene bunu", realIncidentLabel:"Gerçek olay",
         footer:"Yukarıdaki her şey tarayıcınızda JavaScript ile çalışır — gerçek sunucu, düğüm veya ağ isteği yoktur.",
-        resetAll:"Tüm modülleri sıfırla"
+        resetAll:"Tüm modülleri sıfırla", resetAllShort:"Sıfırla"
       },
       cloud101:{
         modId:"MODÜL 00", title:"\"Bulut\" Gerçekte Nedir?",
@@ -373,11 +501,12 @@
       },
       intro:{
         title:"Bulut sistemleri, parçalarına ayrıldı",
-        p:"Büyük sistemleri ayakta tutan mekanizmaların on iki küçük, canlı simülasyonu — arkasında gerçek sunucu yok, sadece mantık. Kadranları çevirin ve yük altında, bir ağ bölünmesinde, bir önbellek ıskalamasında, bir arızada gerçekte ne olduğunu izleyin.",
-        meta:"12 modül · tamamen tarayıcınızda çalışır · gerçek altyapı yok"
+        p:"Büyük sistemleri ayakta tutan mekanizmaların on altı küçük, canlı simülasyonu — arkasında gerçek sunucu yok, sadece mantık. Kadranları çevirin ve yük altında, bir ağ bölünmesinde, bir önbellek ıskalamasında, bir arızada gerçekte ne olduğunu izleyin.",
+        meta:"16 modül · tamamen tarayıcınızda çalışır · gerçek altyapı yok"
       },
       lb:{
-        modId:"MODÜL 01", title:"Yük Dengeleme ve Otomatik Ölçekleme",
+        modId:"MODÜL 07", title:"Yük Dengeleme ve Otomatik Ölçekleme",
+        titleAzure:"Azure Load Balancer: Yük Dengeleme ve Otomatik Ölçekleme", titleGcp:"Cloud Load Balancing: Yük Dengeleme ve Otomatik Ölçekleme",
         dek:"İstekler tek bir sunucunun kaldırabileceğinden daha hızlı geliyor; bu yüzden bir dengeleyici onları bir havuza dağıtır — ve havuz yetişemediğinde yeni sunucular devreye sokar.",
         analogy:"Yoğun saatteki bir marketi düşünün: tek bir kasa hızla kuyruk yapar, bu yüzden müdür kuyruk uzadıkça yeni kasalar açar — sakinleşince de kapatır. Yük dengeleme ve otomatik ölçekleme tam olarak bu: müşterileri (istekleri) kasiyerlere (sunuculara) dağıtmak, gerektikçe kasiyer eklemek ya da azaltmak.",
         incoming:"Gelen trafik", node:"YÜK DENGELEYİCİ",
@@ -402,7 +531,8 @@
         }
       },
       consistency:{
-        modId:"MODÜL 02", title:"Dağıtık Tutarlılık",
+        modId:"MODÜL 11", title:"Dağıtık Tutarlılık",
+        titleAzure:"Dağıtık Tutarlılık (Azure Cosmos DB)", titleGcp:"Dağıtık Tutarlılık (Cloud Spanner)",
         dek:"Aynı verinin kopyaları beş makinede yaşıyor. Bir yazma işlemi olduğunda, kopyalar ne kadar hızlı — ve ne kadar güvenli — anlaşıyor?",
         analogy:"Farklı şehirlerdeki arkadaşlarınıza planın değiştiğini yazdığınızı düşünün. Herkes \"anladım\" diyene kadar bekleyip mi resmiyet kazandırırsınız — daha yavaş ama kimse kafası karışık gelmez? Yoksa gönderip devam mı edersiniz, yetişeceklerine güvenerek — daha hızlı ama bir an için biri hâlâ eski planla hareket ediyor olabilir. İşte aynı verinin kopyalarını tutan bilgisayarlar için \"tutarlılık\" tam olarak bu ödünleşim.",
         partitionLabel:"Ağı {N1,N2,N3} | {N4,N5} olarak ikiye ayır",
@@ -433,7 +563,8 @@
         }
       },
       cache:{
-        modId:"MODÜL 03", title:"Önbellekleme ve CDN",
+        modId:"MODÜL 10", title:"Önbellekleme ve CDN",
+        titleAzure:"Önbellekleme ve Azure CDN", titleGcp:"Önbellekleme ve Cloud CDN",
         dek:"Uç önbellekler istemciler ile kaynak arasında durur; böylece tekrarlanan istekler o kadar uzağa gitmek zorunda kalmaz. İsabet hızlıdır; ıskalama gidiş-dönüşü bir kez öder ve sonucu hatırlar.",
         analogy:"Her acıktığınızda mutfağa gitmek yerine masanızın çekmecesinde atıştırmalık bulundurmak gibi. Çekmeceden almak (önbellek isabeti) anındadır; ilk kez stok yapmak için gitmek (önbellek ıskalaması) daha uzun sürer — ve zamanla atıştırmalıklar bayatlar, değiştirilmesi gerekir. Önbellekleme ve CDN'ler de tam olarak bu, sadece cips yerine web sayfaları için.",
         origin:"KAYNAK — yetkili sunucu",
@@ -463,7 +594,8 @@
         }
       },
       failover:{
-        modId:"MODÜL 04", title:"Hata Toleransı ve Yük Devretme",
+        modId:"MODÜL 12", title:"Hata Toleransı ve Yük Devretme",
+        titleAzure:"Hata Toleransı ve Yük Devretme (Azure SQL Yük Devretme Grupları)", titleGcp:"Hata Toleransı ve Yük Devretme (Cloud SQL Yüksek Kullanılabilirlik)",
         dek:"Kümedeki bir düğüm yazma işini yapar. Kaybolursa, başka bir şeyin bunu fark etmesi, devralması ve servise devam etmesi gerekir — akış aşağısındaki hiç kimsenin bunu fark etmesine gerek kalmadan.",
         analogy:"Koridorun ilerisinde hazırda bekleyen bir vekil öğretmenli bir sınıf düşünün. Asıl öğretmen aniden derse devam edemezse, sınıfı zaten tanıyan biri devreye girer — ders devam eder ve çoğu öğrenci değişikliği neredeyse fark etmez. Yük devretme (failover) tam olarak bu: birincil sessiz kaldığı anda devralmaya hazır bir yedek.",
         targetLabel:"Hedef düğüm", killBtn:"Seçili düğümü çökert", reviveBtn:"Son arızalanan düğümü canlandır",
@@ -494,7 +626,8 @@
         }
       },
       vpc:{
-        modId:"MODÜL 05", title:"VPC: Ağlar ve Güvenlik Grupları",
+        modId:"MODÜL 03", title:"VPC: Ağlar ve Güvenlik Grupları",
+        titleAzure:"Sanal Ağ: Ağlar ve Güvenlik Grupları", titleGcp:"VPC Ağı: Ağlar ve Güvenlik Grupları",
         dek:"Bulut ağı alt ağlara bölünür — bazıları internetten erişilebilir, bazıları kasıtlı olarak değil — ve bir güvenlik grubu hangi portların kapıyı çalabileceğine karar verir.",
         analogy:"Bir ofis binasını düşünün: lobi (herkese açık alt ağ) sokaktan gelen herkese açıktır, ama sunucu odasının (özel alt ağ) sokağa açılan kapısı yoktur — oraya sadece binanın içinden ulaşılabilir. Bir güvenlik görevlisinin kontrol listesi (güvenlik grubu) ise lobiden kimin geçebileceğine port port karar verir.",
         publicSubnet:"HERKESE AÇIK ALT AĞ", privateSubnet:"ÖZEL ALT AĞ",
@@ -521,7 +654,8 @@
         }
       },
       ec2:{
-        modId:"MODÜL 06", title:"EC2: Örnekler ve Boşta Duran Maliyet",
+        modId:"MODÜL 04", title:"EC2: Örnekler ve Boşta Duran Maliyet",
+        titleAzure:"Sanal Makineler: Örnekler ve Boşta Duran Maliyet", titleGcp:"Compute Engine: Örnekler ve Boşta Duran Maliyet",
         dek:"Bir örnek bir istek değildir — çalıştığı her saniye için, bir şey yapıyor olsun ya da olmasın para harcatan kiralık bir makinedir.",
         analogy:"Yolculuk başına ödemek yerine hafta boyunca araba kiralamak gibi. Sürekli kullanıyorsanız işe yarar — ama dört gün garajda dururken bile yedi günün tamamını ödersiniz, sürseniz de sürmeseniz de.",
         sizeLabel:"Örnek boyutu",
@@ -530,7 +664,7 @@
         loadLabel:"Simüle edilmiş CPU yükü —", loadUnit:"%",
         statRunning:"Çalışan örnek", statCost:"Biriken maliyet", statVcpu:"Toplam vCPU", statIdle:"Boşta ama çalışıyor",
         stopBtn:"Durdur", terminateBtn:"Sonlandır",
-        note:"Maliyet panellerinin önemli olmasının sebebi bu: AWS, CPU'su %2'de dursun %90'da dursun çalışan bir örneği faturalandırır. Otomatik ölçekleme (modül 01) boşta kalan kapasiteyi kendiliğinden kaldırır; o olmadan \"başlat ve unut\" bulut faturalarının şişmesinin en yaygın sebebidir.",
+        note:"Maliyet panellerinin önemli olmasının sebebi bu: AWS, CPU'su %2'de dursun %90'da dursun çalışan bir örneği faturalandırır. Otomatik ölçekleme (modül 07) boşta kalan kapasiteyi kendiliğinden kaldırır; o olmadan \"başlat ve unut\" bulut faturalarının şişmesinin en yaygın sebebidir.",
         tryStep1:"İki üç örnek başlatın ve %0 yükte bile biriken maliyetin arttığını izleyin.",
         tryStep2:"Simüle edilmiş yükü yükseltin — maliyetin değil, sadece CPU çubuklarının değiştiğine dikkat edin.",
         tryStep3:"Bir örneği sonlandırmak yerine durdurun — maliyet durur, ama hâlâ listede, tekrar başlatılmaya hazır.",
@@ -548,13 +682,14 @@
         }
       },
       beanstalk:{
-        modId:"MODÜL 07", title:"Elastic Beanstalk: Dağıtımlar ve Geri Alma",
+        modId:"MODÜL 08", title:"Elastic Beanstalk: Dağıtımlar ve Geri Alma",
+        titleAzure:"Azure App Service: Dağıtımlar ve Geri Alma", titleGcp:"App Engine: Dağıtımlar ve Geri Alma",
         dek:"Kodu yüklersiniz; platform sunucuları, yük dengeleyiciyi ve sağlık kontrollerini sizin için sağlar — ve bunları geçemeyen bir sürümün dağıtımını tamamlamayı reddeder.",
         analogy:"Güvenlik kontrolünden geçmeden yeni sahne dekorunu sahneye çıkarmayı reddeden bir sahne amiri gibi — sallanırsa eski dekor yerinde kalır ve seyirciden kimse bozuk olanı hiç görmez.",
         liveVersion:"CANLI SÜRÜM",
         bugLabel:"Bu dağıtıma bir hata ekle", deployBtn:"Yeni sürüm dağıt",
         statVersion:"Canlı sürüm", statDeploys:"Dağıtımlar", statRollbacks:"Geri almalar", statHealth:"Ortam sağlığı",
-        note:"Bu, Beanstalk'ın (ve Heroku, Cloud Run, App Engine gibi benzer platformların) perde arkasında gerçekten yaptığı şey: modül 01'deki aynı yük dengeleyici ve otomatik ölçekleme grubunun arkasında, eski kapasite hiç kaldırılmadan önce bir sağlık kontrolünden geçmesi gereken kademeli ya da değişmez bir dağıtım.",
+        note:"Bu, Beanstalk'ın (ve Heroku, Cloud Run, App Engine gibi benzer platformların) perde arkasında gerçekten yaptığı şey: modül 07'deki aynı yük dengeleyici ve otomatik ölçekleme grubunun arkasında, eski kapasite hiç kaldırılmadan önce bir sağlık kontrolünden geçmesi gereken kademeli ya da değişmez bir dağıtım.",
         tryStep1:"Temiz bir sürüm dağıtın ve saniyeler içinde canlıya çıktığını izleyin.",
         tryStep2:"\"Hata ekle\"yi işaretleyip tekrar dağıtın — sağlık kontrolünün başarısız olup geri almanın kendiliğinden gerçekleştiğini izleyin.",
         tryStep3:"Başarısız bir dağıtım sırasında canlı sürüm numarasının hiç değişmediğine dikkat edin — bozuk hiçbir şey seyirciye ulaşmaz.",
@@ -574,7 +709,8 @@
         }
       },
       route53:{
-        modId:"MODÜL 08", title:"Route 53: DNS Yönlendirme Politikaları",
+        modId:"MODÜL 09", title:"Route 53: DNS Yönlendirme Politikaları",
+        titleAzure:"Azure DNS: DNS Yönlendirme Politikaları", titleGcp:"Cloud DNS: DNS Yönlendirme Politikaları",
         dek:"Bir şey bir sunucuya ulaşmadan önce, bir ismin adrese dönüşmesi gerekir — ve hangi adrese dönüştüğü yüke, mesafeye ya da hiçbir şeyin yanıt verip vermediğine bağlı olabilir.",
         analogy:"Bir şirketin ana hattını aradığınızda en az meşgul olan, ya da size en yakın şubeye yönlendirilmeniz gibi — ya da her zamanki şubeniz yanıt vermeyi bırakmışsa, siz farklı bir numara çevirmeden otomatik olarak yedek ofise bağlanmanız gibi.",
         regionEU:"BÖLGE — AB", regionUS:"BÖLGE — ABD", regionAPAC:"BÖLGE — APAC",
@@ -583,7 +719,7 @@
         primaryDownLabel:"Birincil bölgenin sağlık kontrolü başarısız",
         resolveBtn:"example.com'u çözümle",
         statQueries:"Çözümlenen sorgu", statPolicy:"Politika", statLastResolved:"Son çözümlenen", statPrimaryHealth:"Birincil sağlığı",
-        note:"Route 53 gerçekten böyle çalışır: basit yönlendirme her zaman aynı yanıtı verir, ağırlıklı trafiği yüzdeye göre böler (canary sürümler için kullanışlı), gecikmeye göre yönlendirme o çözümleyici için en hızlı ölçülen bölgeyle yanıt verir, ve yük devretme yönlendirmesi aktif sağlık kontrollerine bağlıdır — tam olarak modül 04'ün simüle ettiği mekanizma, sadece bir katman yukarıda, DNS seviyesinde.",
+        note:"Route 53 gerçekten böyle çalışır: basit yönlendirme her zaman aynı yanıtı verir, ağırlıklı trafiği yüzdeye göre böler (canary sürümler için kullanışlı), gecikmeye göre yönlendirme o çözümleyici için en hızlı ölçülen bölgeyle yanıt verir, ve yük devretme yönlendirmesi aktif sağlık kontrollerine bağlıdır — tam olarak modül 12'nin simüle ettiği mekanizma, sadece bir katman yukarıda, DNS seviyesinde.",
         reasonSimple:"basit", reasonWeighted:"ağırlıklı", reasonLatency:"en düşük gecikme", reasonFailoverDown:"yük devretme — birincil devre dışı", reasonFailoverUp:"birincil sağlıklı",
         tryStep1:"\"Ağırlıklı\" altında birkaç kez çözümleyin ve dağılımın yaklaşık olarak yapılandırılmış ağırlıklara uyduğunu izleyin.",
         tryStep2:"\"Yük devretme\"ye geçin ve birincilin sağlık kontrolünü başarısız yapın — çözümlemeler artık ikincile gidiyor.",
@@ -601,7 +737,8 @@
         }
       },
       sns:{
-        modId:"MODÜL 09", title:"SNS: Tek Olay, Çok Abone",
+        modId:"MODÜL 13", title:"SNS: Tek Olay, Çok Abone",
+        titleAzure:"Event Grid: Tek Olay, Çok Abone", titleGcp:"Pub/Sub: Tek Olay, Çok Abone",
         dek:"Yayınlanan tek bir olay, yayıncının kimin dinlediğini bilmesine ya da umursamasına gerek kalmadan tüm abonelere aynı anda dağılır — e-posta, mesaj, başka bir servis.",
         analogy:"Müdürün her sınıfı tek tek arayacağına okulun anons sistemi kullanması gibi: bir kez söylersiniz, o hoparlöre abone olan her sınıf aynı anda duyar, ister 3 oda olsun ister 300.",
         topicLabel:"KONU — order.placed",
@@ -628,7 +765,8 @@
         }
       },
       snowball:{
-        modId:"MODÜL 10", title:"Snowball Edge: Ağın Kaybettiği Yer",
+        modId:"MODÜL 15", title:"Snowball Edge: Ağın Kaybettiği Yer",
+        titleAzure:"Azure Data Box: Ağın Kaybettiği Yer", titleGcp:"Transfer Appliance: Ağın Kaybettiği Yer",
         dek:"Belirli bir boyuttan sonra, veriyi taşımanın en hızlı yolu daha büyük bir boru değil — bir kamyondaki fiziksel bir kutudur.",
         analogy:"Birine 10TB aile fotoğrafı göndermeniz gerekseydi, tek tek e-postalamak sonsuza kadar sürerdi — belli bir noktada onları bir sabit diske kopyalayıp postalamak gerçekten daha hızlıdır. Snowball Edge bu içgüdünün gerçek bir AWS ürününe dönüşmüş hali.",
         dataSizeLabel:"Veri kümesi boyutu —", dataSizeUnit:"TB",
@@ -644,10 +782,12 @@
           body:"Bilgisayar bilimci Andrew Tanenbaum bunu 1996'da bir ağ ders kitabına şöyle yazmıştı: \"Otobandan geçen, teyplerle dolu bir station wagon'un bant genişliğini asla hafife almayın.\" AWS bu şakayı ciddiye alacak kadar ileri gitti ve Snowmobile'ı inşa etti — bir kamyon üzerinde, 100 petabayta kadar veri taşıyan ve bağlandığında saniyede 1 terabite kadar aktaran, gerçek bir 45 fitlik nakliye konteyneri; veri kümesi başka hiçbir şekilde taşınamayacak kadar büyük olan müşteriler için. (AWS, Snowmobile hizmetini 2024'te kullanımdan kaldırdı; daha küçük kardeşi Snowball Edge hâlâ gerçek.)"
         },
         status:{ networkWins:"AĞ KAZANIYOR", snowballWins:"SNOWBALL KAZANIYOR" },
-        log:{ init:"hesap makinesi hazır" }
+        log:{ init:"hesap makinesi hazır" },
+        unitSeconds:" sn", unitMinutes:" dk", unitHours:" sa", unitDays:" gün"
       },
       auth:{
-        modId:"MODÜL 11", title:"Giriş Yapmak: Federe ve Parolasız",
+        modId:"MODÜL 01", title:"Giriş Yapmak: Federe ve Parolasız",
+        titleAzure:"Giriş Yapmak: Federe ve Parolasız (Microsoft Entra ID)", titleGcp:"Giriş Yapmak: Federe ve Parolasız (Google Identity Platform)",
         dek:"Bu yöntemlerin hiçbiri parolanızı bu uygulamaya vermez — ya başkasının sizin için kefil olmasını ister, ya da sadece sizde olması gereken bir şeyi kontrol ettiğinizi kanıtlarsınız.",
         analogy:"Bir fedaiye gerçek ev anahtarlarınızı göstermekle, güvenilir bir arkadaşınızın sizi zaten içeri aldığı bir bileziği göstermek arasındaki fark gibi. \"Google ile giriş yap\" o bileziktir — bu uygulama onu neyin açtığını hiç görmez.",
         flowLabel:"Bir yöntem seçin",
@@ -689,6 +829,122 @@
           reset:"oturum temizlendi — oturum kapalı"
         }
       },
+      iam:{
+        modId:"MODÜL 02", title:"IAM: İzinler ve En Az Ayrıcalık",
+        titleAzure:"Microsoft Entra ID: İzinler ve En Az Ayrıcalık", titleGcp:"Cloud IAM: İzinler ve En Az Ayrıcalık",
+        dek:"Bir rol kendi başına güvenli ya da güvensiz değildir — sadece üzerine eklenmiş izinler kadar tehlikelidir, ne fazlası ne azı.",
+        analogy:"Sadece bir odayı açan bir otel kart anahtarıyla, binadaki her kapıyı açan bir ana anahtar arasındaki fark gibi. İkisi de elinizde aynı görünür. Birini kaybetmenin sonucu, diğerini kaybetmenin sonucuyla hiç aynı değildir.",
+        permsLabel:"Bu role eklenmiş izinler",
+        permRead:"s3:GetObject — dosya okuma", permWrite:"s3:PutObject — dosya yazma",
+        permLaunch:"ec2:RunInstances — sunucu başlatma", permWildcard:"*:* — yönetici erişimi",
+        actionsLabel:"Bu rolle bir eylem deneyin",
+        actionRead:"Dosya oku", actionWrite:"Dosya yaz", actionLaunch:"Sunucu başlat", actionLeak:"Sızmış bir kimlik bilgisini simüle et (hepsini dene)",
+        statGranted:"Verilen izinler", statAllowed:"İzin verilen eylemler", statDenied:"Reddedilen eylemler", statBlast:"Sızarsa etki alanı",
+        blastLow:"Düşük", blastHigh:"Yüksek — hesabın tamamına erişim",
+        note:"Her IAM politikasının arkasındaki gerçek mekanizma bu: bir kimlik bilginin denediği her eylem, açık bir izin listesiyle karşılaştırılır ve listede olmayan her şey varsayılan olarak reddedilir. \"En az ayrıcalık\" sadece o listenin işin gerektirdiği kadar kısa olması demektir — bir joker karakter (*) bir kolaylık değildir, sızan tek bir anahtarın tüm hesaba her şeyi yapabileceğinin sözüdür.",
+        tryStep1:"Sadece \"okuma\"yı işaretli bırakın ve her eylemi deneyin — sadece dosya okuma başarılı olur.",
+        tryStep2:"\"Yönetici erişimi\"ni işaretleyin ve \"sızmış bir kimlik bilgisini simüle et\"e tıklayın — her eylemin birden başarılı olduğunu görün.",
+        tryStep3:"Joker karakterin işaretini kaldırın, sadece işin gerektirdiğini verin ve etki alanı istatistiğini karşılaştırın.",
+        incident:{
+          meta:"Uber · Kasım 2016",
+          body:"Saldırganlar, Uber mühendislerinin kullandığı özel bir GitHub deposuna gömülmüş AWS kimlik bilgileri buldu. Bu kimlik bilgileri küçük bir göreve özel değildi — 57 milyon yolcu ve sürücünün kişisel bilgilerini tutan bir veri deposuna geniş erişimi vardı. Uber ihlali bir yıldan fazla açıklamadı ve saldırganlara veriyi silmeleri ve sessiz kalmaları için 100.000 dolar ödedi; bu karar ortaya çıktığında FTC soruşturmasına ve eyalet uzlaşmalarına yol açtı. Dar kapsamlı bir kimlik bilgisi, saldırganlara binanın ana anahtarı yerine kilitli tek bir kapı verirdi."
+        },
+        status:{ leastPriv:"EN AZ AYRICALIK", overPermissioned:"AŞIRI YETKİLİ" },
+        log:{
+          init:"rol eklendi — hiçbir izin verilmedi",
+          allowed:"İZİN VERİLDİ — {action}, eklenmiş politika tarafından izinli",
+          denied:"REDDEDİLDİ — {action} eklenmiş politikada yok (varsayılan red)",
+          leakStart:"sızmış bir kimlik bilgisi simüle ediliyor — her eylem deneniyor..."
+        }
+      },
+      s3:{
+        modId:"MODÜL 05", title:"S3: Nesne Depolama ve Sürümleme",
+        titleAzure:"Blob Depolama: Nesne Depolama ve Sürümleme", titleGcp:"Cloud Storage: Nesne Depolama ve Sürümleme",
+        dek:"Bir nesne deposu üzerine yazmaz — varsayılan olarak aynı isme yapılan her PUT, öncekinin üzerine oturan yepyeni bir sürümdür.",
+        analogy:"Her zaman \"değişiklikleri izle\" açık olan paylaşımlı bir belge gibi: eski taslağın üzerine kaydetmek onu silmez, sadece eski taslağı altına dosyalar ve sizinkini görünen yapar. Biri özellikle belirli bir taslağı imha etmedikçe hiçbir şey gerçekten kaybolmaz.",
+        keyLabel:"Nesne anahtarı", keyValue:"fotograflar/aile.jpg",
+        uploadBtn:"Yeni sürüm yükle", deleteBtn:"Nesneyi sil", restoreBtn:"Önceki sürümü geri yükle",
+        versioningLabel:"Sürümleme etkin",
+        blockPublicLabel:"Herkese Açık Erişimi Engelle (varsayılan açık)",
+        publicPolicyLabel:"Herkese açık okuma politikası eklendi",
+        testPublicBtn:"Anonim bir okuma dene",
+        statVersions:"Depolanan sürümler", statState:"Nesne durumu", statPublic:"Herkese açık erişim", statSize:"Yaklaşık kullanılan depolama",
+        badgeCurrent:"güncel", badgePrevious:"önceki",
+        note:"S3 sürümleme gerçekten böyle çalışır: açık olduğunda, belirli bir sürüm kimliği olmadan yapılan bir DELETE sadece üzerine görünmez bir \"silme işareti\" ekler — nesne silinmiş gibi görünür, ama biri o tam sürüm kimliğini silmedikçe önceki her sürüm hâlâ faturalandırılır ve hâlâ kurtarılabilir. Herkese açık erişim tamamen ayrı bir eksendir: bir şeyin dışarı açılması için hem Herkese Açık Erişimi Engelle hem de kova/nesne politikası aynı fikirde olmalıdır.",
+        tryStep1:"Birkaç sürüm yükleyin, nesneyi silin, sonra geri yükleyin — aslında hiçbir şey kaybolmadı.",
+        tryStep2:"Sürümlemeyi kapatın, nesneyi silin ve geri yüklemeyi deneyin — bu sefer gerçekten gitti.",
+        tryStep3:"Herkese Açık Erişimi Engelle'yi kapatın, herkese açık okuma politikasını ekleyin ve anonim bir okuma deneyin.",
+        incident:{
+          meta:"Verizon / NICE Systems · Temmuz 2017",
+          body:"Açık Amazon S3 kovalarını tarayan bir güvenlik araştırmacısı, Verizon ortağı NICE Systems'ın işlettiği, hiçbir erişim kısıtlaması olmayan bir kova buldu — URL'yi bilen herkes içine göz atabiliyordu. Yaklaşık 14 milyon Verizon müşterisinin arama ve hesap kayıtlarını barındırıyordu. Geleneksel anlamda hiçbir şey hacklenmedi; kovanın izinleri sadece açık bırakılmıştı, ve anonim herhangi bir ziyaretçi onu... okuyabiliyordu. Verizon bildirim aldıktan sonra güvenliğini sağladı, ama veri bundan önce bilinmeyen bir süre boyunca herkese açık erişilebilir durumdaydı."
+        },
+        status:{ secure:"GÜVENLİ", exposed:"HERKESE AÇIK", available:"MEVCUT", deleted:"SİLİNDİ (kurtarılabilir)", gone:"SİLİNDİ (kurtarılamaz)", empty:"HENÜZ NESNE YOK" },
+        log:{
+          init:"kova hazır — sürümleme kapalı, herkese açık erişim engelli",
+          uploaded:"v{v} yüklendi — {size} — şimdi güncel sürüm",
+          deletedMarker:"silme işareti eklendi — nesne gizlendi, {n} sürüm hâlâ depolanıyor",
+          deletedHard:"nesne kalıcı olarak silindi — sürümleme kapalıydı, kurtaracak bir şey yok",
+          restored:"silme işareti kaldırıldı — v{v} yeniden güncel sürüm",
+          restoreNoop:"nesne silinmiş değil — geri yüklenecek bir şey yok",
+          publicBlocked:"anonim GET → 403 Forbidden — Herkese Açık Erişimi Engelle açık",
+          publicNoPolicy:"anonim GET → 403 Forbidden — herkese açık okuma politikası eklenmemiş",
+          publicExposed:"anonim GET → 200 OK — nesne içeriği kimliği doğrulanmamış bir çağırana döndürüldü"
+        }
+      },
+      lambda:{
+        modId:"MODÜL 06", title:"Lambda: Sunucusuz ve Soğuk Başlangıçlar",
+        titleAzure:"Azure Functions: Sunucusuz ve Soğuk Başlangıçlar", titleGcp:"Cloud Functions: Sunucusuz ve Soğuk Başlangıçlar",
+        dek:"İsteği bekleyen duran bir sunucu yoktur — bir çalıştırma ortamı istek geldiği an inşa edilir, ve o inşa süresi, boştayken hiçbir şey kiralamamanın bedelidir.",
+        analogy:"Günün ilk müşterisi geldiği an kendini kuran açılır bir kahve standı gibi: o ilk kişi stant kurulurken bekler, ama hemen arkasındaki herkes anında hizmet alır, çünkü stant artık ayakta. Çok uzun süre yalnız bırakılırsa kendini yeniden toplar.",
+        invokeBtn:"Bir kez çağır", burstLabel:"Gönderilecek eşzamanlı istek —", burstBtn:"Patlama gönder",
+        idleBtn:"Havuzun boşa düşmesine izin ver",
+        statInvocations:"Toplam çağrı", statCold:"Soğuk başlangıçlar", statWarm:"Sıcak başlangıçlar", statAvgLatency:"Ortalama gecikme", statCost:"Biriken maliyet",
+        badgeWarm:"sıcak",
+        note:"Lambda gerçekten böyle çalışır: AWS her fonksiyon için bir \"sıcak\" çalıştırma ortamı havuzu tutar ve boşta-ama-canlı bir ortam varken bir istek gelirse onu anında yeniden kullanır. Her ortam meşgulse ya da havuz hareketsizlikten kapanmışsa, önce yepyeni bir tane hazırlanmalıdır — \"soğuk başlangıç\" — bu yüzden sessiz bir dönemden sonra gelen eşzamanlı trafik patlaması, yavaş bir ilk isteğin en yaygın tek sebebidir.",
+        tryStep1:"Bir kez çağırın — boş bir havuzla bu bir soğuk başlangıçtır.",
+        tryStep2:"Hemen bir kez daha çağırın — aynı ortam hâlâ sıcak, bu yüzden hızlı.",
+        tryStep3:"Havuzun boşa düşmesine izin verin, sonra 20 eşzamanlı istekten oluşan bir patlama gönderin ve kaç tanesinin soğuk başlamak zorunda kaldığını izleyin.",
+        incident:{
+          meta:"AWS US-EAST-1 · 7 Aralık 2021",
+          body:"AWS'nin dahili bir ağının kapasitesini ölçeklemek için tasarlanmış otomatik bir süreç, o ağda beklenmeyen bir davranış tetikledi; ağın cihazlarını doyurdu ve diğer dahili AWS servisleri arasındaki iletişimi bozdu. Lambda'nın kendi çağrı oranı saatlerce keskin biçimde düştü, yeni EC2 örnekleri başlatma hataları ve o dahili ağa bağımlı birkaç başka serviste hatalarla birlikte — \"sunucusuz\"un hâlâ birinin işlettiği fiziksel altyapı üzerinde çalıştığının, ve o altyapının da kötü bir gün geçirebileceğinin bir hatırlatması."
+        },
+        status:{ warmPool:"HAVUZ SICAK VE HAZIR", cold:"HAVUZ SOĞUK" },
+        log:{
+          init:"havuz boş — sıradaki çağrı soğuk başlayacak",
+          cold:"soğuk başlangıç — yeni bir çalıştırma ortamı hazırlandı ({ms}ms)",
+          warm:"sıcak başlangıç — boştaki bir ortam yeniden kullanıldı ({ms}ms)",
+          burst:"{n} isteklik patlama — {cold} soğuk, {warm} sıcak",
+          idled:"hareketsizlik sonrası havuz geri toplandı — {n} ortam kapatıldı"
+        }
+      },
+      cloudwatch:{
+        modId:"MODÜL 14", title:"CloudWatch: İzleme ve Alarmlar",
+        titleAzure:"Azure Monitor: İzleme ve Alarmlar", titleGcp:"Cloud Monitoring: İzleme ve Alarmlar",
+        dek:"Bir alarm, bir metrik sınırı geçtiği an ötmez — bu ihlalin tekrar etmesini bekler, böylece tek bir gürültülü sıçrama gece 3'te kimseyi çağırmaz.",
+        analogy:"Kısa bir gecikmesi olan, tetiği hassas olmayan bir duman dedektörü gibi: sıcak bir duştan çıkan birkaç saniyelik buhar onu çalıştırmamalı, ama artmaya devam eden duman gerçekten çalıştırmalı. Onu gerçekten güvenip eyleme geçirilebilir kılan da bu gecikmedir.",
+        metricLabel:"Simüle edilen CPU metriği —", thresholdLabel:"Alarm eşiği —",
+        spikeBtn:"Metriği sıçrat", silentLabel:"Metrik ajanı veri göndermeyi durdurdu",
+        statLatest:"Son veri noktası", statStreak:"Ardışık ihlal", statAlarm:"Alarm durumu", statThreshold:"Alarm eşiği",
+        note:"Bu, gerçek CloudWatch alarmlarına oldukça yakın: durum değiştirmeden önce yapılandırılabilir sayıda ardışık dönem (burada üç) değerlendirirler, özellikle tek bir gürültülü veri noktasında çırpınmayı önlemek için. Ve bir ajan veri göndermeyi durdurduğunda, gerçek bir alarm sessizce \"TAMAM\" varsaymaz — eksik veriyi kendi ayrı durumu olarak ele alacak şekilde yapılandırılabilir, çünkü sessizlik sağlıkla aynı şey değildir.",
+        tryStep1:"Metriğin eşiğin altında durduğunu izleyin — alarm TAMAM kalır.",
+        tryStep2:"\"Metriği sıçrat\"a tıklayın ve ALARM ötmeden önce kaç ardışık ihlal gerektiğini sayın.",
+        tryStep3:"\"Metrik ajanı veri göndermeyi durdurdu\"yu işaretleyin ve durumun TAMAM kalmak yerine YETERSİZ VERİ'ye gittiğini izleyin.",
+        incident:{
+          meta:"AWS S3 US-EAST-1 · 28 Şubat 2017",
+          body:"Rutin bir hata ayıklama sırasında, yetkili bir mühendis S3'ün bir alt sisteminden az sayıda sunucuyu kaldırmayı amaçlayan bir komut çalıştırdı — komutun girdisindeki bir yazım hatası amaçlanandan çok daha fazla kapasiteyi kaldırdı ve US-EAST-1'deki S3'ün büyük bir kısmını saatlerce çevrimdışı bıraktı, buna bağımlı interneti büyük ölçüde aksattı. Bunu bir izleme dersine dönüştüren detay şu: AWS'nin kendi herkese açık Servis Sağlığı Panosu, kesintiyi göstermek için güncellenemedi — çünkü panonun kendisinin dayandığı simgeler ve görseller, tam da o an çöken S3 sunucularında barındırılıyordu."
+        },
+        status:{ ok:"TAMAM", alarm:"ALARM", insufficient:"YETERSİZ VERİ" },
+        log:{
+          init:"alarm oluşturuldu — durum TAMAM, eşik %{threshold}",
+          datapointOk:"veri noktası %{value} — eşiğin altında (%{threshold})",
+          datapointBreach:"veri noktası %{value} — ihlal {streak}/3",
+          alarmFired:"ALARM — %{threshold} eşiğini aşan 3 ardışık ihlal — SNS'i bilgilendirir / otomatik ölçeklemeyi tetikler",
+          alarmCleared:"durum → TAMAM — veri noktası yeniden eşiğin altında",
+          noData:"veri noktası alınamadı — {n}/3 kaçırılan dönem",
+          insufficientFired:"durum → YETERSİZ VERİ — ajan çok uzun süredir sessiz",
+          spiked:"metrik sıçraması tetiklendi"
+        }
+      },
       chat:{
         title:"Konsola Sor", fabAria:"Bir soru sor", closeAria:"Kapat",
         setupIntro:"Bu tamamen tarayıcınızda, Groq'un ücretsiz API'si üzerinden çalışır — hiçbir şey Groq dışında bir yere gönderilmez. Etkinleştirmek için kendi anahtarınızı yapıştırın; sadece bu cihazda saklanır, hiçbir sunucuda değil.",
@@ -704,9 +960,11 @@
     }
   };
 
-  const LANG_KEY="csc-lang", THEME_KEY="csc-theme";
+  const LANG_KEY="csc-lang", THEME_KEY="csc-theme", PROVIDER_KEY="csc-provider";
   let currentLang = localStorage.getItem(LANG_KEY) || (((navigator.language||"").toLowerCase().indexOf("tr")===0) ? "tr" : "en");
   let themeMode = localStorage.getItem(THEME_KEY) || "auto";
+  let providerMode = localStorage.getItem(PROVIDER_KEY) || "aws";
+  const PROVIDER_MODULES=["auth","iam","vpc","ec2","s3","lambda","lb","beanstalk","route53","cache","consistency","failover","sns","cloudwatch","snowball"];
   let stateEpoch = 0; // bumped by resetAllModules() so in-flight setTimeouts from before a reset become no-ops
 
   function t(path, vars){
@@ -783,6 +1041,21 @@
   }
   $("#themeBtn").addEventListener("click", cycleTheme);
   applyTheme(themeMode);
+
+  /* ============ jump nav: smooth scroll to module ============ */
+  document.querySelectorAll(".jumpnav a").forEach(function(link){
+    link.addEventListener("click", function(e){
+      const id = link.getAttribute("href").slice(1);
+      const target = document.getElementById(id);
+      if(!target) return;
+      e.preventDefault();
+      const topbarH = $(".topbar").getBoundingClientRect().height;
+      const top = target.getBoundingClientRect().top + window.pageYOffset - topbarH - 12;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({ top: Math.max(0, top), behavior: reduceMotion ? "auto" : "smooth" });
+      history.pushState(null, "", "#"+id);
+    });
+  });
 
   /* ============ uptime ticker ============ */
   const startTime=Date.now();
@@ -1566,12 +1839,14 @@
   const SNOWBALL_SHIP_DAYS=7;
   const SNOWBALL_LOCAL_GBPS=10;
   function snowballFormatDuration(seconds){
-    if(seconds<60) return Math.round(seconds)+"s";
+    const locale = currentLang==="tr" ? "tr-TR" : "en-US";
+    if(seconds<60) return Math.round(seconds)+t("snowball.unitSeconds");
     const minutes=seconds/60;
-    if(minutes<60) return Math.round(minutes)+"m";
+    if(minutes<60) return Math.round(minutes)+t("snowball.unitMinutes");
     const hours=minutes/60;
-    if(hours<48) return hours.toFixed(1)+"h";
-    return (hours/24).toFixed(1)+"d";
+    if(hours<48) return hours.toFixed(1)+t("snowball.unitHours");
+    const days=hours/24;
+    return days.toLocaleString(locale,{minimumFractionDigits:1,maximumFractionDigits:1})+t("snowball.unitDays");
   }
   function snowballCompute(){
     const sizeTB=Number($("#snowballSize").value);
@@ -1679,6 +1954,270 @@
   addLog($("#authLog"), t("auth.log.init"));
   authUpdateStats();
 
+  /* ============ MODULE 02 — IAM ============ */
+  let iamAllowedCount=0, iamDeniedCount=0;
+  function iamPerms(){
+    return {
+      read: $("#iamPermRead").checked,
+      write: $("#iamPermWrite").checked,
+      launch: $("#iamPermLaunch").checked,
+      wildcard: $("#iamPermWildcard").checked
+    };
+  }
+  function iamUpdateStats(){
+    const p=iamPerms();
+    const granted=[p.read,p.write,p.launch,p.wildcard].filter(Boolean).length;
+    $("#iamStatGranted").textContent=granted;
+    $("#iamStatAllowed").textContent=iamAllowedCount;
+    $("#iamStatDenied").textContent=iamDeniedCount;
+    $("#iamStatBlast").textContent = p.wildcard ? t("iam.blastHigh") : t("iam.blastLow");
+    setStatus($("#iamStatus"), null, p.wildcard?"overPermissioned":"leastPriv", "iam.status", p.wildcard?"bad":"good");
+  }
+  function iamAttempt(actionLabelKey, permKey){
+    const p=iamPerms();
+    const allowed = p[permKey] || p.wildcard;
+    if(allowed){
+      iamAllowedCount++;
+      addLog($("#iamLog"), t("iam.log.allowed",{action:t("iam."+actionLabelKey)}), "good");
+    } else {
+      iamDeniedCount++;
+      addLog($("#iamLog"), t("iam.log.denied",{action:t("iam."+actionLabelKey)}), "bad");
+    }
+    iamUpdateStats();
+  }
+  $("#iamActionRead").addEventListener("click", function(){ iamAttempt("actionRead","read"); });
+  $("#iamActionWrite").addEventListener("click", function(){ iamAttempt("actionWrite","write"); });
+  $("#iamActionLaunch").addEventListener("click", function(){ iamAttempt("actionLaunch","launch"); });
+  $("#iamActionLeak").addEventListener("click", function(){
+    addLog($("#iamLog"), t("iam.log.leakStart"), "warn");
+    iamAttempt("actionRead","read");
+    iamAttempt("actionWrite","write");
+    iamAttempt("actionLaunch","launch");
+  });
+  ["iamPermRead","iamPermWrite","iamPermLaunch","iamPermWildcard"].forEach(function(id){
+    $("#"+id).addEventListener("change", iamUpdateStats);
+  });
+  addLog($("#iamLog"), t("iam.log.init"));
+  iamUpdateStats();
+
+  /* ============ MODULE 05 — S3 ============ */
+  let s3VersionList=[];
+  let s3NextV=1;
+  let s3DeleteMarker=false;
+  let s3EverUploaded=false;
+  function s3RandomSizeKB(){ return Math.round(80+Math.random()*900); }
+  function s3TotalSizeKB(){ return s3VersionList.reduce(function(a,v){ return a+v.sizeKB; },0); }
+  function s3Render(){
+    const wrap=$("#s3Versions");
+    wrap.innerHTML="";
+    s3VersionList.forEach(function(ver,i){
+      const isCurrent = i===s3VersionList.length-1 && !s3DeleteMarker;
+      const card=document.createElement("div");
+      card.className="node-card"+(s3DeleteMarker?" unreachable":"");
+      card.innerHTML =
+        '<span class="id">v'+ver.v+'<span class="badge '+(isCurrent?"latest":"stale")+'">'+
+        (isCurrent?t("s3.badgeCurrent"):t("s3.badgePrevious"))+'</span></span>'+
+        '<span class="value">'+ver.sizeKB+' KB</span>';
+      wrap.appendChild(card);
+    });
+  }
+  function s3UpdateStats(){
+    $("#s3StatVersions").textContent=s3VersionList.length;
+    $("#s3StatSize").textContent=s3TotalSizeKB()+" KB";
+    let stateKey;
+    if(s3VersionList.length===0) stateKey = s3EverUploaded ? "gone" : "empty";
+    else if(s3DeleteMarker) stateKey="deleted";
+    else stateKey="available";
+    $("#s3StatState").textContent=t("s3.status."+stateKey);
+    const blockPublic=$("#s3BlockPublic").checked;
+    const publicPolicy=$("#s3PublicPolicy").checked;
+    const exposed = !blockPublic && publicPolicy;
+    $("#s3StatPublic").textContent = exposed ? t("s3.status.exposed") : t("s3.status.secure");
+    setStatus($("#s3Status"), null, exposed?"exposed":"secure", "s3.status", exposed?"bad":"good");
+  }
+  $("#s3Upload").addEventListener("click", function(){
+    const size=s3RandomSizeKB();
+    s3VersionList.push({v:s3NextV, sizeKB:size});
+    s3NextV++; s3DeleteMarker=false; s3EverUploaded=true;
+    addLog($("#s3Log"), t("s3.log.uploaded",{v:s3VersionList[s3VersionList.length-1].v, size:size+" KB"}), "good");
+    s3Render(); s3UpdateStats();
+  });
+  $("#s3Delete").addEventListener("click", function(){
+    if(s3VersionList.length===0 || s3DeleteMarker) return;
+    if($("#s3Versioning").checked){
+      s3DeleteMarker=true;
+      addLog($("#s3Log"), t("s3.log.deletedMarker",{n:s3VersionList.length}), "warn");
+    } else {
+      s3VersionList=[];
+      s3DeleteMarker=false;
+      addLog($("#s3Log"), t("s3.log.deletedHard"), "bad");
+    }
+    s3Render(); s3UpdateStats();
+  });
+  $("#s3Restore").addEventListener("click", function(){
+    if(s3DeleteMarker){
+      s3DeleteMarker=false;
+      addLog($("#s3Log"), t("s3.log.restored",{v:s3VersionList[s3VersionList.length-1].v}), "good");
+    } else {
+      addLog($("#s3Log"), t("s3.log.restoreNoop"));
+    }
+    s3Render(); s3UpdateStats();
+  });
+  $("#s3TestPublic").addEventListener("click", function(){
+    const blockPublic=$("#s3BlockPublic").checked;
+    const publicPolicy=$("#s3PublicPolicy").checked;
+    if(blockPublic) addLog($("#s3Log"), t("s3.log.publicBlocked"), "good");
+    else if(!publicPolicy) addLog($("#s3Log"), t("s3.log.publicNoPolicy"), "good");
+    else addLog($("#s3Log"), t("s3.log.publicExposed"), "bad");
+  });
+  ["s3BlockPublic","s3PublicPolicy"].forEach(function(id){
+    $("#"+id).addEventListener("change", s3UpdateStats);
+  });
+  addLog($("#s3Log"), t("s3.log.init"));
+  s3Render(); s3UpdateStats();
+
+  /* ============ MODULE 06 — LAMBDA ============ */
+  let lambdaEnvs=[];
+  let lambdaNextEnvId=1;
+  let lambdaInvocations=0, lambdaColdCount=0, lambdaWarmCount=0, lambdaCost=0;
+  const LAMBDA_COLD_MS=1150, LAMBDA_WARM_MS=45, LAMBDA_COST_PER_100MS=0.0000167;
+  function lambdaRenderPool(){
+    const wrap=$("#lambdaPool");
+    wrap.innerHTML="";
+    lambdaEnvs.forEach(function(env){
+      const card=document.createElement("div");
+      card.className="node-card";
+      card.innerHTML='<span class="id">env-'+env.id+'<span class="badge latest">'+t("lambda.badgeWarm")+'</span></span>';
+      wrap.appendChild(card);
+    });
+  }
+  function lambdaUpdateStats(){
+    $("#lambdaStatInvocations").textContent=lambdaInvocations;
+    $("#lambdaStatCold").textContent=lambdaColdCount;
+    $("#lambdaStatWarm").textContent=lambdaWarmCount;
+    $("#lambdaStatCost").textContent="$"+lambdaCost.toFixed(4);
+    const key = lambdaEnvs.length>0 ? "warmPool" : "cold";
+    setStatus($("#lambdaStatus"), null, key, "lambda.status", lambdaEnvs.length>0?"good":"warn");
+  }
+  function lambdaInvokeOnce(){
+    lambdaInvocations++;
+    let ms;
+    if(lambdaEnvs.length>0){
+      ms=LAMBDA_WARM_MS+Math.round(Math.random()*15);
+      lambdaWarmCount++;
+      addLog($("#lambdaLog"), t("lambda.log.warm",{ms:ms}), "good");
+    } else {
+      ms=LAMBDA_COLD_MS+Math.round(Math.random()*300);
+      lambdaColdCount++;
+      lambdaEnvs.push({id:lambdaNextEnvId++});
+      addLog($("#lambdaLog"), t("lambda.log.cold",{ms:ms}), "warn");
+    }
+    lambdaCost += (ms/100)*LAMBDA_COST_PER_100MS;
+    lambdaRenderPool(); lambdaUpdateStats();
+  }
+  function lambdaBurst(n){
+    const availableWarm=lambdaEnvs.length;
+    const warm=Math.min(n, availableWarm);
+    const cold=n-warm;
+    for(let i=0;i<cold;i++){ lambdaEnvs.push({id:lambdaNextEnvId++}); }
+    lambdaInvocations+=n; lambdaWarmCount+=warm; lambdaColdCount+=cold;
+    lambdaCost += (warm*LAMBDA_WARM_MS + cold*LAMBDA_COLD_MS)/100*LAMBDA_COST_PER_100MS;
+    addLog($("#lambdaLog"), t("lambda.log.burst",{n:n, cold:cold, warm:warm}), cold>0?"warn":"good");
+    lambdaRenderPool(); lambdaUpdateStats();
+  }
+  function lambdaGoIdle(){
+    const n=lambdaEnvs.length;
+    lambdaEnvs=[];
+    addLog($("#lambdaLog"), t("lambda.log.idled",{n:n}), "warn");
+    lambdaRenderPool(); lambdaUpdateStats();
+  }
+  $("#lambdaInvoke").addEventListener("click", lambdaInvokeOnce);
+  $("#lambdaBurst").addEventListener("input", function(){ $("#lambdaBurstOut").textContent=$("#lambdaBurst").value; });
+  $("#lambdaBurstBtn").addEventListener("click", function(){ lambdaBurst(Number($("#lambdaBurst").value)); });
+  $("#lambdaIdle").addEventListener("click", lambdaGoIdle);
+  addLog($("#lambdaLog"), t("lambda.log.init"));
+  lambdaRenderPool(); lambdaUpdateStats();
+
+  /* ============ MODULE 14 — CLOUDWATCH ============ */
+  let cwHistory=[];
+  let cwBreachStreak=0, cwSilentStreak=0, cwSpikeTicksLeft=0;
+  let cwAlarmKey="ok";
+  function cwRenderSpark(){
+    const el=$("#cwSpark");
+    el.innerHTML="";
+    cwHistory.forEach(function(d){
+      const bar=document.createElement("i");
+      bar.style.height=Math.max(3, Math.round(d.value/100*32))+"px";
+      if(d.breach) bar.classList.add("breach");
+      el.appendChild(bar);
+    });
+  }
+  function cwUpdateStats(){
+    const threshold=Number($("#cwThreshold").value);
+    $("#cwThresholdOut").textContent=threshold;
+    $("#cwStatThreshold").textContent=threshold+"%";
+    $("#cwLoadOut").textContent=$("#cwLoad").value;
+    const last=cwHistory[cwHistory.length-1];
+    $("#cwStatLatest").textContent = last ? last.value+"%" : "—";
+    $("#cwStatStreak").textContent=Math.min(cwBreachStreak,3)+"/3";
+    const cls = cwAlarmKey==="alarm" ? "bad" : cwAlarmKey==="insufficient" ? "warn" : "good";
+    setStatus($("#cloudwatchStatus"), null, cwAlarmKey, "cloudwatch.status", cls);
+    $("#cwStatAlarm").textContent=t("cloudwatch.status."+cwAlarmKey);
+  }
+  function cwTick(){
+    if($("#cwSilent").checked){
+      cwSilentStreak++;
+      if(cwSilentStreak<=3) addLog($("#cwLog"), t("cloudwatch.log.noData",{n:Math.min(cwSilentStreak,3)}), "warn");
+      if(cwSilentStreak>=3 && cwAlarmKey!=="insufficient"){
+        cwAlarmKey="insufficient";
+        addLog($("#cwLog"), t("cloudwatch.log.insufficientFired"), "warn");
+      }
+      cwUpdateStats();
+      return;
+    }
+    cwSilentStreak=0;
+    const base=Number($("#cwLoad").value);
+    let spikeBonus=0;
+    if(cwSpikeTicksLeft>0){ spikeBonus=55; cwSpikeTicksLeft--; }
+    const jitter=Math.round(Math.random()*8-4);
+    const value=Math.max(0, Math.min(100, base+spikeBonus+jitter));
+    const threshold=Number($("#cwThreshold").value);
+    const breach=value>=threshold;
+    cwHistory.push({value:value, breach:breach});
+    if(cwHistory.length>30) cwHistory.shift();
+    if(breach){
+      cwBreachStreak=Math.min(cwBreachStreak+1,3);
+      addLog($("#cwLog"), t("cloudwatch.log.datapointBreach",{value:value, streak:cwBreachStreak}), "warn");
+      if(cwBreachStreak>=3 && cwAlarmKey!=="alarm"){
+        cwAlarmKey="alarm";
+        addLog($("#cwLog"), t("cloudwatch.log.alarmFired",{threshold:threshold}), "bad");
+      }
+    } else {
+      if(cwAlarmKey==="alarm" || cwAlarmKey==="insufficient"){
+        addLog($("#cwLog"), t("cloudwatch.log.alarmCleared"), "good");
+      }
+      cwBreachStreak=0;
+      cwAlarmKey="ok";
+    }
+    cwRenderSpark();
+    cwUpdateStats();
+  }
+  $("#cwLoad").addEventListener("input", function(){ $("#cwLoadOut").textContent=$("#cwLoad").value; });
+  $("#cwThreshold").addEventListener("input", function(){
+    $("#cwThresholdOut").textContent=$("#cwThreshold").value;
+    $("#cwStatThreshold").textContent=$("#cwThreshold").value+"%";
+  });
+  $("#cwSpike").addEventListener("click", function(){
+    cwSpikeTicksLeft=4;
+    addLog($("#cwLog"), t("cloudwatch.log.spiked"), "warn");
+  });
+  $("#cwSilent").addEventListener("change", function(){
+    if(!$("#cwSilent").checked) cwSilentStreak=0;
+  });
+  addLog($("#cwLog"), t("cloudwatch.log.init",{threshold:$("#cwThreshold").value}));
+  cwRenderSpark(); cwUpdateStats();
+  setInterval(cwTick, 900);
+
   /* ============ RESET ALL MODULES ============ */
   function resetAllModules(){
     stateEpoch++;
@@ -1765,6 +2304,33 @@
     authRenderSteps();
     addLog($("#authLog"), t("auth.log.init"));
     authUpdateStats();
+
+    iamAllowedCount=0; iamDeniedCount=0;
+    $("#iamPermRead").checked=true; $("#iamPermWrite").checked=false;
+    $("#iamPermLaunch").checked=false; $("#iamPermWildcard").checked=false;
+    $("#iamLog").innerHTML=""; $("#iamStatus").dataset.statusKey="";
+    addLog($("#iamLog"), t("iam.log.init"));
+    iamUpdateStats();
+
+    s3VersionList=[]; s3NextV=1; s3DeleteMarker=false; s3EverUploaded=false;
+    $("#s3Versioning").checked=false; $("#s3BlockPublic").checked=true; $("#s3PublicPolicy").checked=false;
+    $("#s3Log").innerHTML=""; $("#s3Status").dataset.statusKey="";
+    addLog($("#s3Log"), t("s3.log.init"));
+    s3Render(); s3UpdateStats();
+
+    lambdaEnvs=[]; lambdaNextEnvId=1; lambdaInvocations=0; lambdaColdCount=0; lambdaWarmCount=0; lambdaCost=0;
+    $("#lambdaBurst").value=20; $("#lambdaBurstOut").textContent=20;
+    $("#lambdaLog").innerHTML=""; $("#lambdaStatus").dataset.statusKey="";
+    addLog($("#lambdaLog"), t("lambda.log.init"));
+    lambdaRenderPool(); lambdaUpdateStats();
+
+    cwHistory=[]; cwBreachStreak=0; cwSilentStreak=0; cwSpikeTicksLeft=0; cwAlarmKey="ok";
+    $("#cwLoad").value=30; $("#cwLoadOut").textContent=30;
+    $("#cwThreshold").value=80; $("#cwThresholdOut").textContent=80;
+    $("#cwSilent").checked=false;
+    $("#cwLog").innerHTML=""; $("#cloudwatchStatus").dataset.statusKey="";
+    addLog($("#cwLog"), t("cloudwatch.log.init",{threshold:80}));
+    cwRenderSpark(); cwUpdateStats();
   }
   $("#resetAllBtn").addEventListener("click", resetAllModules);
 
@@ -1772,7 +2338,7 @@
   const CHAT_KEY_STORAGE="csc-groq-key";
   const CHAT_MODEL="llama-3.3-70b-versatile";
   const CHAT_SYSTEM_PROMPT=
-    "You are a friendly, concise assistant embedded in an interactive web page called 'Cloud Systems, Simulated' that teaches cloud computing through four live simulations: load balancing & auto-scaling, distributed consistency (the CAP theorem), caching & CDNs, and fault tolerance & failover. Answer the visitor's question about cloud computing concepts clearly, using everyday analogies where helpful, in a few sentences unless they ask for more depth. If asked something unrelated to cloud computing or this page, answer briefly and steer back. Reply in the same language the user wrote in (English or Turkish).";
+    "You are a friendly, concise assistant embedded in an interactive web page called 'CloudLab' that teaches cloud computing through sixteen live simulations: what the cloud is, sign-in (federated & passwordless auth), IAM & least privilege, VPC networking, EC2, S3 & versioning, Lambda & cold starts, load balancing & auto-scaling, Elastic Beanstalk deploys, Route 53 DNS routing, caching & CDNs, distributed consistency (the CAP theorem), fault tolerance & failover, SNS fan-out, CloudWatch monitoring & alarms, and Snowball Edge. Answer the visitor's question about cloud computing concepts clearly, using everyday analogies where helpful, in a few sentences unless they ask for more depth. If asked something unrelated to cloud computing or this page, answer briefly and steer back. Reply in the same language the user wrote in (English or Turkish).";
   let chatHistory=[];
 
   function chatGetKey(){ return localStorage.getItem(CHAT_KEY_STORAGE) || ""; }
@@ -1899,9 +2465,36 @@
     snsUpdateStats();
     snowballCompute();
     authRenderSteps(); authUpdateStats();
+    iamUpdateStats();
+    s3Render(); s3UpdateStats();
+    lambdaRenderPool(); lambdaUpdateStats();
+    cwRenderSpark(); cwUpdateStats();
+    applyProviderTitles();
   }
   $("#langEnBtn").addEventListener("click", function(){ setLang("en"); });
   $("#langTrBtn").addEventListener("click", function(){ setLang("tr"); });
+
+  /* ============ cloud provider toggle ============ */
+  function applyProviderTitles(){
+    PROVIDER_MODULES.forEach(function(mod){
+      const el=document.querySelector('#'+mod+' > .panel-head > h2');
+      if(!el) return;
+      const key = providerMode==="aws" ? mod+".title" : mod+".title"+(providerMode==="azure"?"Azure":"Gcp");
+      el.textContent=t(key);
+    });
+  }
+  function setProvider(provider){
+    providerMode=provider;
+    localStorage.setItem(PROVIDER_KEY, provider);
+    ["providerAwsBtn","providerAzureBtn","providerGcpBtn"].forEach(function(id){
+      $("#"+id).classList.toggle("active", $("#"+id).dataset.provider===provider);
+    });
+    applyProviderTitles();
+  }
+  $("#providerAwsBtn").addEventListener("click", function(){ setProvider("aws"); });
+  $("#providerAzureBtn").addEventListener("click", function(){ setProvider("azure"); });
+  $("#providerGcpBtn").addEventListener("click", function(){ setProvider("gcp"); });
+  setProvider(providerMode);
 
   setLang(currentLang);
 })();
