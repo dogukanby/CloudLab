@@ -360,16 +360,30 @@
           intro:"Below is a simplified mock of the Google Cloud Console. \"Sign in with Google\" is wired up on this page already — but it's broken, because none of the setup a real developer has to do has been done yet. Complete the steps below, in any order, then try signing in again.",
           consoleLabel:"Google Cloud Console (simulated)",
           trySignInBtn:"Sign in with Google",
-          resultBroken:"Error 401: invalid_client — no OAuth client is configured for this app yet.",
           resultSuccess:"Signed in as demo@cloudlab.app — every step below is done.",
           stepConsent:"Configure the OAuth consent screen",
           stepClientId:"Create an OAuth 2.0 Client ID",
           stepRedirect:"Add the correct authorized redirect URI",
           stepApi:"Enable the People API",
           doneTag:"done",
+          consentPrompt:"Choose a user type for the consent screen:",
+          consentInternal:"Internal", consentExternal:"External",
+          consentInternalError:"Internal is restricted to accounts inside a single Google Workspace organization. CloudLab is a public app anyone can sign into — Internal would lock out every one of them.",
+          consentExternalOk:"External — any Google Account can sign in. Consent screen saved.",
+          clientTypePrompt:"Choose an application type for the OAuth client:",
+          clientTypeWeb:"Web application", clientTypeDesktop:"Desktop app", clientTypeAndroid:"Android", clientTypeIos:"iOS",
+          clientTypeWrongError:"Wrong type — a {type} client isn't built to receive an HTTP redirect back from a browser sign-in. Google would reject this app's requests outright.",
+          clientTypeOk:"Web application client created — ID {clientId}",
           redirectPrompt:"Pick the redirect URI that actually matches this app:",
           redirectWrong:"Rejected — that URI doesn't match this app. A real Google sign-in would fail here with redirect_uri_mismatch.",
           redirectCorrect:"Added — that URI matches this app's real callback path.",
+          apiLibraryLabel:"API Library",
+          apiResultName:"Google People API",
+          apiEnableBtn:"Enable", apiEnabling:"Enabling…", apiEnabledOk:"Enabled.",
+          errorConsent:"Error 403: access_denied — this app's OAuth consent screen hasn't been configured yet.",
+          errorClient:"Error 401: invalid_client — no OAuth 2.0 client exists for this app yet.",
+          errorRedirect:"Error 400: redirect_uri_mismatch — the redirect URI in the request doesn't match any authorized for this client.",
+          errorApi:"Error 403: access_denied — Google People API has not been used in this project before or it is disabled.",
           resetBtn:"Reset quest",
           completeNote:"These are the actual four steps every real \"Sign in with Google\" integration requires in Google Cloud Console — this quest just compresses the clicking and waiting out of it."
         }
@@ -854,16 +868,30 @@
           intro:"Aşağıda Google Cloud Console'un basitleştirilmiş bir taklidi var. \"Google ile giriş yap\" bu sayfada zaten bağlanmış — ama bozuk, çünkü gerçek bir geliştiricinin yapması gereken kurulum adımlarının hiçbiri henüz yapılmadı. Aşağıdaki adımları herhangi bir sırada tamamlayın, sonra tekrar giriş yapmayı deneyin.",
           consoleLabel:"Google Cloud Console (simüle edilmiş)",
           trySignInBtn:"Google ile giriş yap",
-          resultBroken:"Hata 401: invalid_client — bu uygulama için henüz bir OAuth istemcisi yapılandırılmadı.",
           resultSuccess:"demo@cloudlab.app olarak giriş yapıldı — aşağıdaki her adım tamamlandı.",
           stepConsent:"OAuth onay ekranını yapılandır",
           stepClientId:"Bir OAuth 2.0 İstemci Kimliği oluştur",
           stepRedirect:"Doğru yetkili yönlendirme URI'sini ekle",
           stepApi:"People API'sini etkinleştir",
           doneTag:"tamam",
+          consentPrompt:"Onay ekranı için bir kullanıcı türü seçin:",
+          consentInternal:"Dahili (Internal)", consentExternal:"Harici (External)",
+          consentInternalError:"Dahili, tek bir Google Workspace kuruluşundaki hesaplarla sınırlıdır. CloudLab herkesin giriş yapabildiği herkese açık bir uygulama — Dahili seçilirse hepsi dışarıda kalır.",
+          consentExternalOk:"Harici — herhangi bir Google Hesabı giriş yapabilir. Onay ekranı kaydedildi.",
+          clientTypePrompt:"OAuth istemcisi için bir uygulama türü seçin:",
+          clientTypeWeb:"Web uygulaması", clientTypeDesktop:"Masaüstü uygulaması", clientTypeAndroid:"Android", clientTypeIos:"iOS",
+          clientTypeWrongError:"Yanlış tür — bir {type} istemcisi bir tarayıcı girişinden HTTP yönlendirmesi almak üzere tasarlanmamıştır. Google bu uygulamanın isteklerini doğrudan reddederdi.",
+          clientTypeOk:"Web uygulaması istemcisi oluşturuldu — Kimlik {clientId}",
           redirectPrompt:"Bu uygulamayla gerçekten eşleşen yönlendirme URI'sini seçin:",
           redirectWrong:"Reddedildi — bu URI bu uygulamayla eşleşmiyor. Gerçek bir Google girişi burada redirect_uri_mismatch hatasıyla başarısız olurdu.",
           redirectCorrect:"Eklendi — bu URI, uygulamanın gerçek geri çağırma yoluyla eşleşiyor.",
+          apiLibraryLabel:"API Kitaplığı",
+          apiResultName:"Google People API",
+          apiEnableBtn:"Etkinleştir", apiEnabling:"Etkinleştiriliyor…", apiEnabledOk:"Etkinleştirildi.",
+          errorConsent:"Hata 403: access_denied — bu uygulamanın OAuth onay ekranı henüz yapılandırılmadı.",
+          errorClient:"Hata 401: invalid_client — bu uygulama için henüz bir OAuth 2.0 istemcisi yok.",
+          errorRedirect:"Hata 400: redirect_uri_mismatch — istekteki yönlendirme URI'si bu istemci için yetkili hiçbir URI ile eşleşmiyor.",
+          errorApi:"Hata 403: access_denied — Google People API bu projede daha önce kullanılmadı veya devre dışı bırakıldı.",
           resetBtn:"Görevi sıfırla",
           completeNote:"Bunlar, Google Cloud Console'da gerçek her \"Google ile giriş yap\" entegrasyonunun gerektirdiği dört gerçek adım — bu görev sadece tıklama ve bekleme kısmını sıkıştırıyor."
         }
@@ -1984,9 +2012,13 @@
   authUpdateStats();
 
   /* ============ MODULE 01 QUEST — fix the broken sign-in ============ */
+  const QUEST_CLIENT_ID_FAKE="847293651042-k3j8s0d9f2h1a0b9c8d7e6f5g4h3.apps.googleusercontent.com";
   let questSteps={ consent:false, clientid:false, redirect:false, api:false };
-  let questLastResult=null; // null | "good" | "bad"
-  let questLastUriFeedback=null; // null | "good" | "bad"
+  let questLastResultKey=null; // null | "consent" | "clientid" | "redirect" | "api" | "success"
+  // per-panel last feedback, so language switches can re-render without re-deriving state:
+  // consent/redirect: null | "ok" | "bad" — clientid: null | "ok" | "desktop" | "android" | "ios" — api: null | "enabling" | "ok"
+  let questLastFeedback={ consent:null, clientid:null, redirect:null, api:null };
+
   function questAllDone(){
     return questSteps.consent && questSteps.clientid && questSteps.redirect && questSteps.api;
   }
@@ -1998,67 +2030,138 @@
     stepEl.classList.add("done");
     questUpdateConsoleDot();
   }
+  function questToggleOptions(id, done){
+    if(done) return;
+    const el=$("#"+id);
+    el.hidden=!el.hidden;
+  }
+  function questClientTypeLabel(key){
+    return t("auth.quest.clientType"+key.charAt(0).toUpperCase()+key.slice(1));
+  }
+  function questResultTextFor(key){
+    if(key==="success") return t("auth.quest.resultSuccess");
+    const errKey={ consent:"errorConsent", clientid:"errorClient", redirect:"errorRedirect", api:"errorApi" }[key];
+    return t("auth.quest."+errKey);
+  }
+
+  $("#questConsentToggle").addEventListener("click", function(){
+    questToggleOptions("questConsentOptions", questSteps.consent);
+  });
+  document.querySelectorAll("#questConsentOptions .quest-option-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const fb=$("#questConsentFeedback");
+      if(btn.dataset.consent==="external"){
+        questLastFeedback.consent="ok";
+        fb.textContent=t("auth.quest.consentExternalOk"); fb.className="quest-options-feedback good";
+        questMarkDone($("#questStepConsent"), "consent");
+        $("#questConsentOptions").hidden=true;
+      } else {
+        questLastFeedback.consent="bad";
+        fb.textContent=t("auth.quest.consentInternalError"); fb.className="quest-options-feedback bad";
+      }
+    });
+  });
+
+  $("#questClientToggle").addEventListener("click", function(){
+    questToggleOptions("questClientOptions", questSteps.clientid);
+  });
+  document.querySelectorAll("#questClientOptions .quest-option-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const fb=$("#questClientFeedback");
+      if(btn.dataset.client==="web"){
+        questLastFeedback.clientid="ok";
+        fb.textContent=t("auth.quest.clientTypeOk",{clientId:QUEST_CLIENT_ID_FAKE}); fb.className="quest-options-feedback good";
+        questMarkDone($("#questStepClientid"), "clientid");
+        $("#questClientOptions").hidden=true;
+      } else {
+        questLastFeedback.clientid=btn.dataset.client;
+        fb.textContent=t("auth.quest.clientTypeWrongError",{type:questClientTypeLabel(btn.dataset.client)}); fb.className="quest-options-feedback bad";
+      }
+    });
+  });
+
+  $("#questRedirectToggle").addEventListener("click", function(){
+    questToggleOptions("questRedirectOptions", questSteps.redirect);
+  });
+  document.querySelectorAll("#questRedirectOptions .quest-option-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const fb=$("#questRedirectFeedback");
+      if(btn.dataset.redirect==="correct"){
+        questLastFeedback.redirect="ok";
+        fb.textContent=t("auth.quest.redirectCorrect"); fb.className="quest-options-feedback good";
+        questMarkDone($("#questStepRedirect"), "redirect");
+        $("#questRedirectOptions").hidden=true;
+      } else {
+        questLastFeedback.redirect="bad";
+        fb.textContent=t("auth.quest.redirectWrong"); fb.className="quest-options-feedback bad";
+      }
+    });
+  });
+
+  $("#questApiToggle").addEventListener("click", function(){
+    questToggleOptions("questApiOptions", questSteps.api);
+  });
+  $("#questApiEnableBtn").addEventListener("click", function(){
+    if(questSteps.api) return;
+    const btn=$("#questApiEnableBtn");
+    const fb=$("#questApiFeedback");
+    btn.disabled=true;
+    questLastFeedback.api="enabling";
+    fb.textContent=t("auth.quest.apiEnabling"); fb.className="quest-options-feedback";
+    setTimeout(function(){
+      questLastFeedback.api="ok";
+      fb.textContent=t("auth.quest.apiEnabledOk"); fb.className="quest-options-feedback good";
+      questMarkDone($("#questStepApi"), "api");
+      $("#questApiOptions").hidden=true;
+      btn.disabled=false;
+    }, 700);
+  });
+
+  $("#questTrySignIn").addEventListener("click", function(){
+    const result=$("#questResult");
+    result.hidden=false;
+    let missingKey=null;
+    if(!questSteps.consent) missingKey="consent";
+    else if(!questSteps.clientid) missingKey="clientid";
+    else if(!questSteps.redirect) missingKey="redirect";
+    else if(!questSteps.api) missingKey="api";
+    questLastResultKey = missingKey || "success";
+    result.textContent=questResultTextFor(questLastResultKey);
+    if(missingKey){
+      result.className="quest-result bad";
+    } else {
+      result.className="quest-result good";
+      $("#questCompleteNote").hidden=false;
+    }
+  });
+
   function questReset(){
     questSteps={ consent:false, clientid:false, redirect:false, api:false };
-    questLastResult=null; questLastUriFeedback=null;
+    questLastResultKey=null;
+    questLastFeedback={ consent:null, clientid:null, redirect:null, api:null };
     document.querySelectorAll("#questSteps .quest-step").forEach(function(li){ li.classList.remove("done"); });
-    $("#questUriOptions").hidden=true;
-    $("#questUriFeedback").textContent=""; $("#questUriFeedback").className="quest-uri-feedback";
+    ["questConsentOptions","questClientOptions","questRedirectOptions","questApiOptions"].forEach(function(id){ $("#"+id).hidden=true; });
+    ["questConsentFeedback","questClientFeedback","questRedirectFeedback","questApiFeedback"].forEach(function(id){
+      $("#"+id).textContent=""; $("#"+id).className="quest-options-feedback";
+    });
+    $("#questApiEnableBtn").disabled=false;
     $("#questResult").hidden=true; $("#questResult").textContent=""; $("#questResult").className="quest-result";
     $("#questCompleteNote").hidden=true;
     questUpdateConsoleDot();
   }
-  function questRefreshLang(){
-    if(questLastResult) $("#questResult").textContent = questLastResult==="good" ? t("auth.quest.resultSuccess") : t("auth.quest.resultBroken");
-    if(questLastUriFeedback) $("#questUriFeedback").textContent = questLastUriFeedback==="good" ? t("auth.quest.redirectCorrect") : t("auth.quest.redirectWrong");
-  }
-  $("#questStepConsent").addEventListener("click", function(){
-    if(questSteps.consent) return;
-    questMarkDone($("#questStepConsent"), "consent");
-  });
-  $("#questStepClientid").addEventListener("click", function(){
-    if(questSteps.clientid) return;
-    questMarkDone($("#questStepClientid"), "clientid");
-  });
-  $("#questStepApi").addEventListener("click", function(){
-    if(questSteps.api) return;
-    questMarkDone($("#questStepApi"), "api");
-  });
-  $("#questRedirectToggle").addEventListener("click", function(){
-    if(questSteps.redirect) return;
-    $("#questUriOptions").hidden=!$("#questUriOptions").hidden;
-  });
-  document.querySelectorAll(".quest-uri-btn").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      const fb=$("#questUriFeedback");
-      if(btn.dataset.uri==="correct"){
-        questLastUriFeedback="good";
-        fb.textContent=t("auth.quest.redirectCorrect");
-        fb.className="quest-uri-feedback good";
-        questMarkDone($("#questStepRedirect"), "redirect");
-        $("#questUriOptions").hidden=true;
-      } else {
-        questLastUriFeedback="bad";
-        fb.textContent=t("auth.quest.redirectWrong");
-        fb.className="quest-uri-feedback bad";
-      }
-    });
-  });
-  $("#questTrySignIn").addEventListener("click", function(){
-    const result=$("#questResult");
-    result.hidden=false;
-    if(questAllDone()){
-      questLastResult="good";
-      result.textContent=t("auth.quest.resultSuccess");
-      result.className="quest-result good";
-      $("#questCompleteNote").hidden=false;
-    } else {
-      questLastResult="bad";
-      result.textContent=t("auth.quest.resultBroken");
-      result.className="quest-result bad";
-    }
-  });
   $("#questReset").addEventListener("click", questReset);
+
+  function questRefreshLang(){
+    if(questLastResultKey) $("#questResult").textContent = questResultTextFor(questLastResultKey);
+    if(questLastFeedback.consent==="ok") $("#questConsentFeedback").textContent=t("auth.quest.consentExternalOk");
+    else if(questLastFeedback.consent==="bad") $("#questConsentFeedback").textContent=t("auth.quest.consentInternalError");
+    if(questLastFeedback.clientid==="ok") $("#questClientFeedback").textContent=t("auth.quest.clientTypeOk",{clientId:QUEST_CLIENT_ID_FAKE});
+    else if(questLastFeedback.clientid) $("#questClientFeedback").textContent=t("auth.quest.clientTypeWrongError",{type:questClientTypeLabel(questLastFeedback.clientid)});
+    if(questLastFeedback.redirect==="ok") $("#questRedirectFeedback").textContent=t("auth.quest.redirectCorrect");
+    else if(questLastFeedback.redirect==="bad") $("#questRedirectFeedback").textContent=t("auth.quest.redirectWrong");
+    if(questLastFeedback.api==="ok") $("#questApiFeedback").textContent=t("auth.quest.apiEnabledOk");
+    else if(questLastFeedback.api==="enabling") $("#questApiFeedback").textContent=t("auth.quest.apiEnabling");
+  }
 
   /* ============ MODULE 02 — IAM ============ */
   let iamAllowedCount=0, iamDeniedCount=0;

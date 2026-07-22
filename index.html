@@ -132,14 +132,28 @@
           <ul class="quest-steps" id="questSteps">
             <li class="quest-step" id="questStepConsent" data-step="consent">
               <div class="quest-step-row">
-                <button type="button" data-i18n="auth.quest.stepConsent">Configure the OAuth consent screen</button>
+                <button type="button" id="questConsentToggle" data-i18n="auth.quest.stepConsent">Configure the OAuth consent screen</button>
                 <span class="quest-check" aria-hidden="true"></span>
+              </div>
+              <div class="quest-options" id="questConsentOptions" hidden>
+                <p class="quest-options-prompt" data-i18n="auth.quest.consentPrompt">Choose a user type for the consent screen:</p>
+                <button type="button" class="quest-option-btn" data-consent="internal" data-i18n="auth.quest.consentInternal">Internal</button>
+                <button type="button" class="quest-option-btn" data-consent="external" data-i18n="auth.quest.consentExternal">External</button>
+                <p class="quest-options-feedback" id="questConsentFeedback"></p>
               </div>
             </li>
             <li class="quest-step" id="questStepClientid" data-step="clientid">
               <div class="quest-step-row">
-                <button type="button" data-i18n="auth.quest.stepClientId">Create an OAuth 2.0 Client ID</button>
+                <button type="button" id="questClientToggle" data-i18n="auth.quest.stepClientId">Create an OAuth 2.0 Client ID</button>
                 <span class="quest-check" aria-hidden="true"></span>
+              </div>
+              <div class="quest-options" id="questClientOptions" hidden>
+                <p class="quest-options-prompt" data-i18n="auth.quest.clientTypePrompt">Choose an application type for the OAuth client:</p>
+                <button type="button" class="quest-option-btn" data-client="web" data-i18n="auth.quest.clientTypeWeb">Web application</button>
+                <button type="button" class="quest-option-btn" data-client="desktop" data-i18n="auth.quest.clientTypeDesktop">Desktop app</button>
+                <button type="button" class="quest-option-btn" data-client="android" data-i18n="auth.quest.clientTypeAndroid">Android</button>
+                <button type="button" class="quest-option-btn" data-client="ios" data-i18n="auth.quest.clientTypeIos">iOS</button>
+                <p class="quest-options-feedback" id="questClientFeedback"></p>
               </div>
             </li>
             <li class="quest-step" id="questStepRedirect" data-step="redirect">
@@ -147,18 +161,26 @@
                 <button type="button" id="questRedirectToggle" data-i18n="auth.quest.stepRedirect">Add the correct authorized redirect URI</button>
                 <span class="quest-check" aria-hidden="true"></span>
               </div>
-              <div class="quest-uri-options" id="questUriOptions" hidden>
-                <p class="quest-uri-prompt" data-i18n="auth.quest.redirectPrompt">Pick the redirect URI that actually matches this app:</p>
-                <button type="button" class="quest-uri-btn" data-uri="wrong1">https://cloudlab.app/callback</button>
-                <button type="button" class="quest-uri-btn" data-uri="correct">https://cloudlab.app/auth/google/callback</button>
-                <button type="button" class="quest-uri-btn" data-uri="wrong2">http://localhost/callback</button>
-                <p class="quest-uri-feedback" id="questUriFeedback"></p>
+              <div class="quest-options" id="questRedirectOptions" hidden>
+                <p class="quest-options-prompt" data-i18n="auth.quest.redirectPrompt">Pick the redirect URI that actually matches this app:</p>
+                <button type="button" class="quest-option-btn" data-redirect="wrong1">https://cloudlab.app/callback</button>
+                <button type="button" class="quest-option-btn" data-redirect="correct">https://cloudlab.app/auth/google/callback</button>
+                <button type="button" class="quest-option-btn" data-redirect="wrong2">http://localhost/callback</button>
+                <p class="quest-options-feedback" id="questRedirectFeedback"></p>
               </div>
             </li>
             <li class="quest-step" id="questStepApi" data-step="api">
               <div class="quest-step-row">
-                <button type="button" data-i18n="auth.quest.stepApi">Enable the People API</button>
+                <button type="button" id="questApiToggle" data-i18n="auth.quest.stepApi">Enable the People API</button>
                 <span class="quest-check" aria-hidden="true"></span>
+              </div>
+              <div class="quest-options" id="questApiOptions" hidden>
+                <p class="quest-options-prompt" data-i18n="auth.quest.apiLibraryLabel">API Library</p>
+                <div class="quest-api-row">
+                  <span class="quest-api-name" data-i18n="auth.quest.apiResultName">Google People API</span>
+                  <button type="button" class="btn" id="questApiEnableBtn" data-i18n="auth.quest.apiEnableBtn">Enable</button>
+                </div>
+                <p class="quest-options-feedback" id="questApiFeedback"></p>
               </div>
             </li>
           </ul>

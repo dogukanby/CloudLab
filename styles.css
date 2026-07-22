@@ -158,12 +158,12 @@ select, .btn{ font-size:0.82rem; padding:8px 10px; border-radius:var(--radius); 
 
 /* shared press feedback — every pressable control gives instant, tactile confirmation */
 @media (prefers-reduced-motion:no-preference){
-  .btn, .lang-btn, .theme-btn, .jumpnav a, .node-card, .sub-card, .auth-tab, .chat-close, .chat-forget, .chat-fab, .quest-step-row button, .quest-uri-btn{
+  .btn, .lang-btn, .theme-btn, .jumpnav a, .node-card, .sub-card, .auth-tab, .chat-close, .chat-forget, .chat-fab, .quest-step-row button, .quest-option-btn{
     transition-property:transform, border-color, color, background-color, box-shadow;
     transition-duration:140ms;
     transition-timing-function:var(--ease-out);
   }
-  .btn:active, .lang-btn:active, .theme-btn:active, .jumpnav a:active, .node-card:active, .sub-card:active, .auth-tab:active, .chat-close:active, .chat-forget:active, .chat-fab:active, .quest-step-row button:active, .quest-uri-btn:active{
+  .btn:active, .lang-btn:active, .theme-btn:active, .jumpnav a:active, .node-card:active, .sub-card:active, .auth-tab:active, .chat-close:active, .chat-forget:active, .chat-fab:active, .quest-step-row button:active, .quest-option-btn:active{
     transform:scale(var(--press-scale));
   }
 }
@@ -332,13 +332,17 @@ select, .btn{ font-size:0.82rem; padding:8px 10px; border-radius:var(--radius); 
 @media (prefers-reduced-motion:no-preference){ .quest-check{ transition:background-color 200ms var(--ease-out), border-color 200ms var(--ease-out); } }
 .quest-step.done .quest-check{ background:var(--good); border-color:var(--good); color:var(--bg-panel); }
 .quest-step.done .quest-check::after{ content:"✓"; }
-.quest-uri-options{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; padding:0 12px 12px; }
-.quest-uri-prompt{ margin:0 0 2px; font-size:0.78rem; color:var(--ink-faint); }
-.quest-uri-btn{ font-family:var(--font-mono); font-size:0.76rem; padding:7px 10px; border-radius:var(--radius); border:1px solid var(--border-strong); background:var(--bg-panel); color:var(--ink-dim); cursor:pointer; }
-.quest-uri-btn:hover{ color:var(--ink); border-color:var(--accent); }
-.quest-uri-feedback{ margin:2px 0 0; font-size:0.78rem; }
-.quest-uri-feedback.bad{ color:var(--bad); }
-.quest-uri-feedback.good{ color:var(--good); }
+.quest-options{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; padding:0 12px 12px; }
+.quest-options-prompt{ margin:0 0 2px; font-size:0.78rem; color:var(--ink-faint); }
+.quest-option-btn{ font-family:var(--font-mono); font-size:0.76rem; padding:7px 10px; border-radius:var(--radius); border:1px solid var(--border-strong); background:var(--bg-panel); color:var(--ink-dim); cursor:pointer; }
+.quest-option-btn:hover{ color:var(--ink); border-color:var(--accent); }
+.quest-option-btn:disabled{ opacity:0.5; cursor:default; }
+.quest-options-feedback{ margin:2px 0 0; font-size:0.78rem; min-height:1.3em; }
+.quest-options-feedback.bad{ color:var(--bad); }
+.quest-options-feedback.good{ color:var(--good); }
+.quest-api-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; max-width:340px; padding:8px 10px; border:1px solid var(--border-strong); border-radius:var(--radius); background:var(--bg-panel); }
+.quest-api-name{ font-family:var(--font-mono); font-size:0.8rem; color:var(--ink); }
+.quest-api-row .btn{ font-size:0.72rem; padding:6px 12px; }
 .quest-footer{ margin-top:16px; display:flex; flex-direction:column; align-items:flex-start; gap:10px; }
 .quest-complete-note{ max-width:70ch; margin:0; font-size:0.85rem; color:var(--good); line-height:1.6; }
 
