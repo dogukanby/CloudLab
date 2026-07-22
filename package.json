@@ -1,7 +1,7 @@
 {
   "name": "cloud-systems-console",
-  "version": "1.3.1",
-  "description": "Sixteen live, in-browser simulations of core cloud-systems concepts, plus a Quests section with real-consequence, Easy/Hard-tiered incident-response challenges.",
+  "version": "1.3.2",
+  "description": "Sixteen live, in-browser simulations of core cloud-systems concepts, six of them with an Easy/Hard-tiered, real-consequence incident-response quest.",
   "main": "main.js",
   "private": true,
   "author": "Doğukan Bayrı",

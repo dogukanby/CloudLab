@@ -30,9 +30,9 @@ Every module pairs an "In plain terms" everyday analogy with a "Try this" checkl
 
 ## Quests
 
-A separate section below the modules puts you in the seat of someone who actually has to fix something, instead of just reading how it works: a realistic scenario, a broken state, and a mocked provider console with real decisions to make — wrong answers get a real-sounding rejection reason, not just a red X. Each quest has an Easy tier (the core fix) and a Hard tier (the full, real-world response, unlocking more steps on top of the easy ones).
+Six of the modules above (Sign-in, IAM, S3, VPC, Route 53, CloudWatch) end with a quest: instead of just reading how the concept works, you're put in the seat of someone who actually has to fix something — a realistic scenario, a broken state, and a mocked provider console with real decisions to make. Wrong answers get a real-sounding rejection reason, not just a red X.
 
-Launched with six: fixing a broken Google sign-in, locking down a leaked AWS credential, stopping a public S3 data leak, sealing an internet-exposed database, failing DNS over to a healthy region, and catching a silently-failing service with a CloudWatch alarm.
+Each quest has an independent Easy tier (the core fix, fewer and more obvious choices) and Hard tier (a longer, denser real-world response with its own decision points) — they're separate attempts, not one list where Hard is just Easy plus a few extra steps.
 
 ## Ask the Console
 
@@ -97,6 +97,6 @@ Bulut mimarilerinde sürekli karşımıza çıkan fikirlerin küçük, istemci t
 
 On altı modül: bulut nedir, oturum açma, IAM ve izinler, VPC, EC2, S3, Lambda, yük dengeleme, Elastic Beanstalk, Route 53, önbellekleme/CDN, dağıtık tutarlılık, yük devretme, SNS, CloudWatch ve Snowball Edge.
 
-Modüllerin altında ayrı bir "Görevler" bölümü var: gerçekçi bir senaryo, bozuk bir durum, ve gerçek sonuçları olan kararlarla, bir şeyi düzeltmek zorunda olan kişinin yerine sizi koyuyor. Her görevin bir Kolay (temel düzeltme) ve bir Zor (tam gerçek dünya tepkisi) kademesi var.
+Altı modül (Giriş, IAM, S3, VPC, Route 53, CloudWatch) kendi görevleriyle bitiyor: gerçekçi bir senaryo, bozuk bir durum, ve gerçek sonuçları olan kararlarla, bir şeyi düzeltmek zorunda olan kişinin yerine sizi koyuyor. Her görevin birbirinden bağımsız bir Kolay (temel düzeltme) ve bir Zor (kendi karar noktalarıyla daha uzun, gerçek dünya tepkisi) kademesi var.
 
 Yukarıdaki rozet imzalı bir Windows kurulum dosyasına bağlanır. Kendinden imzalı bir sertifika kullanıldığından Windows SmartScreen ilk çalıştırmada "bilinmeyen yayımcı" uyarısı gösterebilir — **Diğer bilgiler → Yine de çalıştır** yeterli. Kurulumu yalnızca bir kez indirmeniz yeterli: uygulama her açılışta yeni bir sürüm olup olmadığını kontrol eder ve varsa, siz onaylamadan hiçbir şeyi indirip kurmaz.
