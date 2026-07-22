@@ -67,6 +67,14 @@
     </header>
     <p class="dek" data-i18n="lb.dek">Requests arrive faster than any one server can handle.</p>
     <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="lb.analogy">Think of a grocery store at rush hour.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="lb.tryStep1">Drag traffic rate up.</li>
+        <li data-i18n="lb.tryStep2">Turn off auto-scaling.</li>
+        <li data-i18n="lb.tryStep3">Switch the strategy.</li>
+      </ol>
+    </div>
     <div class="panel-body">
       <div class="stage">
         <div class="stage-row incoming">
@@ -101,6 +109,11 @@
         <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="lb.note">Mirrors an ALB / Envoy / nginx pool.</p></div>
       </aside>
     </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="lb.incident.meta">HealthCare.gov · October 2013</p>
+      <p class="body" data-i18n="lb.incident.body">When HealthCare.gov launched in 2013, it collapsed under real load.</p>
+    </div>
   </section>
 
   <!-- MODULE 02 — CONSISTENCY -->
@@ -112,6 +125,14 @@
     </header>
     <p class="dek" data-i18n="consistency.dek">Copies of the same data live on five machines.</p>
     <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="consistency.analogy">Imagine texting your friends in different cities that the plan changed.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="consistency.tryStep1">Turn on the network split, write under Eventual.</li>
+        <li data-i18n="consistency.tryStep2">Switch to Strong and write again while split.</li>
+        <li data-i18n="consistency.tryStep3">Heal the split and watch it catch up.</li>
+      </ol>
+    </div>
     <div class="panel-body">
       <div class="stage">
         <div class="node-row" id="consRow"></div>
@@ -142,6 +163,11 @@
         <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="consistency.note">This is the CAP theorem in miniature.</p></div>
       </aside>
     </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="consistency.incident.meta">GitHub · October 2018</p>
+      <p class="body" data-i18n="consistency.incident.body">A 43-second network blip split GitHub's database cluster in two.</p>
+    </div>
   </section>
 
   <!-- MODULE 03 — CACHING & CDN -->
@@ -153,6 +179,14 @@
     </header>
     <p class="dek" data-i18n="cache.dek">Edge caches sit between clients and the origin.</p>
     <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="cache.analogy">It's like keeping snacks in your desk drawer.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="cache.tryStep1">Request the same key twice from the same edge.</li>
+        <li data-i18n="cache.tryStep2">Request it from a different edge.</li>
+        <li data-i18n="cache.tryStep3">Drop the TTL slider low and watch entries expire.</li>
+      </ol>
+    </div>
     <div class="panel-body">
       <div class="stage">
         <div class="origin-card" id="cacheOrigin"><span class="dotpin"></span><span data-i18n="cache.origin">ORIGIN — authoritative source</span></div>
@@ -209,6 +243,11 @@
         <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="cache.note">Real CDNs work the same way.</p></div>
       </aside>
     </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="cache.incident.meta">Fastly · June 2021</p>
+      <p class="body" data-i18n="cache.incident.body">A single config change triggered a dormant bug that broke 85% of Fastly's network.</p>
+    </div>
   </section>
 
   <!-- MODULE 04 — FAULT TOLERANCE & FAILOVER -->
@@ -220,6 +259,14 @@
     </header>
     <p class="dek" data-i18n="failover.dek">One node in the cluster does the writing.</p>
     <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="failover.analogy">Picture a classroom with a substitute teacher on standby.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="failover.tryStep1">Kill the primary and watch detection, then promotion.</li>
+        <li data-i18n="failover.tryStep2">Revive it — it rejoins as a replica.</li>
+        <li data-i18n="failover.tryStep3">Kill two nodes in a row.</li>
+      </ol>
+    </div>
     <div class="panel-body">
       <div class="stage">
         <div class="cluster-row" id="foNodes"></div>
@@ -241,6 +288,11 @@
         <div class="log" id="foLog"></div>
         <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="failover.note">Production clusters use the same shape.</p></div>
       </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="failover.incident.meta">GitLab · January 2017</p>
+      <p class="body" data-i18n="failover.incident.body">An engineer deleted the primary database, and every backup mechanism had been failing silently.</p>
     </div>
   </section>
 

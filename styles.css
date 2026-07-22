@@ -113,9 +113,18 @@ button, select, input{ font:inherit; color:inherit; }
 .eyebrow{ font-family:var(--font-mono); font-size:0.66rem; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
 .eyebrow.accent{ color:var(--accent); }
 .eyebrow.faint{ color:var(--ink-faint); }
+.eyebrow.bad{ color:var(--bad); }
 
 .analogy{ padding:14px 22px 0; max-width:64ch; }
 .analogy p{ margin:0; font-size:0.94rem; color:var(--ink); line-height:1.65; }
+
+.tryit{ padding:14px 22px 0; max-width:64ch; }
+.tryit ol{ margin:0; padding-left:1.15em; display:flex; flex-direction:column; gap:6px; }
+.tryit li{ font-size:0.9rem; color:var(--ink); line-height:1.55; }
+
+.case-study{ padding:18px 22px 22px; border-top:1px solid var(--border); background:var(--bg-panel-2); }
+.case-study .meta{ font-family:var(--font-mono); font-size:0.7rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.03em; margin:0 0 8px; }
+.case-study p.body{ margin:0; font-size:0.9rem; color:var(--ink); line-height:1.65; max-width:72ch; }
 
 .tech-note{ margin-top:2px; }
 

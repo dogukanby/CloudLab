@@ -13,6 +13,7 @@
         pageTitle:"Cloud Lab",
         statusChanged:"status → {status}",
         analogyLabel:"In plain terms", technicalLabel:"Under the hood",
+        tryThisLabel:"Try this", realIncidentLabel:"Real incident",
         footer:"Everything above runs client-side in JavaScript — no real servers, nodes, or network calls involved.",
         resetAll:"Reset all modules"
       },
@@ -36,6 +37,13 @@
         autoLabel:"Auto-scaling enabled", spikeBtn:"Send traffic spike",
         statServers:"Active servers", statUtil:"Avg utilization", statHandled:"Requests handled", statDropped:"Requests dropped",
         note:"Mirrors an ALB / Envoy / nginx pool sitting in front of an auto-scaling group: distribute connections by policy, watch utilization, add capacity when it's sustained, remove it when it's wasted.",
+        tryStep1:"Drag traffic rate up past ~40 req/s and watch the pool grow on its own.",
+        tryStep2:"Turn off auto-scaling, then push the rate up again — watch requests start dropping instead.",
+        tryStep3:"Switch the strategy to \"Random\" and compare how evenly the load spreads versus round robin.",
+        incident:{
+          meta:"HealthCare.gov · October 2013",
+          body:"When HealthCare.gov launched on October 1, 2013, the government expected 50,000–60,000 concurrent users. It got 250,000 in the first two hours — and the site had only been load-tested at 2,000 concurrent users. With no real capacity plan or auto-scaling behind it, the site collapsed almost immediately; on day one, only six people successfully enrolled."
+        },
         status:{ stable:"STABLE", degraded:"DEGRADED", overloaded:"OVERLOADED" },
         log:{
           poolInit:"pool initialized with {n} servers",
@@ -56,6 +64,13 @@
         networkJoined:"JOINED", networkSplit:"SPLIT",
         badgeLatest:"latest", badgeStale:"stale", grpLabel:"grp",
         note:"This is the CAP theorem in miniature: under a partition, a system stays available (eventual) or stays consistent (strong/quorum) — rarely both. DynamoDB and Cassandra default to eventual; Spanner and etcd default to strong.",
+        tryStep1:"Turn on the network split, then write a value under Eventual — watch one side go stale.",
+        tryStep2:"Switch to Strong and write again while still split — the write should get rejected.",
+        tryStep3:"Turn the split back off and watch the stale side catch up automatically.",
+        incident:{
+          meta:"GitHub · October 2018",
+          body:"On October 21, 2018, a 43-second network blip between two of GitHub's data centers was enough to split its database cluster in two. Both sides kept accepting writes the other didn't have. To avoid silently losing or corrupting data, GitHub chose consistency over availability — and spent the next 24 hours in a degraded state while it reconciled the two histories by hand."
+        },
         status:{ consistent:"CONSISTENT", partitioned:"PARTITIONED", converging:"CONVERGING" },
         log:{
           init:"5-node cluster online, all synced at v0",
@@ -82,6 +97,13 @@
         autoLabel:"Simulate live traffic", purgeBtn:"Purge all caches",
         statHitRate:"Hit rate", statRequests:"Requests", statKeys:"Cached keys", statPurges:"Purges",
         note:"Real CDNs (Cloudflare, Fastly, CloudFront) work the same way: edge PoPs cache by TTL or explicit purge. A low hit rate usually means TTLs are too short, or the content is too personalized to cache at all.",
+        tryStep1:"Request the same key twice from the same edge — the second one should be a hit.",
+        tryStep2:"Now request it from a different edge — first time there is always a miss.",
+        tryStep3:"Drop the TTL slider low and watch entries expire out of the cache in real time.",
+        incident:{
+          meta:"Fastly · June 2021",
+          body:"On June 8, 2021, a single customer changed a routine CDN configuration setting — and triggered a dormant software bug that had been sitting in Fastly's edge network since a May update. Within minutes, about 85% of Fastly's network started failing, taking down Reddit, Amazon, the UK government's website, and huge parts of the web with it — a reminder that even the cache layer meant to add resilience can become a single point of failure."
+        },
         status:{ warming:"WARMING", warm:"WARM", cooling:"COOLING", cold:"COLD" },
         log:{
           init:"3 edge regions online, caches empty",
@@ -98,6 +120,13 @@
         targetLabel:"Target node", killBtn:"Kill selected node", reviveBtn:"Revive last failed node",
         statHealthy:"Healthy nodes", statPrimary:"Current primary", statFailovers:"Failovers", statQueue:"Down queue",
         note:"Production clusters (Postgres + Patroni, Redis Sentinel, Kubernetes leader election) use the same shape: heartbeats, a detection timeout, then a promotion step — tuned so failover is fast but a network blip doesn't trigger a false alarm.",
+        tryStep1:"Kill the primary and watch the log walk through detection, then promotion.",
+        tryStep2:"Try reviving it — notice it rejoins as a replica, not primary again.",
+        tryStep3:"Kill two nodes in a row and see what happens when no healthy replica is left.",
+        incident:{
+          meta:"GitLab · January 2017",
+          body:"On January 31, 2017, a GitLab engineer trying to fix replication lag ran a delete command against the wrong database — the live primary, not a replica — removing around 300GB of production data. That's what backups and replicas are for. Except when they checked, most of GitLab's backup mechanisms had been failing silently for weeks. Only one recovery option worked, and it was six hours old — the redundancy existed on paper, but nobody had tested that it actually failed over."
+        },
         status:{ healthy:"HEALTHY", degraded:"DEGRADED", critical:"CRITICAL" },
         role:{ primary:"PRIMARY", replica:"REPLICA" },
         health:{ healthy:"HEALTHY", down:"DOWN", detecting:"DETECTING", syncing:"SYNCING" },
@@ -137,6 +166,7 @@
         pageTitle:"Bulut Laboratuvarı",
         statusChanged:"durum → {status}",
         analogyLabel:"Basitçe söylemek gerekirse", technicalLabel:"Perde arkasında",
+        tryThisLabel:"Dene bunu", realIncidentLabel:"Gerçek olay",
         footer:"Yukarıdaki her şey tarayıcınızda JavaScript ile çalışır — gerçek sunucu, düğüm veya ağ isteği yoktur.",
         resetAll:"Tüm modülleri sıfırla"
       },
@@ -160,6 +190,13 @@
         autoLabel:"Otomatik ölçekleme etkin", spikeBtn:"Trafik ani yükselmesi gönder",
         statServers:"Aktif sunucu", statUtil:"Ort. kullanım", statHandled:"İşlenen istek", statDropped:"Düşürülen istek",
         note:"Bir ALB / Envoy / nginx havuzunun bir otomatik ölçekleme grubunun önünde durmasıyla aynı mantık: bağlantıları bir politikaya göre dağıt, kullanımı izle, sürdürülebilir bir yük artışında kapasite ekle, israf olduğunda kaldır.",
+        tryStep1:"Trafik oranını ~40 istek/sn üzerine çekin ve havuzun kendiliğinden büyümesini izleyin.",
+        tryStep2:"Otomatik ölçeklemeyi kapatın, oranı tekrar yükseltin — bu kez isteklerin düşmeye başladığını görün.",
+        tryStep3:"Stratejiyi \"Rastgele\" yapın ve yükün round robin'e göre ne kadar dengeli dağıldığını karşılaştırın.",
+        incident:{
+          meta:"HealthCare.gov · Ekim 2013",
+          body:"HealthCare.gov, 1 Ekim 2013'te açıldığında hükümet aynı anda 50-60 bin kullanıcı bekliyordu. İlk iki saatte 250 bin kullanıcı geldi — oysa site sadece 2 bin eşzamanlı kullanıcıyla test edilmişti. Gerçek bir kapasite planı ya da otomatik ölçekleme olmadan site neredeyse anında çöktü; ilk gün sadece altı kişi başvurusunu tamamlayabildi."
+        },
         status:{ stable:"KARARLI", degraded:"YÜK ALTINDA", overloaded:"AŞIRI YÜKLÜ" },
         log:{
           poolInit:"havuz {n} sunucuyla başlatıldı",
@@ -180,6 +217,13 @@
         networkJoined:"BİRLEŞİK", networkSplit:"BÖLÜNMÜŞ",
         badgeLatest:"güncel", badgeStale:"eski", grpLabel:"grp",
         note:"Bu, minyatür bir CAP teoremi: bir ağ bölünmesinde sistem ya erişilebilir kalır (eventual) ya da tutarlı kalır (strong/quorum) — nadiren ikisi birden. DynamoDB ve Cassandra varsayılan olarak eventual; Spanner ve etcd varsayılan olarak strong kullanır.",
+        tryStep1:"Ağ bölünmesini açın, sonra Eventual modda bir değer yazın — bir tarafın nasıl eskidiğini izleyin.",
+        tryStep2:"Strong moda geçin ve hâlâ bölünmüşken tekrar yazın — yazma reddedilmeli.",
+        tryStep3:"Bölünmeyi tekrar kapatın ve eski kalan tarafın kendiliğinden yetiştiğini izleyin.",
+        incident:{
+          meta:"GitHub · Ekim 2018",
+          body:"21 Ekim 2018'de, GitHub'ın iki veri merkezi arasında yaşanan 43 saniyelik bir ağ kesintisi, veritabanı kümesini ikiye bölmeye yetti. Her iki taraf da diğerinde olmayan yazmaları kabul etmeye devam etti. Veriyi sessizce kaybetmemek ya da bozmamak için GitHub erişilebilirlik yerine tutarlılığı seçti — ve iki geçmişi elle uzlaştırırken sonraki 24 saati düşük performansla geçirdi."
+        },
         status:{ consistent:"TUTARLI", partitioned:"BÖLÜNDÜ", converging:"YAKINSIYOR" },
         log:{
           init:"5 düğümlü küme çevrimiçi, tümü v0 sürümünde senkron",
@@ -206,6 +250,13 @@
         autoLabel:"Canlı trafiği simüle et", purgeBtn:"Tüm önbellekleri temizle",
         statHitRate:"İsabet oranı", statRequests:"İstekler", statKeys:"Önbellekteki anahtar", statPurges:"Temizlemeler",
         note:"Gerçek CDN'ler (Cloudflare, Fastly, CloudFront) aynı şekilde çalışır: uç PoP'lar TTL'ye veya açık bir temizlemeye göre önbellekler. Düşük isabet oranı genelde TTL'lerin çok kısa olduğu, ya da içeriğin önbelleklenemeyecek kadar kişiselleştirilmiş olduğu anlamına gelir.",
+        tryStep1:"Aynı anahtarı aynı uçtan iki kez isteyin — ikincisi isabet olmalı.",
+        tryStep2:"Şimdi farklı bir uçtan isteyin — ilk seferde her zaman ıskalama olur.",
+        tryStep3:"TTL kaydırıcısını düşürün ve girişlerin gerçek zamanlı olarak önbellekten düştüğünü izleyin.",
+        incident:{
+          meta:"Fastly · Haziran 2021",
+          body:"8 Haziran 2021'de tek bir müşteri, rutin bir CDN ayarını değiştirdi — ve bu, Fastly'nin uç ağında Mayıs ayındaki bir güncellemeden beri gizli kalmış bir yazılım hatasını tetikledi. Dakikalar içinde Fastly ağının yaklaşık %85'i hata vermeye başladı; Reddit, Amazon, İngiltere hükümetinin sitesi ve web'in büyük bir kısmı çöktü — dayanıklılık katmanı olması gereken önbelleğin de tek arıza noktasına dönüşebileceğinin bir hatırlatması."
+        },
         status:{ warming:"ISINIYOR", warm:"SICAK", cooling:"SOĞUYOR", cold:"SOĞUK" },
         log:{
           init:"3 uç bölge çevrimiçi, önbellekler boş",
@@ -222,6 +273,13 @@
         targetLabel:"Hedef düğüm", killBtn:"Seçili düğümü çökert", reviveBtn:"Son arızalanan düğümü canlandır",
         statHealthy:"Sağlıklı düğüm", statPrimary:"Mevcut birincil", statFailovers:"Yük devretme", statQueue:"Devre dışı sırası",
         note:"Üretim kümeleri (Postgres + Patroni, Redis Sentinel, Kubernetes lider seçimi) aynı yapıyı kullanır: kalp atışları, bir tespit zaman aşımı, sonra bir yükseltme adımı — yük devretme hızlı olsun ama kısa bir ağ kesintisi yanlış alarm tetiklemesin diye ayarlanmış.",
+        tryStep1:"Birincili çökertin ve günlüğün tespitten yükseltmeye nasıl ilerlediğini izleyin.",
+        tryStep2:"Onu canlandırmayı deneyin — birincil olarak değil, yedek olarak yeniden katıldığına dikkat edin.",
+        tryStep3:"Art arda iki düğümü çökertin ve sağlıklı yedek kalmadığında ne olduğunu görün.",
+        incident:{
+          meta:"GitLab · Ocak 2017",
+          body:"31 Ocak 2017'de, çoğaltma gecikmesini düzeltmeye çalışan bir GitLab mühendisi, yanlış veritabanına — yedeğe değil, canlı birincile — bir silme komutu çalıştırarak yaklaşık 300GB üretim verisini sildi. Yedekler ve replikalar tam olarak bunun için var. Ama kontrol ettiklerinde, GitLab'ın yedekleme mekanizmalarının çoğunun haftalardır sessizce başarısız olduğunu gördüler. Tek çalışan kurtarma seçeneği altı saat eskiydi — yedeklilik kağıt üzerinde vardı, ama kimse gerçekten devreye girip girmediğini test etmemişti."
+        },
         status:{ healthy:"SAĞLIKLI", degraded:"ZAYIFLADI", critical:"KRİTİK" },
         role:{ primary:"BİRİNCİL", replica:"YEDEK" },
         health:{ healthy:"SAĞLIKLI", down:"DEVRE DIŞI", detecting:"TESPİT EDİLİYOR", syncing:"SENKRONİZE EDİLİYOR" },
