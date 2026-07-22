@@ -677,9 +677,9 @@
   </div>
 </div>
 
-<button type="button" class="chat-fab" id="chatFab" data-i18n-aria="chat.fabAria" aria-label="Ask a question">?</button>
+<button type="button" class="chat-fab" id="chatFab" data-i18n-aria="chat.fabAria" aria-label="Ask a question" aria-expanded="false" aria-haspopup="dialog">?</button>
 
-<div class="chat-panel" id="chatPanel" hidden>
+<div class="chat-panel" id="chatPanel" role="dialog" aria-label="Ask the Console">
   <div class="chat-panel-head">
     <span data-i18n="chat.title">Ask the Console</span>
     <button type="button" class="chat-close" id="chatClose" data-i18n-aria="chat.closeAria" aria-label="Close">×</button>

@@ -1829,15 +1829,30 @@
       pending.classList.add("bad");
     }
   }
-  $("#chatFab").addEventListener("click", function(){
+  function chatSetOpen(open){
     const panel=$("#chatPanel");
-    panel.hidden=!panel.hidden;
-    if(!panel.hidden){
+    const fab=$("#chatFab");
+    panel.classList.toggle("open", open);
+    fab.setAttribute("aria-expanded", open ? "true" : "false");
+    if(open){
       if(chatGetKey()) $("#chatInput").focus();
       else $("#chatKeyInput").focus();
+    } else {
+      fab.focus();
     }
+  }
+  $("#chatFab").addEventListener("click", function(){
+    chatSetOpen(!$("#chatPanel").classList.contains("open"));
   });
-  $("#chatClose").addEventListener("click", function(){ $("#chatPanel").hidden=true; });
+  $("#chatClose").addEventListener("click", function(){ chatSetOpen(false); });
+  document.addEventListener("keydown", function(e){
+    if(e.key==="Escape" && $("#chatPanel").classList.contains("open")) chatSetOpen(false);
+  });
+  document.addEventListener("click", function(e){
+    if(!$("#chatPanel").classList.contains("open")) return;
+    if(e.target.closest("#chatPanel") || e.target.closest("#chatFab")) return;
+    chatSetOpen(false);
+  });
   $("#chatKeySave").addEventListener("click", function(){
     const val=$("#chatKeyInput").value.trim();
     if(!val) return;
