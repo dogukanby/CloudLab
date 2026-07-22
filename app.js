@@ -8,7 +8,6 @@
       common: {
         wordmark:"CloudLab",
         nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge" },
-        uptime:"UPTIME",
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"CloudLab",
         statusChanged:"status → {status}",
@@ -350,6 +349,24 @@
           started:"starting {flow} flow...",
           complete:"session started — signed in",
           reset:"session cleared — signed out"
+        },
+        quest:{
+          eyebrow:"QUEST", title:"Fix the broken sign-in",
+          intro:"Below is a simplified mock of the Google Cloud Console. \"Sign in with Google\" is wired up on this page already — but it's broken, because none of the setup a real developer has to do has been done yet. Complete the steps below, in any order, then try signing in again.",
+          consoleLabel:"Google Cloud Console (simulated)",
+          trySignInBtn:"Sign in with Google",
+          resultBroken:"Error 401: invalid_client — no OAuth client is configured for this app yet.",
+          resultSuccess:"Signed in as demo@cloudlab.app — every step below is done.",
+          stepConsent:"Configure the OAuth consent screen",
+          stepClientId:"Create an OAuth 2.0 Client ID",
+          stepRedirect:"Add the correct authorized redirect URI",
+          stepApi:"Enable the People API",
+          doneTag:"done",
+          redirectPrompt:"Pick the redirect URI that actually matches this app:",
+          redirectWrong:"Rejected — that URI doesn't match this app. A real Google sign-in would fail here with redirect_uri_mismatch.",
+          redirectCorrect:"Added — that URI matches this app's real callback path.",
+          resetBtn:"Reset quest",
+          completeNote:"These are the actual four steps every real \"Sign in with Google\" integration requires in Google Cloud Console — this quest just compresses the clicking and waiting out of it."
         }
       },
       iam:{
@@ -485,7 +502,6 @@
       common: {
         wordmark:"CloudLab",
         nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge" },
-        uptime:"ÇALIŞMA SÜRESİ",
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"CloudLab",
         statusChanged:"durum → {status}",
@@ -827,6 +843,24 @@
           started:"{flow} akışı başlıyor...",
           complete:"oturum başlatıldı — giriş yapıldı",
           reset:"oturum temizlendi — oturum kapalı"
+        },
+        quest:{
+          eyebrow:"GÖREV", title:"Bozuk oturum açmayı düzelt",
+          intro:"Aşağıda Google Cloud Console'un basitleştirilmiş bir taklidi var. \"Google ile giriş yap\" bu sayfada zaten bağlanmış — ama bozuk, çünkü gerçek bir geliştiricinin yapması gereken kurulum adımlarının hiçbiri henüz yapılmadı. Aşağıdaki adımları herhangi bir sırada tamamlayın, sonra tekrar giriş yapmayı deneyin.",
+          consoleLabel:"Google Cloud Console (simüle edilmiş)",
+          trySignInBtn:"Google ile giriş yap",
+          resultBroken:"Hata 401: invalid_client — bu uygulama için henüz bir OAuth istemcisi yapılandırılmadı.",
+          resultSuccess:"demo@cloudlab.app olarak giriş yapıldı — aşağıdaki her adım tamamlandı.",
+          stepConsent:"OAuth onay ekranını yapılandır",
+          stepClientId:"Bir OAuth 2.0 İstemci Kimliği oluştur",
+          stepRedirect:"Doğru yetkili yönlendirme URI'sini ekle",
+          stepApi:"People API'sini etkinleştir",
+          doneTag:"tamam",
+          redirectPrompt:"Bu uygulamayla gerçekten eşleşen yönlendirme URI'sini seçin:",
+          redirectWrong:"Reddedildi — bu URI bu uygulamayla eşleşmiyor. Gerçek bir Google girişi burada redirect_uri_mismatch hatasıyla başarısız olurdu.",
+          redirectCorrect:"Eklendi — bu URI, uygulamanın gerçek geri çağırma yoluyla eşleşiyor.",
+          resetBtn:"Görevi sıfırla",
+          completeNote:"Bunlar, Google Cloud Console'da gerçek her \"Google ile giriş yap\" entegrasyonunun gerektirdiği dört gerçek adım — bu görev sadece tıklama ve bekleme kısmını sıkıştırıyor."
         }
       },
       iam:{
@@ -1056,16 +1090,6 @@
       history.pushState(null, "", "#"+id);
     });
   });
-
-  /* ============ uptime ticker ============ */
-  const startTime=Date.now();
-  setInterval(function(){
-    const s=Math.floor((Date.now()-startTime)/1000);
-    const hh=String(Math.floor(s/3600)).padStart(2,"0");
-    const mm=String(Math.floor((s%3600)/60)).padStart(2,"0");
-    const ss=String(s%60).padStart(2,"0");
-    $("#uptimeVal").textContent=hh+":"+mm+":"+ss;
-  },1000);
 
   /* ============ MODULE 01 — LOAD BALANCING ============ */
   let lbServers=[];
@@ -1954,6 +1978,83 @@
   addLog($("#authLog"), t("auth.log.init"));
   authUpdateStats();
 
+  /* ============ MODULE 01 QUEST — fix the broken sign-in ============ */
+  let questSteps={ consent:false, clientid:false, redirect:false, api:false };
+  let questLastResult=null; // null | "good" | "bad"
+  let questLastUriFeedback=null; // null | "good" | "bad"
+  function questAllDone(){
+    return questSteps.consent && questSteps.clientid && questSteps.redirect && questSteps.api;
+  }
+  function questUpdateConsoleDot(){
+    $("#questConsoleDot").classList.toggle("ok", questAllDone());
+  }
+  function questMarkDone(stepEl, stepKey){
+    questSteps[stepKey]=true;
+    stepEl.classList.add("done");
+    questUpdateConsoleDot();
+  }
+  function questReset(){
+    questSteps={ consent:false, clientid:false, redirect:false, api:false };
+    questLastResult=null; questLastUriFeedback=null;
+    document.querySelectorAll("#questSteps .quest-step").forEach(function(li){ li.classList.remove("done"); });
+    $("#questUriOptions").hidden=true;
+    $("#questUriFeedback").textContent=""; $("#questUriFeedback").className="quest-uri-feedback";
+    $("#questResult").hidden=true; $("#questResult").textContent=""; $("#questResult").className="quest-result";
+    $("#questCompleteNote").hidden=true;
+    questUpdateConsoleDot();
+  }
+  function questRefreshLang(){
+    if(questLastResult) $("#questResult").textContent = questLastResult==="good" ? t("auth.quest.resultSuccess") : t("auth.quest.resultBroken");
+    if(questLastUriFeedback) $("#questUriFeedback").textContent = questLastUriFeedback==="good" ? t("auth.quest.redirectCorrect") : t("auth.quest.redirectWrong");
+  }
+  $("#questStepConsent").addEventListener("click", function(){
+    if(questSteps.consent) return;
+    questMarkDone($("#questStepConsent"), "consent");
+  });
+  $("#questStepClientid").addEventListener("click", function(){
+    if(questSteps.clientid) return;
+    questMarkDone($("#questStepClientid"), "clientid");
+  });
+  $("#questStepApi").addEventListener("click", function(){
+    if(questSteps.api) return;
+    questMarkDone($("#questStepApi"), "api");
+  });
+  $("#questRedirectToggle").addEventListener("click", function(){
+    if(questSteps.redirect) return;
+    $("#questUriOptions").hidden=!$("#questUriOptions").hidden;
+  });
+  document.querySelectorAll(".quest-uri-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const fb=$("#questUriFeedback");
+      if(btn.dataset.uri==="correct"){
+        questLastUriFeedback="good";
+        fb.textContent=t("auth.quest.redirectCorrect");
+        fb.className="quest-uri-feedback good";
+        questMarkDone($("#questStepRedirect"), "redirect");
+        $("#questUriOptions").hidden=true;
+      } else {
+        questLastUriFeedback="bad";
+        fb.textContent=t("auth.quest.redirectWrong");
+        fb.className="quest-uri-feedback bad";
+      }
+    });
+  });
+  $("#questTrySignIn").addEventListener("click", function(){
+    const result=$("#questResult");
+    result.hidden=false;
+    if(questAllDone()){
+      questLastResult="good";
+      result.textContent=t("auth.quest.resultSuccess");
+      result.className="quest-result good";
+      $("#questCompleteNote").hidden=false;
+    } else {
+      questLastResult="bad";
+      result.textContent=t("auth.quest.resultBroken");
+      result.className="quest-result bad";
+    }
+  });
+  $("#questReset").addEventListener("click", questReset);
+
   /* ============ MODULE 02 — IAM ============ */
   let iamAllowedCount=0, iamDeniedCount=0;
   function iamPerms(){
@@ -2304,6 +2405,7 @@
     authRenderSteps();
     addLog($("#authLog"), t("auth.log.init"));
     authUpdateStats();
+    questReset();
 
     iamAllowedCount=0; iamDeniedCount=0;
     $("#iamPermRead").checked=true; $("#iamPermWrite").checked=false;
@@ -2465,6 +2567,7 @@
     snsUpdateStats();
     snowballCompute();
     authRenderSteps(); authUpdateStats();
+    questRefreshLang();
     iamUpdateStats();
     s3Render(); s3UpdateStats();
     lambdaRenderPool(); lambdaUpdateStats();

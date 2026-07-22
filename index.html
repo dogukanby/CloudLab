@@ -39,7 +39,6 @@
       <a href="#cloudwatch" data-i18n="common.nav.cloudwatch">14 CloudWatch</a>
       <a href="#snowball" data-i18n="common.nav.snowball">15 Snowball Edge</a>
     </nav>
-    <span class="uptime"><span data-i18n="common.uptime">UPTIME</span> <span id="uptimeVal">00:00:00</span></span>
     <div class="topbar-tools">
       <div class="lang-toggle" role="group" aria-label="Cloud provider">
         <button type="button" class="lang-btn active" id="providerAwsBtn" data-provider="aws">AWS</button>
@@ -115,6 +114,60 @@
         <div class="log" id="authLog"></div>
         <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="auth.note">This is genuinely how OAuth/OIDC works.</p></div>
       </aside>
+    </div>
+    <div class="quest" id="authQuest">
+      <p class="eyebrow accent" data-i18n="auth.quest.eyebrow">QUEST</p>
+      <h3 class="quest-title" data-i18n="auth.quest.title">Fix the broken sign-in</h3>
+      <p class="quest-intro" data-i18n="auth.quest.intro">Below is a simplified mock of the Google Cloud Console.</p>
+      <div class="quest-console">
+        <div class="quest-console-head">
+          <span class="quest-console-dot" id="questConsoleDot"></span>
+          <span data-i18n="auth.quest.consoleLabel">Google Cloud Console (simulated)</span>
+        </div>
+        <div class="quest-console-body">
+          <div class="quest-signin-demo">
+            <button type="button" class="btn" id="questTrySignIn" data-i18n="auth.quest.trySignInBtn">Sign in with Google</button>
+            <p class="quest-result" id="questResult" hidden></p>
+          </div>
+          <ul class="quest-steps" id="questSteps">
+            <li class="quest-step" id="questStepConsent" data-step="consent">
+              <div class="quest-step-row">
+                <button type="button" data-i18n="auth.quest.stepConsent">Configure the OAuth consent screen</button>
+                <span class="quest-check" aria-hidden="true"></span>
+              </div>
+            </li>
+            <li class="quest-step" id="questStepClientid" data-step="clientid">
+              <div class="quest-step-row">
+                <button type="button" data-i18n="auth.quest.stepClientId">Create an OAuth 2.0 Client ID</button>
+                <span class="quest-check" aria-hidden="true"></span>
+              </div>
+            </li>
+            <li class="quest-step" id="questStepRedirect" data-step="redirect">
+              <div class="quest-step-row">
+                <button type="button" id="questRedirectToggle" data-i18n="auth.quest.stepRedirect">Add the correct authorized redirect URI</button>
+                <span class="quest-check" aria-hidden="true"></span>
+              </div>
+              <div class="quest-uri-options" id="questUriOptions" hidden>
+                <p class="quest-uri-prompt" data-i18n="auth.quest.redirectPrompt">Pick the redirect URI that actually matches this app:</p>
+                <button type="button" class="quest-uri-btn" data-uri="wrong1">https://cloudlab.app/callback</button>
+                <button type="button" class="quest-uri-btn" data-uri="correct">https://cloudlab.app/auth/google/callback</button>
+                <button type="button" class="quest-uri-btn" data-uri="wrong2">http://localhost/callback</button>
+                <p class="quest-uri-feedback" id="questUriFeedback"></p>
+              </div>
+            </li>
+            <li class="quest-step" id="questStepApi" data-step="api">
+              <div class="quest-step-row">
+                <button type="button" data-i18n="auth.quest.stepApi">Enable the People API</button>
+                <span class="quest-check" aria-hidden="true"></span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="quest-footer">
+        <button type="button" class="btn" id="questReset" data-i18n="auth.quest.resetBtn">Reset quest</button>
+        <p class="quest-complete-note" id="questCompleteNote" data-i18n="auth.quest.completeNote" hidden></p>
+      </div>
     </div>
     <div class="case-study">
       <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
