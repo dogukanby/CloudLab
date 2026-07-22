@@ -1,20 +1,20 @@
 :root{
-  --bg:#dfe3e7;
-  --bg-panel:#f2f4f6;
-  --bg-panel-2:#e6e9ec;
-  --border:rgba(20,30,45,0.14);
-  --border-strong:rgba(20,30,45,0.27);
-  --ink:#1c222b;
-  --ink-dim:#525d6b;
-  --ink-faint:#7c8695;
+  --bg:#c5cbd1;
+  --bg-panel:#d7dce0;
+  --bg-panel-2:#cbd1d6;
+  --border:rgba(20,30,45,0.16);
+  --border-strong:rgba(20,30,45,0.30);
+  --ink:#181e27;
+  --ink-dim:#48525f;
+  --ink-faint:#6b7481;
   --accent:#0f8f80;
-  --accent-soft:rgba(15,143,128,0.16);
-  --good:#1f9d4a;
+  --accent-soft:rgba(15,143,128,0.18);
+  --good:#1c8a41;
   --warn:#a8690a;
   --bad:#c93a45;
-  --grid-line:rgba(20,30,45,0.06);
-  --bg-translucent:rgba(223,227,231,0.88);
-  --shadow:0 1px 2px rgba(20,30,45,0.08), 0 10px 26px rgba(20,30,45,0.07);
+  --grid-line:rgba(20,30,45,0.08);
+  --bg-translucent:rgba(197,203,209,0.88);
+  --shadow:0 1px 2px rgba(20,30,45,0.12), 0 10px 26px rgba(20,30,45,0.10);
   --radius:4px;
   --font-display:"Segoe UI","Helvetica Neue",Arial,sans-serif;
   --font-body:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -53,13 +53,13 @@
   --shadow:0 1px 2px rgba(0,0,0,0.35), 0 14px 34px rgba(0,0,0,0.38);
 }
 :root[data-theme="light"]{
-  --bg:#dfe3e7; --bg-panel:#f2f4f6; --bg-panel-2:#e6e9ec;
-  --border:rgba(20,30,45,0.14); --border-strong:rgba(20,30,45,0.27);
-  --ink:#1c222b; --ink-dim:#525d6b; --ink-faint:#7c8695;
-  --accent:#0f8f80; --accent-soft:rgba(15,143,128,0.16);
-  --good:#1f9d4a; --warn:#a8690a; --bad:#c93a45;
-  --grid-line:rgba(20,30,45,0.06); --bg-translucent:rgba(223,227,231,0.88);
-  --shadow:0 1px 2px rgba(20,30,45,0.08), 0 10px 26px rgba(20,30,45,0.07);
+  --bg:#c5cbd1; --bg-panel:#d7dce0; --bg-panel-2:#cbd1d6;
+  --border:rgba(20,30,45,0.16); --border-strong:rgba(20,30,45,0.30);
+  --ink:#181e27; --ink-dim:#48525f; --ink-faint:#6b7481;
+  --accent:#0f8f80; --accent-soft:rgba(15,143,128,0.18);
+  --good:#1c8a41; --warn:#a8690a; --bad:#c93a45;
+  --grid-line:rgba(20,30,45,0.08); --bg-translucent:rgba(197,203,209,0.88);
+  --shadow:0 1px 2px rgba(20,30,45,0.12), 0 10px 26px rgba(20,30,45,0.10);
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
@@ -136,6 +136,13 @@ a:hover{ color:var(--ink); }
 .panel-lead{ padding:20px 22px 28px; display:flex; flex-direction:column; gap:14px; max-width:72ch; }
 .panel-lead p{ margin:0; font-size:1rem; color:var(--ink-dim); line-height:1.7; }
 .panel-lead p:first-child{ color:var(--ink); }
+
+.cloud101-glossary{ padding:0 22px 26px; max-width:84ch; }
+.glossary-list{ margin:12px 0 0; padding:0; display:grid; grid-template-columns:1fr; gap:10px; }
+@media (min-width:760px){ .glossary-list{ grid-template-columns:1fr 1fr; } }
+.glossary-item{ margin:0; border:1px solid var(--border-strong); border-radius:var(--radius); background:var(--bg-panel-2); padding:12px 14px; }
+.glossary-item dt{ font-family:var(--font-mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.03em; color:var(--accent); margin:0 0 4px; }
+.glossary-item dd{ margin:0; font-size:0.84rem; color:var(--ink-dim); line-height:1.55; }
 
 .panel-body{ display:grid; grid-template-columns:1.3fr 1fr; align-items:stretch; }
 @media (max-width:880px){ .panel-body{ grid-template-columns:1fr; } }

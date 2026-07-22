@@ -24,7 +24,22 @@
       cloud101:{
         modId:"MODULE 00", title:"What Is \"The Cloud,\" Really?",
         p1:"When you save a photo, send a message, or stream a video, it usually doesn't stay on your phone or laptop — it travels to a computer somewhere else, does its job, and sends the result back. That's the cloud: not a mysterious place in the sky, just someone else's computers — owned by companies like Amazon, Google, or Microsoft — built to serve millions of people at once, all day, every day, without going down.",
-        p2:"Making that work — never going down, never running out of room, never getting confused about who changed what last — takes a handful of core tricks that every cloud provider relies on. The four modules below let you play with each one and watch, live, what's actually happening underneath a phrase like \"it's in the cloud.\""
+        p2:"It didn't used to work this way. Companies used to buy and run their own physical servers in their own basement or data center — expensive to buy, expensive to cool, expensive to staff, and almost always either too small for a busy day or too big for a quiet one. Cloud providers realized they could build enormous shared data centers once, then rent out tiny slices of that capacity to anyone who needed it, by the hour or even by the second. Renting is what makes the whole thing work: you stop paying for a warehouse full of computers you might need, and start paying only for the ones you're actually using right now.",
+        p3:"Every cloud provider is really just selling four promises, wrapped in different product names: it will scale up when you get busy and back down when you're quiet (elasticity), it won't lose your data even if a hard drive or an entire building fails (durability), it can serve someone in Tokyo and someone in Toronto without either of them noticing the other exists (global reach), and you only pay for what you actually use (metered pricing). Almost everything a cloud provider sells — the 16 modules below included — is one of those four promises, turned into an actual product.",
+        p4:"Each module below simulates one small piece of how that actually works — signing in without this app ever seeing your password, an idle server still costing money every second, a single message reaching five different subscribers at once, a truck full of hard drives beating a network cable. None of it is a real server or a real network call; it's the same logic real systems run, just slowed down and made visible so you can watch it happen.",
+        glossaryLabel:"A few words you'll see a lot below",
+        glossRegionTerm:"Region",
+        glossRegionDef:"A specific geographic area a provider operates in — \"US East\" or \"Europe West,\" for instance — usually built from multiple data centers close enough together to act as one, but far enough apart to survive a local disaster.",
+        glossAzTerm:"Availability zone",
+        glossAzDef:"One physically separate data center within a region, with its own power and cooling. Spreading a service across zones means one zone catching fire doesn't take the whole region down with it.",
+        glossInstanceTerm:"Instance",
+        glossInstanceDef:"A single rented virtual computer — CPU, memory, and storage carved out of a much bigger physical machine and handed to you as if it were your own.",
+        glossApiTerm:"API",
+        glossApiDef:"The set of rules a piece of software exposes so other software can ask it to do something. Almost everything in the cloud, including every module below, happens by one program calling another program's API.",
+        glossManagedTerm:"Managed service",
+        glossManagedDef:"A piece of infrastructure the provider runs for you — patched, backed up, scaled — so you never have to think about the actual machine underneath it. Most of the 16 modules below are simulating a managed service.",
+        glossSlaTerm:"SLA / uptime",
+        glossSlaDef:"A provider's written promise for how reliable a service will be, usually a percentage like 99.99% — which sounds close to 100%, but still allows for roughly 52 minutes of downtime a year."
       },
       intro:{
         title:"Cloud systems, taken apart",
@@ -532,7 +547,22 @@
       cloud101:{
         modId:"MODÜL 00", title:"\"Bulut\" Gerçekte Nedir?",
         p1:"Bir fotoğraf kaydettiğinizde, bir mesaj gönderdiğinizde ya da bir video izlediğinizde, bu genelde telefonunuzda ya da bilgisayarınızda kalmaz — başka bir yerdeki bir bilgisayara gider, işini yapar ve sonucu geri gönderir. İşte bulut budur: gökyüzünde gizemli bir yer değil, sadece başkasının bilgisayarları — Amazon, Google ya da Microsoft gibi şirketlere ait — milyonlarca kişiye aynı anda, gün boyu, hiç durmadan hizmet verecek şekilde inşa edilmiş.",
-        p2:"Bunun çalışmasını sağlamak — hiç durmamak, hiç yer bitirmemek, en son kimin neyi değiştirdiği konusunda hiç kafası karışmamak — her bulut sağlayıcısının dayandığı birkaç temel yönteme bağlı. Aşağıdaki dört modül, her birini canlı olarak deneyip \"bulutta\" demenin altında gerçekte ne olduğunu izlemenizi sağlıyor."
+        p2:"Eskiden böyle çalışmıyordu. Şirketler kendi bodrumlarında ya da veri merkezlerinde kendi fiziksel sunucularını satın alıp işletiyordu — satın alması pahalı, soğutması pahalı, personeli pahalı, ve neredeyse her zaman ya yoğun bir gün için çok küçük ya da sakin bir gün için çok büyüktü. Bulut sağlayıcıları, devasa paylaşılan veri merkezlerini bir kez inşa edip, o kapasitenin küçük dilimlerini ihtiyacı olan herkese saat başına, hatta saniye başına kiralayabileceklerini fark etti. Bütün bu işi çalışır kılan da kiralama fikri: artık ihtiyacınız olabilecek bir depo dolusu bilgisayar için ödeme yapmıyorsunuz, sadece şu anda gerçekten kullandıklarınız için ödüyorsunuz.",
+        p3:"Her bulut sağlayıcısı aslında farklı ürün isimleriyle sarılmış dört söz satıyor: yoğunlaştığınızda büyüyecek, sakinleştiğinizde küçülecek (esneklik), bir sabit disk ya da koca bir bina çökse bile verinizi kaybetmeyecek (dayanıklılık), Tokyo'daki biriyle Toronto'daki birine, ikisi de diğerinin varlığını fark etmeden hizmet verebilecek (küresel erişim), ve sadece gerçekten kullandığınız kadarını ödeyeceksiniz (ölçülü fiyatlandırma). Bir bulut sağlayıcısının sattığı hemen her şey — aşağıdaki 16 modül dahil — bu dört sözden birinin gerçek bir ürüne dönüşmüş hali.",
+        p4:"Aşağıdaki her modül, bunun gerçekte nasıl çalıştığının küçük bir parçasını simüle ediyor — bu uygulamanın parolanızı hiç görmeden giriş yapmanız, boşta duran bir sunucunun her saniye para harcamaya devam etmesi, tek bir mesajın beş farklı aboneye aynı anda ulaşması, sabit disklerle dolu bir kamyonun bir ağ kablosunu yenmesi. Hiçbiri gerçek bir sunucu ya da gerçek bir ağ isteği değil; gerçek sistemlerin çalıştırdığı aynı mantık, sadece yavaşlatılmış ve izleyebilmeniz için görünür kılınmış.",
+        glossaryLabel:"Aşağıda sıkça göreceğiniz birkaç kelime",
+        glossRegionTerm:"Bölge (Region)",
+        glossRegionDef:"Bir sağlayıcının faaliyet gösterdiği belirli bir coğrafi alan — örneğin \"US East\" ya da \"Europe West\" — genelde birbirine yeterince yakın, ama yerel bir felaketten kurtulabilecek kadar da uzak birden fazla veri merkezinden oluşur.",
+        glossAzTerm:"Kullanılabilirlik bölgesi (Availability Zone)",
+        glossAzDef:"Bir bölge içindeki, kendi elektrik ve soğutmasına sahip, fiziksel olarak ayrı tek bir veri merkezi. Bir servisi bölgeler arasında yaymak, bir bölgenin yanmasının tüm bölgeyi çökertmemesini sağlar.",
+        glossInstanceTerm:"Örnek (Instance)",
+        glossInstanceDef:"Kiralanmış tek bir sanal bilgisayar — çok daha büyük fiziksel bir makineden kesilip size sanki kendinizinmiş gibi verilen CPU, bellek ve depolama.",
+        glossApiTerm:"API",
+        glossApiDef:"Bir yazılım parçasının, başka bir yazılımın ondan bir şey yapmasını isteyebilmesi için açığa çıkardığı kurallar bütünü. Bulutta olan hemen her şey — aşağıdaki her modül dahil — bir programın başka bir programın API'sini çağırmasıyla olur.",
+        glossManagedTerm:"Yönetilen servis (Managed Service)",
+        glossManagedDef:"Sağlayıcının sizin yerinize işlettiği bir altyapı parçası — yamalanmış, yedeklenmiş, ölçeklenmiş — böylece altındaki gerçek makineyi hiç düşünmeniz gerekmez. Aşağıdaki 16 modülün çoğu bir yönetilen servisi simüle ediyor.",
+        glossSlaTerm:"SLA / çalışma süresi",
+        glossSlaDef:"Bir sağlayıcının bir servisin ne kadar güvenilir olacağına dair yazılı sözü, genelde %99,99 gibi bir yüzde ile ifade edilir — bu %100'e yakın görünse de, yılda yaklaşık 52 dakikalık bir kesintiye hâlâ izin verir."
       },
       intro:{
         title:"Bulut sistemleri, parçalarına ayrıldı",
