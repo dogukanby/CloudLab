@@ -247,6 +247,34 @@
   <div class="footer" data-i18n="common.footer">Everything above runs client-side in JavaScript.</div>
 </div>
 
+<button type="button" class="chat-fab" id="chatFab" data-i18n-aria="chat.fabAria" aria-label="Ask a question">?</button>
+
+<div class="chat-panel" id="chatPanel" hidden>
+  <div class="chat-panel-head">
+    <span data-i18n="chat.title">Ask the Console</span>
+    <button type="button" class="chat-close" id="chatClose" data-i18n-aria="chat.closeAria" aria-label="Close">×</button>
+  </div>
+
+  <div class="chat-setup" id="chatSetup">
+    <p data-i18n="chat.setupIntro">Runs entirely in your browser via Groq's free API.</p>
+    <label>
+      <span data-i18n="chat.keyLabel">Groq API key</span>
+      <input type="password" id="chatKeyInput" autocomplete="off" spellcheck="false" placeholder="gsk_...">
+    </label>
+    <button type="button" class="btn" id="chatKeySave" data-i18n="chat.saveKey">Save key</button>
+    <p class="note"><a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" data-i18n="chat.getKey">Get a free key at console.groq.com</a></p>
+  </div>
+
+  <div class="chat-body" id="chatBody" hidden>
+    <div class="log chat-log" id="chatLog"></div>
+    <form class="chat-form" id="chatForm">
+      <input type="text" id="chatInput" data-i18n-placeholder="chat.placeholder" placeholder="Ask about load balancing, consistency…">
+      <button type="submit" class="btn" data-i18n="chat.send">Send</button>
+    </form>
+    <button type="button" class="chat-forget" id="chatForget" data-i18n="chat.forgetKey">Remove saved key</button>
+  </div>
+</div>
+
 <script src="app.js"></script>
 </body>
 </html>

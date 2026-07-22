@@ -113,6 +113,18 @@
           rejoining:"{id} rejoining — syncing from primary",
           backHealthy:"{id} healthy — back in rotation as replica"
         }
+      },
+      chat:{
+        title:"Ask the Console", fabAria:"Ask a question", closeAria:"Close",
+        setupIntro:"This runs entirely in your browser through Groq's free API — nothing is sent anywhere except directly to Groq. Paste your own key to turn it on; it's saved only on this device, never on any server.",
+        keyLabel:"Groq API key", saveKey:"Save key", getKey:"Get a free key at console.groq.com",
+        placeholder:"Ask about load balancing, consistency, caching, failover…", send:"Send",
+        forgetKey:"Remove saved key",
+        thinking:"…thinking",
+        you:"You", bot:"Console",
+        errorAuth:"That key didn't work. Double-check it at console.groq.com/keys.",
+        errorRate:"Groq is rate-limiting this key right now. Wait a bit and try again.",
+        errorGeneric:"Something went wrong reaching Groq. Try again in a moment."
       }
     },
     tr: {
@@ -224,6 +236,18 @@
           rejoining:"{id} yeniden katılıyor — birincilden senkronize ediliyor",
           backHealthy:"{id} sağlıklı — yedek olarak rotasyona döndü"
         }
+      },
+      chat:{
+        title:"Konsola Sor", fabAria:"Bir soru sor", closeAria:"Kapat",
+        setupIntro:"Bu tamamen tarayıcınızda, Groq'un ücretsiz API'si üzerinden çalışır — hiçbir şey Groq dışında bir yere gönderilmez. Etkinleştirmek için kendi anahtarınızı yapıştırın; sadece bu cihazda saklanır, hiçbir sunucuda değil.",
+        keyLabel:"Groq API anahtarı", saveKey:"Anahtarı kaydet", getKey:"console.groq.com adresinden ücretsiz anahtar alın",
+        placeholder:"Yük dengeleme, tutarlılık, önbellekleme, yük devretme hakkında sorun…", send:"Gönder",
+        forgetKey:"Kayıtlı anahtarı kaldır",
+        thinking:"…düşünüyor",
+        you:"Siz", bot:"Konsol",
+        errorAuth:"Bu anahtar çalışmadı. console.groq.com/keys üzerinden kontrol edin.",
+        errorRate:"Groq şu anda bu anahtarı sınırlıyor. Biraz bekleyip tekrar deneyin.",
+        errorGeneric:"Groq'a ulaşırken bir şeyler ters gitti. Birazdan tekrar deneyin."
       }
     }
   };
@@ -253,6 +277,12 @@
     document.title = t("common.pageTitle");
     document.querySelectorAll("[data-i18n]").forEach(function(el){
       el.textContent = t(el.getAttribute("data-i18n"));
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(function(el){
+      el.placeholder = t(el.getAttribute("data-i18n-placeholder"));
+    });
+    document.querySelectorAll("[data-i18n-aria]").forEach(function(el){
+      el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria")));
     });
   }
   function fmtTime(d){ return d.toTimeString().slice(0,8); }
@@ -738,6 +768,100 @@
   $("#foReviveBtn").addEventListener("click", foRevive);
   addLog($("#foLog"), t("failover.log.init"));
   renderFo();
+
+  /* ============ ASK THE CONSOLE — Groq chat ============ */
+  const CHAT_KEY_STORAGE="csc-groq-key";
+  const CHAT_MODEL="llama-3.3-70b-versatile";
+  const CHAT_SYSTEM_PROMPT=
+    "You are a friendly, concise assistant embedded in an interactive web page called 'Cloud Systems, Simulated' that teaches cloud computing through four live simulations: load balancing & auto-scaling, distributed consistency (the CAP theorem), caching & CDNs, and fault tolerance & failover. Answer the visitor's question about cloud computing concepts clearly, using everyday analogies where helpful, in a few sentences unless they ask for more depth. If asked something unrelated to cloud computing or this page, answer briefly and steer back. Reply in the same language the user wrote in (English or Turkish).";
+  let chatHistory=[];
+
+  function chatGetKey(){ return localStorage.getItem(CHAT_KEY_STORAGE) || ""; }
+  function chatShowBodyIfKeySet(){
+    const has=!!chatGetKey();
+    $("#chatSetup").hidden=has;
+    $("#chatBody").hidden=!has;
+  }
+  function chatAddLine(role, text){
+    const el=$("#chatLog");
+    const line=document.createElement("div");
+    line.className="line "+role;
+    const who=document.createElement("span");
+    who.className="who";
+    who.textContent=(role==="user" ? t("chat.you") : t("chat.bot"))+": ";
+    line.appendChild(who);
+    line.appendChild(document.createTextNode(text));
+    el.appendChild(line);
+    el.scrollTop=el.scrollHeight;
+    return line;
+  }
+  async function chatSend(question){
+    const key=chatGetKey();
+    if(!key) return;
+    chatAddLine("user", question);
+    chatHistory.push({role:"user", content:question});
+    const pending=chatAddLine("bot", t("chat.thinking"));
+    try{
+      const res=await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+key },
+        body:JSON.stringify({
+          model:CHAT_MODEL,
+          messages:[{role:"system", content:CHAT_SYSTEM_PROMPT}].concat(chatHistory.slice(-10)),
+          temperature:0.4,
+          max_tokens:500
+        })
+      });
+      if(!res.ok){
+        let msg=t("chat.errorGeneric");
+        if(res.status===401 || res.status===403) msg=t("chat.errorAuth");
+        else if(res.status===429) msg=t("chat.errorRate");
+        pending.lastChild.textContent=msg;
+        pending.classList.add("bad");
+        return;
+      }
+      const data=await res.json();
+      const answer = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content
+        ? data.choices[0].message.content.trim() : t("chat.errorGeneric");
+      pending.lastChild.textContent=answer;
+      chatHistory.push({role:"assistant", content:answer});
+    } catch(e){
+      pending.lastChild.textContent=t("chat.errorGeneric");
+      pending.classList.add("bad");
+    }
+  }
+  $("#chatFab").addEventListener("click", function(){
+    const panel=$("#chatPanel");
+    panel.hidden=!panel.hidden;
+    if(!panel.hidden){
+      if(chatGetKey()) $("#chatInput").focus();
+      else $("#chatKeyInput").focus();
+    }
+  });
+  $("#chatClose").addEventListener("click", function(){ $("#chatPanel").hidden=true; });
+  $("#chatKeySave").addEventListener("click", function(){
+    const val=$("#chatKeyInput").value.trim();
+    if(!val) return;
+    localStorage.setItem(CHAT_KEY_STORAGE, val);
+    $("#chatKeyInput").value="";
+    chatShowBodyIfKeySet();
+    $("#chatInput").focus();
+  });
+  $("#chatForget").addEventListener("click", function(){
+    localStorage.removeItem(CHAT_KEY_STORAGE);
+    chatHistory=[];
+    $("#chatLog").innerHTML="";
+    chatShowBodyIfKeySet();
+  });
+  $("#chatForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    const input=$("#chatInput");
+    const q=input.value.trim();
+    if(!q) return;
+    input.value="";
+    chatSend(q);
+  });
+  chatShowBodyIfKeySet();
 
   /* ============ language switching ============ */
   function setLang(lang){

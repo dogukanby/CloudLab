@@ -1,0 +1,39 @@
+{
+  "name": "cloud-systems-console",
+  "version": "1.0.0",
+  "description": "Four live, in-browser simulations of core cloud-systems concepts: load balancing, distributed consistency, caching/CDNs, and failover.",
+  "main": "main.js",
+  "private": true,
+  "author": "Doğukan Bayrı",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^32.3.3",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.dogukanbayri.cloudsystemsconsole",
+    "productName": "Cloud Systems Console",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "styles.css",
+      "app.js",
+      "main.js",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "Cloud-Systems-Console-Setup.exe",
+      "shortcutName": "Cloud Systems Console"
+    }
+  }
+}
