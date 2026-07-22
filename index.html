@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cloud Systems, Simulated</title>
+<meta name="description" content="Four live, in-browser simulations of core cloud-systems concepts: load balancing, distributed consistency, caching/CDNs, and failover.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B0%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+<script>
+  (function(){
+    try{
+      var t=localStorage.getItem("csc-theme");
+      if(t==="light"||t==="dark"){ document.documentElement.dataset.theme=t; }
+    }catch(e){}
+  })();
+</script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="wordmark"><span class="dot"></span><span data-i18n="common.wordmark">Systems Console</span></span>
+    <nav class="jumpnav">
+      <a href="#lb" data-i18n="common.nav.lb">01 Load balancing</a>
+      <a href="#consistency" data-i18n="common.nav.consistency">02 Consistency</a>
+      <a href="#cache" data-i18n="common.nav.cache">03 Caching</a>
+      <a href="#failover" data-i18n="common.nav.failover">04 Failover</a>
+    </nav>
+    <span class="uptime"><span data-i18n="common.uptime">UPTIME</span> <span id="uptimeVal">00:00:00</span></span>
+    <div class="topbar-tools">
+      <button type="button" class="theme-btn" id="themeBtn"><span id="themeIcon">◐</span><span id="themeLabel" data-i18n="common.themeAuto">Theme: Auto</span></button>
+      <div class="lang-toggle" role="group" aria-label="Language / Dil">
+        <button type="button" class="lang-btn" id="langEnBtn" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" id="langTrBtn" data-lang="tr">TR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="intro">
+    <h1 data-i18n="intro.title">Cloud systems, taken apart</h1>
+    <p data-i18n="intro.p">Four small, live simulations of the mechanisms that keep large systems running.</p>
+    <div class="meta" data-i18n="intro.meta">4 modules · runs entirely in your browser · no real infrastructure</div>
+  </div>
+
+  <!-- MODULE 01 — LOAD BALANCING -->
+  <section class="panel" id="lb">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="lb.modId">MODULE 01</span>
+      <h2 data-i18n="lb.title">Load Balancing &amp; Auto-Scaling</h2>
+      <span class="status-pill good" id="lbStatus">STABLE</span>
+    </header>
+    <p class="dek" data-i18n="lb.dek">Requests arrive faster than any one server can handle.</p>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="stage-row incoming">
+          <span class="label" data-i18n="lb.incoming">Incoming traffic</span>
+          <span class="rate-bar"><span id="lbRateBar"></span></span>
+        </div>
+        <div class="lb-node" data-i18n="lb.node">LOAD BALANCER</div>
+        <div class="server-pool" id="lbServers"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label><span data-i18n="lb.rateLabel">Traffic rate —</span> <output id="lbRateOut">12</output> <span data-i18n="lb.rateUnit">req/s</span>
+            <input type="range" id="lbRate" min="1" max="60" value="12">
+          </label>
+          <label><span data-i18n="lb.strategyLabel">Balancing strategy</span>
+            <select id="lbStrategy">
+              <option value="rr" data-i18n="lb.strategyRR">Round robin</option>
+              <option value="least" data-i18n="lb.strategyLeast">Least connections</option>
+              <option value="random" data-i18n="lb.strategyRandom">Random</option>
+            </select>
+          </label>
+          <label class="checkbox"><input type="checkbox" id="lbAuto" checked> <span data-i18n="lb.autoLabel">Auto-scaling enabled</span></label>
+          <button type="button" class="btn" id="lbSpike" data-i18n="lb.spikeBtn">Send traffic spike</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="lb.statServers">Active servers</span><span class="stat-value" id="lbCount">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="lb.statUtil">Avg utilization</span><span class="stat-value" id="lbUtil">0%</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="lb.statHandled">Requests handled</span><span class="stat-value" id="lbHandled">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="lb.statDropped">Requests dropped</span><span class="stat-value" id="lbDropped">0</span></div>
+        </div>
+        <div class="log" id="lbLog"></div>
+        <p class="note" data-i18n="lb.note">Mirrors an ALB / Envoy / nginx pool.</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- MODULE 02 — CONSISTENCY -->
+  <section class="panel" id="consistency">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="consistency.modId">MODULE 02</span>
+      <h2 data-i18n="consistency.title">Distributed Consistency</h2>
+      <span class="status-pill good" id="consStatus">CONSISTENT</span>
+    </header>
+    <p class="dek" data-i18n="consistency.dek">Copies of the same data live on five machines.</p>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="node-row" id="consRow"></div>
+        <div class="controls">
+          <label class="checkbox"><input type="checkbox" id="consPartition"> <span data-i18n="consistency.partitionLabel">Split the network into {N1,N2,N3} | {N4,N5}</span></label>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label><span data-i18n="consistency.modeLabel">Consistency mode</span>
+            <select id="consMode">
+              <option value="eventual" data-i18n="consistency.modeEventual">Eventual</option>
+              <option value="strong" data-i18n="consistency.modeStrong">Strong (quorum)</option>
+            </select>
+          </label>
+          <label><span data-i18n="consistency.lagLabel">Replication lag —</span> <output id="consLagOut">800</output>ms
+            <input type="range" id="consLag" min="100" max="3000" step="100" value="800">
+          </label>
+          <button type="button" class="btn" id="consWriteBtn" data-i18n="consistency.writeBtn">Write new value to selected node</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="consistency.statTarget">Write target</span><span class="stat-value" id="consTargetOut">N1</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="consistency.statMode">Mode</span><span class="stat-value" id="consModeOut">Eventual</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="consistency.statCommitted">Committed</span><span class="stat-value" id="consLatest">v0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="consistency.statNetwork">Network</span><span class="stat-value" id="consPartitionState">JOINED</span></div>
+        </div>
+        <div class="log" id="consLog"></div>
+        <p class="note" data-i18n="consistency.note">This is the CAP theorem in miniature.</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- MODULE 03 — CACHING & CDN -->
+  <section class="panel" id="cache">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="cache.modId">MODULE 03</span>
+      <h2 data-i18n="cache.title">Caching &amp; CDN</h2>
+      <span class="status-pill warn" id="cacheStatus">WARMING</span>
+    </header>
+    <p class="dek" data-i18n="cache.dek">Edge caches sit between clients and the origin.</p>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="origin-card" id="cacheOrigin"><span class="dotpin"></span><span data-i18n="cache.origin">ORIGIN — authoritative source</span></div>
+        <div class="edge-list">
+          <div class="edge-card" id="edge-0">
+            <div class="head"><span data-i18n="cache.edgeEU">EDGE — EU</span><span class="count" id="edge-0-count">0 cached</span></div>
+            <div class="entries" id="edge-0-entries"></div>
+          </div>
+          <div class="edge-card" id="edge-1">
+            <div class="head"><span data-i18n="cache.edgeUS">EDGE — US</span><span class="count" id="edge-1-count">0 cached</span></div>
+            <div class="entries" id="edge-1-entries"></div>
+          </div>
+          <div class="edge-card" id="edge-2">
+            <div class="head"><span data-i18n="cache.edgeAPAC">EDGE — APAC</span><span class="count" id="edge-2-count">0 cached</span></div>
+            <div class="entries" id="edge-2-entries"></div>
+          </div>
+        </div>
+        <div>
+          <div class="stage-row incoming"><span class="label" data-i18n="cache.hitRateLabel">Hit rate, rolling</span></div>
+          <div class="sparkline" id="cacheSpark"></div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label><span data-i18n="cache.keyLabel">Key</span>
+            <select id="cacheKeySel">
+              <option value="/api/products/8842">/api/products/8842</option>
+              <option value="/images/hero.jpg">/images/hero.jpg</option>
+              <option value="/api/weather/istanbul">/api/weather/istanbul</option>
+              <option value="/video/trailer.mp4">/video/trailer.mp4</option>
+            </select>
+          </label>
+          <label><span data-i18n="cache.edgeSelectLabel">Client's nearest edge</span>
+            <select id="cacheEdgeSel">
+              <option value="0" data-i18n="cache.edgeEUOpt">EU</option>
+              <option value="1" data-i18n="cache.edgeUSOpt">US</option>
+              <option value="2" data-i18n="cache.edgeAPACOpt">APAC</option>
+            </select>
+          </label>
+          <button type="button" class="btn" id="cacheGo" data-i18n="cache.sendBtn">Send request</button>
+          <label><span data-i18n="cache.ttlLabel">Cache TTL —</span> <output id="cacheTtlOut">10</output>s
+            <input type="range" id="cacheTtl" min="3" max="30" value="10">
+          </label>
+          <label class="checkbox"><input type="checkbox" id="cacheAuto"> <span data-i18n="cache.autoLabel">Simulate live traffic</span></label>
+          <button type="button" class="btn" id="cachePurge" data-i18n="cache.purgeBtn">Purge all caches</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="cache.statHitRate">Hit rate</span><span class="stat-value" id="cacheHitRate">0%</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="cache.statRequests">Requests</span><span class="stat-value" id="cacheReqs">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="cache.statKeys">Cached keys</span><span class="stat-value" id="cacheKeys">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="cache.statPurges">Purges</span><span class="stat-value" id="cachePurgesEl">0</span></div>
+        </div>
+        <div class="log" id="cacheLog"></div>
+        <p class="note" data-i18n="cache.note">Real CDNs work the same way.</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- MODULE 04 — FAULT TOLERANCE & FAILOVER -->
+  <section class="panel" id="failover">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="failover.modId">MODULE 04</span>
+      <h2 data-i18n="failover.title">Fault Tolerance &amp; Failover</h2>
+      <span class="status-pill good" id="foStatus">HEALTHY</span>
+    </header>
+    <p class="dek" data-i18n="failover.dek">One node in the cluster does the writing.</p>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="cluster-row" id="foNodes"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label><span data-i18n="failover.targetLabel">Target node</span>
+            <select id="foTarget"></select>
+          </label>
+          <button type="button" class="btn" id="foKillBtn" data-i18n="failover.killBtn">Kill selected node</button>
+          <button type="button" class="btn" id="foReviveBtn" data-i18n="failover.reviveBtn">Revive last failed node</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="failover.statHealthy">Healthy nodes</span><span class="stat-value" id="foHealthy">4/4</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="failover.statPrimary">Current primary</span><span class="stat-value" id="foPrimary">N1</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="failover.statFailovers">Failovers</span><span class="stat-value" id="foCount">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="failover.statQueue">Down queue</span><span class="stat-value" id="foQueue">0</span></div>
+        </div>
+        <div class="log" id="foLog"></div>
+        <p class="note" data-i18n="failover.note">Production clusters use the same shape.</p>
+      </aside>
+    </div>
+  </section>
+
+  <div class="footer" data-i18n="common.footer">Everything above runs client-side in JavaScript.</div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
