@@ -1933,7 +1933,7 @@
     setStatus($("#authStatus"), $("#authLog"), key, "auth.status", authRunning?"warn":"good");
   }
   function authRunStep(myEpoch){
-    if(myEpoch!==authRunEpoch || myEpoch!==stateEpoch) return;
+    if(myEpoch!==authRunEpoch) return;
     const steps=authStepsFor(authFlow);
     if(authStepIndex>=steps.length){
       authRunning=false; authSignedIn=true;
