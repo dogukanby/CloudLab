@@ -1,6 +1,6 @@
-# Cloud Systems, Simulated
+# Cloud Lab
 
-[![Download for Windows](https://img.shields.io/badge/Download-Windows%20Installer-0f8f80?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/dogukanby/cloud-systems-console/releases/latest/download/Cloud-Systems-Console-Setup.exe)
+[![Download for Windows](https://img.shields.io/badge/Download-Windows%20Installer-0f8f80?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/dogukanby/cloud-systems-console/releases/latest/download/Cloud-Lab-Setup.exe)
 [![Latest release](https://img.shields.io/github/v/release/dogukanby/cloud-systems-console?style=for-the-badge&label=release&color=333)](https://github.com/dogukanby/cloud-systems-console/releases/latest)
 
 A small, single-page, client-side simulation of the ideas that show up in almost every cloud architecture: load balancing & auto-scaling, distributed consistency, caching/CDNs, and failover — plus a plain-language module explaining what "the cloud" even is. No backend, no build step to just use it in a browser — open `index.html` and every module runs live.
@@ -31,7 +31,7 @@ To build it yourself instead of trusting the release:
 
 ```bash
 npm install
-npm run dist        # outputs dist/Cloud-Systems-Console-Setup.exe
+npm run dist        # outputs dist/Cloud-Lab-Setup.exe
 ```
 
 ## Running it in a browser

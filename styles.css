@@ -1,20 +1,20 @@
 :root{
-  --bg:#eef1f4;
-  --bg-panel:#ffffff;
-  --bg-panel-2:#f4f6f8;
-  --border:rgba(20,30,45,0.12);
-  --border-strong:rgba(20,30,45,0.24);
-  --ink:#171d27;
-  --ink-dim:#55606f;
-  --ink-faint:#8791a0;
+  --bg:#dfe3e7;
+  --bg-panel:#f2f4f6;
+  --bg-panel-2:#e6e9ec;
+  --border:rgba(20,30,45,0.14);
+  --border-strong:rgba(20,30,45,0.27);
+  --ink:#1c222b;
+  --ink-dim:#525d6b;
+  --ink-faint:#7c8695;
   --accent:#0f8f80;
   --accent-soft:rgba(15,143,128,0.16);
   --good:#1f9d4a;
   --warn:#a8690a;
   --bad:#c93a45;
-  --grid-line:rgba(20,30,45,0.055);
-  --bg-translucent:rgba(238,241,244,0.86);
-  --shadow:0 1px 2px rgba(20,30,45,0.06), 0 10px 26px rgba(20,30,45,0.05);
+  --grid-line:rgba(20,30,45,0.06);
+  --bg-translucent:rgba(223,227,231,0.88);
+  --shadow:0 1px 2px rgba(20,30,45,0.08), 0 10px 26px rgba(20,30,45,0.07);
   --radius:4px;
   --font-display:"Segoe UI","Helvetica Neue",Arial,sans-serif;
   --font-body:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -50,13 +50,13 @@
   --shadow:0 1px 2px rgba(0,0,0,0.35), 0 14px 34px rgba(0,0,0,0.38);
 }
 :root[data-theme="light"]{
-  --bg:#eef1f4; --bg-panel:#ffffff; --bg-panel-2:#f4f6f8;
-  --border:rgba(20,30,45,0.12); --border-strong:rgba(20,30,45,0.24);
-  --ink:#171d27; --ink-dim:#55606f; --ink-faint:#8791a0;
+  --bg:#dfe3e7; --bg-panel:#f2f4f6; --bg-panel-2:#e6e9ec;
+  --border:rgba(20,30,45,0.14); --border-strong:rgba(20,30,45,0.27);
+  --ink:#1c222b; --ink-dim:#525d6b; --ink-faint:#7c8695;
   --accent:#0f8f80; --accent-soft:rgba(15,143,128,0.16);
   --good:#1f9d4a; --warn:#a8690a; --bad:#c93a45;
-  --grid-line:rgba(20,30,45,0.055); --bg-translucent:rgba(238,241,244,0.86);
-  --shadow:0 1px 2px rgba(20,30,45,0.06), 0 10px 26px rgba(20,30,45,0.05);
+  --grid-line:rgba(20,30,45,0.06); --bg-translucent:rgba(223,227,231,0.88);
+  --shadow:0 1px 2px rgba(20,30,45,0.08), 0 10px 26px rgba(20,30,45,0.07);
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
@@ -78,7 +78,8 @@ button, select, input{ font:inherit; color:inherit; }
 .topbar-inner{ max-width:1180px; margin:0 auto; padding:12px 24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
 .wordmark{ font-family:var(--font-display); font-weight:800; letter-spacing:-0.01em; text-transform:uppercase; font-size:0.9rem; display:flex; align-items:center; gap:8px; white-space:nowrap; }
 .wordmark .dot{ width:8px; height:8px; border-radius:50%; background:var(--accent); flex:none; }
-.jumpnav{ display:flex; gap:6px; overflow-x:auto; flex:1; min-width:100px; }
+.jumpnav{ display:flex; gap:6px; overflow-x:auto; flex:1; min-width:100px; scrollbar-width:none; -ms-overflow-style:none; }
+.jumpnav::-webkit-scrollbar{ display:none; height:0; }
 .jumpnav a{ font-family:var(--font-mono); font-size:0.7rem; letter-spacing:0.02em; text-transform:uppercase; color:var(--ink-dim); text-decoration:none; padding:6px 10px; border:1px solid var(--border); border-radius:999px; white-space:nowrap; }
 .jumpnav a:hover{ color:var(--ink); border-color:var(--border-strong); }
 .uptime{ font-family:var(--font-mono); font-size:0.7rem; color:var(--ink-faint); font-variant-numeric:tabular-nums; white-space:nowrap; }
@@ -228,7 +229,9 @@ select, .btn{ font-size:0.82rem; padding:8px 10px; border-radius:var(--radius); 
 }
 @keyframes pulse{ 0%{ transform:scale(.6); opacity:.8; } 100%{ transform:scale(2.2); opacity:0; } }
 
-.footer{ padding:30px 0 8px; color:var(--ink-faint); font-size:0.76rem; border-top:1px solid var(--border); margin-top:8px; max-width:62ch; }
+.footer{ padding:30px 0 8px; color:var(--ink-faint); font-size:0.76rem; border-top:1px solid var(--border); margin-top:8px; max-width:62ch; display:flex; flex-direction:column; align-items:flex-start; gap:12px; }
+.footer p{ margin:0; }
+.footer .btn{ font-size:0.76rem; padding:7px 14px; }
 
 /* ask the console — chat widget */
 .chat-fab{ position:fixed; right:20px; bottom:20px; z-index:30; width:52px; height:52px; border-radius:50%; border:1px solid var(--border-strong); background:var(--accent); color:var(--bg-panel); font-family:var(--font-display); font-weight:800; font-size:1.2rem; cursor:pointer; box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; }

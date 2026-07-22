@@ -6,14 +6,15 @@
   const dict = {
     en: {
       common: {
-        wordmark:"Systems Console",
+        wordmark:"Cloud Lab",
         nav:{ cloud101:"00 What is the cloud?", lb:"01 Load balancing", consistency:"02 Consistency", cache:"03 Caching", failover:"04 Failover" },
         uptime:"UPTIME",
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
-        pageTitle:"Cloud Systems, Simulated",
+        pageTitle:"Cloud Lab",
         statusChanged:"status → {status}",
         analogyLabel:"In plain terms", technicalLabel:"Under the hood",
-        footer:"Everything above runs client-side in JavaScript — no real servers, nodes, or network calls involved. Reload the page to reset all four modules."
+        footer:"Everything above runs client-side in JavaScript — no real servers, nodes, or network calls involved.",
+        resetAll:"Reset all modules"
       },
       cloud101:{
         modId:"MODULE 00", title:"What Is \"The Cloud,\" Really?",
@@ -129,14 +130,15 @@
     },
     tr: {
       common: {
-        wordmark:"Sistem Konsolu",
+        wordmark:"Bulut Laboratuvarı",
         nav:{ cloud101:"00 Bulut nedir?", lb:"01 Yük dengeleme", consistency:"02 Tutarlılık", cache:"03 Önbellekleme", failover:"04 Yük devretme" },
         uptime:"ÇALIŞMA SÜRESİ",
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
-        pageTitle:"Bulut Sistemleri, Simülasyon",
+        pageTitle:"Bulut Laboratuvarı",
         statusChanged:"durum → {status}",
         analogyLabel:"Basitçe söylemek gerekirse", technicalLabel:"Perde arkasında",
-        footer:"Yukarıdaki her şey tarayıcınızda JavaScript ile çalışır — gerçek sunucu, düğüm veya ağ isteği yoktur. Dört modülü sıfırlamak için sayfayı yenileyin."
+        footer:"Yukarıdaki her şey tarayıcınızda JavaScript ile çalışır — gerçek sunucu, düğüm veya ağ isteği yoktur.",
+        resetAll:"Tüm modülleri sıfırla"
       },
       cloud101:{
         modId:"MODÜL 00", title:"\"Bulut\" Gerçekte Nedir?",
@@ -255,6 +257,7 @@
   const LANG_KEY="csc-lang", THEME_KEY="csc-theme";
   let currentLang = localStorage.getItem(LANG_KEY) || (((navigator.language||"").toLowerCase().indexOf("tr")===0) ? "tr" : "en");
   let themeMode = localStorage.getItem(THEME_KEY) || "auto";
+  let stateEpoch = 0; // bumped by resetAllModules() so in-flight setTimeouts from before a reset become no-ops
 
   function t(path, vars){
     const parts=path.split(".");
@@ -486,6 +489,7 @@
     setStatus($("#consStatus"), $("#consLog"), key, "consistency.status", cls);
   }
   function consWrite(){
+    const epoch=stateEpoch;
     const target=consNodes[consTargetIdx];
     consCounter++;
     const value=consCounter, ts=Date.now();
@@ -500,6 +504,7 @@
         if(other===target) return;
         if(consReachable(target, other)){
           setTimeout(function(){
+            if(epoch!==stateEpoch) return;
             other.value=value; other.ts=ts;
             renderCons();
             consFlash(other.id);
@@ -519,6 +524,7 @@
       }
       addLog($("#consLog"), t("consistency.log.proposed",{value:value,target:target.id}));
       setTimeout(function(){
+        if(epoch!==stateEpoch) return;
         reachableSet.forEach(function(n){ n.value=value; n.ts=ts; });
         consLatestCommitted=Math.max(consLatestCommitted, value);
         addLog($("#consLog"), t("consistency.log.quorumReached",{reachable:reachableSet.length,total:consNodes.length,value:value}), "good");
@@ -637,7 +643,9 @@
       cacheFlashEdge(edgeIdx, "miss");
       cacheFlashOrigin();
       const ttl=Number($("#cacheTtl").value);
+      const epoch=stateEpoch;
       setTimeout(function(){
+        if(epoch!==stateEpoch) return;
         edge.cache.set(key, {expires: Date.now()+ttl*1000});
         renderEdge(edgeIdx);
         addLog($("#cacheLog"), t("cache.log.cached",{name:edge.name,key:key,ttl:ttl}));
@@ -723,6 +731,7 @@
     setStatus($("#foStatus"), $("#foLog"), key, "failover.status", cls);
   }
   function foKill(id){
+    const epoch=stateEpoch;
     const node=foNodes.find(function(n){ return n.id===id; });
     if(!node || node.status==="down" || node.status==="detecting"){
       addLog($("#foLog"), t("failover.log.alreadyDown",{id:id}), "warn");
@@ -732,7 +741,7 @@
     renderFo();
     addLog($("#foLog"), t("failover.log.heartbeat1",{id:node.id}), "warn");
     setTimeout(function(){
-      if(node.status!=="detecting") return;
+      if(epoch!==stateEpoch || node.status!=="detecting") return;
       addLog($("#foLog"), t("failover.log.heartbeat3",{id:node.id}), "bad");
       node.status="down";
       foDownQueue.push(node.id);
@@ -752,6 +761,7 @@
     }, 900);
   }
   function foRevive(){
+    const epoch=stateEpoch;
     const id=foDownQueue.shift();
     if(!id) return;
     const node=foNodes.find(function(n){ return n.id===id; });
@@ -759,6 +769,7 @@
     addLog($("#foLog"), t("failover.log.rejoining",{id:node.id}), "warn");
     renderFo();
     setTimeout(function(){
+      if(epoch!==stateEpoch) return;
       node.status="healthy";
       addLog($("#foLog"), t("failover.log.backHealthy",{id:node.id}), "good");
       renderFo();
@@ -768,6 +779,49 @@
   $("#foReviveBtn").addEventListener("click", foRevive);
   addLog($("#foLog"), t("failover.log.init"));
   renderFo();
+
+  /* ============ RESET ALL MODULES ============ */
+  function resetAllModules(){
+    stateEpoch++;
+
+    lbServers=[]; lbNextId=1; lbRRIndex=-1; lbHandled=0; lbDropped=0; lbAcc=0; lbAutoCooldown=0;
+    $("#lbServers").innerHTML=""; $("#lbLog").innerHTML=""; $("#lbStatus").dataset.statusKey="";
+    $("#lbRate").value=12; $("#lbRateOut").textContent=12; $("#lbStrategy").value="rr"; $("#lbAuto").checked=true;
+    lbAddServer(false); lbAddServer(false);
+    addLog($("#lbLog"), t("lb.log.poolInit",{n:2}));
+    updateLbStats();
+
+    consNodes=[1,2,3,4,5].map(function(i){ return {id:"N"+i, value:0, ts:Date.now(), group: i<=3?"A":"B"}; });
+    consTargetIdx=0; consCounter=0; consPartitioned=false; consLatestCommitted=0; consPendingByNode={};
+    $("#consPartition").checked=false; $("#consMode").value="eventual";
+    $("#consLag").value=800; $("#consLagOut").textContent=800;
+    $("#consLog").innerHTML=""; $("#consStatus").dataset.statusKey="";
+    addLog($("#consLog"), t("consistency.log.init"));
+    renderCons();
+
+    if(cacheAutoTimer){ clearInterval(cacheAutoTimer); cacheAutoTimer=null; }
+    cacheEdges.forEach(function(e){ e.cache=new Map(); });
+    cacheHitHistory=[]; cachePurges=0;
+    $("#cacheAuto").checked=false; $("#cacheTtl").value=10; $("#cacheTtlOut").textContent=10;
+    $("#cacheKeySel").selectedIndex=0; $("#cacheEdgeSel").selectedIndex=0;
+    $("#cacheLog").innerHTML=""; $("#cacheStatus").dataset.statusKey="";
+    cacheEdges.forEach(function(e,i){ renderEdge(i); });
+    renderSparkline();
+    addLog($("#cacheLog"), t("cache.log.init"));
+    updateCacheStats();
+
+    foNodes=[
+      {id:"N1", role:"primary", status:"healthy"},
+      {id:"N2", role:"replica", status:"healthy"},
+      {id:"N3", role:"replica", status:"healthy"},
+      {id:"N4", role:"replica", status:"healthy"}
+    ];
+    foDownQueue=[]; foFailoverCount=0;
+    $("#foLog").innerHTML=""; $("#foStatus").dataset.statusKey="";
+    addLog($("#foLog"), t("failover.log.init"));
+    renderFo();
+  }
+  $("#resetAllBtn").addEventListener("click", resetAllModules);
 
   /* ============ ASK THE CONSOLE — Groq chat ============ */
   const CHAT_KEY_STORAGE="csc-groq-key";

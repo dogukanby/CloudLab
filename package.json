@@ -15,7 +15,7 @@
   },
   "build": {
     "appId": "com.dogukanbayri.cloudsystemsconsole",
-    "productName": "Cloud Systems Console",
+    "productName": "Cloud Lab",
     "directories": {
       "output": "dist"
     },
@@ -32,8 +32,8 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "artifactName": "Cloud-Systems-Console-Setup.exe",
-      "shortcutName": "Cloud Systems Console"
+      "artifactName": "Cloud-Lab-Setup.exe",
+      "shortcutName": "Cloud Lab"
     }
   }
 }
