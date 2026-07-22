@@ -12,7 +12,7 @@
     en: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", quests:"Quests" },
+        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge" },
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"CloudLab",
         statusChanged:"status → {status}",
@@ -488,8 +488,7 @@
         }
       },
       quests:{
-        sectionTitle:"Quests",
-        sectionIntro:"The modules above show you how something works. These put you in the seat of someone who has to fix it — a realistic scenario, a broken state, and decisions with real consequences. Pick Easy for the core fix, or Hard for the full, real-world response.",
+        eyebrow:"QUEST",
         easyLabel:"Easy", hardLabel:"Hard",
         resetBtn:"Reset quest",
         completeNote:"Every decision above mirrors a real one — this is genuinely what responding to this would look like.",
@@ -499,8 +498,8 @@
           consoleLabel:"Google Cloud Console (simulated)",
           actionBtn:"Sign in with Google",
           successText:"Signed in as demo@cloudlab.app — every required step is done.",
-          steps:[
-            { id:"consent", tier:"easy", type:"choice",
+          easySteps:[
+            { id:"e-consent", type:"choice",
               label:"Configure the OAuth consent screen",
               prompt:"Choose a user type for the consent screen:",
               options:[
@@ -509,17 +508,18 @@
               ],
               errorText:"Error 403: access_denied — this app's OAuth consent screen hasn't been configured yet."
             },
-            { id:"redirect", tier:"easy", type:"choice",
-              label:"Add the correct authorized redirect URI",
-              prompt:"Pick the redirect URI that actually matches this app:",
+            { id:"e-redirect", type:"choice",
+              label:"Add the authorized redirect URI",
+              prompt:"Pick the redirect URI that matches this app:",
               options:[
-                { key:"wrong1", label:"https://cloudlab.app/callback", correct:false, feedback:"Rejected — that URI doesn't match this app. A real Google sign-in would fail here with redirect_uri_mismatch." },
-                { key:"correct", label:"https://cloudlab.app/auth/google/callback", correct:true, feedback:"Added — that URI matches this app's real callback path." },
-                { key:"wrong2", label:"http://localhost/callback", correct:false, feedback:"Rejected — that URI doesn't match this app. A real Google sign-in would fail here with redirect_uri_mismatch." }
+                { key:"wrong", label:"http://localhost/callback", correct:false, feedback:"Rejected — that's a local development URI, not this app's real domain. Google would fail this with redirect_uri_mismatch." },
+                { key:"correct", label:"https://cloudlab.app/auth/google/callback", correct:true, feedback:"Added — that URI matches this app's real callback path." }
               ],
               errorText:"Error 400: redirect_uri_mismatch — the redirect URI in the request doesn't match any authorized for this client."
-            },
-            { id:"client", tier:"hard", type:"choice",
+            }
+          ],
+          hardSteps:[
+            { id:"h-clienttype", type:"choice",
               label:"Create an OAuth 2.0 Client ID",
               prompt:"Choose an application type for the OAuth client:",
               options:[
@@ -530,7 +530,26 @@
               ],
               errorText:"Error 401: invalid_client — no OAuth 2.0 client exists for this app yet."
             },
-            { id:"api", tier:"hard", type:"action",
+            { id:"h-redirect", type:"choice",
+              label:"Add the correct authorized redirect URI",
+              prompt:"Pick the redirect URI that actually matches this app:",
+              options:[
+                { key:"wrong1", label:"https://cloudlab.app/callback", correct:false, feedback:"Rejected — close, but that path doesn't match this app's real callback. Google would fail this with redirect_uri_mismatch." },
+                { key:"correct", label:"https://cloudlab.app/auth/google/callback", correct:true, feedback:"Added — that URI matches this app's real callback path." },
+                { key:"wrong2", label:"http://localhost/callback", correct:false, feedback:"Rejected — that's a local development URI, not this app's real domain. Google would fail this with redirect_uri_mismatch." }
+              ],
+              errorText:"Error 400: redirect_uri_mismatch — the redirect URI in the request doesn't match any authorized for this client."
+            },
+            { id:"h-consent", type:"choice",
+              label:"Configure the OAuth consent screen",
+              prompt:"Choose a user type for the consent screen:",
+              options:[
+                { key:"internal", label:"Internal", correct:false, feedback:"Internal is restricted to accounts inside a single Google Workspace organization. CloudLab is a public app anyone can sign into — Internal would lock out every one of them, and Google's own review would reject a public app configured this way." },
+                { key:"external", label:"External", correct:true, feedback:"External — any Google Account can sign in. Consent screen saved." }
+              ],
+              errorText:"Error 403: access_denied — this app's OAuth consent screen hasn't been configured yet."
+            },
+            { id:"h-api", type:"action",
               label:"Enable the People API",
               prompt:"API Library", itemName:"Google People API",
               actionLabel:"Enable", loadingLabel:"Enabling…", doneLabel:"Enabled.", loadingMs:700,
@@ -544,13 +563,13 @@
           consoleLabel:"AWS IAM Console (simulated)",
           actionBtn:"Mark incident resolved",
           successText:"Incident closed — the key is dead, the role is scoped down, and sign-in now requires MFA.",
-          steps:[
-            { id:"revoke", tier:"easy", type:"action",
+          easySteps:[
+            { id:"e-revoke", type:"action",
               label:"Deactivate the leaked access key",
               actionLabel:"Deactivate key", loadingLabel:"Deactivating…", doneLabel:"Key deactivated — it can no longer authenticate.", loadingMs:600,
               errorText:"The leaked key is still active. Anyone who has it can still use it right now."
             },
-            { id:"policy", tier:"easy", type:"choice",
+            { id:"e-policy", type:"choice",
               label:"Replace the attached policy",
               prompt:"Choose what's attached to this role:",
               options:[
@@ -558,18 +577,34 @@
                 { key:"scoped", label:"Attach a scoped read-only S3 policy", correct:true, feedback:"Scoped down — this role can now only read from the one bucket the job actually needs." }
               ],
               errorText:"This role still has full administrator access — even a dead key's replacement could do anything to the account."
-            },
-            { id:"audit", tier:"hard", type:"choice",
-              label:"Check what the key was used for before you deactivate it",
+            }
+          ],
+          hardSteps:[
+            { id:"h-audit", type:"choice",
+              label:"Check what the key was used for before touching anything",
               prompt:"Which logged action looks like the attacker escalating access?",
               options:[
                 { key:"list", label:"ListBuckets — 09:14:02", correct:false, feedback:"That's routine, read-only, and expected. Not the one." },
-                { key:"attach", label:"AttachUserPolicy: AdministratorAccess — 09:14:41", correct:true, feedback:"That's it — thirty-nine seconds after first use, the key granted itself full admin access. That policy needs to be removed too, not just the key deactivated." },
+                { key:"attach", label:"AttachUserPolicy: AdministratorAccess — 09:14:41", correct:true, feedback:"That's it — thirty-nine seconds after first use, the key granted itself full admin access. That policy needs to be removed, not just the key deactivated." },
                 { key:"get", label:"GetObject: readme.txt — 09:15:10", correct:false, feedback:"Also routine. Not the one." }
               ],
-              errorText:"You haven't reviewed what the key actually did — there may be damage beyond the key itself that still needs cleaning up."
+              errorText:"You haven't reviewed what the key actually did — deactivating it blind could destroy evidence of what else the attacker touched."
             },
-            { id:"mfa", tier:"hard", type:"action",
+            { id:"h-revoke", type:"action",
+              label:"Deactivate the leaked access key",
+              actionLabel:"Deactivate key", loadingLabel:"Deactivating…", doneLabel:"Key deactivated — it can no longer authenticate.", loadingMs:600,
+              errorText:"The leaked key is still active. Anyone who has it can still use it right now."
+            },
+            { id:"h-selfpolicy", type:"choice",
+              label:"Remove the policy the attacker attached to themselves",
+              prompt:"What do you do with the AdministratorAccess grant the audit just turned up?",
+              options:[
+                { key:"leave", label:"Leave it — the key is already deactivated", correct:false, feedback:"The key being dead doesn't remove the policy it attached. The account is still carrying a privilege escalation nobody authorized." },
+                { key:"detach", label:"Detach AdministratorAccess from the role immediately", correct:true, feedback:"Removed — the unauthorized privilege escalation the audit found is gone." }
+              ],
+              errorText:"The attacker's self-granted AdministratorAccess policy is still attached — the key is dead, but the door it propped open isn't shut."
+            },
+            { id:"h-mfa", type:"action",
               label:"Require MFA for all future console sign-ins on this account",
               actionLabel:"Enforce MFA", loadingLabel:"Applying policy…", doneLabel:"MFA is now required account-wide.", loadingMs:600,
               errorText:"MFA still isn't required — a password (or another leaked key) is still enough to get in."
@@ -582,13 +617,29 @@
           consoleLabel:"AWS S3 Console (simulated)",
           actionBtn:"Re-scan bucket for public access",
           successText:"Scan clean — the bucket is private, versioned, and protected against a silent repeat.",
-          steps:[
-            { id:"block", tier:"easy", type:"action",
+          easySteps:[
+            { id:"e-block", type:"action",
               label:"Turn on Block Public Access for the bucket",
               actionLabel:"Turn on", loadingLabel:"Applying…", doneLabel:"Block Public Access is on.", loadingMs:500,
               errorText:"Block Public Access is still off — the bucket can be exposed by any policy or ACL that grants it."
             },
-            { id:"policy", tier:"easy", type:"choice",
+            { id:"e-policy", type:"choice",
+              label:"Remove the bucket policy that's granting access",
+              prompt:"What should the bucket policy do?",
+              options:[
+                { key:"keep", label:"Keep the Principal: * statement", correct:false, feedback:"Principal: * means literally anyone on the internet, signed in or not. That's the leak." },
+                { key:"delete", label:"Delete the public-read policy statement", correct:true, feedback:"Removed — no policy is granting anonymous access anymore." }
+              ],
+              errorText:"The bucket policy is still granting read access to Principal: * — anyone with the URL can still read every object."
+            }
+          ],
+          hardSteps:[
+            { id:"h-block", type:"action",
+              label:"Turn on Block Public Access for the bucket",
+              actionLabel:"Turn on", loadingLabel:"Applying…", doneLabel:"Block Public Access is on.", loadingMs:500,
+              errorText:"Block Public Access is still off — the bucket can be exposed by any policy or ACL that grants it."
+            },
+            { id:"h-policy", type:"choice",
               label:"Remove the bucket policy that's granting access",
               prompt:"What should the bucket policy do?",
               options:[
@@ -597,7 +648,7 @@
               ],
               errorText:"The bucket policy is still granting read access to Principal: * — anyone with the URL can still read every object."
             },
-            { id:"acl", tier:"hard", type:"choice",
+            { id:"h-acl", type:"choice",
               label:"One object-level ACL is still granting access directly — find it",
               prompt:"Which object ACL grant is the actual problem?",
               options:[
@@ -607,7 +658,7 @@
               ],
               errorText:"An object-level ACL is still granting public-read directly — deleting the bucket policy alone didn't close this."
             },
-            { id:"versioning", tier:"hard", type:"action",
+            { id:"h-versioning", type:"action",
               label:"Turn on versioning and MFA Delete",
               actionLabel:"Enable", loadingLabel:"Enabling…", doneLabel:"Versioning + MFA Delete are on.", loadingMs:600,
               errorText:"Versioning still isn't on — if this happens again, there's no recovery path and no extra barrier against a silent bulk delete."
@@ -620,13 +671,29 @@
           consoleLabel:"AWS VPC Console (simulated)",
           actionBtn:"Re-run external reachability scan",
           successText:"Scan clean — the database is unreachable from the public internet.",
-          steps:[
-            { id:"subnet", tier:"easy", type:"action",
+          easySteps:[
+            { id:"e-subnet", type:"action",
               label:"Move the database instance into the private subnet",
               actionLabel:"Move instance", loadingLabel:"Migrating…", doneLabel:"DB-1 is now in the private subnet.", loadingMs:700,
               errorText:"The database is still sitting in the public subnet, reachable by routing alone."
             },
-            { id:"sg", tier:"easy", type:"choice",
+            { id:"e-sg", type:"choice",
+              label:"Which security group rule should be removed?",
+              prompt:"One of these lets the internet straight in:",
+              options:[
+                { key:"open", label:"Allow 5432 from 0.0.0.0/0", correct:true, feedback:"That's it — the database port open to the entire internet. Removed." },
+                { key:"lb", label:"Allow 443 from load balancer SG", correct:false, feedback:"That's a normal, scoped rule — traffic only from your own load balancer. Not the one." }
+              ],
+              errorText:"The security group still allows the database port in from 0.0.0.0/0 — anywhere on the internet."
+            }
+          ],
+          hardSteps:[
+            { id:"h-subnet", type:"action",
+              label:"Move the database instance into the private subnet",
+              actionLabel:"Move instance", loadingLabel:"Migrating…", doneLabel:"DB-1 is now in the private subnet.", loadingMs:700,
+              errorText:"The database is still sitting in the public subnet, reachable by routing alone."
+            },
+            { id:"h-sg", type:"choice",
               label:"Which security group rule is letting the internet in?",
               prompt:"Remove the rule that shouldn't be there:",
               options:[
@@ -636,7 +703,7 @@
               ],
               errorText:"The security group still allows the database port in from 0.0.0.0/0 — anywhere on the internet."
             },
-            { id:"route", tier:"hard", type:"choice",
+            { id:"h-route", type:"choice",
               label:"The private subnet's route table has one route that shouldn't be there",
               prompt:"Which route is wrong for a private subnet?",
               options:[
@@ -646,7 +713,7 @@
               ],
               errorText:"The route table still sends 0.0.0.0/0 straight to an Internet Gateway — that alone makes this subnet reachable from outside no matter what the security group says."
             },
-            { id:"bastion", tier:"hard", type:"action",
+            { id:"h-bastion", type:"action",
               label:"Restrict the SSH bastion to your office IP range instead of 0.0.0.0/0",
               actionLabel:"Restrict access", loadingLabel:"Updating rule…", doneLabel:"Bastion SSH is now restricted to the office range.", loadingMs:500,
               errorText:"The SSH bastion is still open to 0.0.0.0/0 — the front door to everything else is still unlocked."
@@ -659,8 +726,24 @@
           consoleLabel:"AWS Route 53 Console (simulated)",
           actionBtn:"Simulate primary region failure",
           successText:"Traffic failed over cleanly — customers barely noticed.",
-          steps:[
-            { id:"policy", tier:"easy", type:"choice",
+          easySteps:[
+            { id:"e-policy", type:"choice",
+              label:"Switch the routing policy",
+              prompt:"Which policy actually reacts to a region going down?",
+              options:[
+                { key:"simple", label:"Simple", correct:false, feedback:"Simple always answers the same way — it has no idea the primary is down." },
+                { key:"failover", label:"Failover", correct:true, feedback:"Failover — this policy is built specifically to react to a health check going bad." }
+              ],
+              errorText:"The routing policy still isn't Failover — nothing here actually reacts to the primary going down."
+            },
+            { id:"e-target", type:"action",
+              label:"Point the failover record at the healthy secondary region",
+              actionLabel:"Set secondary target", loadingLabel:"Updating record…", doneLabel:"Secondary region is set as the failover target.", loadingMs:500,
+              errorText:"No secondary target is configured — even with Failover selected, there's nowhere for traffic to go."
+            }
+          ],
+          hardSteps:[
+            { id:"h-policy", type:"choice",
               label:"Switch the routing policy",
               prompt:"Which policy actually reacts to a region going down?",
               options:[
@@ -670,12 +753,12 @@
               ],
               errorText:"The routing policy still isn't Failover — nothing here actually reacts to the primary going down."
             },
-            { id:"target", tier:"easy", type:"action",
+            { id:"h-target", type:"action",
               label:"Point the failover record at the healthy secondary region",
               actionLabel:"Set secondary target", loadingLabel:"Updating record…", doneLabel:"Secondary region is set as the failover target.", loadingMs:500,
               errorText:"No secondary target is configured — even with Failover selected, there's nowhere for traffic to go."
             },
-            { id:"threshold", tier:"hard", type:"choice",
+            { id:"h-threshold", type:"choice",
               label:"Set the health check's failure threshold",
               prompt:"How many consecutive failed checks before failover triggers?",
               options:[
@@ -685,7 +768,7 @@
               ],
               errorText:"The health check threshold is still misconfigured — it will either flap on noise or take far too long to react."
             },
-            { id:"ttl", tier:"hard", type:"choice",
+            { id:"h-ttl", type:"choice",
               label:"Set the DNS record's TTL for fast failover",
               prompt:"How long should resolvers cache this answer?",
               options:[
@@ -703,8 +786,24 @@
           consoleLabel:"AWS CloudWatch Console (simulated)",
           actionBtn:"Simulate another failure",
           successText:"The alarm fired and paged the on-call within a minute — no more silent failures.",
-          steps:[
-            { id:"metric", tier:"easy", type:"choice",
+          easySteps:[
+            { id:"e-metric", type:"choice",
+              label:"Pick the metric to alarm on",
+              prompt:"Which metric actually reflects this failure?",
+              options:[
+                { key:"cpu", label:"CPUUtilization", correct:false, feedback:"A service can fail silently at 5% CPU just as easily as at 95%. Not the one." },
+                { key:"errorrate", label:"ErrorRate", correct:true, feedback:"That's the one that actually reflects requests failing." }
+              ],
+              errorText:"No alarm is watching a metric that would actually catch this kind of failure."
+            },
+            { id:"e-threshold", type:"action",
+              label:"Set a threshold and create the alarm",
+              actionLabel:"Create alarm", loadingLabel:"Creating…", doneLabel:"Alarm created.", loadingMs:500,
+              errorText:"No alarm has actually been created yet — the right metric alone doesn't page anyone."
+            }
+          ],
+          hardSteps:[
+            { id:"h-metric", type:"choice",
               label:"Pick the metric to alarm on",
               prompt:"Which metric actually reflects this failure?",
               options:[
@@ -714,12 +813,12 @@
               ],
               errorText:"No alarm is watching a metric that would actually catch this kind of failure."
             },
-            { id:"threshold", tier:"easy", type:"action",
+            { id:"h-threshold", type:"action",
               label:"Set a threshold and create the alarm",
               actionLabel:"Create alarm", loadingLabel:"Creating…", doneLabel:"Alarm created.", loadingMs:500,
               errorText:"No alarm has actually been created yet — the right metric alone doesn't page anyone."
             },
-            { id:"missingdata", tier:"hard", type:"choice",
+            { id:"h-missingdata", type:"choice",
               label:"How should the alarm treat missing data?",
               prompt:"Choose the missing-data behavior:",
               options:[
@@ -728,7 +827,7 @@
               ],
               errorText:"Missing data is still treated as \"OK\" — an agent that stops reporting entirely would still page no one."
             },
-            { id:"notify", tier:"hard", type:"action",
+            { id:"h-notify", type:"action",
               label:"Attach an SNS notification so someone actually gets paged",
               actionLabel:"Attach notification", loadingLabel:"Attaching…", doneLabel:"On-call will now be paged on alarm.", loadingMs:500,
               errorText:"The alarm still isn't wired to notify anyone — it can go red on a dashboard nobody's watching at 3AM."
@@ -752,7 +851,7 @@
     tr: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", quests:"Görevler" },
+        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge" },
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"CloudLab",
         statusChanged:"durum → {status}",
@@ -1228,8 +1327,7 @@
         }
       },
       quests:{
-        sectionTitle:"Görevler",
-        sectionIntro:"Yukarıdaki modüller bir şeyin nasıl çalıştığını gösterir. Bunlar sizi onu düzeltmek zorunda olan kişinin yerine koyar — gerçekçi bir senaryo, bozuk bir durum, ve gerçek sonuçları olan kararlar. Temel düzeltme için Kolay'ı, tam gerçek dünya tepkisi için Zor'u seçin.",
+        eyebrow:"GÖREV",
         easyLabel:"Kolay", hardLabel:"Zor",
         resetBtn:"Görevi sıfırla",
         completeNote:"Yukarıdaki her karar gerçek bir kararı yansıtıyor — buna gerçekte böyle yanıt verilirdi.",
@@ -1239,8 +1337,8 @@
           consoleLabel:"Google Cloud Console (simüle edilmiş)",
           actionBtn:"Google ile giriş yap",
           successText:"demo@cloudlab.app olarak giriş yapıldı — gereken her adım tamamlandı.",
-          steps:[
-            { id:"consent", tier:"easy", type:"choice",
+          easySteps:[
+            { id:"e-consent", type:"choice",
               label:"OAuth onay ekranını yapılandır",
               prompt:"Onay ekranı için bir kullanıcı türü seçin:",
               options:[
@@ -1249,17 +1347,18 @@
               ],
               errorText:"Hata 403: access_denied — bu uygulamanın OAuth onay ekranı henüz yapılandırılmadı."
             },
-            { id:"redirect", tier:"easy", type:"choice",
-              label:"Doğru yetkili yönlendirme URI'sini ekle",
-              prompt:"Bu uygulamayla gerçekten eşleşen yönlendirme URI'sini seçin:",
+            { id:"e-redirect", type:"choice",
+              label:"Yetkili yönlendirme URI'sini ekle",
+              prompt:"Bu uygulamayla eşleşen yönlendirme URI'sini seçin:",
               options:[
-                { key:"wrong1", label:"https://cloudlab.app/callback", correct:false, feedback:"Reddedildi — bu URI bu uygulamayla eşleşmiyor. Gerçek bir Google girişi burada redirect_uri_mismatch hatasıyla başarısız olurdu." },
-                { key:"correct", label:"https://cloudlab.app/auth/google/callback", correct:true, feedback:"Eklendi — bu URI, uygulamanın gerçek geri çağırma yoluyla eşleşiyor." },
-                { key:"wrong2", label:"http://localhost/callback", correct:false, feedback:"Reddedildi — bu URI bu uygulamayla eşleşmiyor. Gerçek bir Google girişi burada redirect_uri_mismatch hatasıyla başarısız olurdu." }
+                { key:"wrong", label:"http://localhost/callback", correct:false, feedback:"Reddedildi — bu yerel bir geliştirme URI'si, uygulamanın gerçek alan adı değil. Google bunu redirect_uri_mismatch ile reddederdi." },
+                { key:"correct", label:"https://cloudlab.app/auth/google/callback", correct:true, feedback:"Eklendi — bu URI, uygulamanın gerçek geri çağırma yoluyla eşleşiyor." }
               ],
               errorText:"Hata 400: redirect_uri_mismatch — istekteki yönlendirme URI'si bu istemci için yetkili hiçbir URI ile eşleşmiyor."
-            },
-            { id:"client", tier:"hard", type:"choice",
+            }
+          ],
+          hardSteps:[
+            { id:"h-clienttype", type:"choice",
               label:"Bir OAuth 2.0 İstemci Kimliği oluştur",
               prompt:"OAuth istemcisi için bir uygulama türü seçin:",
               options:[
@@ -1270,7 +1369,26 @@
               ],
               errorText:"Hata 401: invalid_client — bu uygulama için henüz bir OAuth 2.0 istemcisi yok."
             },
-            { id:"api", tier:"hard", type:"action",
+            { id:"h-redirect", type:"choice",
+              label:"Doğru yetkili yönlendirme URI'sini ekle",
+              prompt:"Bu uygulamayla gerçekten eşleşen yönlendirme URI'sini seçin:",
+              options:[
+                { key:"wrong1", label:"https://cloudlab.app/callback", correct:false, feedback:"Reddedildi — yakın, ama bu yol uygulamanın gerçek geri çağırmasıyla eşleşmiyor. Google bunu redirect_uri_mismatch ile reddederdi." },
+                { key:"correct", label:"https://cloudlab.app/auth/google/callback", correct:true, feedback:"Eklendi — bu URI, uygulamanın gerçek geri çağırma yoluyla eşleşiyor." },
+                { key:"wrong2", label:"http://localhost/callback", correct:false, feedback:"Reddedildi — bu yerel bir geliştirme URI'si, uygulamanın gerçek alan adı değil. Google bunu redirect_uri_mismatch ile reddederdi." }
+              ],
+              errorText:"Hata 400: redirect_uri_mismatch — istekteki yönlendirme URI'si bu istemci için yetkili hiçbir URI ile eşleşmiyor."
+            },
+            { id:"h-consent", type:"choice",
+              label:"OAuth onay ekranını yapılandır",
+              prompt:"Onay ekranı için bir kullanıcı türü seçin:",
+              options:[
+                { key:"internal", label:"Dahili (Internal)", correct:false, feedback:"Dahili, tek bir Google Workspace kuruluşundaki hesaplarla sınırlıdır. CloudLab herkesin giriş yapabildiği herkese açık bir uygulama — Dahili seçilirse hepsi dışarıda kalır, ve Google'ın kendi incelemesi de herkese açık bir uygulamayı bu şekilde yapılandırılmış olarak reddederdi." },
+                { key:"external", label:"Harici (External)", correct:true, feedback:"Harici — herhangi bir Google Hesabı giriş yapabilir. Onay ekranı kaydedildi." }
+              ],
+              errorText:"Hata 403: access_denied — bu uygulamanın OAuth onay ekranı henüz yapılandırılmadı."
+            },
+            { id:"h-api", type:"action",
               label:"People API'sini etkinleştir",
               prompt:"API Kitaplığı", itemName:"Google People API",
               actionLabel:"Etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Etkinleştirildi.", loadingMs:700,
@@ -1284,13 +1402,13 @@
           consoleLabel:"AWS IAM Console (simüle edilmiş)",
           actionBtn:"Olayı çözüldü olarak işaretle",
           successText:"Olay kapatıldı — anahtar devre dışı, rol daraltıldı, ve girişte artık MFA gerekiyor.",
-          steps:[
-            { id:"revoke", tier:"easy", type:"action",
+          easySteps:[
+            { id:"e-revoke", type:"action",
               label:"Sızmış erişim anahtarını devre dışı bırak",
               actionLabel:"Anahtarı devre dışı bırak", loadingLabel:"Devre dışı bırakılıyor…", doneLabel:"Anahtar devre dışı bırakıldı — artık kimlik doğrulayamaz.", loadingMs:600,
               errorText:"Sızmış anahtar hâlâ aktif. Onu elinde bulunduran herkes şu anda hâlâ kullanabilir."
             },
-            { id:"policy", tier:"easy", type:"choice",
+            { id:"e-policy", type:"choice",
               label:"Eklenmiş politikayı değiştir",
               prompt:"Bu role ne eklensin:",
               options:[
@@ -1298,18 +1416,34 @@
                 { key:"scoped", label:"Kapsamlı, salt okunur bir S3 politikası ekle", correct:true, feedback:"Daraltıldı — bu rol artık sadece işin gerçekten ihtiyaç duyduğu tek kovadan okuyabilir." }
               ],
               errorText:"Bu rolün hâlâ tam yönetici erişimi var — ölü bir anahtarın yerine geçen bile hesaba her şeyi yapabilir."
-            },
-            { id:"audit", tier:"hard", type:"choice",
-              label:"Devre dışı bırakmadan önce anahtarın ne için kullanıldığını kontrol et",
+            }
+          ],
+          hardSteps:[
+            { id:"h-audit", type:"choice",
+              label:"Herhangi bir şeye dokunmadan önce anahtarın ne için kullanıldığını kontrol et",
               prompt:"Hangi kayıtlı eylem saldırganın erişimi yükseltmesi gibi görünüyor?",
               options:[
                 { key:"list", label:"ListBuckets — 09:14:02", correct:false, feedback:"Bu rutin, salt okunur ve beklenen bir işlem. Bu değil." },
                 { key:"attach", label:"AttachUserPolicy: AdministratorAccess — 09:14:41", correct:true, feedback:"İşte bu — ilk kullanımdan otuz dokuz saniye sonra, anahtar kendine tam yönetici erişimi verdi. Sadece anahtarı devre dışı bırakmak yetmez, bu politika da kaldırılmalı." },
                 { key:"get", label:"GetObject: readme.txt — 09:15:10", correct:false, feedback:"Bu da rutin. Bu değil." }
               ],
-              errorText:"Anahtarın gerçekte ne yaptığını incelemediniz — anahtarın ötesinde hâlâ temizlenmesi gereken bir hasar olabilir."
+              errorText:"Anahtarın gerçekte ne yaptığını incelemediniz — kör bir şekilde devre dışı bırakmak saldırganın dokunduğu başka kanıtları yok edebilir."
             },
-            { id:"mfa", tier:"hard", type:"action",
+            { id:"h-revoke", type:"action",
+              label:"Sızmış erişim anahtarını devre dışı bırak",
+              actionLabel:"Anahtarı devre dışı bırak", loadingLabel:"Devre dışı bırakılıyor…", doneLabel:"Anahtar devre dışı bırakıldı — artık kimlik doğrulayamaz.", loadingMs:600,
+              errorText:"Sızmış anahtar hâlâ aktif. Onu elinde bulunduran herkes şu anda hâlâ kullanabilir."
+            },
+            { id:"h-selfpolicy", type:"choice",
+              label:"Saldırganın kendine eklediği politikayı kaldır",
+              prompt:"Denetimin ortaya çıkardığı AdministratorAccess yetkisiyle ne yapıyorsunuz?",
+              options:[
+                { key:"leave", label:"Bırakın — anahtar zaten devre dışı", correct:false, feedback:"Anahtarın ölü olması eklediği politikayı kaldırmaz. Hesap hâlâ kimsenin onaylamadığı bir yetki yükseltmesini taşıyor." },
+                { key:"detach", label:"AdministratorAccess'i rolden hemen kaldır", correct:true, feedback:"Kaldırıldı — denetimin bulduğu yetkisiz yetki yükseltmesi gitti." }
+              ],
+              errorText:"Saldırganın kendine verdiği AdministratorAccess politikası hâlâ ekli — anahtar ölü, ama açık bıraktığı kapı kapalı değil."
+            },
+            { id:"h-mfa", type:"action",
               label:"Bu hesaptaki tüm gelecek konsol girişleri için MFA zorunlu kıl",
               actionLabel:"MFA'yı zorunlu kıl", loadingLabel:"Politika uygulanıyor…", doneLabel:"MFA artık hesap genelinde zorunlu.", loadingMs:600,
               errorText:"MFA hâlâ zorunlu değil — bir parola (ya da başka sızmış bir anahtar) hâlâ içeri girmek için yeterli."
@@ -1322,13 +1456,29 @@
           consoleLabel:"AWS S3 Console (simüle edilmiş)",
           actionBtn:"Kovayı herkese açık erişim için yeniden tara",
           successText:"Tarama temiz — kova özel, sürümlü, ve sessiz bir tekrara karşı korumalı.",
-          steps:[
-            { id:"block", tier:"easy", type:"action",
+          easySteps:[
+            { id:"e-block", type:"action",
               label:"Kova için Herkese Açık Erişimi Engelle'yi aç",
               actionLabel:"Aç", loadingLabel:"Uygulanıyor…", doneLabel:"Herkese Açık Erişimi Engelle açık.", loadingMs:500,
               errorText:"Herkese Açık Erişimi Engelle hâlâ kapalı — kova, ona izin veren herhangi bir politika ya da ACL tarafından açığa çıkarılabilir."
             },
-            { id:"policy", tier:"easy", type:"choice",
+            { id:"e-policy", type:"choice",
+              label:"Erişime izin veren kova politikasını kaldır",
+              prompt:"Kova politikası ne yapmalı?",
+              options:[
+                { key:"keep", label:"Principal: * ifadesi kalsın", correct:false, feedback:"Principal: * gerçekten internetteki herkes demek, giriş yapmış ya da yapmamış fark etmez. Sızıntı bu." },
+                { key:"delete", label:"Herkese açık okuma ifadesini sil", correct:true, feedback:"Kaldırıldı — artık hiçbir politika anonim erişime izin vermiyor." }
+              ],
+              errorText:"Kova politikası hâlâ Principal: *'a okuma erişimi veriyor — URL'yi bilen herkes hâlâ her nesneyi okuyabilir."
+            }
+          ],
+          hardSteps:[
+            { id:"h-block", type:"action",
+              label:"Kova için Herkese Açık Erişimi Engelle'yi aç",
+              actionLabel:"Aç", loadingLabel:"Uygulanıyor…", doneLabel:"Herkese Açık Erişimi Engelle açık.", loadingMs:500,
+              errorText:"Herkese Açık Erişimi Engelle hâlâ kapalı — kova, ona izin veren herhangi bir politika ya da ACL tarafından açığa çıkarılabilir."
+            },
+            { id:"h-policy", type:"choice",
               label:"Erişime izin veren kova politikasını kaldır",
               prompt:"Kova politikası ne yapmalı?",
               options:[
@@ -1337,7 +1487,7 @@
               ],
               errorText:"Kova politikası hâlâ Principal: *'a okuma erişimi veriyor — URL'yi bilen herkes hâlâ her nesneyi okuyabilir."
             },
-            { id:"acl", tier:"hard", type:"choice",
+            { id:"h-acl", type:"choice",
               label:"Nesne düzeyinde bir ACL hâlâ doğrudan erişim veriyor — bulun",
               prompt:"Hangi nesne ACL izni gerçek sorun?",
               options:[
@@ -1347,7 +1497,7 @@
               ],
               errorText:"Nesne düzeyinde bir ACL hâlâ doğrudan herkese açık okuma izni veriyor — sadece kova politikasını silmek bunu kapatmadı."
             },
-            { id:"versioning", tier:"hard", type:"action",
+            { id:"h-versioning", type:"action",
               label:"Sürümleme ve MFA Delete'i aç",
               actionLabel:"Etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Sürümleme + MFA Delete açık.", loadingMs:600,
               errorText:"Sürümleme hâlâ açık değil — bu tekrar olursa, ne bir kurtarma yolu ne de sessiz bir toplu silmeye karşı ekstra bir engel var."
@@ -1360,13 +1510,29 @@
           consoleLabel:"AWS VPC Console (simüle edilmiş)",
           actionBtn:"Dış erişilebilirlik taramasını yeniden çalıştır",
           successText:"Tarama temiz — veritabanı herkese açık internetten erişilemez durumda.",
-          steps:[
-            { id:"subnet", tier:"easy", type:"action",
+          easySteps:[
+            { id:"e-subnet", type:"action",
               label:"Veritabanı örneğini özel alt ağa taşı",
               actionLabel:"Örneği taşı", loadingLabel:"Taşınıyor…", doneLabel:"DB-1 artık özel alt ağda.", loadingMs:700,
               errorText:"Veritabanı hâlâ herkese açık alt ağda duruyor, sadece yönlendirme ile erişilebilir."
             },
-            { id:"sg", tier:"easy", type:"choice",
+            { id:"e-sg", type:"choice",
+              label:"Hangi güvenlik grubu kuralı kaldırılmalı?",
+              prompt:"Bunlardan biri interneti doğrudan içeri alıyor:",
+              options:[
+                { key:"open", label:"0.0.0.0/0'dan 5432'ye izin ver", correct:true, feedback:"İşte bu — veritabanı portu tüm internete açık. Kaldırıldı." },
+                { key:"lb", label:"Yük dengeleyici SG'sinden 443'e izin ver", correct:false, feedback:"Bu normal, kapsamlı bir kural — sadece kendi yük dengeleyicinizden gelen trafik. Bu değil." }
+              ],
+              errorText:"Güvenlik grubu hâlâ veritabanı portunu 0.0.0.0/0'dan, yani internetteki her yerden, içeri alıyor."
+            }
+          ],
+          hardSteps:[
+            { id:"h-subnet", type:"action",
+              label:"Veritabanı örneğini özel alt ağa taşı",
+              actionLabel:"Örneği taşı", loadingLabel:"Taşınıyor…", doneLabel:"DB-1 artık özel alt ağda.", loadingMs:700,
+              errorText:"Veritabanı hâlâ herkese açık alt ağda duruyor, sadece yönlendirme ile erişilebilir."
+            },
+            { id:"h-sg", type:"choice",
               label:"Hangi güvenlik grubu kuralı interneti içeri alıyor?",
               prompt:"Orada olmaması gereken kuralı kaldırın:",
               options:[
@@ -1376,7 +1542,7 @@
               ],
               errorText:"Güvenlik grubu hâlâ veritabanı portunu 0.0.0.0/0'dan, yani internetteki her yerden, içeri alıyor."
             },
-            { id:"route", tier:"hard", type:"choice",
+            { id:"h-route", type:"choice",
               label:"Özel alt ağın yönlendirme tablosunda orada olmaması gereken bir rota var",
               prompt:"Özel bir alt ağ için hangi rota yanlış?",
               options:[
@@ -1386,7 +1552,7 @@
               ],
               errorText:"Yönlendirme tablosu hâlâ 0.0.0.0/0'ı doğrudan bir İnternet Ağ Geçidi'ne gönderiyor — güvenlik grubu ne derse desin bu tek başına alt ağı dışarıdan erişilebilir yapar."
             },
-            { id:"bastion", tier:"hard", type:"action",
+            { id:"h-bastion", type:"action",
               label:"SSH bastion'ı 0.0.0.0/0 yerine ofis IP aralığınızla sınırla",
               actionLabel:"Erişimi sınırla", loadingLabel:"Kural güncelleniyor…", doneLabel:"Bastion SSH artık ofis aralığıyla sınırlı.", loadingMs:500,
               errorText:"SSH bastion hâlâ 0.0.0.0/0'a açık — her şeyin ön kapısı hâlâ kilitsiz."
@@ -1399,8 +1565,24 @@
           consoleLabel:"AWS Route 53 Console (simüle edilmiş)",
           actionBtn:"Ana bölge arızasını simüle et",
           successText:"Trafik sorunsuzca devretti — müşteriler neredeyse fark etmedi.",
-          steps:[
-            { id:"policy", tier:"easy", type:"choice",
+          easySteps:[
+            { id:"e-policy", type:"choice",
+              label:"Yönlendirme politikasını değiştir",
+              prompt:"Bir bölgenin çökmesine gerçekten hangi politika tepki verir?",
+              options:[
+                { key:"simple", label:"Basit", correct:false, feedback:"Basit her zaman aynı şekilde yanıt verir — ana bölgenin çöktüğünden haberi yok." },
+                { key:"failover", label:"Yük devretme", correct:true, feedback:"Yük devretme — bu politika özellikle bir sağlık kontrolünün kötüleşmesine tepki vermek için tasarlanmış." }
+              ],
+              errorText:"Yönlendirme politikası hâlâ Yük devretme değil — burada hiçbir şey ana bölgenin çökmesine gerçekten tepki vermiyor."
+            },
+            { id:"e-target", type:"action",
+              label:"Yük devretme kaydını sağlıklı ikincil bölgeye yönlendir",
+              actionLabel:"İkincil hedefi ayarla", loadingLabel:"Kayıt güncelleniyor…", doneLabel:"İkincil bölge yük devretme hedefi olarak ayarlandı.", loadingMs:500,
+              errorText:"İkincil bir hedef yapılandırılmamış — Yük devretme seçili olsa bile trafiğin gidecek bir yeri yok."
+            }
+          ],
+          hardSteps:[
+            { id:"h-policy", type:"choice",
               label:"Yönlendirme politikasını değiştir",
               prompt:"Bir bölgenin çökmesine gerçekten hangi politika tepki verir?",
               options:[
@@ -1410,12 +1592,12 @@
               ],
               errorText:"Yönlendirme politikası hâlâ Yük devretme değil — burada hiçbir şey ana bölgenin çökmesine gerçekten tepki vermiyor."
             },
-            { id:"target", tier:"easy", type:"action",
+            { id:"h-target", type:"action",
               label:"Yük devretme kaydını sağlıklı ikincil bölgeye yönlendir",
               actionLabel:"İkincil hedefi ayarla", loadingLabel:"Kayıt güncelleniyor…", doneLabel:"İkincil bölge yük devretme hedefi olarak ayarlandı.", loadingMs:500,
               errorText:"İkincil bir hedef yapılandırılmamış — Yük devretme seçili olsa bile trafiğin gidecek bir yeri yok."
             },
-            { id:"threshold", tier:"hard", type:"choice",
+            { id:"h-threshold", type:"choice",
               label:"Sağlık kontrolünün hata eşiğini ayarla",
               prompt:"Yük devretme tetiklenmeden önce kaç ardışık başarısız kontrol olsun?",
               options:[
@@ -1425,7 +1607,7 @@
               ],
               errorText:"Sağlık kontrolü eşiği hâlâ yanlış yapılandırılmış — ya gürültüde çırpınacak ya da tepki vermesi çok uzun sürecek."
             },
-            { id:"ttl", tier:"hard", type:"choice",
+            { id:"h-ttl", type:"choice",
               label:"Hızlı yük devretme için DNS kaydının TTL'sini ayarla",
               prompt:"Çözümleyiciler bu yanıtı ne kadar süre önbelleğe almalı?",
               options:[
@@ -1443,8 +1625,24 @@
           consoleLabel:"AWS CloudWatch Console (simüle edilmiş)",
           actionBtn:"Başka bir arızayı simüle et",
           successText:"Alarm çaldı ve nöbetçiyi bir dakika içinde çağırdı — artık sessiz arıza yok.",
-          steps:[
-            { id:"metric", tier:"easy", type:"choice",
+          easySteps:[
+            { id:"e-metric", type:"choice",
+              label:"Alarm için metriği seç",
+              prompt:"Hangi metrik bu arızayı gerçekten yansıtıyor?",
+              options:[
+                { key:"cpu", label:"CPUUtilization", correct:false, feedback:"Bir servis %5 CPU'da da %95 CPU'da da aynı kolaylıkla sessizce başarısız olabilir. Bu değil." },
+                { key:"errorrate", label:"ErrorRate", correct:true, feedback:"Başarısız istekleri gerçekten yansıtan bu." }
+              ],
+              errorText:"Hiçbir alarm bu tür bir arızayı gerçekten yakalayacak bir metriği izlemiyor."
+            },
+            { id:"e-threshold", type:"action",
+              label:"Bir eşik belirle ve alarmı oluştur",
+              actionLabel:"Alarm oluştur", loadingLabel:"Oluşturuluyor…", doneLabel:"Alarm oluşturuldu.", loadingMs:500,
+              errorText:"Henüz gerçekten bir alarm oluşturulmadı — doğru metrik tek başına kimseyi çağırmaz."
+            }
+          ],
+          hardSteps:[
+            { id:"h-metric", type:"choice",
               label:"Alarm için metriği seç",
               prompt:"Hangi metrik bu arızayı gerçekten yansıtıyor?",
               options:[
@@ -1454,12 +1652,12 @@
               ],
               errorText:"Hiçbir alarm bu tür bir arızayı gerçekten yakalayacak bir metriği izlemiyor."
             },
-            { id:"threshold", tier:"easy", type:"action",
+            { id:"h-threshold", type:"action",
               label:"Bir eşik belirle ve alarmı oluştur",
               actionLabel:"Alarm oluştur", loadingLabel:"Oluşturuluyor…", doneLabel:"Alarm oluşturuldu.", loadingMs:500,
               errorText:"Henüz gerçekten bir alarm oluşturulmadı — doğru metrik tek başına kimseyi çağırmaz."
             },
-            { id:"missingdata", tier:"hard", type:"choice",
+            { id:"h-missingdata", type:"choice",
               label:"Alarm eksik veriyi nasıl ele almalı?",
               prompt:"Eksik veri davranışını seçin:",
               options:[
@@ -1468,7 +1666,7 @@
               ],
               errorText:"Eksik veri hâlâ \"TAMAM\" olarak ele alınıyor — rapor vermeyi tamamen bırakan bir ajan yine de kimseyi çağırmaz."
             },
-            { id:"notify", tier:"hard", type:"action",
+            { id:"h-notify", type:"action",
               label:"Birinin gerçekten çağrılması için bir SNS bildirimi ekle",
               actionLabel:"Bildirim ekle", loadingLabel:"Ekleniyor…", doneLabel:"Nöbetçi artık alarmda çağrılacak.", loadingMs:500,
               errorText:"Alarm hâlâ kimseyi bilgilendirecek şekilde bağlanmamış — sabah 3'te kimsenin izlemediği bir panoda kırmızıya dönebilir."
@@ -2484,7 +2682,7 @@
     return { tier:"easy", completedSteps:new Set(), expandedStep:null, stepFeedback:{}, actionResult:null };
   }
   function questVisibleSteps(data, tier){
-    return data.steps.filter(function(s){ return s.tier==="easy" || tier==="hard"; });
+    return tier==="hard" ? data.hardSteps : data.easySteps;
   }
   function questAllDone(key){
     const data=dict[currentLang].quests[key];
@@ -2507,7 +2705,7 @@
   function questChoiceClick(key, stepId, optionKey){
     const data=dict[currentLang].quests[key];
     const state=questState[key];
-    const step=data.steps.find(function(s){ return s.id===stepId; });
+    const step=questVisibleSteps(data, state.tier).find(function(s){ return s.id===stepId; });
     const opt=step.options.find(function(o){ return o.key===optionKey; });
     state.stepFeedback[stepId]={ optionKey:optionKey, correct:opt.correct };
     if(opt.correct){ state.completedSteps.add(stepId); state.expandedStep=null; }
@@ -2517,7 +2715,7 @@
     const state=questState[key];
     if(state.completedSteps.has(stepId)) return;
     const data=dict[currentLang].quests[key];
-    const step=data.steps.find(function(s){ return s.id===stepId; });
+    const step=questVisibleSteps(data, state.tier).find(function(s){ return s.id===stepId; });
     state.stepFeedback[stepId]={ loading:true };
     questRender(key);
     setTimeout(function(){
@@ -2528,7 +2726,11 @@
     }, step.loadingMs||0);
   }
   function questTierClick(key, tier){
-    questState[key].tier=tier;
+    const state=questState[key];
+    if(state.tier===tier) return;
+    state.tier=tier;
+    state.expandedStep=null;
+    state.actionResult=null;
     questRender(key);
   }
   function questActionTry(key){
@@ -2544,8 +2746,11 @@
 
   function questBuildShell(key){
     const card=document.createElement("div");
-    card.className="quest-card panel";
+    card.className="quest-card";
     card.id="quest-"+key;
+
+    const eyebrow=document.createElement("p");
+    eyebrow.className="eyebrow accent quest-card-eyebrow";
 
     const head=document.createElement("header");
     head.className="quest-card-head";
@@ -2602,13 +2807,14 @@
     completeNote.className="quest-complete-note"; completeNote.hidden=true;
     footer.appendChild(resetBtn); footer.appendChild(completeNote);
 
+    card.appendChild(eyebrow);
     card.appendChild(head);
     card.appendChild(scenario);
     card.appendChild(consoleWrap);
     card.appendChild(footer);
 
     questEls[key]={
-      title:titleEl, easyTab:easyBtn, hardTab:hardBtn, scenario:scenario,
+      eyebrow:eyebrow, title:titleEl, easyTab:easyBtn, hardTab:hardBtn, scenario:scenario,
       dot:dot, consoleLabelText:consoleLabelText, actionBtn:actionBtn, result:resultEl,
       stepsList:stepsList, resetBtn:resetBtn, completeNote:completeNote
     };
@@ -2669,6 +2875,7 @@
     const state=questState[key];
     const els=questEls[key];
 
+    els.eyebrow.textContent=qroot.eyebrow;
     els.title.textContent=data.title;
     els.scenario.textContent=data.scenario;
     els.easyTab.textContent=qroot.easyLabel;
@@ -2688,7 +2895,7 @@
         els.completeNote.hidden=false;
         els.completeNote.textContent=qroot.completeNote;
       } else {
-        const missStep=data.steps.find(function(s){ return s.id===state.actionResult.stepId; });
+        const missStep=questVisibleSteps(data, state.tier).find(function(s){ return s.id===state.actionResult.stepId; });
         els.result.textContent = missStep ? missStep.errorText : "";
         els.result.className="quest-result bad";
         els.completeNote.hidden=true;
@@ -2718,10 +2925,11 @@
   }
 
   function questInitAll(){
-    const container=$("#questsContainer");
     QUEST_KEYS.forEach(function(key){
+      const mount=$("#quest-mount-"+key);
+      if(!mount) return;
       questState[key]=questInitState();
-      container.appendChild(questBuildShell(key));
+      mount.appendChild(questBuildShell(key));
       questRender(key);
     });
   }
