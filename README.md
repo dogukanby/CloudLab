@@ -34,12 +34,26 @@ That means it needs your own Groq API key: get a free one at [console.groq.com/k
 
 The badge at the top links to a signed NSIS installer built from this same code with Electron — no browser required, just a desktop app. It's self-signed (see below), so **Windows SmartScreen will likely show an "unknown publisher" warning** the first time you run it: click **More info → Run anyway**. A self-signed certificate proves the file hasn't been tampered with since it was built; it doesn't buy reputation with Windows the way a paid certificate from a CA does.
 
+You only need to download it once. After that, the installed app checks GitHub on launch and — if a newer version has been published — asks with a dialog before downloading or installing anything. Nothing updates silently without you clicking through it.
+
 To build it yourself instead of trusting the release:
 
 ```bash
 npm install
-npm run dist        # outputs dist/CloudLab-Setup.exe
+npm run dist        # outputs dist/CloudLab-Setup.exe (+ latest.yml + .blockmap)
 ```
+
+### Publishing a new version (for maintainers)
+
+`npm run dist` builds and signs the installer but never uploads anything (`--publish never`). Every release needs **all three** generated files — the installer alone isn't enough for already-installed apps to detect the update:
+
+```bash
+npm run dist
+gh release create vX.Y.Z dist/CloudLab-Setup.exe dist/latest.yml dist/CloudLab-Setup.exe.blockmap \
+  --title "CloudLab vX.Y.Z" --notes "…"
+```
+
+(Bump `"version"` in `package.json` first — `latest.yml` is generated from it.) Alternatively, `npm run release` with a `GH_TOKEN` environment variable set lets `electron-builder` create the release and upload all three files itself.
 
 ## Running it in a browser
 
@@ -61,7 +75,7 @@ npx serve .
 Vanilla HTML, CSS, and JavaScript for the app itself — no framework, no build tooling. Electron wraps it for the desktop build.
 
 - `index.html` / `styles.css` / `app.js` — the app: twelve modules plus the chat widget, the EN/TR i18n layer, and the theme toggle
-- `main.js` / `package.json` — the Electron shell and `electron-builder` packaging config used to produce the Windows installer
+- `main.js` / `package.json` — the Electron shell, `electron-builder` packaging config, and the `electron-updater`-based update check
 
 ---
 
@@ -73,4 +87,4 @@ Bulut mimarilerinde sürekli karşımıza çıkan fikirlerin küçük, istemci t
 
 On iki modül: bulut nedir, yük dengeleme, dağıtık tutarlılık, önbellekleme/CDN, yük devretme, VPC, EC2, Elastic Beanstalk, Route 53, SNS, Snowball Edge ve oturum açma akışları.
 
-Yukarıdaki rozet imzalı bir Windows kurulum dosyasına bağlanır. Kendinden imzalı bir sertifika kullanıldığından Windows SmartScreen ilk çalıştırmada "bilinmeyen yayımcı" uyarısı gösterebilir — **Diğer bilgiler → Yine de çalıştır** yeterli.
+Yukarıdaki rozet imzalı bir Windows kurulum dosyasına bağlanır. Kendinden imzalı bir sertifika kullanıldığından Windows SmartScreen ilk çalıştırmada "bilinmeyen yayımcı" uyarısı gösterebilir — **Diğer bilgiler → Yine de çalıştır** yeterli. Kurulumu yalnızca bir kez indirmeniz yeterli: uygulama her açılışta yeni bir sürüm olup olmadığını kontrol eder ve varsa, siz onaylamadan hiçbir şeyi indirip kurmaz.
