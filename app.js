@@ -6,11 +6,11 @@
   const dict = {
     en: {
       common: {
-        wordmark:"Cloud Lab",
+        wordmark:"CloudLab",
         nav:{ cloud101:"00 What is the cloud?", lb:"01 Load balancing", consistency:"02 Consistency", cache:"03 Caching", failover:"04 Failover", vpc:"05 VPC", ec2:"06 EC2", beanstalk:"07 Beanstalk", route53:"08 Route 53", sns:"09 SNS", snowball:"10 Snowball Edge", auth:"11 Sign-in" },
         uptime:"UPTIME",
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
-        pageTitle:"Cloud Lab",
+        pageTitle:"CloudLab",
         statusChanged:"status → {status}",
         analogyLabel:"In plain terms", technicalLabel:"Under the hood",
         tryThisLabel:"Try this", realIncidentLabel:"Real incident",
@@ -316,7 +316,7 @@
         status:{ signedOut:"SIGNED OUT", inProgress:"IN PROGRESS", signedIn:"SIGNED IN" },
         google:{
           step1:"Redirecting to accounts.google.com...",
-          step2:"Google shows a consent screen: \"Cloud Lab wants to know your name and email\"",
+          step2:"Google shows a consent screen: \"CloudLab wants to know your name and email\"",
           step3:"You approve",
           step4:"Google redirects back with a signed id_token — your password never left Google",
           step5:"App verifies the token's signature and starts a session"
@@ -355,11 +355,11 @@
     },
     tr: {
       common: {
-        wordmark:"Bulut Laboratuvarı",
+        wordmark:"CloudLab",
         nav:{ cloud101:"00 Bulut nedir?", lb:"01 Yük dengeleme", consistency:"02 Tutarlılık", cache:"03 Önbellekleme", failover:"04 Yük devretme", vpc:"05 VPC", ec2:"06 EC2", beanstalk:"07 Beanstalk", route53:"08 Route 53", sns:"09 SNS", snowball:"10 Snowball Edge", auth:"11 Giriş" },
         uptime:"ÇALIŞMA SÜRESİ",
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
-        pageTitle:"Bulut Laboratuvarı",
+        pageTitle:"CloudLab",
         statusChanged:"durum → {status}",
         analogyLabel:"Basitçe söylemek gerekirse", technicalLabel:"Perde arkasında",
         tryThisLabel:"Dene bunu", realIncidentLabel:"Gerçek olay",
@@ -665,7 +665,7 @@
         status:{ signedOut:"OTURUM KAPALI", inProgress:"DEVAM EDİYOR", signedIn:"OTURUM AÇIK" },
         google:{
           step1:"accounts.google.com'a yönlendiriliyor...",
-          step2:"Google bir onay ekranı gösteriyor: \"Cloud Lab adınızı ve e-postanızı öğrenmek istiyor\"",
+          step2:"Google bir onay ekranı gösteriyor: \"CloudLab adınızı ve e-postanızı öğrenmek istiyor\"",
           step3:"Onaylıyorsunuz",
           step4:"Google imzalı bir id_token ile geri yönlendiriyor — parolanız Google'dan hiç çıkmadı",
           step5:"Uygulama jetonun imzasını doğrular ve oturum başlatır"
