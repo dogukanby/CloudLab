@@ -88,6 +88,8 @@ a:hover{ color:var(--ink); }
 .jumpnav::-webkit-scrollbar{ display:none; height:0; }
 .jumpnav a{ font-family:var(--font-mono); font-size:0.7rem; letter-spacing:0.02em; text-transform:uppercase; color:var(--ink-dim); text-decoration:none; padding:6px 10px; border:1px solid var(--border); border-radius:999px; white-space:nowrap; transition:color 160ms ease, border-color 160ms ease; }
 .jumpnav a:hover{ color:var(--ink); border-color:var(--border-strong); }
+.jumpnav a.jumpnav-quests{ color:var(--accent); border-color:var(--accent-soft); font-weight:700; }
+.jumpnav a.jumpnav-quests:hover{ border-color:var(--accent); }
 
 .topbar-tools{ display:flex; align-items:center; gap:8px; flex:none; }
 .lang-toggle{ display:flex; border:1px solid var(--border-strong); border-radius:999px; overflow:hidden; }
@@ -165,12 +167,12 @@ select, .btn{ font-size:0.82rem; padding:8px 10px; border-radius:var(--radius); 
 
 /* shared press feedback — every pressable control gives instant, tactile confirmation */
 @media (prefers-reduced-motion:no-preference){
-  .btn, .lang-btn, .theme-btn, .jumpnav a, .node-card, .sub-card, .auth-tab, .chat-close, .chat-forget, .chat-fab, .quest-step-row button, .quest-option-btn{
+  .btn, .lang-btn, .theme-btn, .jumpnav a, .node-card, .sub-card, .auth-tab, .chat-close, .chat-forget, .chat-fab, .quest-step-row button, .quest-option-btn, .quest-tier-tab{
     transition-property:transform, border-color, color, background-color, box-shadow;
     transition-duration:140ms;
     transition-timing-function:var(--ease-out);
   }
-  .btn:active, .lang-btn:active, .theme-btn:active, .jumpnav a:active, .node-card:active, .sub-card:active, .auth-tab:active, .chat-close:active, .chat-forget:active, .chat-fab:active, .quest-step-row button:active, .quest-option-btn:active{
+  .btn:active, .lang-btn:active, .theme-btn:active, .jumpnav a:active, .node-card:active, .sub-card:active, .auth-tab:active, .chat-close:active, .chat-forget:active, .chat-fab:active, .quest-step-row button:active, .quest-option-btn:active, .quest-tier-tab:active{
     transform:scale(var(--press-scale));
   }
 }
@@ -315,9 +317,20 @@ select, .btn{ font-size:0.82rem; padding:8px 10px; border-radius:var(--radius); 
 .auth-steps li.done{ opacity:0.8; color:var(--ink); }
 .auth-steps li .num{ font-family:var(--font-mono); font-size:0.7rem; color:var(--ink-faint); flex:none; width:1.4em; }
 
-.quest{ padding:20px 22px 24px; border-top:1px solid var(--border); background:var(--bg-panel-2); }
-.quest-title{ font-family:var(--font-display); font-weight:800; text-transform:uppercase; letter-spacing:-0.005em; font-size:1rem; margin:2px 0 8px; }
-.quest-intro{ max-width:70ch; font-size:0.88rem; color:var(--ink-dim); line-height:1.6; margin:0 0 16px; }
+.quests-section{ padding:16px 0 8px; }
+.quests-intro{ max-width:74ch; margin:0 0 22px; }
+.quests-intro h2{ font-family:var(--font-display); font-weight:800; text-transform:uppercase; letter-spacing:-0.01em; font-size:clamp(1.1rem,1rem + 0.6vw,1.5rem); margin:0 0 8px; }
+.quests-intro p{ margin:0; font-size:0.95rem; color:var(--ink-dim); line-height:1.7; }
+.quests-grid{ display:flex; flex-direction:column; }
+
+.quest-card{ padding:20px 22px 24px; display:flex; flex-direction:column; gap:14px; }
+.quest-card-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.quest-card-title{ font-family:var(--font-display); font-weight:800; text-transform:uppercase; letter-spacing:-0.005em; font-size:1rem; margin:0; }
+.quest-tier-tabs{ display:flex; border:1px solid var(--border-strong); border-radius:999px; overflow:hidden; flex:none; }
+.quest-tier-tab{ font-family:var(--font-mono); font-size:0.7rem; letter-spacing:0.02em; text-transform:uppercase; padding:6px 14px; background:transparent; border:none; cursor:pointer; color:var(--ink-faint); }
+.quest-tier-tab.active{ background:var(--accent); color:var(--bg-panel); }
+.quest-tier-tab:not(.active):hover{ color:var(--ink); }
+.quest-card-scenario{ max-width:72ch; font-size:0.88rem; color:var(--ink-dim); line-height:1.6; margin:0; }
 .quest-console{ max-width:640px; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; background:var(--bg); box-shadow:var(--shadow); }
 .quest-console-head{ display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--bg-panel); border-bottom:1px solid var(--border); font-family:var(--font-mono); font-size:0.68rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.03em; }
 .quest-console-dot{ width:8px; height:8px; border-radius:50%; background:var(--warn); flex:none; }

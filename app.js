@@ -12,7 +12,7 @@
     en: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge" },
+        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", quests:"Quests" },
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"CloudLab",
         statusChanged:"status → {status}",
@@ -369,38 +369,6 @@
           started:"starting {flow} flow...",
           complete:"session started — signed in",
           reset:"session cleared — signed out"
-        },
-        quest:{
-          eyebrow:"QUEST", title:"Fix the broken sign-in",
-          intro:"Below is a simplified mock of the Google Cloud Console. \"Sign in with Google\" is wired up on this page already — but it's broken, because none of the setup a real developer has to do has been done yet. Complete the steps below, in any order, then try signing in again.",
-          consoleLabel:"Google Cloud Console (simulated)",
-          trySignInBtn:"Sign in with Google",
-          resultSuccess:"Signed in as demo@cloudlab.app — every step below is done.",
-          stepConsent:"Configure the OAuth consent screen",
-          stepClientId:"Create an OAuth 2.0 Client ID",
-          stepRedirect:"Add the correct authorized redirect URI",
-          stepApi:"Enable the People API",
-          doneTag:"done",
-          consentPrompt:"Choose a user type for the consent screen:",
-          consentInternal:"Internal", consentExternal:"External",
-          consentInternalError:"Internal is restricted to accounts inside a single Google Workspace organization. CloudLab is a public app anyone can sign into — Internal would lock out every one of them.",
-          consentExternalOk:"External — any Google Account can sign in. Consent screen saved.",
-          clientTypePrompt:"Choose an application type for the OAuth client:",
-          clientTypeWeb:"Web application", clientTypeDesktop:"Desktop app", clientTypeAndroid:"Android", clientTypeIos:"iOS",
-          clientTypeWrongError:"Wrong type — a {type} client isn't built to receive an HTTP redirect back from a browser sign-in. Google would reject this app's requests outright.",
-          clientTypeOk:"Web application client created — ID {clientId}",
-          redirectPrompt:"Pick the redirect URI that actually matches this app:",
-          redirectWrong:"Rejected — that URI doesn't match this app. A real Google sign-in would fail here with redirect_uri_mismatch.",
-          redirectCorrect:"Added — that URI matches this app's real callback path.",
-          apiLibraryLabel:"API Library",
-          apiResultName:"Google People API",
-          apiEnableBtn:"Enable", apiEnabling:"Enabling…", apiEnabledOk:"Enabled.",
-          errorConsent:"Error 403: access_denied — this app's OAuth consent screen hasn't been configured yet.",
-          errorClient:"Error 401: invalid_client — no OAuth 2.0 client exists for this app yet.",
-          errorRedirect:"Error 400: redirect_uri_mismatch — the redirect URI in the request doesn't match any authorized for this client.",
-          errorApi:"Error 403: access_denied — Google People API has not been used in this project before or it is disabled.",
-          resetBtn:"Reset quest",
-          completeNote:"These are the actual four steps every real \"Sign in with Google\" integration requires in Google Cloud Console — this quest just compresses the clicking and waiting out of it."
         }
       },
       iam:{
@@ -519,6 +487,255 @@
           spiked:"metric spike triggered"
         }
       },
+      quests:{
+        sectionTitle:"Quests",
+        sectionIntro:"The modules above show you how something works. These put you in the seat of someone who has to fix it — a realistic scenario, a broken state, and decisions with real consequences. Pick Easy for the core fix, or Hard for the full, real-world response.",
+        easyLabel:"Easy", hardLabel:"Hard",
+        resetBtn:"Reset quest",
+        completeNote:"Every decision above mirrors a real one — this is genuinely what responding to this would look like.",
+        auth:{
+          title:"Fix the broken sign-in",
+          scenario:"\"Sign in with Google\" is wired up on this app already — but it's broken, because none of the setup a real developer has to do has been done yet.",
+          consoleLabel:"Google Cloud Console (simulated)",
+          actionBtn:"Sign in with Google",
+          successText:"Signed in as demo@cloudlab.app — every required step is done.",
+          steps:[
+            { id:"consent", tier:"easy", type:"choice",
+              label:"Configure the OAuth consent screen",
+              prompt:"Choose a user type for the consent screen:",
+              options:[
+                { key:"internal", label:"Internal", correct:false, feedback:"Internal is restricted to accounts inside a single Google Workspace organization. CloudLab is a public app anyone can sign into — Internal would lock out every one of them." },
+                { key:"external", label:"External", correct:true, feedback:"External — any Google Account can sign in. Consent screen saved." }
+              ],
+              errorText:"Error 403: access_denied — this app's OAuth consent screen hasn't been configured yet."
+            },
+            { id:"redirect", tier:"easy", type:"choice",
+              label:"Add the correct authorized redirect URI",
+              prompt:"Pick the redirect URI that actually matches this app:",
+              options:[
+                { key:"wrong1", label:"https://cloudlab.app/callback", correct:false, feedback:"Rejected — that URI doesn't match this app. A real Google sign-in would fail here with redirect_uri_mismatch." },
+                { key:"correct", label:"https://cloudlab.app/auth/google/callback", correct:true, feedback:"Added — that URI matches this app's real callback path." },
+                { key:"wrong2", label:"http://localhost/callback", correct:false, feedback:"Rejected — that URI doesn't match this app. A real Google sign-in would fail here with redirect_uri_mismatch." }
+              ],
+              errorText:"Error 400: redirect_uri_mismatch — the redirect URI in the request doesn't match any authorized for this client."
+            },
+            { id:"client", tier:"hard", type:"choice",
+              label:"Create an OAuth 2.0 Client ID",
+              prompt:"Choose an application type for the OAuth client:",
+              options:[
+                { key:"web", label:"Web application", correct:true, feedback:"Web application client created — ID 847293651042-k3j8s0d9f2h1a0b9c8d7e6f5g4h3.apps.googleusercontent.com" },
+                { key:"desktop", label:"Desktop app", correct:false, feedback:"Wrong type — a Desktop app client isn't built to receive an HTTP redirect back from a browser sign-in. Google would reject this app's requests outright." },
+                { key:"android", label:"Android", correct:false, feedback:"Wrong type — an Android client isn't built to receive an HTTP redirect back from a browser sign-in. Google would reject this app's requests outright." },
+                { key:"ios", label:"iOS", correct:false, feedback:"Wrong type — an iOS client isn't built to receive an HTTP redirect back from a browser sign-in. Google would reject this app's requests outright." }
+              ],
+              errorText:"Error 401: invalid_client — no OAuth 2.0 client exists for this app yet."
+            },
+            { id:"api", tier:"hard", type:"action",
+              label:"Enable the People API",
+              prompt:"API Library", itemName:"Google People API",
+              actionLabel:"Enable", loadingLabel:"Enabling…", doneLabel:"Enabled.", loadingMs:700,
+              errorText:"Error 403: access_denied — Google People API has not been used in this project before or it is disabled."
+            }
+          ]
+        },
+        iam:{
+          title:"Lock down a leaked credential",
+          scenario:"A contractor just posted this app's AWS access key to a public GitHub repo by accident. Before anyone finds it, respond to the incident.",
+          consoleLabel:"AWS IAM Console (simulated)",
+          actionBtn:"Mark incident resolved",
+          successText:"Incident closed — the key is dead, the role is scoped down, and sign-in now requires MFA.",
+          steps:[
+            { id:"revoke", tier:"easy", type:"action",
+              label:"Deactivate the leaked access key",
+              actionLabel:"Deactivate key", loadingLabel:"Deactivating…", doneLabel:"Key deactivated — it can no longer authenticate.", loadingMs:600,
+              errorText:"The leaked key is still active. Anyone who has it can still use it right now."
+            },
+            { id:"policy", tier:"easy", type:"choice",
+              label:"Replace the attached policy",
+              prompt:"Choose what's attached to this role:",
+              options:[
+                { key:"admin", label:"Keep *:* (Administrator access)", correct:false, feedback:"That's exactly the policy that let a single leaked key turn into a full account compromise in the first place." },
+                { key:"scoped", label:"Attach a scoped read-only S3 policy", correct:true, feedback:"Scoped down — this role can now only read from the one bucket the job actually needs." }
+              ],
+              errorText:"This role still has full administrator access — even a dead key's replacement could do anything to the account."
+            },
+            { id:"audit", tier:"hard", type:"choice",
+              label:"Check what the key was used for before you deactivate it",
+              prompt:"Which logged action looks like the attacker escalating access?",
+              options:[
+                { key:"list", label:"ListBuckets — 09:14:02", correct:false, feedback:"That's routine, read-only, and expected. Not the one." },
+                { key:"attach", label:"AttachUserPolicy: AdministratorAccess — 09:14:41", correct:true, feedback:"That's it — thirty-nine seconds after first use, the key granted itself full admin access. That policy needs to be removed too, not just the key deactivated." },
+                { key:"get", label:"GetObject: readme.txt — 09:15:10", correct:false, feedback:"Also routine. Not the one." }
+              ],
+              errorText:"You haven't reviewed what the key actually did — there may be damage beyond the key itself that still needs cleaning up."
+            },
+            { id:"mfa", tier:"hard", type:"action",
+              label:"Require MFA for all future console sign-ins on this account",
+              actionLabel:"Enforce MFA", loadingLabel:"Applying policy…", doneLabel:"MFA is now required account-wide.", loadingMs:600,
+              errorText:"MFA still isn't required — a password (or another leaked key) is still enough to get in."
+            }
+          ]
+        },
+        s3:{
+          title:"Stop the public data leak",
+          scenario:"A customer just emailed you a screenshot of your company's private customer list — found via a plain Google search.",
+          consoleLabel:"AWS S3 Console (simulated)",
+          actionBtn:"Re-scan bucket for public access",
+          successText:"Scan clean — the bucket is private, versioned, and protected against a silent repeat.",
+          steps:[
+            { id:"block", tier:"easy", type:"action",
+              label:"Turn on Block Public Access for the bucket",
+              actionLabel:"Turn on", loadingLabel:"Applying…", doneLabel:"Block Public Access is on.", loadingMs:500,
+              errorText:"Block Public Access is still off — the bucket can be exposed by any policy or ACL that grants it."
+            },
+            { id:"policy", tier:"easy", type:"choice",
+              label:"Remove the bucket policy that's granting access",
+              prompt:"What should the bucket policy do?",
+              options:[
+                { key:"keep", label:"Keep the Principal: * statement", correct:false, feedback:"Principal: * means literally anyone on the internet, signed in or not. That's the leak." },
+                { key:"delete", label:"Delete the public-read policy statement", correct:true, feedback:"Removed — no policy is granting anonymous access anymore." }
+              ],
+              errorText:"The bucket policy is still granting read access to Principal: * — anyone with the URL can still read every object."
+            },
+            { id:"acl", tier:"hard", type:"choice",
+              label:"One object-level ACL is still granting access directly — find it",
+              prompt:"Which object ACL grant is the actual problem?",
+              options:[
+                { key:"private", label:"customers.csv — grant: private", correct:false, feedback:"Private is correct and safe. Not the one." },
+                { key:"authread", label:"invoices.csv — grant: authenticated-read", correct:false, feedback:"Risky — \"authenticated\" means any AWS account anywhere, not just yours — but it's not the direct public grant. Keep looking." },
+                { key:"publicread", label:"customer-list.csv — grant: public-read", correct:true, feedback:"That's it — public-read on this specific object bypasses the bucket policy entirely. Fixed." }
+              ],
+              errorText:"An object-level ACL is still granting public-read directly — deleting the bucket policy alone didn't close this."
+            },
+            { id:"versioning", tier:"hard", type:"action",
+              label:"Turn on versioning and MFA Delete",
+              actionLabel:"Enable", loadingLabel:"Enabling…", doneLabel:"Versioning + MFA Delete are on.", loadingMs:600,
+              errorText:"Versioning still isn't on — if this happens again, there's no recovery path and no extra barrier against a silent bulk delete."
+            }
+          ]
+        },
+        vpc:{
+          title:"Seal an exposed database",
+          scenario:"A security scanner just flagged your production database as reachable directly from the public internet.",
+          consoleLabel:"AWS VPC Console (simulated)",
+          actionBtn:"Re-run external reachability scan",
+          successText:"Scan clean — the database is unreachable from the public internet.",
+          steps:[
+            { id:"subnet", tier:"easy", type:"action",
+              label:"Move the database instance into the private subnet",
+              actionLabel:"Move instance", loadingLabel:"Migrating…", doneLabel:"DB-1 is now in the private subnet.", loadingMs:700,
+              errorText:"The database is still sitting in the public subnet, reachable by routing alone."
+            },
+            { id:"sg", tier:"easy", type:"choice",
+              label:"Which security group rule is letting the internet in?",
+              prompt:"Remove the rule that shouldn't be there:",
+              options:[
+                { key:"lb", label:"Allow 443 from load balancer SG", correct:false, feedback:"That's a normal, scoped rule — traffic only from your own load balancer. Not the one." },
+                { key:"open", label:"Allow 5432 from 0.0.0.0/0", correct:true, feedback:"That's it — the database port open to the entire internet. Removed." },
+                { key:"ssh", label:"Allow 22 from office IP range", correct:false, feedback:"Scoped to a specific IP range — not the problem here." }
+              ],
+              errorText:"The security group still allows the database port in from 0.0.0.0/0 — anywhere on the internet."
+            },
+            { id:"route", tier:"hard", type:"choice",
+              label:"The private subnet's route table has one route that shouldn't be there",
+              prompt:"Which route is wrong for a private subnet?",
+              options:[
+                { key:"local", label:"10.0.0.0/16 → local", correct:false, feedback:"Normal — that's just routing within the VPC itself. Not the one." },
+                { key:"igw", label:"0.0.0.0/0 → Internet Gateway", correct:true, feedback:"That's it — a direct route to the Internet Gateway is what makes a subnet \"public,\" no matter what the subnet is named. Removed." },
+                { key:"nat", label:"0.0.0.0/0 → NAT Gateway", correct:false, feedback:"That's actually normal and expected — it lets instances reach the internet outbound (for updates, etc.) without accepting anything inbound. Not the one." }
+              ],
+              errorText:"The route table still sends 0.0.0.0/0 straight to an Internet Gateway — that alone makes this subnet reachable from outside no matter what the security group says."
+            },
+            { id:"bastion", tier:"hard", type:"action",
+              label:"Restrict the SSH bastion to your office IP range instead of 0.0.0.0/0",
+              actionLabel:"Restrict access", loadingLabel:"Updating rule…", doneLabel:"Bastion SSH is now restricted to the office range.", loadingMs:500,
+              errorText:"The SSH bastion is still open to 0.0.0.0/0 — the front door to everything else is still unlocked."
+            }
+          ]
+        },
+        route53:{
+          title:"Survive a region outage",
+          scenario:"Your primary region just went down. Traffic needs to fail over to the secondary region before customers notice.",
+          consoleLabel:"AWS Route 53 Console (simulated)",
+          actionBtn:"Simulate primary region failure",
+          successText:"Traffic failed over cleanly — customers barely noticed.",
+          steps:[
+            { id:"policy", tier:"easy", type:"choice",
+              label:"Switch the routing policy",
+              prompt:"Which policy actually reacts to a region going down?",
+              options:[
+                { key:"simple", label:"Simple", correct:false, feedback:"Simple always answers the same way — it has no idea the primary is down." },
+                { key:"weighted", label:"Weighted", correct:false, feedback:"Weighted splits traffic by a fixed percentage — it doesn't respond to health on its own." },
+                { key:"failover", label:"Failover", correct:true, feedback:"Failover — this policy is built specifically to react to a health check going bad." }
+              ],
+              errorText:"The routing policy still isn't Failover — nothing here actually reacts to the primary going down."
+            },
+            { id:"target", tier:"easy", type:"action",
+              label:"Point the failover record at the healthy secondary region",
+              actionLabel:"Set secondary target", loadingLabel:"Updating record…", doneLabel:"Secondary region is set as the failover target.", loadingMs:500,
+              errorText:"No secondary target is configured — even with Failover selected, there's nowhere for traffic to go."
+            },
+            { id:"threshold", tier:"hard", type:"choice",
+              label:"Set the health check's failure threshold",
+              prompt:"How many consecutive failed checks before failover triggers?",
+              options:[
+                { key:"one", label:"1 failed check", correct:false, feedback:"Too twitchy — a single transient network blip would trigger a failover you didn't need." },
+                { key:"three", label:"3 consecutive failed checks", correct:true, feedback:"That's the real-world default for a reason — enough to ignore a blip, fast enough to actually help." },
+                { key:"thirty", label:"30 failed checks", correct:false, feedback:"Far too slow — that's many minutes of real downtime before failover even starts." }
+              ],
+              errorText:"The health check threshold is still misconfigured — it will either flap on noise or take far too long to react."
+            },
+            { id:"ttl", tier:"hard", type:"choice",
+              label:"Set the DNS record's TTL for fast failover",
+              prompt:"How long should resolvers cache this answer?",
+              options:[
+                { key:"long", label:"3600s (1 hour)", correct:false, feedback:"Anyone who resolved this in the last hour keeps hitting the dead region for up to an hour more." },
+                { key:"short", label:"60s", correct:true, feedback:"Short enough that a failover actually reaches people within about a minute — long enough not to hammer your DNS servers." },
+                { key:"zero", label:"0s — never cache", correct:false, feedback:"Technically fastest, but every single request now has to re-resolve DNS — that's not how real systems are run in practice." }
+              ],
+              errorText:"The TTL is still set wrong — even a correct failover will take far too long to actually reach people."
+            }
+          ]
+        },
+        cloudwatch:{
+          title:"Catch the silent failure",
+          scenario:"A backend service has been silently failing for six hours. Nobody got paged, because no alarm was ever wired up correctly.",
+          consoleLabel:"AWS CloudWatch Console (simulated)",
+          actionBtn:"Simulate another failure",
+          successText:"The alarm fired and paged the on-call within a minute — no more silent failures.",
+          steps:[
+            { id:"metric", tier:"easy", type:"choice",
+              label:"Pick the metric to alarm on",
+              prompt:"Which metric actually reflects this failure?",
+              options:[
+                { key:"network", label:"NetworkIn", correct:false, feedback:"Traffic can look completely normal while every request is quietly failing. Not the one." },
+                { key:"errorrate", label:"ErrorRate", correct:true, feedback:"That's the one that actually reflects requests failing." },
+                { key:"cpu", label:"CPUUtilization", correct:false, feedback:"A service can fail silently at 5% CPU just as easily as at 95%. Not the one." }
+              ],
+              errorText:"No alarm is watching a metric that would actually catch this kind of failure."
+            },
+            { id:"threshold", tier:"easy", type:"action",
+              label:"Set a threshold and create the alarm",
+              actionLabel:"Create alarm", loadingLabel:"Creating…", doneLabel:"Alarm created.", loadingMs:500,
+              errorText:"No alarm has actually been created yet — the right metric alone doesn't page anyone."
+            },
+            { id:"missingdata", tier:"hard", type:"choice",
+              label:"How should the alarm treat missing data?",
+              prompt:"Choose the missing-data behavior:",
+              options:[
+                { key:"ok", label:"Treat missing data as OK", correct:false, feedback:"That's exactly what let this fail silently for six hours — if the agent stops reporting entirely, this setting assumes everything's fine." },
+                { key:"breaching", label:"Treat missing data as breaching", correct:true, feedback:"Now silence itself counts as a problem, not a reason to stay quiet." }
+              ],
+              errorText:"Missing data is still treated as \"OK\" — an agent that stops reporting entirely would still page no one."
+            },
+            { id:"notify", tier:"hard", type:"action",
+              label:"Attach an SNS notification so someone actually gets paged",
+              actionLabel:"Attach notification", loadingLabel:"Attaching…", doneLabel:"On-call will now be paged on alarm.", loadingMs:500,
+              errorText:"The alarm still isn't wired to notify anyone — it can go red on a dashboard nobody's watching at 3AM."
+            }
+          ]
+        }
+      },
       chat:{
         title:"Ask the Console", fabAria:"Ask a question", closeAria:"Close",
         setupIntro:"This runs entirely in your browser through Groq's free API — nothing is sent anywhere except directly to Groq. Paste your own key to turn it on; it's saved only on this device, never on any server.",
@@ -535,7 +752,7 @@
     tr: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge" },
+        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", quests:"Görevler" },
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"CloudLab",
         statusChanged:"durum → {status}",
@@ -892,38 +1109,6 @@
           started:"{flow} akışı başlıyor...",
           complete:"oturum başlatıldı — giriş yapıldı",
           reset:"oturum temizlendi — oturum kapalı"
-        },
-        quest:{
-          eyebrow:"GÖREV", title:"Bozuk oturum açmayı düzelt",
-          intro:"Aşağıda Google Cloud Console'un basitleştirilmiş bir taklidi var. \"Google ile giriş yap\" bu sayfada zaten bağlanmış — ama bozuk, çünkü gerçek bir geliştiricinin yapması gereken kurulum adımlarının hiçbiri henüz yapılmadı. Aşağıdaki adımları herhangi bir sırada tamamlayın, sonra tekrar giriş yapmayı deneyin.",
-          consoleLabel:"Google Cloud Console (simüle edilmiş)",
-          trySignInBtn:"Google ile giriş yap",
-          resultSuccess:"demo@cloudlab.app olarak giriş yapıldı — aşağıdaki her adım tamamlandı.",
-          stepConsent:"OAuth onay ekranını yapılandır",
-          stepClientId:"Bir OAuth 2.0 İstemci Kimliği oluştur",
-          stepRedirect:"Doğru yetkili yönlendirme URI'sini ekle",
-          stepApi:"People API'sini etkinleştir",
-          doneTag:"tamam",
-          consentPrompt:"Onay ekranı için bir kullanıcı türü seçin:",
-          consentInternal:"Dahili (Internal)", consentExternal:"Harici (External)",
-          consentInternalError:"Dahili, tek bir Google Workspace kuruluşundaki hesaplarla sınırlıdır. CloudLab herkesin giriş yapabildiği herkese açık bir uygulama — Dahili seçilirse hepsi dışarıda kalır.",
-          consentExternalOk:"Harici — herhangi bir Google Hesabı giriş yapabilir. Onay ekranı kaydedildi.",
-          clientTypePrompt:"OAuth istemcisi için bir uygulama türü seçin:",
-          clientTypeWeb:"Web uygulaması", clientTypeDesktop:"Masaüstü uygulaması", clientTypeAndroid:"Android", clientTypeIos:"iOS",
-          clientTypeWrongError:"Yanlış tür — bir {type} istemcisi bir tarayıcı girişinden HTTP yönlendirmesi almak üzere tasarlanmamıştır. Google bu uygulamanın isteklerini doğrudan reddederdi.",
-          clientTypeOk:"Web uygulaması istemcisi oluşturuldu — Kimlik {clientId}",
-          redirectPrompt:"Bu uygulamayla gerçekten eşleşen yönlendirme URI'sini seçin:",
-          redirectWrong:"Reddedildi — bu URI bu uygulamayla eşleşmiyor. Gerçek bir Google girişi burada redirect_uri_mismatch hatasıyla başarısız olurdu.",
-          redirectCorrect:"Eklendi — bu URI, uygulamanın gerçek geri çağırma yoluyla eşleşiyor.",
-          apiLibraryLabel:"API Kitaplığı",
-          apiResultName:"Google People API",
-          apiEnableBtn:"Etkinleştir", apiEnabling:"Etkinleştiriliyor…", apiEnabledOk:"Etkinleştirildi.",
-          errorConsent:"Hata 403: access_denied — bu uygulamanın OAuth onay ekranı henüz yapılandırılmadı.",
-          errorClient:"Hata 401: invalid_client — bu uygulama için henüz bir OAuth 2.0 istemcisi yok.",
-          errorRedirect:"Hata 400: redirect_uri_mismatch — istekteki yönlendirme URI'si bu istemci için yetkili hiçbir URI ile eşleşmiyor.",
-          errorApi:"Hata 403: access_denied — Google People API bu projede daha önce kullanılmadı veya devre dışı bırakıldı.",
-          resetBtn:"Görevi sıfırla",
-          completeNote:"Bunlar, Google Cloud Console'da gerçek her \"Google ile giriş yap\" entegrasyonunun gerektirdiği dört gerçek adım — bu görev sadece tıklama ve bekleme kısmını sıkıştırıyor."
         }
       },
       iam:{
@@ -1040,6 +1225,255 @@
           noData:"veri noktası alınamadı — {n}/3 kaçırılan dönem",
           insufficientFired:"durum → YETERSİZ VERİ — ajan çok uzun süredir sessiz",
           spiked:"metrik sıçraması tetiklendi"
+        }
+      },
+      quests:{
+        sectionTitle:"Görevler",
+        sectionIntro:"Yukarıdaki modüller bir şeyin nasıl çalıştığını gösterir. Bunlar sizi onu düzeltmek zorunda olan kişinin yerine koyar — gerçekçi bir senaryo, bozuk bir durum, ve gerçek sonuçları olan kararlar. Temel düzeltme için Kolay'ı, tam gerçek dünya tepkisi için Zor'u seçin.",
+        easyLabel:"Kolay", hardLabel:"Zor",
+        resetBtn:"Görevi sıfırla",
+        completeNote:"Yukarıdaki her karar gerçek bir kararı yansıtıyor — buna gerçekte böyle yanıt verilirdi.",
+        auth:{
+          title:"Bozuk oturum açmayı düzelt",
+          scenario:"\"Google ile giriş yap\" bu uygulamada zaten bağlanmış — ama bozuk, çünkü gerçek bir geliştiricinin yapması gereken kurulumun hiçbiri henüz yapılmadı.",
+          consoleLabel:"Google Cloud Console (simüle edilmiş)",
+          actionBtn:"Google ile giriş yap",
+          successText:"demo@cloudlab.app olarak giriş yapıldı — gereken her adım tamamlandı.",
+          steps:[
+            { id:"consent", tier:"easy", type:"choice",
+              label:"OAuth onay ekranını yapılandır",
+              prompt:"Onay ekranı için bir kullanıcı türü seçin:",
+              options:[
+                { key:"internal", label:"Dahili (Internal)", correct:false, feedback:"Dahili, tek bir Google Workspace kuruluşundaki hesaplarla sınırlıdır. CloudLab herkesin giriş yapabildiği herkese açık bir uygulama — Dahili seçilirse hepsi dışarıda kalır." },
+                { key:"external", label:"Harici (External)", correct:true, feedback:"Harici — herhangi bir Google Hesabı giriş yapabilir. Onay ekranı kaydedildi." }
+              ],
+              errorText:"Hata 403: access_denied — bu uygulamanın OAuth onay ekranı henüz yapılandırılmadı."
+            },
+            { id:"redirect", tier:"easy", type:"choice",
+              label:"Doğru yetkili yönlendirme URI'sini ekle",
+              prompt:"Bu uygulamayla gerçekten eşleşen yönlendirme URI'sini seçin:",
+              options:[
+                { key:"wrong1", label:"https://cloudlab.app/callback", correct:false, feedback:"Reddedildi — bu URI bu uygulamayla eşleşmiyor. Gerçek bir Google girişi burada redirect_uri_mismatch hatasıyla başarısız olurdu." },
+                { key:"correct", label:"https://cloudlab.app/auth/google/callback", correct:true, feedback:"Eklendi — bu URI, uygulamanın gerçek geri çağırma yoluyla eşleşiyor." },
+                { key:"wrong2", label:"http://localhost/callback", correct:false, feedback:"Reddedildi — bu URI bu uygulamayla eşleşmiyor. Gerçek bir Google girişi burada redirect_uri_mismatch hatasıyla başarısız olurdu." }
+              ],
+              errorText:"Hata 400: redirect_uri_mismatch — istekteki yönlendirme URI'si bu istemci için yetkili hiçbir URI ile eşleşmiyor."
+            },
+            { id:"client", tier:"hard", type:"choice",
+              label:"Bir OAuth 2.0 İstemci Kimliği oluştur",
+              prompt:"OAuth istemcisi için bir uygulama türü seçin:",
+              options:[
+                { key:"web", label:"Web uygulaması", correct:true, feedback:"Web uygulaması istemcisi oluşturuldu — Kimlik 847293651042-k3j8s0d9f2h1a0b9c8d7e6f5g4h3.apps.googleusercontent.com" },
+                { key:"desktop", label:"Masaüstü uygulaması", correct:false, feedback:"Yanlış tür — bir Masaüstü uygulaması istemcisi bir tarayıcı girişinden HTTP yönlendirmesi almak üzere tasarlanmamıştır. Google bu uygulamanın isteklerini doğrudan reddederdi." },
+                { key:"android", label:"Android", correct:false, feedback:"Yanlış tür — bir Android istemcisi bir tarayıcı girişinden HTTP yönlendirmesi almak üzere tasarlanmamıştır. Google bu uygulamanın isteklerini doğrudan reddederdi." },
+                { key:"ios", label:"iOS", correct:false, feedback:"Yanlış tür — bir iOS istemcisi bir tarayıcı girişinden HTTP yönlendirmesi almak üzere tasarlanmamıştır. Google bu uygulamanın isteklerini doğrudan reddederdi." }
+              ],
+              errorText:"Hata 401: invalid_client — bu uygulama için henüz bir OAuth 2.0 istemcisi yok."
+            },
+            { id:"api", tier:"hard", type:"action",
+              label:"People API'sini etkinleştir",
+              prompt:"API Kitaplığı", itemName:"Google People API",
+              actionLabel:"Etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Etkinleştirildi.", loadingMs:700,
+              errorText:"Hata 403: access_denied — Google People API bu projede daha önce kullanılmadı veya devre dışı bırakıldı."
+            }
+          ]
+        },
+        iam:{
+          title:"Sızmış bir kimlik bilgisini kilitle",
+          scenario:"Bir yüklenici, bu uygulamanın AWS erişim anahtarını yanlışlıkla herkese açık bir GitHub deposuna gönderdi. Kimse bulmadan önce olaya müdahale edin.",
+          consoleLabel:"AWS IAM Console (simüle edilmiş)",
+          actionBtn:"Olayı çözüldü olarak işaretle",
+          successText:"Olay kapatıldı — anahtar devre dışı, rol daraltıldı, ve girişte artık MFA gerekiyor.",
+          steps:[
+            { id:"revoke", tier:"easy", type:"action",
+              label:"Sızmış erişim anahtarını devre dışı bırak",
+              actionLabel:"Anahtarı devre dışı bırak", loadingLabel:"Devre dışı bırakılıyor…", doneLabel:"Anahtar devre dışı bırakıldı — artık kimlik doğrulayamaz.", loadingMs:600,
+              errorText:"Sızmış anahtar hâlâ aktif. Onu elinde bulunduran herkes şu anda hâlâ kullanabilir."
+            },
+            { id:"policy", tier:"easy", type:"choice",
+              label:"Eklenmiş politikayı değiştir",
+              prompt:"Bu role ne eklensin:",
+              options:[
+                { key:"admin", label:"*:* (Yönetici erişimi) kalsın", correct:false, feedback:"Sızmış tek bir anahtarın tam bir hesap ele geçirmesine dönüşmesine izin veren tam olarak bu politika." },
+                { key:"scoped", label:"Kapsamlı, salt okunur bir S3 politikası ekle", correct:true, feedback:"Daraltıldı — bu rol artık sadece işin gerçekten ihtiyaç duyduğu tek kovadan okuyabilir." }
+              ],
+              errorText:"Bu rolün hâlâ tam yönetici erişimi var — ölü bir anahtarın yerine geçen bile hesaba her şeyi yapabilir."
+            },
+            { id:"audit", tier:"hard", type:"choice",
+              label:"Devre dışı bırakmadan önce anahtarın ne için kullanıldığını kontrol et",
+              prompt:"Hangi kayıtlı eylem saldırganın erişimi yükseltmesi gibi görünüyor?",
+              options:[
+                { key:"list", label:"ListBuckets — 09:14:02", correct:false, feedback:"Bu rutin, salt okunur ve beklenen bir işlem. Bu değil." },
+                { key:"attach", label:"AttachUserPolicy: AdministratorAccess — 09:14:41", correct:true, feedback:"İşte bu — ilk kullanımdan otuz dokuz saniye sonra, anahtar kendine tam yönetici erişimi verdi. Sadece anahtarı devre dışı bırakmak yetmez, bu politika da kaldırılmalı." },
+                { key:"get", label:"GetObject: readme.txt — 09:15:10", correct:false, feedback:"Bu da rutin. Bu değil." }
+              ],
+              errorText:"Anahtarın gerçekte ne yaptığını incelemediniz — anahtarın ötesinde hâlâ temizlenmesi gereken bir hasar olabilir."
+            },
+            { id:"mfa", tier:"hard", type:"action",
+              label:"Bu hesaptaki tüm gelecek konsol girişleri için MFA zorunlu kıl",
+              actionLabel:"MFA'yı zorunlu kıl", loadingLabel:"Politika uygulanıyor…", doneLabel:"MFA artık hesap genelinde zorunlu.", loadingMs:600,
+              errorText:"MFA hâlâ zorunlu değil — bir parola (ya da başka sızmış bir anahtar) hâlâ içeri girmek için yeterli."
+            }
+          ]
+        },
+        s3:{
+          title:"Herkese açık veri sızıntısını durdur",
+          scenario:"Bir müşteri az önce size şirketinizin özel müşteri listesinin ekran görüntüsünü e-postayla gönderdi — düz bir Google aramasıyla bulmuş.",
+          consoleLabel:"AWS S3 Console (simüle edilmiş)",
+          actionBtn:"Kovayı herkese açık erişim için yeniden tara",
+          successText:"Tarama temiz — kova özel, sürümlü, ve sessiz bir tekrara karşı korumalı.",
+          steps:[
+            { id:"block", tier:"easy", type:"action",
+              label:"Kova için Herkese Açık Erişimi Engelle'yi aç",
+              actionLabel:"Aç", loadingLabel:"Uygulanıyor…", doneLabel:"Herkese Açık Erişimi Engelle açık.", loadingMs:500,
+              errorText:"Herkese Açık Erişimi Engelle hâlâ kapalı — kova, ona izin veren herhangi bir politika ya da ACL tarafından açığa çıkarılabilir."
+            },
+            { id:"policy", tier:"easy", type:"choice",
+              label:"Erişime izin veren kova politikasını kaldır",
+              prompt:"Kova politikası ne yapmalı?",
+              options:[
+                { key:"keep", label:"Principal: * ifadesi kalsın", correct:false, feedback:"Principal: * gerçekten internetteki herkes demek, giriş yapmış ya da yapmamış fark etmez. Sızıntı bu." },
+                { key:"delete", label:"Herkese açık okuma ifadesini sil", correct:true, feedback:"Kaldırıldı — artık hiçbir politika anonim erişime izin vermiyor." }
+              ],
+              errorText:"Kova politikası hâlâ Principal: *'a okuma erişimi veriyor — URL'yi bilen herkes hâlâ her nesneyi okuyabilir."
+            },
+            { id:"acl", tier:"hard", type:"choice",
+              label:"Nesne düzeyinde bir ACL hâlâ doğrudan erişim veriyor — bulun",
+              prompt:"Hangi nesne ACL izni gerçek sorun?",
+              options:[
+                { key:"private", label:"customers.csv — izin: private", correct:false, feedback:"Private doğru ve güvenli. Bu değil." },
+                { key:"authread", label:"invoices.csv — izin: authenticated-read", correct:false, feedback:"Riskli — \"authenticated\" sadece sizin değil, herhangi bir yerdeki herhangi bir AWS hesabı demek — ama doğrudan herkese açık izin bu değil. Aramaya devam edin." },
+                { key:"publicread", label:"customer-list.csv — izin: public-read", correct:true, feedback:"İşte bu — bu belirli nesnedeki public-read, kova politikasını tamamen atlıyor. Düzeltildi." }
+              ],
+              errorText:"Nesne düzeyinde bir ACL hâlâ doğrudan herkese açık okuma izni veriyor — sadece kova politikasını silmek bunu kapatmadı."
+            },
+            { id:"versioning", tier:"hard", type:"action",
+              label:"Sürümleme ve MFA Delete'i aç",
+              actionLabel:"Etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Sürümleme + MFA Delete açık.", loadingMs:600,
+              errorText:"Sürümleme hâlâ açık değil — bu tekrar olursa, ne bir kurtarma yolu ne de sessiz bir toplu silmeye karşı ekstra bir engel var."
+            }
+          ]
+        },
+        vpc:{
+          title:"Açıkta kalan bir veritabanını kapat",
+          scenario:"Bir güvenlik tarayıcısı az önce üretim veritabanınızı doğrudan herkese açık internetten erişilebilir olarak işaretledi.",
+          consoleLabel:"AWS VPC Console (simüle edilmiş)",
+          actionBtn:"Dış erişilebilirlik taramasını yeniden çalıştır",
+          successText:"Tarama temiz — veritabanı herkese açık internetten erişilemez durumda.",
+          steps:[
+            { id:"subnet", tier:"easy", type:"action",
+              label:"Veritabanı örneğini özel alt ağa taşı",
+              actionLabel:"Örneği taşı", loadingLabel:"Taşınıyor…", doneLabel:"DB-1 artık özel alt ağda.", loadingMs:700,
+              errorText:"Veritabanı hâlâ herkese açık alt ağda duruyor, sadece yönlendirme ile erişilebilir."
+            },
+            { id:"sg", tier:"easy", type:"choice",
+              label:"Hangi güvenlik grubu kuralı interneti içeri alıyor?",
+              prompt:"Orada olmaması gereken kuralı kaldırın:",
+              options:[
+                { key:"lb", label:"Yük dengeleyici SG'sinden 443'e izin ver", correct:false, feedback:"Bu normal, kapsamlı bir kural — sadece kendi yük dengeleyicinizden gelen trafik. Bu değil." },
+                { key:"open", label:"0.0.0.0/0'dan 5432'ye izin ver", correct:true, feedback:"İşte bu — veritabanı portu tüm internete açık. Kaldırıldı." },
+                { key:"ssh", label:"Ofis IP aralığından 22'ye izin ver", correct:false, feedback:"Belirli bir IP aralığıyla sınırlı — burada sorun bu değil." }
+              ],
+              errorText:"Güvenlik grubu hâlâ veritabanı portunu 0.0.0.0/0'dan, yani internetteki her yerden, içeri alıyor."
+            },
+            { id:"route", tier:"hard", type:"choice",
+              label:"Özel alt ağın yönlendirme tablosunda orada olmaması gereken bir rota var",
+              prompt:"Özel bir alt ağ için hangi rota yanlış?",
+              options:[
+                { key:"local", label:"10.0.0.0/16 → local", correct:false, feedback:"Normal — bu sadece VPC içindeki yönlendirme. Bu değil." },
+                { key:"igw", label:"0.0.0.0/0 → İnternet Ağ Geçidi", correct:true, feedback:"İşte bu — İnternet Ağ Geçidi'ne doğrudan bir rota, alt ağ nasıl adlandırılmış olursa olsun onu \"herkese açık\" yapan şey. Kaldırıldı." },
+                { key:"nat", label:"0.0.0.0/0 → NAT Ağ Geçidi", correct:false, feedback:"Bu aslında normal ve beklenen — örneklerin hiçbir gelen bağlantıyı kabul etmeden internete çıkış yapabilmesini sağlar (güncellemeler için vb.). Bu değil." }
+              ],
+              errorText:"Yönlendirme tablosu hâlâ 0.0.0.0/0'ı doğrudan bir İnternet Ağ Geçidi'ne gönderiyor — güvenlik grubu ne derse desin bu tek başına alt ağı dışarıdan erişilebilir yapar."
+            },
+            { id:"bastion", tier:"hard", type:"action",
+              label:"SSH bastion'ı 0.0.0.0/0 yerine ofis IP aralığınızla sınırla",
+              actionLabel:"Erişimi sınırla", loadingLabel:"Kural güncelleniyor…", doneLabel:"Bastion SSH artık ofis aralığıyla sınırlı.", loadingMs:500,
+              errorText:"SSH bastion hâlâ 0.0.0.0/0'a açık — her şeyin ön kapısı hâlâ kilitsiz."
+            }
+          ]
+        },
+        route53:{
+          title:"Bir bölge kesintisinden kurtul",
+          scenario:"Ana bölgeniz az önce çöktü. Müşteriler fark etmeden önce trafiğin ikincil bölgeye devretmesi gerekiyor.",
+          consoleLabel:"AWS Route 53 Console (simüle edilmiş)",
+          actionBtn:"Ana bölge arızasını simüle et",
+          successText:"Trafik sorunsuzca devretti — müşteriler neredeyse fark etmedi.",
+          steps:[
+            { id:"policy", tier:"easy", type:"choice",
+              label:"Yönlendirme politikasını değiştir",
+              prompt:"Bir bölgenin çökmesine gerçekten hangi politika tepki verir?",
+              options:[
+                { key:"simple", label:"Basit", correct:false, feedback:"Basit her zaman aynı şekilde yanıt verir — ana bölgenin çöktüğünden haberi yok." },
+                { key:"weighted", label:"Ağırlıklı", correct:false, feedback:"Ağırlıklı trafiği sabit bir yüzdeyle böler — kendiliğinden sağlığa tepki vermez." },
+                { key:"failover", label:"Yük devretme", correct:true, feedback:"Yük devretme — bu politika özellikle bir sağlık kontrolünün kötüleşmesine tepki vermek için tasarlanmış." }
+              ],
+              errorText:"Yönlendirme politikası hâlâ Yük devretme değil — burada hiçbir şey ana bölgenin çökmesine gerçekten tepki vermiyor."
+            },
+            { id:"target", tier:"easy", type:"action",
+              label:"Yük devretme kaydını sağlıklı ikincil bölgeye yönlendir",
+              actionLabel:"İkincil hedefi ayarla", loadingLabel:"Kayıt güncelleniyor…", doneLabel:"İkincil bölge yük devretme hedefi olarak ayarlandı.", loadingMs:500,
+              errorText:"İkincil bir hedef yapılandırılmamış — Yük devretme seçili olsa bile trafiğin gidecek bir yeri yok."
+            },
+            { id:"threshold", tier:"hard", type:"choice",
+              label:"Sağlık kontrolünün hata eşiğini ayarla",
+              prompt:"Yük devretme tetiklenmeden önce kaç ardışık başarısız kontrol olsun?",
+              options:[
+                { key:"one", label:"1 başarısız kontrol", correct:false, feedback:"Çok hassas — geçici bir ağ aksaklığı bile gereksiz bir yük devretmeyi tetikler." },
+                { key:"three", label:"3 ardışık başarısız kontrol", correct:true, feedback:"Bu, bir sebepten gerçek dünyadaki varsayılan değer — bir aksaklığı yok saymaya yetecek kadar, gerçekten yardımcı olacak kadar hızlı." },
+                { key:"thirty", label:"30 başarısız kontrol", correct:false, feedback:"Çok yavaş — yük devretme başlamadan önce gerçek anlamda dakikalarca kesinti demek." }
+              ],
+              errorText:"Sağlık kontrolü eşiği hâlâ yanlış yapılandırılmış — ya gürültüde çırpınacak ya da tepki vermesi çok uzun sürecek."
+            },
+            { id:"ttl", tier:"hard", type:"choice",
+              label:"Hızlı yük devretme için DNS kaydının TTL'sini ayarla",
+              prompt:"Çözümleyiciler bu yanıtı ne kadar süre önbelleğe almalı?",
+              options:[
+                { key:"long", label:"3600s (1 saat)", correct:false, feedback:"Son bir saatte bunu çözümleyen herkes bir saate kadar daha ölü bölgeye gitmeye devam eder." },
+                { key:"short", label:"60s", correct:true, feedback:"Bir yük devretmenin insanlara yaklaşık bir dakika içinde ulaşmasına yetecek kadar kısa — DNS sunucularınızı boğmayacak kadar uzun." },
+                { key:"zero", label:"0s — hiç önbelleğe alma", correct:false, feedback:"Teknik olarak en hızlısı, ama artık her tek istek DNS'i yeniden çözmek zorunda — gerçek sistemler pratikte böyle çalıştırılmaz." }
+              ],
+              errorText:"TTL hâlâ yanlış ayarlanmış — doğru bir yük devretme bile insanlara ulaşması çok uzun sürer."
+            }
+          ]
+        },
+        cloudwatch:{
+          title:"Sessiz arızayı yakala",
+          scenario:"Bir arka uç servisi altı saattir sessizce başarısız oluyor. Kimse çağrılmadı, çünkü hiçbir alarm doğru şekilde bağlanmamıştı.",
+          consoleLabel:"AWS CloudWatch Console (simüle edilmiş)",
+          actionBtn:"Başka bir arızayı simüle et",
+          successText:"Alarm çaldı ve nöbetçiyi bir dakika içinde çağırdı — artık sessiz arıza yok.",
+          steps:[
+            { id:"metric", tier:"easy", type:"choice",
+              label:"Alarm için metriği seç",
+              prompt:"Hangi metrik bu arızayı gerçekten yansıtıyor?",
+              options:[
+                { key:"network", label:"NetworkIn", correct:false, feedback:"Her istek sessizce başarısız olurken trafik tamamen normal görünebilir. Bu değil." },
+                { key:"errorrate", label:"ErrorRate", correct:true, feedback:"Başarısız istekleri gerçekten yansıtan bu." },
+                { key:"cpu", label:"CPUUtilization", correct:false, feedback:"Bir servis %5 CPU'da da %95 CPU'da da aynı kolaylıkla sessizce başarısız olabilir. Bu değil." }
+              ],
+              errorText:"Hiçbir alarm bu tür bir arızayı gerçekten yakalayacak bir metriği izlemiyor."
+            },
+            { id:"threshold", tier:"easy", type:"action",
+              label:"Bir eşik belirle ve alarmı oluştur",
+              actionLabel:"Alarm oluştur", loadingLabel:"Oluşturuluyor…", doneLabel:"Alarm oluşturuldu.", loadingMs:500,
+              errorText:"Henüz gerçekten bir alarm oluşturulmadı — doğru metrik tek başına kimseyi çağırmaz."
+            },
+            { id:"missingdata", tier:"hard", type:"choice",
+              label:"Alarm eksik veriyi nasıl ele almalı?",
+              prompt:"Eksik veri davranışını seçin:",
+              options:[
+                { key:"ok", label:"Eksik veriyi TAMAM olarak ele al", correct:false, feedback:"Bunun altı saat sessizce başarısız olmasına izin veren tam olarak bu — ajan tamamen rapor vermeyi bırakırsa, bu ayar her şeyin yolunda olduğunu varsayar." },
+                { key:"breaching", label:"Eksik veriyi ihlal olarak ele al", correct:true, feedback:"Artık sessizliğin kendisi de sessiz kalmak için bir sebep değil, bir sorun sayılıyor." }
+              ],
+              errorText:"Eksik veri hâlâ \"TAMAM\" olarak ele alınıyor — rapor vermeyi tamamen bırakan bir ajan yine de kimseyi çağırmaz."
+            },
+            { id:"notify", tier:"hard", type:"action",
+              label:"Birinin gerçekten çağrılması için bir SNS bildirimi ekle",
+              actionLabel:"Bildirim ekle", loadingLabel:"Ekleniyor…", doneLabel:"Nöbetçi artık alarmda çağrılacak.", loadingMs:500,
+              errorText:"Alarm hâlâ kimseyi bilgilendirecek şekilde bağlanmamış — sabah 3'te kimsenin izlemediği bir panoda kırmızıya dönebilir."
+            }
+          ]
         }
       },
       chat:{
@@ -2041,157 +2475,257 @@
   addLog($("#authLog"), t("auth.log.init"));
   authUpdateStats();
 
-  /* ============ MODULE 01 QUEST — fix the broken sign-in ============ */
-  const QUEST_CLIENT_ID_FAKE="847293651042-k3j8s0d9f2h1a0b9c8d7e6f5g4h3.apps.googleusercontent.com";
-  let questSteps={ consent:false, clientid:false, redirect:false, api:false };
-  let questLastResultKey=null; // null | "consent" | "clientid" | "redirect" | "api" | "success"
-  // per-panel last feedback, so language switches can re-render without re-deriving state:
-  // consent/redirect: null | "ok" | "bad" — clientid: null | "ok" | "desktop" | "android" | "ios" — api: null | "enabling" | "ok"
-  let questLastFeedback={ consent:null, clientid:null, redirect:null, api:null };
+  /* ============ QUESTS SECTION — generic engine ============ */
+  const QUEST_KEYS=["auth","iam","s3","vpc","route53","cloudwatch"];
+  let questState={};
+  let questEls={};
 
-  function questAllDone(){
-    return questSteps.consent && questSteps.clientid && questSteps.redirect && questSteps.api;
+  function questInitState(){
+    return { tier:"easy", completedSteps:new Set(), expandedStep:null, stepFeedback:{}, actionResult:null };
   }
-  function questUpdateConsoleDot(){
-    $("#questConsoleDot").classList.toggle("ok", questAllDone());
+  function questVisibleSteps(data, tier){
+    return data.steps.filter(function(s){ return s.tier==="easy" || tier==="hard"; });
   }
-  function questMarkDone(stepEl, stepKey){
-    questSteps[stepKey]=true;
-    stepEl.classList.add("done");
-    questUpdateConsoleDot();
+  function questAllDone(key){
+    const data=dict[currentLang].quests[key];
+    const state=questState[key];
+    return questVisibleSteps(data, state.tier).every(function(s){ return state.completedSteps.has(s.id); });
   }
-  function questToggleOptions(id, done){
-    if(done) return;
-    const el=$("#"+id);
-    el.hidden=!el.hidden;
+  function questFirstMissing(key){
+    const data=dict[currentLang].quests[key];
+    const state=questState[key];
+    const steps=questVisibleSteps(data, state.tier);
+    for(let i=0;i<steps.length;i++){ if(!state.completedSteps.has(steps[i].id)) return steps[i]; }
+    return null;
   }
-  function questClientTypeLabel(key){
-    return t("auth.quest.clientType"+key.charAt(0).toUpperCase()+key.slice(1));
+  function questStepToggle(key, stepId){
+    const state=questState[key];
+    if(state.completedSteps.has(stepId)) return;
+    state.expandedStep = state.expandedStep===stepId ? null : stepId;
+    questRender(key);
   }
-  function questResultTextFor(key){
-    if(key==="success") return t("auth.quest.resultSuccess");
-    const errKey={ consent:"errorConsent", clientid:"errorClient", redirect:"errorRedirect", api:"errorApi" }[key];
-    return t("auth.quest."+errKey);
+  function questChoiceClick(key, stepId, optionKey){
+    const data=dict[currentLang].quests[key];
+    const state=questState[key];
+    const step=data.steps.find(function(s){ return s.id===stepId; });
+    const opt=step.options.find(function(o){ return o.key===optionKey; });
+    state.stepFeedback[stepId]={ optionKey:optionKey, correct:opt.correct };
+    if(opt.correct){ state.completedSteps.add(stepId); state.expandedStep=null; }
+    questRender(key);
   }
-
-  $("#questConsentToggle").addEventListener("click", function(){
-    questToggleOptions("questConsentOptions", questSteps.consent);
-  });
-  document.querySelectorAll("#questConsentOptions .quest-option-btn").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      const fb=$("#questConsentFeedback");
-      if(btn.dataset.consent==="external"){
-        questLastFeedback.consent="ok";
-        fb.textContent=t("auth.quest.consentExternalOk"); fb.className="quest-options-feedback good";
-        questMarkDone($("#questStepConsent"), "consent");
-        $("#questConsentOptions").hidden=true;
-      } else {
-        questLastFeedback.consent="bad";
-        fb.textContent=t("auth.quest.consentInternalError"); fb.className="quest-options-feedback bad";
-      }
-    });
-  });
-
-  $("#questClientToggle").addEventListener("click", function(){
-    questToggleOptions("questClientOptions", questSteps.clientid);
-  });
-  document.querySelectorAll("#questClientOptions .quest-option-btn").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      const fb=$("#questClientFeedback");
-      if(btn.dataset.client==="web"){
-        questLastFeedback.clientid="ok";
-        fb.textContent=t("auth.quest.clientTypeOk",{clientId:QUEST_CLIENT_ID_FAKE}); fb.className="quest-options-feedback good";
-        questMarkDone($("#questStepClientid"), "clientid");
-        $("#questClientOptions").hidden=true;
-      } else {
-        questLastFeedback.clientid=btn.dataset.client;
-        fb.textContent=t("auth.quest.clientTypeWrongError",{type:questClientTypeLabel(btn.dataset.client)}); fb.className="quest-options-feedback bad";
-      }
-    });
-  });
-
-  $("#questRedirectToggle").addEventListener("click", function(){
-    questToggleOptions("questRedirectOptions", questSteps.redirect);
-  });
-  document.querySelectorAll("#questRedirectOptions .quest-option-btn").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      const fb=$("#questRedirectFeedback");
-      if(btn.dataset.redirect==="correct"){
-        questLastFeedback.redirect="ok";
-        fb.textContent=t("auth.quest.redirectCorrect"); fb.className="quest-options-feedback good";
-        questMarkDone($("#questStepRedirect"), "redirect");
-        $("#questRedirectOptions").hidden=true;
-      } else {
-        questLastFeedback.redirect="bad";
-        fb.textContent=t("auth.quest.redirectWrong"); fb.className="quest-options-feedback bad";
-      }
-    });
-  });
-
-  $("#questApiToggle").addEventListener("click", function(){
-    questToggleOptions("questApiOptions", questSteps.api);
-  });
-  $("#questApiEnableBtn").addEventListener("click", function(){
-    if(questSteps.api) return;
-    const btn=$("#questApiEnableBtn");
-    const fb=$("#questApiFeedback");
-    btn.disabled=true;
-    questLastFeedback.api="enabling";
-    fb.textContent=t("auth.quest.apiEnabling"); fb.className="quest-options-feedback";
+  function questActionClick(key, stepId){
+    const state=questState[key];
+    if(state.completedSteps.has(stepId)) return;
+    const data=dict[currentLang].quests[key];
+    const step=data.steps.find(function(s){ return s.id===stepId; });
+    state.stepFeedback[stepId]={ loading:true };
+    questRender(key);
     setTimeout(function(){
-      questLastFeedback.api="ok";
-      fb.textContent=t("auth.quest.apiEnabledOk"); fb.className="quest-options-feedback good";
-      questMarkDone($("#questStepApi"), "api");
-      $("#questApiOptions").hidden=true;
-      btn.disabled=false;
-    }, 700);
-  });
+      state.stepFeedback[stepId]={ done:true };
+      state.completedSteps.add(stepId);
+      state.expandedStep=null;
+      questRender(key);
+    }, step.loadingMs||0);
+  }
+  function questTierClick(key, tier){
+    questState[key].tier=tier;
+    questRender(key);
+  }
+  function questActionTry(key){
+    const state=questState[key];
+    const missing=questFirstMissing(key);
+    state.actionResult = missing ? { kind:"missing", stepId:missing.id } : { kind:"success" };
+    questRender(key);
+  }
+  function questResetOne(key){
+    questState[key]=questInitState();
+    questRender(key);
+  }
 
-  $("#questTrySignIn").addEventListener("click", function(){
-    const result=$("#questResult");
-    result.hidden=false;
-    let missingKey=null;
-    if(!questSteps.consent) missingKey="consent";
-    else if(!questSteps.clientid) missingKey="clientid";
-    else if(!questSteps.redirect) missingKey="redirect";
-    else if(!questSteps.api) missingKey="api";
-    questLastResultKey = missingKey || "success";
-    result.textContent=questResultTextFor(questLastResultKey);
-    if(missingKey){
-      result.className="quest-result bad";
-    } else {
-      result.className="quest-result good";
-      $("#questCompleteNote").hidden=false;
+  function questBuildShell(key){
+    const card=document.createElement("div");
+    card.className="quest-card panel";
+    card.id="quest-"+key;
+
+    const head=document.createElement("header");
+    head.className="quest-card-head";
+    const titleEl=document.createElement("h3");
+    titleEl.className="quest-card-title";
+    const tiers=document.createElement("div");
+    tiers.className="quest-tier-tabs";
+    const easyBtn=document.createElement("button");
+    easyBtn.type="button"; easyBtn.className="quest-tier-tab";
+    easyBtn.addEventListener("click", function(){ questTierClick(key,"easy"); });
+    const hardBtn=document.createElement("button");
+    hardBtn.type="button"; hardBtn.className="quest-tier-tab";
+    hardBtn.addEventListener("click", function(){ questTierClick(key,"hard"); });
+    tiers.appendChild(easyBtn); tiers.appendChild(hardBtn);
+    head.appendChild(titleEl); head.appendChild(tiers);
+
+    const scenario=document.createElement("p");
+    scenario.className="quest-card-scenario";
+
+    const consoleWrap=document.createElement("div");
+    consoleWrap.className="quest-console";
+    const consoleHead=document.createElement("div");
+    consoleHead.className="quest-console-head";
+    const dot=document.createElement("span");
+    dot.className="quest-console-dot";
+    const consoleLabelText=document.createElement("span");
+    consoleHead.appendChild(dot); consoleHead.appendChild(consoleLabelText);
+
+    const consoleBody=document.createElement("div");
+    consoleBody.className="quest-console-body";
+    const actionRow=document.createElement("div");
+    actionRow.className="quest-signin-demo";
+    const actionBtn=document.createElement("button");
+    actionBtn.type="button"; actionBtn.className="btn quest-action-btn";
+    actionBtn.addEventListener("click", function(){ questActionTry(key); });
+    const resultEl=document.createElement("p");
+    resultEl.className="quest-result"; resultEl.hidden=true;
+    actionRow.appendChild(actionBtn); actionRow.appendChild(resultEl);
+
+    const stepsList=document.createElement("ul");
+    stepsList.className="quest-steps";
+
+    consoleBody.appendChild(actionRow);
+    consoleBody.appendChild(stepsList);
+    consoleWrap.appendChild(consoleHead);
+    consoleWrap.appendChild(consoleBody);
+
+    const footer=document.createElement("div");
+    footer.className="quest-footer";
+    const resetBtn=document.createElement("button");
+    resetBtn.type="button"; resetBtn.className="btn";
+    resetBtn.addEventListener("click", function(){ questResetOne(key); });
+    const completeNote=document.createElement("p");
+    completeNote.className="quest-complete-note"; completeNote.hidden=true;
+    footer.appendChild(resetBtn); footer.appendChild(completeNote);
+
+    card.appendChild(head);
+    card.appendChild(scenario);
+    card.appendChild(consoleWrap);
+    card.appendChild(footer);
+
+    questEls[key]={
+      title:titleEl, easyTab:easyBtn, hardTab:hardBtn, scenario:scenario,
+      dot:dot, consoleLabelText:consoleLabelText, actionBtn:actionBtn, result:resultEl,
+      stepsList:stepsList, resetBtn:resetBtn, completeNote:completeNote
+    };
+    return card;
+  }
+
+  function questRenderStepOptions(container, key, step, state){
+    const wrap=document.createElement("div");
+    wrap.className="quest-options";
+    wrap.hidden = state.expandedStep!==step.id;
+    if(step.prompt){
+      const prompt=document.createElement("p");
+      prompt.className="quest-options-prompt";
+      prompt.textContent=step.prompt;
+      wrap.appendChild(prompt);
     }
-  });
+    if(step.type==="choice"){
+      step.options.forEach(function(opt){
+        const ob=document.createElement("button");
+        ob.type="button"; ob.className="quest-option-btn";
+        ob.textContent=opt.label;
+        ob.addEventListener("click", function(){ questChoiceClick(key, step.id, opt.key); });
+        wrap.appendChild(ob);
+      });
+      const fb=document.createElement("p");
+      const saved=state.stepFeedback[step.id];
+      fb.className="quest-options-feedback"+(saved ? (saved.correct?" good":" bad") : "");
+      if(saved){
+        const opt=step.options.find(function(o){ return o.key===saved.optionKey; });
+        fb.textContent = opt ? opt.feedback : "";
+      }
+      wrap.appendChild(fb);
+    } else if(step.type==="action"){
+      const row=document.createElement("div");
+      row.className="quest-api-row";
+      const name=document.createElement("span");
+      name.className="quest-api-name";
+      name.textContent=step.itemName || step.label;
+      const abtn=document.createElement("button");
+      abtn.type="button"; abtn.className="btn";
+      const saved=state.stepFeedback[step.id];
+      abtn.textContent = saved && saved.loading ? step.loadingLabel : step.actionLabel;
+      abtn.disabled = !!(saved && saved.loading);
+      abtn.addEventListener("click", function(){ questActionClick(key, step.id); });
+      row.appendChild(name); row.appendChild(abtn);
+      wrap.appendChild(row);
+      const fb=document.createElement("p");
+      fb.className="quest-options-feedback"+(saved && saved.done ? " good":"");
+      fb.textContent = saved && saved.done ? step.doneLabel : "";
+      wrap.appendChild(fb);
+    }
+    container.appendChild(wrap);
+  }
 
-  function questReset(){
-    questSteps={ consent:false, clientid:false, redirect:false, api:false };
-    questLastResultKey=null;
-    questLastFeedback={ consent:null, clientid:null, redirect:null, api:null };
-    document.querySelectorAll("#questSteps .quest-step").forEach(function(li){ li.classList.remove("done"); });
-    ["questConsentOptions","questClientOptions","questRedirectOptions","questApiOptions"].forEach(function(id){ $("#"+id).hidden=true; });
-    ["questConsentFeedback","questClientFeedback","questRedirectFeedback","questApiFeedback"].forEach(function(id){
-      $("#"+id).textContent=""; $("#"+id).className="quest-options-feedback";
+  function questRender(key){
+    const data=dict[currentLang].quests[key];
+    const qroot=dict[currentLang].quests;
+    const state=questState[key];
+    const els=questEls[key];
+
+    els.title.textContent=data.title;
+    els.scenario.textContent=data.scenario;
+    els.easyTab.textContent=qroot.easyLabel;
+    els.hardTab.textContent=qroot.hardLabel;
+    els.easyTab.classList.toggle("active", state.tier==="easy");
+    els.hardTab.classList.toggle("active", state.tier==="hard");
+    els.consoleLabelText.textContent=data.consoleLabel;
+    els.dot.classList.toggle("ok", questAllDone(key));
+    els.actionBtn.textContent=data.actionBtn;
+    els.resetBtn.textContent=qroot.resetBtn;
+
+    if(state.actionResult){
+      els.result.hidden=false;
+      if(state.actionResult.kind==="success"){
+        els.result.textContent=data.successText;
+        els.result.className="quest-result good";
+        els.completeNote.hidden=false;
+        els.completeNote.textContent=qroot.completeNote;
+      } else {
+        const missStep=data.steps.find(function(s){ return s.id===state.actionResult.stepId; });
+        els.result.textContent = missStep ? missStep.errorText : "";
+        els.result.className="quest-result bad";
+        els.completeNote.hidden=true;
+      }
+    } else {
+      els.result.hidden=true;
+      els.completeNote.hidden=true;
+    }
+
+    els.stepsList.innerHTML="";
+    questVisibleSteps(data, state.tier).forEach(function(step){
+      const li=document.createElement("li");
+      li.className="quest-step"+(state.completedSteps.has(step.id)?" done":"");
+      const row=document.createElement("div");
+      row.className="quest-step-row";
+      const btn=document.createElement("button");
+      btn.type="button";
+      btn.textContent=step.label;
+      btn.addEventListener("click", function(){ questStepToggle(key, step.id); });
+      const check=document.createElement("span");
+      check.className="quest-check"; check.setAttribute("aria-hidden","true");
+      row.appendChild(btn); row.appendChild(check);
+      li.appendChild(row);
+      questRenderStepOptions(li, key, step, state);
+      els.stepsList.appendChild(li);
     });
-    $("#questApiEnableBtn").disabled=false;
-    $("#questResult").hidden=true; $("#questResult").textContent=""; $("#questResult").className="quest-result";
-    $("#questCompleteNote").hidden=true;
-    questUpdateConsoleDot();
   }
-  $("#questReset").addEventListener("click", questReset);
 
-  function questRefreshLang(){
-    if(questLastResultKey) $("#questResult").textContent = questResultTextFor(questLastResultKey);
-    if(questLastFeedback.consent==="ok") $("#questConsentFeedback").textContent=t("auth.quest.consentExternalOk");
-    else if(questLastFeedback.consent==="bad") $("#questConsentFeedback").textContent=t("auth.quest.consentInternalError");
-    if(questLastFeedback.clientid==="ok") $("#questClientFeedback").textContent=t("auth.quest.clientTypeOk",{clientId:QUEST_CLIENT_ID_FAKE});
-    else if(questLastFeedback.clientid) $("#questClientFeedback").textContent=t("auth.quest.clientTypeWrongError",{type:questClientTypeLabel(questLastFeedback.clientid)});
-    if(questLastFeedback.redirect==="ok") $("#questRedirectFeedback").textContent=t("auth.quest.redirectCorrect");
-    else if(questLastFeedback.redirect==="bad") $("#questRedirectFeedback").textContent=t("auth.quest.redirectWrong");
-    if(questLastFeedback.api==="ok") $("#questApiFeedback").textContent=t("auth.quest.apiEnabledOk");
-    else if(questLastFeedback.api==="enabling") $("#questApiFeedback").textContent=t("auth.quest.apiEnabling");
+  function questInitAll(){
+    const container=$("#questsContainer");
+    QUEST_KEYS.forEach(function(key){
+      questState[key]=questInitState();
+      container.appendChild(questBuildShell(key));
+      questRender(key);
+    });
   }
+  questInitAll();
 
   /* ============ MODULE 02 — IAM ============ */
   let iamAllowedCount=0, iamDeniedCount=0;
@@ -2543,7 +3077,7 @@
     authRenderSteps();
     addLog($("#authLog"), t("auth.log.init"));
     authUpdateStats();
-    questReset();
+    QUEST_KEYS.forEach(function(key){ questResetOne(key); });
 
     iamAllowedCount=0; iamDeniedCount=0;
     $("#iamPermRead").checked=true; $("#iamPermWrite").checked=false;
@@ -2705,7 +3239,7 @@
     snsUpdateStats();
     snowballCompute();
     authRenderSteps(); authUpdateStats();
-    questRefreshLang();
+    QUEST_KEYS.forEach(function(key){ questRender(key); });
     iamUpdateStats();
     s3Render(); s3UpdateStats();
     lambdaRenderPool(); lambdaUpdateStats();

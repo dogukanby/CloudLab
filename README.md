@@ -28,6 +28,12 @@ Available in English and Turkish (toggle in the top bar). Light/dark theme follo
 
 Every module pairs an "In plain terms" everyday analogy with a "Try this" checklist, a live simulation, and a "Real incident" — a fact-checked, real-world outage or breach the concept maps to (HealthCare.gov, Uber, GitHub, Fastly, GitLab, Capital One, Verizon/NICE Systems, Code Spaces, Knight Capital, Dyn, AWS Kinesis, two separate AWS US-EAST-1 incidents, and a Jack Dorsey SIM-swap), plus an "Under the hood" note tying it to the real service or pattern it's modeled on.
 
+## Quests
+
+A separate section below the modules puts you in the seat of someone who actually has to fix something, instead of just reading how it works: a realistic scenario, a broken state, and a mocked provider console with real decisions to make — wrong answers get a real-sounding rejection reason, not just a red X. Each quest has an Easy tier (the core fix) and a Hard tier (the full, real-world response, unlocking more steps on top of the easy ones).
+
+Launched with six: fixing a broken Google sign-in, locking down a leaked AWS credential, stopping a public S3 data leak, sealing an internet-exposed database, failing DNS over to a healthy region, and catching a silently-failing service with a CloudWatch alarm.
+
 ## Ask the Console
 
 A floating chat button opens a small assistant that can answer questions about anything on the page, in whichever language you ask in. It calls Groq's API (`llama-3.3-70b-versatile`) **directly from your browser** — there's no backend of ours in the loop.
@@ -78,7 +84,7 @@ npx serve .
 
 Vanilla HTML, CSS, and JavaScript for the app itself — no framework, no build tooling. Electron wraps it for the desktop build.
 
-- `index.html` / `styles.css` / `app.js` — the app: sixteen modules plus the chat widget, the EN/TR i18n layer, and the theme toggle
+- `index.html` / `styles.css` / `app.js` — the app: sixteen modules, six quests, the chat widget, the EN/TR i18n layer, and the theme toggle
 - `main.js` / `package.json` — the Electron shell, `electron-builder` packaging config, and the `electron-updater`-based update check
 
 ---
@@ -90,5 +96,7 @@ Bulut mimarilerinde sürekli karşımıza çıkan fikirlerin küçük, istemci t
 İngilizce ve Türkçe olarak kullanılabilir (üst çubuktaki dil seçici). Açık/koyu tema sisteminizi takip eder, elle de değiştirilebilir. Sağ alttaki "Konsola Sor" sohbet asistanı (Groq ile çalışır) anlamadığınız her şeyi sormanızı sağlar — kendi ücretsiz Groq API anahtarınızı gerektirir, sadece tarayıcınızda saklanır.
 
 On altı modül: bulut nedir, oturum açma, IAM ve izinler, VPC, EC2, S3, Lambda, yük dengeleme, Elastic Beanstalk, Route 53, önbellekleme/CDN, dağıtık tutarlılık, yük devretme, SNS, CloudWatch ve Snowball Edge.
+
+Modüllerin altında ayrı bir "Görevler" bölümü var: gerçekçi bir senaryo, bozuk bir durum, ve gerçek sonuçları olan kararlarla, bir şeyi düzeltmek zorunda olan kişinin yerine sizi koyuyor. Her görevin bir Kolay (temel düzeltme) ve bir Zor (tam gerçek dünya tepkisi) kademesi var.
 
 Yukarıdaki rozet imzalı bir Windows kurulum dosyasına bağlanır. Kendinden imzalı bir sertifika kullanıldığından Windows SmartScreen ilk çalıştırmada "bilinmeyen yayımcı" uyarısı gösterebilir — **Diğer bilgiler → Yine de çalıştır** yeterli. Kurulumu yalnızca bir kez indirmeniz yeterli: uygulama her açılışta yeni bir sürüm olup olmadığını kontrol eder ve varsa, siz onaylamadan hiçbir şeyi indirip kurmaz.
