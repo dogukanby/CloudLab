@@ -4,7 +4,7 @@
   // Keep in sync with package.json's "version" — there's no build step to
   // inject this automatically, so it's a manual mirror. Shown in the topbar
   // (and read as the desktop window title via app.getVersion() in main.js).
-  const APP_VERSION = "1.3.0";
+  const APP_VERSION = "1.3.1";
   $("#versionTag").textContent = "v"+APP_VERSION;
 
   /* ============ i18n dictionary ============ */

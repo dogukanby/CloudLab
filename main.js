@@ -37,12 +37,15 @@ function setupAutoUpdater(win){
   autoUpdater.autoInstallOnAppQuit = true;
   // The installer is signed with a self-signed certificate, which doesn't
   // chain to a trusted root the way a paid CA cert would. electron-updater's
-  // default Windows behavior is to verify the downloaded update's publisher
-  // matches the running app's publisher via that trust chain, which always
-  // fails for a self-signed cert — silently, since the failure surfaces as
-  // an "error" event rather than blocking downloadUpdate() with a message.
+  // default Windows verifier checks the downloaded update's publisher
+  // against that trust chain, which always fails for a self-signed cert.
+  // verifyUpdateCodeSignature's setter only assigns truthy values (see
+  // NsisUpdater.js: `set verifyUpdateCodeSignature(value){ if(value) ... }`),
+  // so passing `false` here is silently ignored and the default verifier
+  // stays active — it must be replaced with a function that resolves to
+  // `null` (electron-updater's own signal for "verification passed").
   // Integrity is still verified via the sha512 checksum in latest.yml.
-  autoUpdater.verifyUpdateCodeSignature = false;
+  autoUpdater.verifyUpdateCodeSignature = () => Promise.resolve(null);
 
   autoUpdater.on("update-available", function(info){
     dialog.showMessageBox(win, {
