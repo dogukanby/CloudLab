@@ -34,6 +34,8 @@ Six of the modules above (Sign-in, IAM, S3, VPC, Route 53, CloudWatch) end with 
 
 Each quest has an independent Easy tier (the core fix, fewer and more obvious choices) and Hard tier (a longer, denser real-world response with its own decision points) — they're separate attempts, not one list where Hard is just Easy plus a few extra steps.
 
+Every quest also has its own AWS, Azure, and GCP version, switched with the same provider toggle in the topbar that relabels the modules. These aren't reskins of the same steps with different logos — each provider version uses that provider's real console terminology, error messages, and mechanics (e.g. the IAM quest is a leaked AWS access key vs. a leaked Entra service principal secret vs. a leaked GCP service account JSON key, each with its own audit-log trail and role model). Switching providers resets any in-progress quest, since the steps and their ids genuinely differ between providers.
+
 ## Ask the Console
 
 A floating chat button opens a small assistant that can answer questions about anything on the page, in whichever language you ask in. It calls Groq's API (`llama-3.3-70b-versatile`) **directly from your browser** — there's no backend of ours in the loop.
@@ -97,6 +99,6 @@ Bulut mimarilerinde sürekli karşımıza çıkan fikirlerin küçük, istemci t
 
 On altı modül: bulut nedir, oturum açma, IAM ve izinler, VPC, EC2, S3, Lambda, yük dengeleme, Elastic Beanstalk, Route 53, önbellekleme/CDN, dağıtık tutarlılık, yük devretme, SNS, CloudWatch ve Snowball Edge.
 
-Altı modül (Giriş, IAM, S3, VPC, Route 53, CloudWatch) kendi görevleriyle bitiyor: gerçekçi bir senaryo, bozuk bir durum, ve gerçek sonuçları olan kararlarla, bir şeyi düzeltmek zorunda olan kişinin yerine sizi koyuyor. Her görevin birbirinden bağımsız bir Kolay (temel düzeltme) ve bir Zor (kendi karar noktalarıyla daha uzun, gerçek dünya tepkisi) kademesi var.
+Altı modül (Giriş, IAM, S3, VPC, Route 53, CloudWatch) kendi görevleriyle bitiyor: gerçekçi bir senaryo, bozuk bir durum, ve gerçek sonuçları olan kararlarla, bir şeyi düzeltmek zorunda olan kişinin yerine sizi koyuyor. Her görevin birbirinden bağımsız bir Kolay (temel düzeltme) ve bir Zor (kendi karar noktalarıyla daha uzun, gerçek dünya tepkisi) kademesi var. Her görevin ayrıca kendi AWS, Azure ve GCP sürümü var — üst çubuktaki aynı sağlayıcı seçiciyle değiştiriliyor; her sürüm o sağlayıcının gerçek konsol terimlerini, hata mesajlarını ve mekaniklerini kullanıyor, aynı adımların sadece logosu değişmiş hali değil.
 
 Yukarıdaki rozet imzalı bir Windows kurulum dosyasına bağlanır. Kendinden imzalı bir sertifika kullanıldığından Windows SmartScreen ilk çalıştırmada "bilinmeyen yayımcı" uyarısı gösterebilir — **Diğer bilgiler → Yine de çalıştır** yeterli. Kurulumu yalnızca bir kez indirmeniz yeterli: uygulama her açılışta yeni bir sürüm olup olmadığını kontrol eder ve varsa, siz onaylamadan hiçbir şeyi indirip kurmaz.

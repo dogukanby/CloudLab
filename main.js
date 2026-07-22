@@ -57,11 +57,29 @@ function setupAutoUpdater(win){
       defaultId: 0,
       cancelId: 1
     }).then(function(result){
-      if(result.response === 0) autoUpdater.downloadUpdate();
+      if(result.response === 0){
+        // Downloading itself has no dialog of its own (it can take a while
+        // and blocking on a modal for the whole transfer would be worse
+        // than just letting them keep using the app) — this one just
+        // confirms it actually started. Progress after that is shown on
+        // the taskbar icon via download-progress below.
+        dialog.showMessageBox(win, {
+          type: "info",
+          title: "Downloading update",
+          message: "Downloading CloudLab v" + info.version + " in the background.",
+          detail: "You'll get another prompt here once it's ready to install."
+        });
+        autoUpdater.downloadUpdate();
+      }
     });
   });
 
+  autoUpdater.on("download-progress", function(progress){
+    win.setProgressBar(progress.percent / 100);
+  });
+
   autoUpdater.on("update-downloaded", function(){
+    win.setProgressBar(-1);
     dialog.showMessageBox(win, {
       type: "info",
       title: "Update ready",
@@ -76,6 +94,7 @@ function setupAutoUpdater(win){
   });
 
   autoUpdater.on("error", function(err){
+    win.setProgressBar(-1);
     const message = err && err.message ? err.message : String(err);
     console.error("[auto-updater]", err && err.stack ? err.stack : err);
     dialog.showMessageBox(win, {
@@ -92,7 +111,9 @@ function setupAutoUpdater(win){
 app.whenReady().then(function(){
   const win = createWindow();
   if(app.isPackaged){
-    setTimeout(function(){ setupAutoUpdater(win); }, 3000);
+    // Short delay just to let the window paint first — the update check
+    // itself is async and doesn't need to wait on anything else.
+    setTimeout(function(){ setupAutoUpdater(win); }, 400);
   }
   app.on("activate", function(){
     if(BrowserWindow.getAllWindows().length === 0) createWindow();
