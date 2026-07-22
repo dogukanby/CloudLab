@@ -1,6 +1,6 @@
 {
   "name": "cloud-systems-console",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Sixteen live, in-browser simulations of core cloud-systems concepts: sign-in, IAM, VPC, EC2, S3, Lambda, load balancing, Elastic Beanstalk, Route 53, caching, consistency, failover, SNS, CloudWatch, and Snowball Edge.",
   "main": "main.js",
   "private": true,
