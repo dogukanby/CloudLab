@@ -1,7 +1,7 @@
 {
   "name": "cloud-systems-console",
-  "version": "1.0.0",
-  "description": "Four live, in-browser simulations of core cloud-systems concepts: load balancing, distributed consistency, caching/CDNs, and failover.",
+  "version": "1.1.0",
+  "description": "Twelve live, in-browser simulations of core cloud-systems concepts: load balancing, consistency, caching, failover, VPC, EC2, Elastic Beanstalk, Route 53, SNS, Snowball Edge, and sign-in flows.",
   "main": "main.js",
   "private": true,
   "author": "Doğukan Bayrı",

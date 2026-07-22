@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cloud Lab</title>
-<meta name="description" content="Cloud Lab — four live, in-browser simulations of core cloud-systems concepts: load balancing, distributed consistency, caching/CDNs, and failover.">
+<meta name="description" content="Cloud Lab — twelve live, in-browser simulations of core cloud-systems concepts: load balancing, consistency, caching, failover, VPC, EC2, Elastic Beanstalk, Route 53, SNS, Snowball Edge, and sign-in flows.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B0%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="styles.css">
 <script>
@@ -27,6 +27,13 @@
       <a href="#consistency" data-i18n="common.nav.consistency">02 Consistency</a>
       <a href="#cache" data-i18n="common.nav.cache">03 Caching</a>
       <a href="#failover" data-i18n="common.nav.failover">04 Failover</a>
+      <a href="#vpc" data-i18n="common.nav.vpc">05 VPC</a>
+      <a href="#ec2" data-i18n="common.nav.ec2">06 EC2</a>
+      <a href="#beanstalk" data-i18n="common.nav.beanstalk">07 Beanstalk</a>
+      <a href="#route53" data-i18n="common.nav.route53">08 Route 53</a>
+      <a href="#sns" data-i18n="common.nav.sns">09 SNS</a>
+      <a href="#snowball" data-i18n="common.nav.snowball">10 Snowball Edge</a>
+      <a href="#auth" data-i18n="common.nav.auth">11 Sign-in</a>
     </nav>
     <span class="uptime"><span data-i18n="common.uptime">UPTIME</span> <span id="uptimeVal">00:00:00</span></span>
     <div class="topbar-tools">
@@ -293,6 +300,374 @@
       <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
       <p class="meta" data-i18n="failover.incident.meta">GitLab · January 2017</p>
       <p class="body" data-i18n="failover.incident.body">An engineer deleted the primary database, and every backup mechanism had been failing silently.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 05 — VPC -->
+  <section class="panel" id="vpc">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="vpc.modId">MODULE 05</span>
+      <h2 data-i18n="vpc.title">VPC: Networks &amp; Security Groups</h2>
+      <span class="status-pill good" id="vpcStatus">LOCKED DOWN</span>
+    </header>
+    <p class="dek" data-i18n="vpc.dek">A cloud network is carved into subnets.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="vpc.analogy">Think of an office building.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="vpc.tryStep1">Send a request to WEB-1 on port 80.</li>
+        <li data-i18n="vpc.tryStep2">Send a request to DB-1.</li>
+        <li data-i18n="vpc.tryStep3">Turn on SSH from the internet.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="vpc-map">
+          <div class="vpc-subnet public">
+            <div class="subnet-label" data-i18n="vpc.publicSubnet">PUBLIC SUBNET</div>
+            <div class="vpc-instance" id="vpcWeb">WEB-1</div>
+          </div>
+          <div class="vpc-subnet private">
+            <div class="subnet-label" data-i18n="vpc.privateSubnet">PRIVATE SUBNET</div>
+            <div class="vpc-instance" id="vpcDb">DB-1</div>
+          </div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label class="checkbox"><input type="checkbox" id="vpcRule80" checked> <span data-i18n="vpc.rule80">Allow HTTP (80) from the internet</span></label>
+          <label class="checkbox"><input type="checkbox" id="vpcRule22"> <span data-i18n="vpc.rule22">Allow SSH (22) from the internet</span></label>
+          <label><span data-i18n="vpc.targetLabel">Request target</span>
+            <select id="vpcTarget">
+              <option value="web80" data-i18n="vpc.targetWeb80">WEB-1 (public) — port 80</option>
+              <option value="web22" data-i18n="vpc.targetWeb22">WEB-1 (public) — port 22</option>
+              <option value="db" data-i18n="vpc.targetDb">DB-1 (private) — port 5432</option>
+            </select>
+          </label>
+          <button type="button" class="btn" id="vpcSend" data-i18n="vpc.sendBtn">Send request from the internet</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="vpc.statAllowed">Requests allowed</span><span class="stat-value" id="vpcAllowed">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="vpc.statBlocked">Requests blocked</span><span class="stat-value" id="vpcBlocked">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="vpc.statOpenPorts">Open ports</span><span class="stat-value" id="vpcOpenPorts">1</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="vpc.statPrivateHits">Private subnet attempts</span><span class="stat-value" id="vpcPrivateHits">0</span></div>
+        </div>
+        <div class="log" id="vpcLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="vpc.note">Real VPCs work in layers.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="vpc.incident.meta">Capital One · July 2019</p>
+      <p class="body" data-i18n="vpc.incident.body">A misconfigured firewall exposed an internal metadata service.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 06 — EC2 -->
+  <section class="panel" id="ec2">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="ec2.modId">MODULE 06</span>
+      <h2 data-i18n="ec2.title">EC2: Instances &amp; Idle Cost</h2>
+      <span class="status-pill good" id="ec2Status">RIGHT-SIZED</span>
+    </header>
+    <p class="dek" data-i18n="ec2.dek">An instance isn't a request.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="ec2.analogy">It's like renting a car for the week.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="ec2.tryStep1">Launch two or three instances.</li>
+        <li data-i18n="ec2.tryStep2">Push simulated load up.</li>
+        <li data-i18n="ec2.tryStep3">Stop an instance instead of terminating it.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="ec2-pool" id="ec2Instances"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label><span data-i18n="ec2.sizeLabel">Instance size</span>
+            <select id="ec2Size">
+              <option value="micro" data-i18n="ec2.sizeMicro">t3.micro — 1 vCPU</option>
+              <option value="medium" data-i18n="ec2.sizeMedium">t3.medium — 2 vCPU</option>
+              <option value="xlarge" data-i18n="ec2.sizeXlarge">t3.xlarge — 4 vCPU</option>
+            </select>
+          </label>
+          <button type="button" class="btn" id="ec2Launch" data-i18n="ec2.launchBtn">Launch instance</button>
+          <label><span data-i18n="ec2.loadLabel">Simulated CPU load —</span> <output id="ec2LoadOut">0</output><span data-i18n="ec2.loadUnit">%</span>
+            <input type="range" id="ec2Load" min="0" max="100" value="0">
+          </label>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="ec2.statRunning">Running instances</span><span class="stat-value" id="ec2Running">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="ec2.statCost">Accrued cost</span><span class="stat-value" id="ec2Cost">$0.00</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="ec2.statVcpu">Total vCPUs</span><span class="stat-value" id="ec2Vcpu">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="ec2.statIdle">Idle but running</span><span class="stat-value" id="ec2Idle">0</span></div>
+        </div>
+        <div class="log" id="ec2Log"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="ec2.note">Cost dashboards matter.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="ec2.incident.meta">Code Spaces · June 2014</p>
+      <p class="body" data-i18n="ec2.incident.body">An attacker deleted a company's entire AWS footprint.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 07 — ELASTIC BEANSTALK -->
+  <section class="panel" id="beanstalk">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="beanstalk.modId">MODULE 07</span>
+      <h2 data-i18n="beanstalk.title">Elastic Beanstalk: Deploys &amp; Rollback</h2>
+      <span class="status-pill good" id="beanstalkStatus">OK</span>
+    </header>
+    <p class="dek" data-i18n="beanstalk.dek">You upload code; the platform handles the rest.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="beanstalk.analogy">It's like a stage manager with a safety check.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="beanstalk.tryStep1">Deploy a clean version.</li>
+        <li data-i18n="beanstalk.tryStep2">Introduce a bug and deploy again.</li>
+        <li data-i18n="beanstalk.tryStep3">Watch the live version number.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="lb-node" id="beanstalkVersion" data-i18n="beanstalk.liveVersion">LIVE VERSION</div>
+        <div class="server-pool" id="beanstalkServers"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label class="checkbox"><input type="checkbox" id="beanstalkBug"> <span data-i18n="beanstalk.bugLabel">Introduce a bug in this deploy</span></label>
+          <button type="button" class="btn" id="beanstalkDeploy" data-i18n="beanstalk.deployBtn">Deploy new version</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="beanstalk.statVersion">Live version</span><span class="stat-value" id="beanstalkVersionOut">v1.0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="beanstalk.statDeploys">Deployments</span><span class="stat-value" id="beanstalkDeploys">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="beanstalk.statRollbacks">Rollbacks</span><span class="stat-value" id="beanstalkRollbacks">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="beanstalk.statHealth">Environment health</span><span class="stat-value" id="beanstalkHealth">Ok</span></div>
+        </div>
+        <div class="log" id="beanstalkLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="beanstalk.note">Mirrors rolling deployments.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="beanstalk.incident.meta">Knight Capital · August 2012</p>
+      <p class="body" data-i18n="beanstalk.incident.body">One server out of eight kept old code, and it cost $440 million.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 08 — ROUTE 53 -->
+  <section class="panel" id="route53">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="route53.modId">MODULE 08</span>
+      <h2 data-i18n="route53.title">Route 53: DNS Routing Policies</h2>
+      <span class="status-pill good" id="route53Status">HEALTHY</span>
+    </header>
+    <p class="dek" data-i18n="route53.dek">A name has to become an address before anything can happen.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="route53.analogy">It's like calling a company's main line.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="route53.tryStep1">Resolve under Weighted a few times.</li>
+        <li data-i18n="route53.tryStep2">Switch to Failover and fail the primary.</li>
+        <li data-i18n="route53.tryStep3">Fix the health check.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="edge-list">
+          <div class="edge-card" id="r53-0">
+            <div class="head"><span data-i18n="route53.regionEU">REGION — EU</span><span class="count" id="r53-0-info"></span></div>
+          </div>
+          <div class="edge-card" id="r53-1">
+            <div class="head"><span data-i18n="route53.regionUS">REGION — US</span><span class="count" id="r53-1-info"></span></div>
+          </div>
+          <div class="edge-card" id="r53-2">
+            <div class="head"><span data-i18n="route53.regionAPAC">REGION — APAC</span><span class="count" id="r53-2-info"></span></div>
+          </div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label><span data-i18n="route53.policyLabel">Routing policy</span>
+            <select id="r53Policy">
+              <option value="simple" data-i18n="route53.policySimple">Simple</option>
+              <option value="weighted" data-i18n="route53.policyWeighted">Weighted</option>
+              <option value="latency" data-i18n="route53.policyLatency">Latency-based</option>
+              <option value="failover" data-i18n="route53.policyFailover">Failover</option>
+            </select>
+          </label>
+          <label class="checkbox"><input type="checkbox" id="r53PrimaryDown"> <span data-i18n="route53.primaryDownLabel">Primary region's health check is failing</span></label>
+          <button type="button" class="btn" id="r53Resolve" data-i18n="route53.resolveBtn">Resolve example.com</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="route53.statQueries">Queries resolved</span><span class="stat-value" id="r53Queries">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="route53.statPolicy">Policy</span><span class="stat-value" id="r53PolicyOut">Simple</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="route53.statLastResolved">Last resolved to</span><span class="stat-value" id="r53Last">—</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="route53.statPrimaryHealth">Primary health</span><span class="stat-value" id="r53PrimaryHealth">Healthy</span></div>
+        </div>
+        <div class="log" id="r53Log"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="route53.note">This is genuinely how Route 53 works.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="route53.incident.meta">Dyn · October 2016</p>
+      <p class="body" data-i18n="route53.incident.body">A botnet DDoS on a DNS provider took down huge parts of the web.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 09 — SNS -->
+  <section class="panel" id="sns">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="sns.modId">MODULE 09</span>
+      <h2 data-i18n="sns.title">SNS: One Event, Many Subscribers</h2>
+      <span class="status-pill good" id="snsStatus">FANNING OUT</span>
+    </header>
+    <p class="dek" data-i18n="sns.dek">One published event reaches every subscriber at once.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="sns.analogy">It's like a school PA announcement.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="sns.tryStep1">Publish with all three subscribers on.</li>
+        <li data-i18n="sns.tryStep2">Unsubscribe SMS, then publish again.</li>
+        <li data-i18n="sns.tryStep3">Simulate a failing subscriber.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="origin-card" id="snsTopic"><span class="dotpin"></span><span data-i18n="sns.topicLabel">TOPIC — order.placed</span></div>
+        <div class="sub-list">
+          <label class="sub-card" id="sub-email"><input type="checkbox" id="snsSubEmail" checked> <span data-i18n="sns.subEmail">Email</span></label>
+          <label class="sub-card" id="sub-sms"><input type="checkbox" id="snsSubSms" checked> <span data-i18n="sns.subSms">SMS</span></label>
+          <label class="sub-card" id="sub-queue"><input type="checkbox" id="snsSubQueue" checked> <span data-i18n="sns.subQueue">Queue (worker)</span></label>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label class="checkbox"><input type="checkbox" id="snsFail"> <span data-i18n="sns.failLabel">Simulate one subscriber failing</span></label>
+          <button type="button" class="btn" id="snsPublish" data-i18n="sns.publishBtn">Publish event</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="sns.statPublished">Events published</span><span class="stat-value" id="snsPublished">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="sns.statDelivered">Deliveries</span><span class="stat-value" id="snsDelivered">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="sns.statFailed">Failed / retried</span><span class="stat-value" id="snsFailed">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="sns.statSubs">Active subscribers</span><span class="stat-value" id="snsSubs">3</span></div>
+        </div>
+        <div class="log" id="snsLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="sns.note">This is the real shape of SNS.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="sns.incident.meta">AWS Kinesis · November 2020</p>
+      <p class="body" data-i18n="sns.incident.body">A shared streaming backbone hit a thread limit and cascaded.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 10 — SNOWBALL EDGE -->
+  <section class="panel" id="snowball">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="snowball.modId">MODULE 10</span>
+      <h2 data-i18n="snowball.title">Snowball Edge: When the Network Loses</h2>
+      <span class="status-pill good" id="snowballStatus">NETWORK WINS</span>
+    </header>
+    <p class="dek" data-i18n="snowball.dek">Past a certain size, a truck beats a cable.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="snowball.analogy">Mailing a hard drive beats emailing 10TB of photos.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="snowball.tryStep1">Set a small dataset and fast bandwidth.</li>
+        <li data-i18n="snowball.tryStep2">Push the dataset into the hundreds of terabytes.</li>
+        <li data-i18n="snowball.tryStep3">Drop your bandwidth down.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="snowball-result">
+          <div class="result-row" id="snowballNetRow">
+            <span class="label" data-i18n="snowball.networkResult">OVER THE NETWORK</span>
+            <span class="value" id="snowballNetTime">—</span>
+          </div>
+          <div class="result-row" id="snowballDeviceRow">
+            <span class="label" data-i18n="snowball.snowballResult">BY SNOWBALL EDGE</span>
+            <span class="value" id="snowballDeviceTime">—</span>
+          </div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label><span data-i18n="snowball.dataSizeLabel">Dataset size —</span> <output id="snowballSizeOut">50</output> <span data-i18n="snowball.dataSizeUnit">TB</span>
+            <input type="range" id="snowballSize" min="1" max="500" value="50">
+          </label>
+          <label><span data-i18n="snowball.bandwidthLabel">Your network bandwidth —</span> <output id="snowballBwOut">100</output> <span data-i18n="snowball.bandwidthUnit">Mbps</span>
+            <input type="range" id="snowballBw" min="1" max="1000" value="100">
+          </label>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="snowball.statNetworkTime">Network transfer time</span><span class="stat-value" id="snowballStatNet">—</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="snowball.statSnowballTime">Snowball Edge time</span><span class="stat-value" id="snowballStatDevice">—</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="snowball.statDevices">Devices needed</span><span class="stat-value" id="snowballStatDevices">1</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="snowball.statWinner">Faster method</span><span class="stat-value" id="snowballStatWinner">—</span></div>
+        </div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="snowball.note">Real Snowball Edge devices hold up to 80TB.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="snowball.incident.meta">Real world, not an outage</p>
+      <p class="body" data-i18n="snowball.incident.body">AWS built a literal truck to move exabytes of data.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 11 — AUTH -->
+  <section class="panel" id="auth">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="auth.modId">MODULE 11</span>
+      <h2 data-i18n="auth.title">Signing In: Federated &amp; Passwordless</h2>
+      <span class="status-pill good" id="authStatus">SIGNED OUT</span>
+    </header>
+    <p class="dek" data-i18n="auth.dek">None of these methods ever hand your password to this app.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="auth.analogy">It's a wristband, not your house keys.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="auth.tryStep1">Run the Google flow.</li>
+        <li data-i18n="auth.tryStep2">Try the email link flow.</li>
+        <li data-i18n="auth.tryStep3">Run the phone code flow.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="auth-tabs" id="authTabs">
+          <button type="button" class="auth-tab active" id="authTabGoogle" data-flow="google" data-i18n="auth.flowGoogle">Sign in with Google</button>
+          <button type="button" class="auth-tab" id="authTabEmail" data-flow="email" data-i18n="auth.flowEmail">Email link</button>
+          <button type="button" class="auth-tab" id="authTabPhone" data-flow="phone" data-i18n="auth.flowPhone">Phone code</button>
+        </div>
+        <ol class="auth-steps" id="authSteps"></ol>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <button type="button" class="btn" id="authStart" data-i18n="auth.startBtn">Start flow</button>
+          <button type="button" class="btn" id="authReset" data-i18n="auth.resetBtn">Reset</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="auth.statFlow">Flow</span><span class="stat-value" id="authFlowOut">Google</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="auth.statStep">Step</span><span class="stat-value" id="authStepOut">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="auth.statSeen">Credentials seen by this app</span><span class="stat-value" id="authSeenOut">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="auth.statState">Session</span><span class="stat-value" id="authStateOut">Signed out</span></div>
+        </div>
+        <div class="log" id="authLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="auth.note">This is genuinely how OAuth/OIDC works.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="auth.incident.meta">Jack Dorsey · August 2019</p>
+      <p class="body" data-i18n="auth.incident.body">Twitter's own CEO lost his account to a SIM swap.</p>
     </div>
   </section>
 
