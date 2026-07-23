@@ -4,7 +4,7 @@
   // Keep in sync with package.json's "version" — there's no build step to
   // inject this automatically, so it's a manual mirror. Shown in the topbar
   // (and read as the desktop window title via app.getVersion() in main.js).
-  const APP_VERSION = "1.6.0";
+  const APP_VERSION = "1.7.0";
   $("#versionTag").textContent = "v"+APP_VERSION;
 
   /* ============ i18n dictionary ============ */
@@ -18,8 +18,8 @@
         statusChanged:"status → {status}",
         analogyLabel:"In plain terms", technicalLabel:"Under the hood",
         tryThisLabel:"Try this", realIncidentLabel:"Real incident",
-        footer:"Everything above runs client-side in JavaScript — no real servers, nodes, or network calls involved.",
-        resetAll:"Reset all modules", resetAllShort:"Reset"
+        resetAll:"Reset all modules", resetAllShort:"Reset",
+        openMenu:"Open menu", closeMenu:"Close menu", backToTop:"Back to top"
       },
       cloud101:{
         modId:"MODULE 00", title:"What Is \"The Cloud,\" Really?",
@@ -649,15 +649,31 @@
               }
             ],
             hardSteps:[
-              { id:"h-idp", type:"action",
-                label:"Add Google as a federated identity provider to the user pool",
-                actionLabel:"Add provider", loadingLabel:"Adding…", doneLabel:"Google added as an identity provider.", loadingMs:600,
+              { id:"h-diagnose", type:"choice",
+                label:"Diagnose why the Hosted UI won't even show a Google button",
+                prompt:"The Hosted UI loads, but there's no Google option on it at all — before touching any setting, what does that actually tell you?",
+                options:[
+                  { key:"scopes", label:"The requested OAuth scopes are invalid", correct:false, feedback:"A scopes problem would surface as an error after Google's consent screen, not as a missing button before Google is ever reached." },
+                  { key:"noidp", label:"No identity provider is attached to this user pool yet", correct:true, feedback:"Right — the Hosted UI only lists sign-in options for identity providers that actually exist on the pool. Zero providers means zero buttons." },
+                  { key:"expired", label:"The app client secret has expired", correct:false, feedback:"An expired secret would fail token exchange after a redirect back — it wouldn't stop the sign-in button from rendering at all." }
+                ],
+                errorText:"You reached for a fix before confirming what's actually missing."
+              },
+              { id:"h-scope", type:"choice",
+                label:"Add Google as a federated identity provider — with the scopes this pool actually needs",
+                prompt:"Which authorized scopes should this identity provider request from Google?",
+                options:[
+                  { key:"openid-only", label:"openid", correct:false, feedback:"Enough to authenticate, but Google won't return an email claim with just this — there's nothing for the pool to map later." },
+                  { key:"full", label:"openid email profile", correct:true, feedback:"Added with the right scopes — this identity provider now actually returns the email claim this pool needs." },
+                  { key:"broad", label:"openid email profile https://www.googleapis.com/auth/drive.readonly", correct:false, feedback:"Far more than a sign-in button needs — an unused sensitive scope like Drive access is exactly what gets a real OAuth consent screen flagged in Google's verification review." }
+                ],
                 errorText:"No identity provider is configured on this user pool yet — Cognito has nothing to hand the sign-in off to."
               },
               { id:"h-appclient", type:"choice",
                 label:"Enable the identity provider for this app client",
-                prompt:"Where do you actually turn Google on for sign-in requests?",
+                prompt:"This user pool also has an Identity Pool attached for temporary AWS credentials. Where do you actually turn Google on for sign-in requests?",
                 options:[
+                  { key:"identitypool", label:"In the Identity Pool's authentication providers", correct:false, feedback:"That controls which providers can be exchanged for temporary AWS credentials — it has nothing to do with whether Google shows up as a sign-in option." },
                   { key:"auto", label:"Nowhere — it's automatic once added to the user pool", correct:false, feedback:"A common real Cognito gotcha: adding an identity provider to the pool doesn't enable it for any specific app client on its own." },
                   { key:"client", label:"In the app client's \"Identity providers\" setting", correct:true, feedback:"Enabled — this app client can now actually offer Google as a sign-in option." }
                 ],
@@ -703,15 +719,31 @@
               }
             ],
             hardSteps:[
-              { id:"h-idp", type:"action",
-                label:"Add Google as an external identity provider",
-                actionLabel:"Add provider", loadingLabel:"Adding…", doneLabel:"Google added as an identity provider.", loadingMs:600,
+              { id:"h-diagnose", type:"choice",
+                label:"Diagnose why the sign-in page shows no Google button at all",
+                prompt:"Before touching any setting — what does a completely missing Google button actually tell you?",
+                options:[
+                  { key:"scopes", label:"The requested claims are invalid", correct:false, feedback:"A claims problem would surface as an error after Google's consent screen, not as a missing button before Google is ever reached." },
+                  { key:"noidp", label:"No external identity provider is attached to this tenant yet", correct:true, feedback:"Right — the sign-in page only lists options for identity providers that actually exist on the tenant. Zero providers means zero buttons." },
+                  { key:"expired", label:"The app registration's client secret has expired", correct:false, feedback:"An expired secret would fail token exchange after a redirect back — it wouldn't stop the sign-in button from rendering at all." }
+                ],
+                errorText:"You reached for a fix before confirming what's actually missing."
+              },
+              { id:"h-scope", type:"choice",
+                label:"Add Google as an external identity provider — with the scopes this tenant actually needs",
+                prompt:"Which authorized scopes should this identity provider request from Google?",
+                options:[
+                  { key:"openid-only", label:"openid", correct:false, feedback:"Enough to authenticate, but Google won't return an email claim with just this — there's nothing for the tenant to map later." },
+                  { key:"full", label:"openid email profile", correct:true, feedback:"Added with the right scopes — this identity provider now actually returns the email claim this tenant needs." },
+                  { key:"broad", label:"openid email profile https://www.googleapis.com/auth/drive.readonly", correct:false, feedback:"Far more than a sign-in button needs — an unused sensitive scope like Drive access is exactly what gets a real OAuth consent screen flagged in Google's verification review." }
+                ],
                 errorText:"No external identity provider is configured yet — there's nothing for Entra to federate this sign-in to."
               },
               { id:"h-userflow", type:"choice",
                 label:"Add Google to the app's user flow",
-                prompt:"Where do you make Google appear as a sign-in option?",
+                prompt:"This tenant also has an Enterprise Applications list for internal app registrations. Where do you actually make Google appear as a sign-in option?",
                 options:[
+                  { key:"enterpriseapps", label:"In the tenant's Enterprise Applications list", correct:false, feedback:"That list is for managing app registrations and their permissions — it doesn't control which identity providers appear on any specific sign-in page." },
                   { key:"auto", label:"Nowhere — adding the provider is enough", correct:false, feedback:"Adding an identity provider to the tenant doesn't add it to any specific sign-up/sign-in user flow. That's a separate step." },
                   { key:"flow", label:"In the user flow's \"Identity providers\" list", correct:true, feedback:"Added — Google now actually appears as a sign-in button for users going through this flow." }
                 ],
@@ -782,14 +814,15 @@
                 ],
                 errorText:"Error 400: redirect_uri_mismatch — the redirect URI in the request doesn't match any authorized for this client."
               },
-              { id:"h-consent", type:"choice",
-                label:"Configure the OAuth consent screen",
-                prompt:"Choose a user type for the consent screen:",
+              { id:"h-scope", type:"choice",
+                label:"Choose which OAuth scopes this app should request",
+                prompt:"Which scope set actually gets this app the signed-in user's email and name?",
                 options:[
-                  { key:"internal", label:"Internal", correct:false, feedback:"Internal is restricted to accounts inside a single Google Workspace organization. CloudLab is a public app anyone can sign into — Internal would lock out every one of them, and Google's own review would reject a public app configured this way." },
-                  { key:"external", label:"External", correct:true, feedback:"External — any Google Account can sign in. Consent screen saved." }
+                  { key:"minimal", label:"openid only", correct:false, feedback:"Authenticates the user, but returns no email or profile claim — sign-in would succeed and create an account with no email on file." },
+                  { key:"full", label:"openid, .../auth/userinfo.email, .../auth/userinfo.profile", correct:true, feedback:"That's the scope set that actually returns email and basic profile — and it's what the People API call right after this depends on." },
+                  { key:"broad", label:"openid plus full Drive and Calendar access", correct:false, feedback:"Far more than a sign-in button needs — requesting unused sensitive scopes like Drive or Calendar is exactly what gets an app's OAuth consent screen held up in Google's verification review." }
                 ],
-                errorText:"Error 403: access_denied — this app's OAuth consent screen hasn't been configured yet."
+                errorText:"Error 403: access_denied — this app hasn't requested the scopes it needs to read the signed-in user's email."
               },
               { id:"h-api", type:"action",
                 label:"Enable the People API",
@@ -834,9 +867,14 @@
                 ],
                 errorText:"You haven't reviewed what the key actually did — deactivating it blind could destroy evidence of what else the attacker touched."
               },
-              { id:"h-revoke", type:"action",
-                label:"Deactivate the leaked access key",
-                actionLabel:"Deactivate key", loadingLabel:"Deactivating…", doneLabel:"Key deactivated — it can no longer authenticate.", loadingMs:600,
+              { id:"h-revoke", type:"choice",
+                label:"Decide how to neutralize the leaked key",
+                prompt:"The key needs to stop working right now — which action is actually the right incident-response move?",
+                options:[
+                  { key:"delete", label:"Delete the access key immediately", correct:false, feedback:"Deleting is permanent and irreversible — it destroys the key's own record before you've finished confirming everything it touched. Incident response deactivates first and deletes only after the investigation closes." },
+                  { key:"deactivate", label:"Deactivate the access key", correct:true, feedback:"Deactivated — it can no longer authenticate, but the key itself and its full usage history are preserved in case the investigation needs them later." },
+                  { key:"rotate", label:"Leave it active and rotate in a new key alongside it", correct:false, feedback:"Leaving a known-compromised key active for even one more second is the one option that guarantees continued unauthorized access." }
+                ],
                 errorText:"The leaked key is still active. Anyone who has it can still use it right now."
               },
               { id:"h-selfpolicy", type:"choice",
@@ -888,9 +926,14 @@
                 ],
                 errorText:"You haven't reviewed what the secret actually did — deleting it blind could leave a privilege escalation in place."
               },
-              { id:"h-revoke", type:"action",
-                label:"Delete the leaked client secret from the app registration",
-                actionLabel:"Delete secret", loadingLabel:"Deleting…", doneLabel:"Client secret deleted — it can no longer authenticate.", loadingMs:600,
+              { id:"h-revoke", type:"choice",
+                label:"Decide how to neutralize the leaked secret",
+                prompt:"The secret needs to stop working right now — which action is actually the right incident-response move?",
+                options:[
+                  { key:"disableapp", label:"Disable the entire app registration's sign-in", correct:false, feedback:"That blocks every legitimate use of this app too, not just the attacker — the incident calls for killing the one leaked secret, not taking the whole app down." },
+                  { key:"delete", label:"Delete just the leaked client secret from the app registration", correct:true, feedback:"Deleted — that specific secret can no longer authenticate, and every other legitimate credential on this app registration is untouched." },
+                  { key:"rotate", label:"Leave it active and add a new secret alongside it", correct:false, feedback:"Leaving a known-compromised secret active for even one more second is the one option that guarantees continued unauthorized access." }
+                ],
                 errorText:"The leaked client secret is still valid. Anyone who has it can still use it right now."
               },
               { id:"h-selfrole", type:"choice",
@@ -942,9 +985,14 @@
                 ],
                 errorText:"You haven't reviewed what the key actually did — deleting it blind could leave a privilege escalation in place."
               },
-              { id:"h-revoke", type:"action",
-                label:"Delete the leaked service account key",
-                actionLabel:"Delete key", loadingLabel:"Deleting…", doneLabel:"Key deleted — it can no longer authenticate.", loadingMs:600,
+              { id:"h-revoke", type:"choice",
+                label:"Decide how to neutralize the leaked key",
+                prompt:"The key needs to stop working right now — which action is actually the right incident-response move?",
+                options:[
+                  { key:"delete", label:"Delete the service account key immediately", correct:false, feedback:"Deleting is permanent — it destroys the key's own record before you've finished confirming everything it touched. Incident response disables first and deletes only after the investigation closes." },
+                  { key:"disable", label:"Disable the service account key", correct:true, feedback:"Disabled — it can no longer authenticate, but the key itself and its full usage history are preserved in case the investigation needs them later." },
+                  { key:"rotate", label:"Leave it active and create a new key alongside it", correct:false, feedback:"Leaving a known-compromised key active for even one more second is the one option that guarantees continued unauthorized access." }
+                ],
                 errorText:"The leaked key is still active. Anyone who has it can still use it right now."
               },
               { id:"h-selfrole", type:"choice",
@@ -988,17 +1036,23 @@
               }
             ],
             hardSteps:[
-              { id:"h-block", type:"action",
-                label:"Turn on Block Public Access for the bucket",
-                actionLabel:"Turn on", loadingLabel:"Applying…", doneLabel:"Block Public Access is on.", loadingMs:500,
+              { id:"h-block", type:"choice",
+                label:"Turn on the specific Block Public Access settings that actually close this",
+                prompt:"Which combination of the bucket's Block Public Access settings actually stops this leak?",
+                options:[
+                  { key:"newonly", label:"Only \"Block public access granted through new ACLs and new public bucket policies\"", correct:false, feedback:"That only stops future public grants from taking effect — it doesn't touch the public bucket policy that's already attached and already leaking." },
+                  { key:"all", label:"All four Block Public Access settings", correct:true, feedback:"Turned on — this blocks both new public grants and any that already exist, including the policy that's currently exposing this bucket." },
+                  { key:"acls", label:"Only the two ACL-related settings", correct:false, feedback:"That ignores public ACLs, but does nothing about a public bucket policy — which is exactly what's exposing this bucket right now." }
+                ],
                 errorText:"Block Public Access is still off — the bucket can be exposed by any policy or ACL that grants it."
               },
               { id:"h-policy", type:"choice",
-                label:"Remove the bucket policy that's granting access",
-                prompt:"What should the bucket policy do?",
+                label:"Decide how to actually remove the public grant",
+                prompt:"The bucket policy has a Principal: * statement — what's the correct fix?",
                 options:[
-                  { key:"keep", label:"Keep the Principal: * statement", correct:false, feedback:"Principal: * means literally anyone on the internet, signed in or not. That's the leak." },
-                  { key:"delete", label:"Delete the public-read policy statement", correct:true, feedback:"Removed — no policy is granting anonymous access anymore." }
+                  { key:"condition", label:"Add an aws:SourceIp condition to the existing statement", correct:false, feedback:"A source-IP condition narrows who can use the grant, but Principal: * with any condition is still a public grant on a bucket that's supposed to be private — and an IP allowlist is trivial to route around for anyone who already has the URL." },
+                  { key:"delete", label:"Delete the public-read policy statement entirely", correct:true, feedback:"Removed — no policy is granting anonymous access anymore." },
+                  { key:"narrowprincipal", label:"Change Principal from * to a specific AWS account you don't control yet", correct:false, feedback:"That's still granting access outside your organization, to an account you haven't even verified. The statement needs to go, not be reassigned." }
                 ],
                 errorText:"The bucket policy is still granting read access to Principal: * — anyone with the URL can still read every object."
               },
@@ -1042,17 +1096,23 @@
               }
             ],
             hardSteps:[
-              { id:"h-block", type:"action",
-                label:"Disable \"Allow Blob anonymous access\" on the storage account",
-                actionLabel:"Disable", loadingLabel:"Applying…", doneLabel:"Blob anonymous access is disabled.", loadingMs:500,
+              { id:"h-block", type:"choice",
+                label:"Decide where to actually shut off anonymous access",
+                prompt:"This storage account has both an account-level toggle and each container has its own access-level setting. Which one is the real fix here?",
+                options:[
+                  { key:"containeronly", label:"Just set this one container's access level to Private", correct:false, feedback:"That closes this container, but the account-level \"Allow Blob anonymous access\" setting is still on — any other container, or a new one, can still be made public." },
+                  { key:"account", label:"Disable \"Allow Blob anonymous access\" at the storage account level", correct:true, feedback:"Disabled — this is the account-wide master switch. No container in this account can grant anonymous access anymore, regardless of its own setting." },
+                  { key:"neither", label:"Neither — a private endpoint alone is enough", correct:false, feedback:"A private endpoint controls network path, not anonymous access permissions — a container set to public read is still public read even from inside a private network." }
+                ],
                 errorText:"Allow Blob anonymous access is still on — any container's public access level can expose it."
               },
               { id:"h-container", type:"choice",
-                label:"Fix the container's public access level",
-                prompt:"What should this container's access level be?",
+                label:"Decide how to fix the container's access level",
+                prompt:"This container is set to \"Container\" access — what's the correct fix, given the account-level setting is now off?",
                 options:[
-                  { key:"container", label:"Keep \"Container\" (anonymous read access to container and blobs)", correct:false, feedback:"\"Container\" means literally anyone on the internet can list and read every blob in it. That's the leak." },
-                  { key:"private", label:"Set to \"Private (no anonymous access)\"", correct:true, feedback:"Fixed — no anonymous access is granted to this container anymore." }
+                  { key:"leaveit", label:"Leave the container's access level as-is — the account-level setting already blocks it", correct:false, feedback:"The account-level toggle blocks it for now, but leaving the container itself set to \"Container\" means it's one accidental account-level toggle away from being public again — and it still fails a security scan either way." },
+                  { key:"private", label:"Set the container's access level to \"Private (no anonymous access)\"", correct:true, feedback:"Fixed — no anonymous access is granted to this container anymore, independent of the account-level setting." },
+                  { key:"blob", label:"Set it to \"Blob\" access instead of \"Container\"", correct:false, feedback:"\"Blob\" still allows anonymous read of any blob whose exact URL is known — it only stops anonymous listing. Still public, just less discoverable." }
                 ],
                 errorText:"This container's public access level is still granting anonymous read access to anyone with the URL."
               },
@@ -1096,17 +1156,23 @@
               }
             ],
             hardSteps:[
-              { id:"h-block", type:"action",
-                label:"Turn on Public Access Prevention for the bucket",
-                actionLabel:"Turn on", loadingLabel:"Applying…", doneLabel:"Public Access Prevention is on.", loadingMs:500,
+              { id:"h-block", type:"choice",
+                label:"Decide where to actually turn on Public Access Prevention",
+                prompt:"Public Access Prevention can be set on this bucket directly or inherited from the project. Which is the real fix here?",
+                options:[
+                  { key:"bucketonly", label:"Turn it on for just this bucket", correct:true, feedback:"Turned on for this bucket — it can no longer be made public by any IAM binding or ACL, regardless of project-level settings." },
+                  { key:"none", label:"Nothing — the project's default is inherited automatically", correct:false, feedback:"This bucket was created with an override, so it isn't inheriting the project default — it needs its own setting turned on explicitly." },
+                  { key:"orgpolicy", label:"Only enforce it via an Organization Policy for the whole org", correct:false, feedback:"An org policy is the stronger, longer-term fix, but it doesn't close this specific bucket's current exposure fast enough by itself. This bucket still needs its own setting turned on now." }
+                ],
                 errorText:"Public Access Prevention is still off — the bucket can be exposed by any IAM binding or ACL that grants it."
               },
               { id:"h-iam", type:"choice",
-                label:"Remove the IAM binding that's granting access",
-                prompt:"What should the bucket's IAM policy do?",
+                label:"Decide how to actually remove the public grant",
+                prompt:"The bucket's IAM policy grants allUsers Storage Object Viewer — what's the correct fix?",
                 options:[
-                  { key:"keep", label:"Keep allUsers with Storage Object Viewer", correct:false, feedback:"allUsers means literally anyone on the internet, signed in or not. That's the leak." },
-                  { key:"remove", label:"Remove the allUsers binding", correct:true, feedback:"Removed — no binding is granting anonymous access anymore." }
+                  { key:"condition", label:"Add an IAM condition restricting the allUsers binding by IP", correct:false, feedback:"allUsers with any condition is still a public grant on a bucket that's supposed to be private — and an IP condition is trivial to route around for anyone who already has the URL." },
+                  { key:"remove", label:"Remove the allUsers binding entirely", correct:true, feedback:"Removed — no binding is granting anonymous access anymore." },
+                  { key:"downgrade", label:"Change the role from Object Viewer to a custom role with fewer permissions, but keep allUsers", correct:false, feedback:"allUsers is the problem regardless of which role it's paired with — anyone on the internet still gets access. The binding itself needs to go, not just the role attached to it." }
                 ],
                 errorText:"The bucket's IAM policy still grants Storage Object Viewer to allUsers — anyone with the URL can still read every object."
               },
@@ -1152,9 +1218,14 @@
               }
             ],
             hardSteps:[
-              { id:"h-subnet", type:"action",
-                label:"Move the database instance into the private subnet",
-                actionLabel:"Move instance", loadingLabel:"Migrating…", doneLabel:"DB-1 is now in the private subnet.", loadingMs:700,
+              { id:"h-subnet", type:"choice",
+                label:"Decide how to actually take the database off the public subnet",
+                prompt:"The database instance is sitting in a public subnet — what's the correct fix?",
+                options:[
+                  { key:"sgonly", label:"Leave it in the public subnet and just tighten the security group", correct:false, feedback:"A security group is one layer of defense — leaving the instance in a subnet that's routable from the internet at all means any misconfigured rule, now or later, puts it right back in reach." },
+                  { key:"move", label:"Move the database instance into the private subnet", correct:true, feedback:"Moved — DB-1 is now in a subnet with no route to the internet at all, not just a subnet with a stricter firewall." },
+                  { key:"eip", label:"Keep it in the public subnet but remove its public IP", correct:false, feedback:"Removing the public IP helps, but this subnet's route table still sends 0.0.0.0/0 to an Internet Gateway — anything that later re-associates a public IP lands right back in reach." }
+                ],
                 errorText:"The database is still sitting in the public subnet, reachable by routing alone."
               },
               { id:"h-sg", type:"choice",
@@ -1207,9 +1278,14 @@
               }
             ],
             hardSteps:[
-              { id:"h-pip", type:"action",
-                label:"Remove the public IP address from the database VM",
-                actionLabel:"Remove public IP", loadingLabel:"Removing…", doneLabel:"DB-1 no longer has a public IP.", loadingMs:700,
+              { id:"h-pip", type:"choice",
+                label:"Decide how to actually take the database off the public network path",
+                prompt:"The database VM has a public IP — what's the correct fix?",
+                options:[
+                  { key:"nsgonly", label:"Leave the public IP and just tighten the NSG", correct:false, feedback:"An NSG is one layer of defense — leaving a public IP attached means any misconfigured rule, now or later, puts it right back in reach." },
+                  { key:"remove", label:"Remove the public IP address from the database VM", correct:true, feedback:"Removed — DB-1 has no public network path at all, not just a VM with a stricter firewall." },
+                  { key:"reassign", label:"Keep the public IP but move it to a different NIC on the same VM", correct:false, feedback:"That doesn't remove the public exposure — it just moves which interface on the same reachable VM carries it." }
+                ],
                 errorText:"The database VM still has a public IP address, reachable directly from the internet."
               },
               { id:"h-nsg", type:"choice",
@@ -1262,9 +1338,14 @@
               }
             ],
             hardSteps:[
-              { id:"h-extip", type:"action",
-                label:"Remove the external IP address from the database VM",
-                actionLabel:"Remove external IP", loadingLabel:"Removing…", doneLabel:"DB-1 no longer has an external IP.", loadingMs:700,
+              { id:"h-extip", type:"choice",
+                label:"Decide how to actually take the database off the public network path",
+                prompt:"The database VM has an external IP — what's the correct fix?",
+                options:[
+                  { key:"fwonly", label:"Leave the external IP and just tighten the firewall rule", correct:false, feedback:"A firewall rule is one layer of defense — leaving an external IP attached means any misconfigured rule, now or later, puts it right back in reach." },
+                  { key:"remove", label:"Remove the external IP address from the database VM", correct:true, feedback:"Removed — DB-1 has no public network path at all, not just a VM with a stricter firewall rule." },
+                  { key:"ephemeral", label:"Keep the external IP but switch it from static to ephemeral", correct:false, feedback:"Ephemeral vs static only changes whether the IP persists across restarts — the VM is still reachable from the public internet either way." }
+                ],
                 errorText:"The database VM still has an external IP address, reachable directly from the internet."
               },
               { id:"h-fw", type:"choice",
@@ -1321,17 +1402,23 @@
             hardSteps:[
               { id:"h-policy", type:"choice",
                 label:"Switch the routing policy",
-                prompt:"Which policy actually reacts to a region going down?",
+                prompt:"Route 53 has several policies besides Simple — which one is actually built to react to a health check going bad?",
                 options:[
                   { key:"simple", label:"Simple", correct:false, feedback:"Simple always answers the same way — it has no idea the primary is down." },
                   { key:"weighted", label:"Weighted", correct:false, feedback:"Weighted splits traffic by a fixed percentage — it doesn't respond to health on its own." },
+                  { key:"latency", label:"Latency-based", correct:false, feedback:"Latency-based picks the fastest-responding healthy region for each user — good for performance, but it's not built around a specific primary/secondary failover order the way this scenario needs." },
                   { key:"failover", label:"Failover", correct:true, feedback:"Failover — this policy is built specifically to react to a health check going bad." }
                 ],
                 errorText:"The routing policy still isn't Failover — nothing here actually reacts to the primary going down."
               },
-              { id:"h-target", type:"action",
+              { id:"h-target", type:"choice",
                 label:"Point the failover record at the healthy secondary region",
-                actionLabel:"Set secondary target", loadingLabel:"Updating record…", doneLabel:"Secondary region is set as the failover target.", loadingMs:500,
+                prompt:"Which record configuration actually makes this a failover pair instead of two independent records?",
+                options:[
+                  { key:"separate", label:"Create the secondary region's record as its own separate PRIMARY failover record", correct:false, feedback:"Two records both marked PRIMARY aren't a pair at all — Route 53 needs exactly one PRIMARY and one SECONDARY sharing the same record name and type to know which one to fall back to." },
+                  { key:"secondary", label:"Create the secondary region's record with the same name and type, set as SECONDARY", correct:true, feedback:"Set — Route 53 now has a real PRIMARY/SECONDARY pair under this record name, and knows exactly where to send traffic when the primary's health check fails." },
+                  { key:"noset", label:"Leave the failover record type unset on both records", correct:false, feedback:"Without a failover record type on either record, Route 53 has no way to know which one is primary and which is the fallback." }
+                ],
                 errorText:"No secondary target is configured — even with Failover selected, there's nowhere for traffic to go."
               },
               { id:"h-threshold", type:"choice",
@@ -1381,17 +1468,23 @@
             hardSteps:[
               { id:"h-method", type:"choice",
                 label:"Switch the routing method",
-                prompt:"Which method actually reacts to a region going down?",
+                prompt:"Traffic Manager has more than one method besides Weighted — which one is actually built to fail over to the next endpoint when the top one's health check goes bad?",
                 options:[
                   { key:"performance", label:"Performance", correct:false, feedback:"Performance routes to the lowest-latency healthy endpoint for each user — it's not built around a primary/secondary failover order." },
                   { key:"weighted", label:"Weighted", correct:false, feedback:"Weighted splits traffic by a fixed proportion — it doesn't respond to health on its own." },
+                  { key:"geographic", label:"Geographic", correct:false, feedback:"Geographic routes by where the request came from — useful for data-residency rules, but it's not built around a primary/secondary failover order." },
                   { key:"priority", label:"Priority", correct:true, feedback:"Priority — this routing method is built specifically to fail over to the next endpoint when the top one's health check goes bad." }
                 ],
                 errorText:"The routing method still isn't Priority — nothing here actually reacts to the primary going down."
               },
-              { id:"h-endpoint", type:"action",
+              { id:"h-endpoint", type:"choice",
                 label:"Set the secondary endpoint's priority so it takes over automatically",
-                actionLabel:"Set priority", loadingLabel:"Updating endpoint…", doneLabel:"Secondary endpoint is now priority 2.", loadingMs:500,
+                prompt:"Which priority configuration actually makes this a working primary/secondary pair?",
+                options:[
+                  { key:"samepriority", label:"Give both endpoints priority 1", correct:false, feedback:"Two endpoints tied at the same priority aren't a primary/secondary pair — Traffic Manager needs a clear lower-priority fallback to know which one takes over." },
+                  { key:"priority2", label:"Set the secondary endpoint's priority to 2, below the primary's priority 1", correct:true, feedback:"Set — Traffic Manager now has a clear priority order and knows exactly which endpoint to fail over to when the primary's health check goes bad." },
+                  { key:"disabled", label:"Leave the secondary endpoint disabled but give it a priority", correct:false, feedback:"A disabled endpoint is never selected regardless of its priority — it needs to be enabled to actually take over traffic." }
+                ],
                 errorText:"The secondary endpoint has no priority set — even with the Priority method selected, there's nowhere defined for traffic to go."
               },
               { id:"h-tolerated", type:"choice",
@@ -1441,17 +1534,23 @@
             hardSteps:[
               { id:"h-policy", type:"choice",
                 label:"Switch the routing policy",
-                prompt:"Which policy actually reacts to a region going down?",
+                prompt:"Cloud DNS has more than one policy besides Weighted round robin — which one is actually built to react to a health check going bad?",
                 options:[
                   { key:"geo", label:"Geolocation", correct:false, feedback:"Geolocation routes by where the request came from — it's not built around a primary/backup failover order." },
                   { key:"weighted", label:"Weighted round robin", correct:false, feedback:"Weighted splits traffic by a fixed proportion — it doesn't respond to health on its own." },
+                  { key:"multivalue", label:"Simple round robin across multiple values", correct:false, feedback:"Round robin answers with any of several values in rotation regardless of health — it has no concept of a backup to fall back to." },
                   { key:"failover", label:"Failover", correct:true, feedback:"Failover — this policy is built specifically to react to a health check going bad." }
                 ],
                 errorText:"The routing policy still isn't Failover — nothing here actually reacts to the primary going down."
               },
-              { id:"h-backup", type:"action",
+              { id:"h-backup", type:"choice",
                 label:"Set the backup resource record set to the healthy secondary region",
-                actionLabel:"Set backup RRset", loadingLabel:"Updating record…", doneLabel:"Secondary region is set as the backup record set.", loadingMs:500,
+                prompt:"Which record set configuration actually makes this a working primary/backup pair?",
+                options:[
+                  { key:"bothprimary", label:"Configure both the primary and secondary record sets as primary data", correct:false, feedback:"Two record sets both marked as primary data aren't a pair at all — Cloud DNS needs one primary data set and one distinct backup data set to know which one to fall back to." },
+                  { key:"backup", label:"Configure the secondary region as the policy's backup data, separate from the primary data", correct:true, feedback:"Set — Cloud DNS now has a real primary/backup pair under this failover policy, and knows exactly where to send traffic when the primary's health check fails." },
+                  { key:"noeval", label:"Leave \"Enable Geo fencing\" as the only configured option", correct:false, feedback:"Geo fencing controls which regions are eligible to answer at all — it doesn't define a backup record set to fail over to when the primary is unhealthy." }
+                ],
                 errorText:"No backup resource record set is configured — even with Failover selected, there's nowhere for traffic to go."
               },
               { id:"h-threshold", type:"choice",
@@ -1503,7 +1602,7 @@
             hardSteps:[
               { id:"h-metric", type:"choice",
                 label:"Pick the metric to alarm on",
-                prompt:"Which metric actually reflects this failure?",
+                prompt:"CloudWatch has plenty of infrastructure metrics available by default — which one actually reflects requests failing?",
                 options:[
                   { key:"network", label:"NetworkIn", correct:false, feedback:"Traffic can look completely normal while every request is quietly failing. Not the one." },
                   { key:"errorrate", label:"ErrorRate", correct:true, feedback:"That's the one that actually reflects requests failing." },
@@ -1511,9 +1610,14 @@
                 ],
                 errorText:"No alarm is watching a metric that would actually catch this kind of failure."
               },
-              { id:"h-threshold", type:"action",
+              { id:"h-threshold", type:"choice",
                 label:"Set a threshold and create the alarm",
-                actionLabel:"Create alarm", loadingLabel:"Creating…", doneLabel:"Alarm created.", loadingMs:500,
+                prompt:"Which alarm configuration actually catches this failure without drowning in false positives?",
+                options:[
+                  { key:"toolow", label:"Alarm the instant error rate goes above 0%", correct:false, feedback:"A single transient error on an otherwise healthy service would trigger this alarm constantly — it needs a threshold and evaluation period that separates real failure from normal noise." },
+                  { key:"reasonable", label:"Alarm when error rate exceeds 5% for 3 consecutive periods", correct:true, feedback:"Created — high enough to ignore routine blips, fast enough to catch a real failure within a few minutes." },
+                  { key:"toohigh", label:"Alarm only when error rate exceeds 90%", correct:false, feedback:"A service silently failing at, say, 40% error rate would sit well under this threshold for as long as it wants." }
+                ],
                 errorText:"No alarm has actually been created yet — the right metric alone doesn't page anyone."
               },
               { id:"h-missingdata", type:"choice",
@@ -1557,7 +1661,7 @@
             hardSteps:[
               { id:"h-metric", type:"choice",
                 label:"Pick the metric to alert on",
-                prompt:"Which metric actually reflects this failure?",
+                prompt:"Azure Monitor has plenty of infrastructure metrics available by default — which one actually reflects requests failing?",
                 options:[
                   { key:"network", label:"Network In", correct:false, feedback:"Traffic can look completely normal while every request is quietly failing. Not the one." },
                   { key:"failedreq", label:"Failed Requests", correct:true, feedback:"That's the one that actually reflects requests failing." },
@@ -1565,9 +1669,14 @@
                 ],
                 errorText:"No alert is watching a metric that would actually catch this kind of failure."
               },
-              { id:"h-threshold", type:"action",
+              { id:"h-threshold", type:"choice",
                 label:"Set a threshold and create the alert rule",
-                actionLabel:"Create alert rule", loadingLabel:"Creating…", doneLabel:"Alert rule created.", loadingMs:500,
+                prompt:"Which alert rule configuration actually catches this failure without drowning in false positives?",
+                options:[
+                  { key:"toolow", label:"Alert the instant Failed Requests goes above 0", correct:false, feedback:"A single transient error on an otherwise healthy service would trigger this constantly — it needs a threshold and evaluation window that separates real failure from normal noise." },
+                  { key:"reasonable", label:"Alert when Failed Requests exceeds 5% of total for 3 consecutive evaluation periods", correct:true, feedback:"Created — high enough to ignore routine blips, fast enough to catch a real failure within a few minutes." },
+                  { key:"toohigh", label:"Alert only when Failed Requests exceeds 90% of total", correct:false, feedback:"A service silently failing at, say, 40% error rate would sit well under this threshold for as long as it wants." }
+                ],
                 errorText:"No alert rule has actually been created yet — the right metric alone doesn't page anyone."
               },
               { id:"h-missingdata", type:"choice",
@@ -1611,7 +1720,7 @@
             hardSteps:[
               { id:"h-metric", type:"choice",
                 label:"Pick the metric to alert on",
-                prompt:"Which metric actually reflects this failure?",
+                prompt:"Cloud Monitoring has plenty of infrastructure metrics available by default — which one actually reflects requests failing?",
                 options:[
                   { key:"network", label:"Network bytes received", correct:false, feedback:"Traffic can look completely normal while every request is quietly failing. Not the one." },
                   { key:"errorrate", label:"Request error rate", correct:true, feedback:"That's the one that actually reflects requests failing." },
@@ -1619,9 +1728,14 @@
                 ],
                 errorText:"No alerting policy is watching a metric that would actually catch this kind of failure."
               },
-              { id:"h-threshold", type:"action",
+              { id:"h-threshold", type:"choice",
                 label:"Set a threshold and create the alerting policy",
-                actionLabel:"Create policy", loadingLabel:"Creating…", doneLabel:"Alerting policy created.", loadingMs:500,
+                prompt:"Which alerting policy configuration actually catches this failure without drowning in false positives?",
+                options:[
+                  { key:"toolow", label:"Alert the instant request error rate goes above 0%", correct:false, feedback:"A single transient error on an otherwise healthy service would trigger this constantly — it needs a threshold and evaluation window that separates real failure from normal noise." },
+                  { key:"reasonable", label:"Alert when error rate exceeds 5% for 3 consecutive evaluation periods", correct:true, feedback:"Created — high enough to ignore routine blips, fast enough to catch a real failure within a few minutes." },
+                  { key:"toohigh", label:"Alert only when error rate exceeds 90%", correct:false, feedback:"A service silently failing at, say, 40% error rate would sit well under this threshold for as long as it wants." }
+                ],
                 errorText:"No alerting policy has actually been created yet — the right metric alone doesn't page anyone."
               },
               { id:"h-missingdata", type:"choice",
@@ -1667,16 +1781,22 @@
             hardSteps:[
               { id:"h-lag", type:"choice",
                 label:"Check the read replica's replication lag before touching anything",
-                prompt:"What do you check before promoting?",
+                prompt:"Before promoting anything — which of these actually tells you how much data would be lost?",
                 options:[
                   { key:"skip", label:"Skip it — promote immediately", correct:false, feedback:"Promoting a replica that's behind on replication throws away more data than necessary. A ten-second check first is cheap insurance." },
+                  { key:"cpu", label:"The replica's CPUUtilization metric", correct:false, feedback:"CPU tells you how hard the replica is working, not how far behind it is on applying the primary's writes." },
                   { key:"check", label:"Check the ReplicaLag metric first", correct:true, feedback:"Lag is low — this replica is safe to promote with minimal data loss." }
                 ],
                 errorText:"Nobody checked how far behind this replica actually is — promoting blind risks losing more than the outage itself already did."
               },
-              { id:"h-promote", type:"action",
+              { id:"h-promote", type:"choice",
                 label:"Promote the read replica to a standalone instance",
-                actionLabel:"Promote replica", loadingLabel:"Promoting…", doneLabel:"Replica promoted — it now accepts writes.", loadingMs:700,
+                prompt:"With replication lag confirmed low, what's the correct next action?",
+                options:[
+                  { key:"reboot", label:"Reboot the dead primary and wait for it to come back", correct:false, feedback:"There's no guarantee the primary comes back at all, and every second spent waiting is more lost writes on a database that already has a healthy, low-lag replica standing by." },
+                  { key:"promote", label:"Promote the read replica to a standalone instance", correct:true, feedback:"Promoted — it now accepts writes." },
+                  { key:"newinstance", label:"Launch a brand-new empty RDS instance and point the app at it", correct:false, feedback:"A brand-new instance has none of this database's data at all — that's a bigger data loss than promoting the replica that was already caught up." }
+                ],
                 errorText:"No instance in this cluster currently accepts writes — nothing has been promoted yet."
               },
               { id:"h-endpoint", type:"choice",
@@ -1720,16 +1840,22 @@
             hardSteps:[
               { id:"h-lag", type:"choice",
                 label:"Check the read replica's replication lag before touching anything",
-                prompt:"What do you check before promoting?",
+                prompt:"Before promoting anything — which of these actually tells you how much data would be lost?",
                 options:[
                   { key:"skip", label:"Skip it — stop replication immediately", correct:false, feedback:"Promoting a replica that's behind on replication throws away more data than necessary. A ten-second check first is cheap insurance." },
+                  { key:"cpu", label:"The replica's CPU percentage metric", correct:false, feedback:"CPU tells you how hard the replica is working, not how far behind it is on applying the primary's writes." },
                   { key:"check", label:"Check the Replication Lag metric first", correct:true, feedback:"Lag is low — this replica is safe to promote with minimal data loss." }
                 ],
                 errorText:"Nobody checked how far behind this replica actually is — promoting blind risks losing more than the outage itself already did."
               },
-              { id:"h-promote", type:"action",
+              { id:"h-promote", type:"choice",
                 label:"Stop replication to promote the read replica to a standalone server",
-                actionLabel:"Stop replication", loadingLabel:"Promoting…", doneLabel:"Replica promoted — it now accepts writes.", loadingMs:700,
+                prompt:"With replication lag confirmed low, what's the correct next action?",
+                options:[
+                  { key:"reboot", label:"Restart the dead primary and wait for it to come back", correct:false, feedback:"There's no guarantee the primary comes back at all, and every second spent waiting is more lost writes on a database that already has a healthy, low-lag replica standing by." },
+                  { key:"promote", label:"Stop replication to promote the read replica to a standalone server", correct:true, feedback:"Promoted — it now accepts writes." },
+                  { key:"newinstance", label:"Deploy a brand-new empty database server and point the app at it", correct:false, feedback:"A brand-new server has none of this database's data at all — that's a bigger data loss than promoting the replica that was already caught up." }
+                ],
                 errorText:"No server in this deployment currently accepts writes — nothing has been promoted yet."
               },
               { id:"h-endpoint", type:"choice",
@@ -1773,16 +1899,22 @@
             hardSteps:[
               { id:"h-lag", type:"choice",
                 label:"Check the read replica's replication delay before touching anything",
-                prompt:"What do you check before promoting?",
+                prompt:"Before promoting anything — which of these actually tells you how much data would be lost?",
                 options:[
                   { key:"skip", label:"Skip it — promote immediately", correct:false, feedback:"Promoting a replica that's behind on replication throws away more data than necessary. A ten-second check first is cheap insurance." },
+                  { key:"cpu", label:"The replica's CPU utilization metric", correct:false, feedback:"CPU tells you how hard the replica is working, not how far behind it is on applying the primary's writes." },
                   { key:"check", label:"Check the replication delay metric first", correct:true, feedback:"Delay is low — this replica is safe to promote with minimal data loss." }
                 ],
                 errorText:"Nobody checked how far behind this replica actually is — promoting blind risks losing more than the outage itself already did."
               },
-              { id:"h-promote", type:"action",
+              { id:"h-promote", type:"choice",
                 label:"Promote the read replica",
-                actionLabel:"Promote read replica", loadingLabel:"Promoting…", doneLabel:"Replica promoted — it now accepts writes.", loadingMs:700,
+                prompt:"With replication delay confirmed low, what's the correct next action?",
+                options:[
+                  { key:"reboot", label:"Restart the dead primary and wait for it to come back", correct:false, feedback:"There's no guarantee the primary comes back at all, and every second spent waiting is more lost writes on a database that already has a healthy, low-delay replica standing by." },
+                  { key:"promote", label:"Promote the read replica", correct:true, feedback:"Promoted — it now accepts writes." },
+                  { key:"newinstance", label:"Create a brand-new empty Cloud SQL instance and point the app at it", correct:false, feedback:"A brand-new instance has none of this database's data at all — that's a bigger data loss than promoting the replica that was already caught up." }
+                ],
                 errorText:"No instance in this cluster currently accepts writes — nothing has been promoted yet."
               },
               { id:"h-endpoint", type:"choice",
@@ -1835,16 +1967,22 @@
                 ],
                 errorText:"You reacted without confirming the new revision is actually what's failing — worth ten seconds before touching a live deployment."
               },
-              { id:"h-stop", type:"action",
+              { id:"h-stop", type:"choice",
                 label:"Stop the in-progress deployment",
-                actionLabel:"Stop deployment", loadingLabel:"Stopping…", doneLabel:"Deployment stopped — no more tasks will be replaced with the bad revision.", loadingMs:600,
+                prompt:"Which action actually stops more healthy tasks from being replaced right now?",
+                options:[
+                  { key:"scaleup", label:"Scale the service up to add more capacity alongside the failing tasks", correct:false, feedback:"Adding capacity doesn't stop ECS from continuing to replace existing tasks with the same broken revision — it just means more tasks total, some fraction of which will keep failing too." },
+                  { key:"stop", label:"Stop the in-progress deployment", correct:true, feedback:"Stopped — no more tasks will be replaced with the bad revision." },
+                  { key:"delete", label:"Delete the service entirely and recreate it", correct:false, feedback:"Deleting the service tears down every task, healthy or not — full downtime, when the actual goal is to stop the bleeding without taking down what's still working." }
+                ],
                 errorText:"The deployment is still running — it keeps replacing healthy tasks with ones that fail their health check."
               },
               { id:"h-rollback", type:"choice",
                 label:"Get the service back to a working state",
-                prompt:"What actually fixes this?",
+                prompt:"With the bad deployment stopped, what actually gets healthy tasks running again?",
                 options:[
                   { key:"force", label:"Force a new deployment of the same task definition revision", correct:false, feedback:"Redeploying the same broken revision just fails the exact same way again." },
+                  { key:"manual", label:"Manually edit the running tasks' environment variables to patch around the bug", correct:false, feedback:"Live-patching a running task's environment doesn't change the task definition it was launched from — the next replacement task reverts right back to the broken revision." },
                   { key:"rollback", label:"Roll the service back to the previous task definition revision", correct:true, feedback:"Rolled back — the service is running the last revision that was actually healthy." }
                 ],
                 errorText:"The service is still on the broken task definition revision — nothing has actually been rolled back."
@@ -1888,16 +2026,22 @@
                 ],
                 errorText:"You reacted without confirming the new revision is actually what's failing — worth ten seconds before touching a live deployment."
               },
-              { id:"h-stop", type:"action",
+              { id:"h-stop", type:"choice",
                 label:"Pause the rollout",
-                actionLabel:"Pause rollout", loadingLabel:"Pausing…", doneLabel:"Rollout paused — no more pods will be replaced with the bad revision.", loadingMs:600,
+                prompt:"Which action actually stops more healthy pods from being replaced right now?",
+                options:[
+                  { key:"scaleup", label:"Scale the deployment up to add more replicas alongside the failing pods", correct:false, feedback:"Adding replicas doesn't stop the rollout controller from continuing to replace existing pods with the same broken revision — it just means more pods total, some fraction of which will keep crash-looping too." },
+                  { key:"stop", label:"Pause the rollout", correct:true, feedback:"Paused — no more pods will be replaced with the bad revision." },
+                  { key:"delete", label:"Delete the deployment entirely and recreate it", correct:false, feedback:"Deleting the deployment tears down every pod, healthy or not — full downtime, when the actual goal is to stop the bleeding without taking down what's still working." }
+                ],
                 errorText:"The rollout is still running — it keeps replacing healthy pods with ones that crash-loop."
               },
               { id:"h-rollback", type:"choice",
                 label:"Get the deployment back to a working state",
-                prompt:"What actually fixes this?",
+                prompt:"With the rollout paused, what actually gets healthy pods running again?",
                 options:[
                   { key:"scale", label:"Scale up the new (broken) ReplicaSet", correct:false, feedback:"More copies of a crash-looping revision is still a crash-looping revision — just with extra restarts." },
+                  { key:"manual", label:"Manually edit the running pods' environment variables to patch around the bug", correct:false, feedback:"Live-patching a running pod's environment doesn't change the revision it was created from — the next replacement pod reverts right back to the broken one." },
                   { key:"rollback", label:"Roll back to the previous revision", correct:true, feedback:"Rolled back — the deployment is running the last revision that was actually healthy." }
                 ],
                 errorText:"The deployment is still on the broken revision — nothing has actually been rolled back."
@@ -1941,16 +2085,22 @@
                 ],
                 errorText:"You reacted without confirming the new revision is actually what's failing — worth ten seconds before touching a live deployment."
               },
-              { id:"h-stop", type:"action",
+              { id:"h-stop", type:"choice",
                 label:"Pause the rollout",
-                actionLabel:"Pause rollout", loadingLabel:"Pausing…", doneLabel:"Rollout paused — no more pods will be replaced with the bad revision.", loadingMs:600,
+                prompt:"Which action actually stops more healthy pods from being replaced right now?",
+                options:[
+                  { key:"scaleup", label:"Scale the deployment up to add more replicas alongside the failing pods", correct:false, feedback:"Adding replicas doesn't stop the rollout controller from continuing to replace existing pods with the same broken revision — it just means more pods total, some fraction of which will keep crash-looping too." },
+                  { key:"stop", label:"Pause the rollout", correct:true, feedback:"Paused — no more pods will be replaced with the bad revision." },
+                  { key:"delete", label:"Delete the deployment entirely and recreate it", correct:false, feedback:"Deleting the deployment tears down every pod, healthy or not — full downtime, when the actual goal is to stop the bleeding without taking down what's still working." }
+                ],
                 errorText:"The rollout is still running — it keeps replacing healthy pods with ones that crash-loop."
               },
               { id:"h-rollback", type:"choice",
                 label:"Get the deployment back to a working state",
-                prompt:"What actually fixes this?",
+                prompt:"With the rollout paused, what actually gets healthy pods running again?",
                 options:[
                   { key:"scale", label:"Scale up the new (broken) ReplicaSet", correct:false, feedback:"More copies of a crash-looping revision is still a crash-looping revision — just with extra restarts." },
+                  { key:"manual", label:"Manually edit the running pods' environment variables to patch around the bug", correct:false, feedback:"Live-patching a running pod's environment doesn't change the revision it was created from — the next replacement pod reverts right back to the broken one." },
                   { key:"rollback", label:"Roll back to the previous revision", correct:true, feedback:"Rolled back — the deployment is running the last revision that was actually healthy." }
                 ],
                 errorText:"The deployment is still on the broken revision — nothing has actually been rolled back."
@@ -1996,17 +2146,23 @@
                 ],
                 errorText:"You haven't confirmed this is actually metadata credential theft — worth confirming before quarantining anything."
               },
-              { id:"h-isolate", type:"action",
-                label:"Attach a quarantine security group that blocks all inbound and outbound traffic",
-                actionLabel:"Quarantine instance", loadingLabel:"Isolating…", doneLabel:"Instance isolated — no traffic in or out.", loadingMs:600,
+              { id:"h-isolate", type:"choice",
+                label:"Decide how to actually contain the instance",
+                prompt:"The instance needs to stop being useful to the attacker right now — which containment move is correct?",
+                options:[
+                  { key:"terminate", label:"Terminate the instance immediately", correct:false, feedback:"Terminating destroys the instance's disk, memory, and logs before anyone's confirmed what else the attacker touched — the same evidence-preservation problem as deleting a leaked key." },
+                  { key:"quarantine", label:"Attach a quarantine security group that blocks all inbound and outbound traffic", correct:true, feedback:"Isolated — no traffic in or out, but the instance itself, its disk, and its logs are all still intact for the investigation." },
+                  { key:"detachrole", label:"Just detach the IAM role from the instance", correct:false, feedback:"Detaching the role stops this instance from requesting new credentials, but it does nothing about the ones the attacker already stole — and nothing to stop the instance from being used for anything else." }
+                ],
                 errorText:"The instance is still fully connected — whatever else is running on it can keep talking to the internet."
               },
               { id:"h-revoke", type:"choice",
                 label:"Cut off the stolen credentials",
-                prompt:"What actually stops the attacker from using them?",
+                prompt:"The credentials the SSRF grabbed are temporary session credentials tied to the instance's role — what actually stops the attacker from using them?",
                 options:[
                   { key:"terminate", label:"Terminate the instance", correct:false, feedback:"The credentials the attacker already grabbed are temporary session credentials — they keep working from anywhere until they expire or are explicitly revoked, whether or not this instance still exists." },
-                  { key:"revoke", label:"Revoke the role's active sessions", correct:true, feedback:"Revoked — every temporary credential issued before this moment is now rejected, no matter who's holding a copy." }
+                  { key:"revoke", label:"Revoke the role's active sessions", correct:true, feedback:"Revoked — every temporary credential issued before this moment is now rejected, no matter who's holding a copy." },
+                  { key:"swap", label:"Detach the role and attach a different one to the instance", correct:false, feedback:"Changing which role this instance uses going forward doesn't touch the credentials already issued under the old role — those keep working elsewhere until they're explicitly revoked." }
                 ],
                 errorText:"The stolen session credentials are still valid — the attacker can keep using them from anywhere until they're explicitly revoked."
               },
@@ -2049,17 +2205,23 @@
                 ],
                 errorText:"You haven't confirmed this is actually metadata token theft — worth confirming before quarantining anything."
               },
-              { id:"h-isolate", type:"action",
-                label:"Attach a quarantine network security group that blocks all inbound and outbound traffic",
-                actionLabel:"Quarantine VM", loadingLabel:"Isolating…", doneLabel:"VM isolated — no traffic in or out.", loadingMs:600,
+              { id:"h-isolate", type:"choice",
+                label:"Decide how to actually contain the VM",
+                prompt:"The VM needs to stop being useful to the attacker right now — which containment move is correct?",
+                options:[
+                  { key:"delete", label:"Delete the VM immediately", correct:false, feedback:"Deleting destroys the VM's disk, memory, and logs before anyone's confirmed what else the attacker touched — the same evidence-preservation problem as deleting a leaked credential." },
+                  { key:"quarantine", label:"Attach a quarantine network security group that blocks all inbound and outbound traffic", correct:true, feedback:"Isolated — no traffic in or out, but the VM itself, its disk, and its logs are all still intact for the investigation." },
+                  { key:"removeidentity", label:"Just remove the managed identity from the VM", correct:false, feedback:"Removing the identity stops this VM from requesting new tokens, but it does nothing about the token the attacker already stole — and nothing to stop the VM from being used for anything else." }
+                ],
                 errorText:"The VM is still fully connected — whatever else is running on it can keep talking to the internet."
               },
               { id:"h-revoke", type:"choice",
                 label:"Cut off what the stolen token can reach",
-                prompt:"What actually stops the attacker from using it?",
+                prompt:"The token the attacker grabbed is a bearer token for the VM's managed identity — what actually stops it from being useful?",
                 options:[
                   { key:"delete", label:"Delete the VM", correct:false, feedback:"Azure AD access tokens for a managed identity are bearer tokens — they stay valid until they naturally expire (commonly up to 24 hours), whether or not the VM or identity still exists." },
-                  { key:"unassign", label:"Remove the managed identity's role assignments on the resources it could reach", correct:true, feedback:"Removed — the token still exists, but it can no longer do anything, because the identity it belongs to no longer has permission to touch these resources." }
+                  { key:"unassign", label:"Remove the managed identity's role assignments on the resources it could reach", correct:true, feedback:"Removed — the token still exists, but it can no longer do anything, because the identity it belongs to no longer has permission to touch these resources." },
+                  { key:"disableidentity", label:"Disable the managed identity on the VM going forward", correct:false, feedback:"Disabling it on the VM stops new tokens from being minted, but the token already stolen is a bearer token that stays valid on its own until it naturally expires — that doesn't touch a token that already exists." }
                 ],
                 errorText:"The identity behind the stolen token can still access every resource it was assigned to — the token itself can't be individually revoked."
               },
@@ -2102,17 +2264,23 @@
                 ],
                 errorText:"You haven't confirmed this is actually metadata token theft — worth confirming before quarantining anything."
               },
-              { id:"h-isolate", type:"action",
-                label:"Apply a quarantine firewall rule that blocks all inbound and outbound traffic",
-                actionLabel:"Quarantine instance", loadingLabel:"Isolating…", doneLabel:"Instance isolated — no traffic in or out.", loadingMs:600,
+              { id:"h-isolate", type:"choice",
+                label:"Decide how to actually contain the instance",
+                prompt:"The instance needs to stop being useful to the attacker right now — which containment move is correct?",
+                options:[
+                  { key:"delete", label:"Delete the instance immediately", correct:false, feedback:"Deleting destroys the instance's disk, memory, and logs before anyone's confirmed what else the attacker touched — the same evidence-preservation problem as deleting a leaked credential." },
+                  { key:"quarantine", label:"Apply a quarantine firewall rule that blocks all inbound and outbound traffic", correct:true, feedback:"Isolated — no traffic in or out, but the instance itself, its disk, and its logs are all still intact for the investigation." },
+                  { key:"detachsa", label:"Just detach the service account from the instance", correct:false, feedback:"Detaching the service account stops this instance from minting new tokens, but it does nothing about the token the attacker already stole — and nothing to stop the instance from being used for anything else." }
+                ],
                 errorText:"The instance is still fully connected — whatever else is running on it can keep talking to the internet."
               },
               { id:"h-revoke", type:"choice",
                 label:"Cut off what the stolen token can reach",
-                prompt:"What actually stops the attacker from using it?",
+                prompt:"The token the attacker grabbed is a short-lived OAuth token tied to the instance's service account — what actually stops it from being useful?",
                 options:[
                   { key:"delete", label:"Delete the instance", correct:false, feedback:"The access token the attacker already grabbed is a short-lived OAuth token — it keeps working from anywhere until it naturally expires, whether or not this instance still exists." },
-                  { key:"unbind", label:"Remove the service account's IAM role bindings", correct:true, feedback:"Removed — the token still exists until it expires, but it can no longer do anything, because the service account it belongs to no longer has permission to touch these resources." }
+                  { key:"unbind", label:"Remove the service account's IAM role bindings", correct:true, feedback:"Removed — the token still exists until it expires, but it can no longer do anything, because the service account it belongs to no longer has permission to touch these resources." },
+                  { key:"detach", label:"Detach the service account from the instance going forward", correct:false, feedback:"Detaching it from the instance stops new tokens from being minted here, but the token already stolen keeps working on its own until it naturally expires — that doesn't touch a token that already exists." }
                 ],
                 errorText:"The service account behind the stolen token can still access every resource it's bound to — the token itself can't be individually revoked."
               },
@@ -2157,17 +2325,23 @@
                 ],
                 errorText:"You reacted without confirming this is actually a concurrency/throttling problem."
               },
-              { id:"h-dlq", type:"action",
+              { id:"h-dlq", type:"choice",
                 label:"Configure an on-failure destination for asynchronous invocations",
-                actionLabel:"Add destination", loadingLabel:"Configuring…", doneLabel:"On-failure destination configured — failed events now land in an SQS queue.", loadingMs:600,
+                prompt:"Which destination actually captures a failed event for later reprocessing?",
+                options:[
+                  { key:"dlq-sns", label:"An SNS topic with no subscriber yet", correct:false, feedback:"A valid destination type, but with nothing subscribed to it, the failed event's payload just evaporates the moment it's published — nobody's replaying anything from it." },
+                  { key:"dlq-sqs", label:"An SQS queue", correct:true, feedback:"Configured — failed events now land in a queue that holds them until someone, or something, explicitly processes them." },
+                  { key:"cloudwatch", label:"A CloudWatch Logs group", correct:false, feedback:"Lambda would just log that an invocation failed — the event payload itself isn't preserved anywhere reprocessable from a log line alone." }
+                ],
                 errorText:"Failed async invocations still have nowhere to go after they exhaust their retries — they're just gone."
               },
               { id:"h-concurrency", type:"choice",
                 label:"Stop the throttling itself",
-                prompt:"What actually stops the throttling?",
+                prompt:"Reserved concurrency isn't the only concurrency setting on this function — which change actually stops the throttling?",
                 options:[
-                  { key:"nothing", label:"Nothing — throttling is temporary and self-resolves", correct:false, feedback:"It doesn't resolve anything — it just keeps rejecting invocations above the concurrency limit for as long as traffic stays high." },
-                  { key:"concurrency", label:"Raise the function's reserved concurrency limit", correct:true, feedback:"Raised — the function can now run enough concurrent instances to keep up with this traffic level." }
+                  { key:"provisioned", label:"Add provisioned concurrency instead", correct:false, feedback:"Provisioned concurrency keeps instances warm to avoid cold starts — it doesn't raise the ceiling on how many concurrent invocations the function is allowed to run at all." },
+                  { key:"concurrency", label:"Raise the function's reserved concurrency limit", correct:true, feedback:"Raised — the function can now run enough concurrent instances to keep up with this traffic level." },
+                  { key:"timeout", label:"Increase the function's timeout setting", correct:false, feedback:"Timeout controls how long a single invocation is allowed to run — it has nothing to do with how many can run at once." }
                 ],
                 errorText:"Error: TooManyRequestsException — the function is still capped below what this traffic level needs."
               },
@@ -2210,17 +2384,23 @@
                 ],
                 errorText:"You reacted without confirming this is actually a throughput problem."
               },
-              { id:"h-dlq", type:"action",
+              { id:"h-dlq", type:"choice",
                 label:"Add monitoring and an alert on the poison queue",
-                actionLabel:"Monitor poison queue", loadingLabel:"Configuring…", doneLabel:"Alert configured on the poison queue — failed messages now get noticed.", loadingMs:600,
+                prompt:"Which alert configuration actually gets someone notified when messages land in the poison queue?",
+                options:[
+                  { key:"logonly", label:"Just enable verbose logging on the function app", correct:false, feedback:"Logging records that it happened, but nobody's watching logs in real time — a message can sit unnoticed in the poison queue for weeks with only logging turned on." },
+                  { key:"alert", label:"An alert rule on the poison queue's message count, with an action group that actually notifies someone", correct:true, feedback:"Configured — the moment a message lands in the poison queue, someone actually gets paged instead of finding out from a customer." },
+                  { key:"dashboard", label:"Add a chart to a dashboard nobody has set to auto-refresh or checks daily", correct:false, feedback:"A dashboard only helps if someone's actively looking at it — this is the same blind spot as before, just with a chart nobody's watching instead of a queue nobody's watching." }
+                ],
                 errorText:"The poison queue is filling up and nobody is watching it — failures are invisible."
               },
               { id:"h-concurrency", type:"choice",
                 label:"Stop the function from falling behind",
-                prompt:"What actually keeps it caught up?",
+                prompt:"The Consumption plan's max instance count isn't the only lever here — which change actually keeps this function caught up?",
                 options:[
-                  { key:"nothing", label:"Nothing — the Consumption plan scales infinitely on its own", correct:false, feedback:"It scales, but not infinitely — there's a real max instance ceiling per function app, and this workload is hitting it." },
-                  { key:"maxinstances", label:"Raise the function app's max instance count", correct:true, feedback:"Raised — the app can now scale out far enough to keep up with this traffic level." }
+                  { key:"premium-noop", label:"Switch to the Premium plan without changing any instance settings", correct:false, feedback:"Premium plan removes cold starts and adds pre-warmed instances, but without also raising the instance ceiling for this workload, it still hits the same scale-out limit under this traffic level." },
+                  { key:"maxinstances", label:"Raise the function app's max instance count", correct:true, feedback:"Raised — the app can now scale out far enough to keep up with this traffic level." },
+                  { key:"timeout", label:"Increase the function's timeout setting", correct:false, feedback:"Timeout controls how long a single execution is allowed to run — it has nothing to do with how many executions can run at once." }
                 ],
                 errorText:"The function app is still capped below what this traffic level needs — messages keep piling up faster than they're processed."
               },
@@ -2263,17 +2443,23 @@
                 ],
                 errorText:"You reacted without confirming this is actually a throughput problem."
               },
-              { id:"h-dlq", type:"action",
+              { id:"h-dlq", type:"choice",
                 label:"Configure a dead-letter topic on the subscription",
-                actionLabel:"Add dead-letter topic", loadingLabel:"Configuring…", doneLabel:"Dead-letter topic configured — messages that exhaust retries land there instead of vanishing.", loadingMs:600,
+                prompt:"Which configuration actually gets a failed message into a dead-letter topic instead of being dropped?",
+                options:[
+                  { key:"topiconly", label:"Create a dead-letter topic, but leave the subscription's max delivery attempts unset", correct:false, feedback:"Without a max delivery attempts value, Pub/Sub keeps retrying indefinitely instead of ever forwarding to the dead-letter topic — the topic exists but nothing ever reaches it." },
+                  { key:"full", label:"Create a dead-letter topic and set the subscription's max delivery attempts", correct:true, feedback:"Configured — messages that exceed the retry limit now land in the dead-letter topic instead of vanishing." },
+                  { key:"sub-only", label:"Point the dead-letter policy at another subscription instead of a topic", correct:false, feedback:"Pub/Sub's dead-letter policy forwards to a topic, not directly to a subscription — a subscription reads from a topic, it isn't a valid dead-letter target itself." }
+                ],
                 errorText:"Messages that exceed the subscription's retry limit still have nowhere to go — they're just gone."
               },
               { id:"h-concurrency", type:"choice",
                 label:"Stop the function from falling behind",
-                prompt:"What actually keeps it caught up?",
+                prompt:"Max instances isn't the only setting that limits throughput here — which change actually keeps this function caught up?",
                 options:[
-                  { key:"nothing", label:"Nothing — Cloud Functions scales infinitely on its own", correct:false, feedback:"It scales, but not infinitely — there's a real max instances setting, and this workload is hitting it." },
-                  { key:"maxinstances", label:"Raise the function's max instances setting", correct:true, feedback:"Raised — the function can now scale out far enough to keep up with this traffic level." }
+                  { key:"memory", label:"Increase the function's memory allocation without touching max instances", correct:false, feedback:"More memory can speed up a single execution, but it doesn't raise the ceiling on how many executions can run in parallel — the function is still capped at the same instance count." },
+                  { key:"maxinstances", label:"Raise the function's max instances setting", correct:true, feedback:"Raised — the function can now scale out far enough to keep up with this traffic level." },
+                  { key:"region", label:"Redeploy the function to a different region", correct:false, feedback:"Region affects latency and data residency, not how many concurrent instances this function is allowed to run." }
                 ],
                 errorText:"The function is still capped below what this traffic level needs — messages keep piling up faster than they're processed."
               },
@@ -2311,16 +2497,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm what's actually killing new instances",
-                prompt:"What does the instance's health check history show?",
+                prompt:"Health checks are failing before the app's own startup log even shows \"ready\" — before touching the grace period, which is it?",
                 options:[
                   { key:"appcrash", label:"The application is crashing on startup", correct:false, feedback:"The app logs show it starting up fine — just slowly. Not this." },
+                  { key:"toofew", label:"There aren't enough healthy instances to handle the load in the first place", correct:false, feedback:"Capacity dropping is a symptom of instances getting killed early, not the cause of it — that's not the root problem here." },
                   { key:"tooearly", label:"The health check runs before the app has finished starting up", correct:true, feedback:"That's it — the health check has no idea the app needs more time to start." }
                 ],
                 errorText:"You reacted without confirming why new instances are actually failing their health checks."
               },
-              { id:"h-grace", type:"action",
+              { id:"h-grace", type:"choice",
                 label:"Set a health check grace period long enough for the app to actually finish starting",
-                actionLabel:"Set grace period", loadingLabel:"Applying…", doneLabel:"Health check grace period extended — new instances get time to start before being judged.", loadingMs:600,
+                prompt:"The app's startup log shows it's consistently ready within 90 seconds — which grace period actually covers that reliably?",
+                options:[
+                  { key:"tooshort", label:"30 seconds", correct:false, feedback:"Shorter than the app's own typical startup time — instances would still get judged before they're ready on anything but an unusually fast boot." },
+                  { key:"right", label:"120 seconds", correct:true, feedback:"Set — that's comfortably past the app's typical 90-second startup, with margin for normal variance." },
+                  { key:"excessive", label:"600 seconds", correct:false, feedback:"Technically safe, but that's ten minutes before any health check runs at all — a genuinely crashed instance would sit in the group doing nothing, unnoticed, for the entire window." }
+                ],
                 errorText:"New instances are still being health-checked — and killed — before they've had a chance to finish starting up."
               },
               { id:"h-threshold", type:"choice",
@@ -2364,16 +2556,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm what's actually removing new instances",
-                prompt:"What does the instance's health history show?",
+                prompt:"Health probes are failing before the app's own startup log even shows \"ready\" — before touching the grace period, which is it?",
                 options:[
                   { key:"appcrash", label:"The application is crashing on startup", correct:false, feedback:"The app logs show it starting up fine — just slowly. Not this." },
+                  { key:"toofew", label:"There aren't enough healthy instances to handle the load in the first place", correct:false, feedback:"Capacity dropping is a symptom of instances getting removed early, not the cause of it — that's not the root problem here." },
                   { key:"tooearly", label:"The health probe runs before the app has finished starting up", correct:true, feedback:"That's it — the probe has no idea the app needs more time to start." }
                 ],
                 errorText:"You reacted without confirming why new instances are actually failing their health probe."
               },
-              { id:"h-grace", type:"action",
+              { id:"h-grace", type:"choice",
                 label:"Set the Application Health extension's grace period long enough for the app to actually finish starting",
-                actionLabel:"Set grace period", loadingLabel:"Applying…", doneLabel:"Grace period extended — new instances get time to start before being judged.", loadingMs:600,
+                prompt:"The app's startup log shows it's consistently ready within 90 seconds — which grace period actually covers that reliably?",
+                options:[
+                  { key:"tooshort", label:"30 seconds", correct:false, feedback:"Shorter than the app's own typical startup time — instances would still get judged before they're ready on anything but an unusually fast boot." },
+                  { key:"right", label:"120 seconds", correct:true, feedback:"Set — that's comfortably past the app's typical 90-second startup, with margin for normal variance." },
+                  { key:"excessive", label:"600 seconds", correct:false, feedback:"Technically safe, but that's ten minutes before any health probe runs at all — a genuinely crashed instance would sit in the set doing nothing, unnoticed, for the entire window." }
+                ],
                 errorText:"New instances are still being health-probed — and removed — before they've had a chance to finish starting up."
               },
               { id:"h-threshold", type:"choice",
@@ -2417,16 +2615,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm what's actually killing new instances",
-                prompt:"What does the instance's health check history show?",
+                prompt:"Health checks are failing before the app's own startup log even shows \"ready\" — before touching the initial delay, which is it?",
                 options:[
                   { key:"appcrash", label:"The application is crashing on startup", correct:false, feedback:"The app logs show it starting up fine — just slowly. Not this." },
+                  { key:"toofew", label:"There aren't enough healthy instances to handle the load in the first place", correct:false, feedback:"Capacity dropping is a symptom of instances getting recreated early, not the cause of it — that's not the root problem here." },
                   { key:"tooearly", label:"The health check runs before the app has finished starting up", correct:true, feedback:"That's it — the health check has no idea the app needs more time to start." }
                 ],
                 errorText:"You reacted without confirming why new instances are actually failing their health check."
               },
-              { id:"h-grace", type:"action",
+              { id:"h-grace", type:"choice",
                 label:"Set the health check's initial delay long enough for the app to actually finish starting",
-                actionLabel:"Set initial delay", loadingLabel:"Applying…", doneLabel:"Initial delay extended — new instances get time to start before being judged.", loadingMs:600,
+                prompt:"The app's startup log shows it's consistently ready within 90 seconds — which initial delay actually covers that reliably?",
+                options:[
+                  { key:"tooshort", label:"30 seconds", correct:false, feedback:"Shorter than the app's own typical startup time — instances would still get judged before they're ready on anything but an unusually fast boot." },
+                  { key:"right", label:"120 seconds", correct:true, feedback:"Set — that's comfortably past the app's typical 90-second startup, with margin for normal variance." },
+                  { key:"excessive", label:"600 seconds", correct:false, feedback:"Technically safe, but that's ten minutes before any health check runs at all — a genuinely crashed instance would sit in the group doing nothing, unnoticed, for the entire window." }
+                ],
                 errorText:"New instances are still being health-checked — and recreated — before they've had a chance to finish starting up."
               },
               { id:"h-threshold", type:"choice",
@@ -2475,17 +2679,23 @@
                 actionLabel:"Check event log", loadingLabel:"Checking…", doneLabel:"Confirmed: the new environment variable broke the app's startup on every instance simultaneously.", loadingMs:500,
                 errorText:"Nobody's confirmed what actually broke — worth a look before rolling back blind."
               },
-              { id:"h-rollback", type:"action",
+              { id:"h-rollback", type:"choice",
                 label:"Roll back to the previous application version",
-                actionLabel:"Roll back", loadingLabel:"Rolling back…", doneLabel:"Rolled back — the environment is running the last known-good version again.", loadingMs:600,
+                prompt:"Rolling back needs to target the right version — which one is actually the last known-good?",
+                options:[
+                  { key:"skip1", label:"v47 — one version before the current one", correct:false, feedback:"v47 was already a partial rollout of a config flag suspected in an unrelated, still-open memory-leak ticket — rolling back to it trades this problem for a different one." },
+                  { key:"v46", label:"v46 — the version before the environment variable was added", correct:true, feedback:"Rolled back — v46 predates the change that broke startup, and has been running clean in a lower environment for two weeks." },
+                  { key:"latest-minus-config", label:"The current version, with the new environment variable manually removed", correct:false, feedback:"That still deploys the same untested version binary with a hand-edited config — a valid emergency move in some shops, but not the same as returning to a version that's actually been verified end-to-end." }
+                ],
                 errorText:"The environment is still running the version that broke it."
               },
               { id:"h-policy", type:"choice",
                 label:"Pick a deployment policy that wouldn't have let this happen",
-                prompt:"Which policy actually limits the blast radius of a bad deploy?",
+                prompt:"Elastic Beanstalk has more than one policy that isn't \"All at once\" — which one actually stops a bad version from ever touching live traffic?",
                 options:[
-                  { key:"allatonce", label:"Keep \"All at once\"", correct:false, feedback:"That's exactly the policy that turned one bad environment variable into a total outage in seconds." },
-                  { key:"immutable", label:"Switch to \"Immutable\"", correct:true, feedback:"Immutable deploys a full new set of instances alongside the old ones and only swaps traffic over after they pass health checks — a bad version never touches live traffic." }
+                  { key:"rolling", label:"Switch to \"Rolling\"", correct:false, feedback:"Rolling updates a batch of instances at a time, but each batch goes live immediately, in place, with no health-gated swap — a bad version still serves real traffic while the rest of the fleet catches up." },
+                  { key:"immutable", label:"Switch to \"Immutable\"", correct:true, feedback:"Immutable deploys a full new set of instances alongside the old ones and only swaps traffic over after they pass health checks — a bad version never touches live traffic." },
+                  { key:"allatonce", label:"Keep \"All at once\"", correct:false, feedback:"That's exactly the policy that turned one bad environment variable into a total outage in seconds." }
                 ],
                 errorText:"The deployment policy is still \"All at once\" — the next bad deploy will take down every instance again, together."
               },
@@ -2524,17 +2734,23 @@
                 actionLabel:"Check deployment log", loadingLabel:"Checking…", doneLabel:"Confirmed: the new app setting broke the app's startup on every instance simultaneously.", loadingMs:500,
                 errorText:"Nobody's confirmed what actually broke — worth a look before rolling back blind."
               },
-              { id:"h-rollback", type:"action",
+              { id:"h-rollback", type:"choice",
                 label:"Swap back to the previous production version",
-                actionLabel:"Swap back", loadingLabel:"Swapping…", doneLabel:"Swapped back — production is running the last known-good version again.", loadingMs:600,
+                prompt:"Swapping back needs to target the right slot — which one actually has the last known-good version?",
+                options:[
+                  { key:"emptyslot", label:"A freshly created, empty staging slot", correct:false, feedback:"An empty slot has no app deployed to it at all — swapping into it would take production down entirely, not restore it." },
+                  { key:"staging", label:"The staging slot, which still has the version from before this deploy", correct:true, feedback:"Swapped — the staging slot was holding the previous, known-good version, and it's now back in production." },
+                  { key:"redeploy", label:"Redeploy the current broken version to a new slot and swap into that", correct:false, feedback:"That just puts the same broken build behind a different slot name — nothing about the actual code or config has changed." }
+                ],
                 errorText:"Production is still running the version that broke it."
               },
               { id:"h-policy", type:"choice",
                 label:"Pick a deployment approach that wouldn't have let this happen",
-                prompt:"Which approach actually limits the blast radius of a bad deploy?",
+                prompt:"App Service has more than one way to avoid deploying straight to production — which one actually stops a bad version from ever serving live traffic unverified?",
                 options:[
-                  { key:"direct", label:"Keep deploying straight to the production slot", correct:false, feedback:"That's exactly what turned one bad config change into a total outage in seconds." },
-                  { key:"slot", label:"Deploy to a staging slot first, verify it, then swap", correct:true, feedback:"A staging slot lets you verify the new version behind the scenes — a bad version never touches live traffic until someone confirms it's actually healthy." }
+                  { key:"autoswap", label:"Turn on auto swap from staging to production", correct:false, feedback:"Auto swap removes the manual approval step entirely — it deploys to staging and swaps into production automatically, with no human or health check verifying it first. That's faster, not safer." },
+                  { key:"slot", label:"Deploy to a staging slot first, verify it, then swap manually", correct:true, feedback:"A staging slot lets you verify the new version behind the scenes — a bad version never touches live traffic until someone confirms it's actually healthy." },
+                  { key:"direct", label:"Keep deploying straight to the production slot", correct:false, feedback:"That's exactly what turned one bad config change into a total outage in seconds." }
                 ],
                 errorText:"Deploys are still going straight to production — the next bad config change will take the whole app down again."
               },
@@ -2573,17 +2789,23 @@
                 actionLabel:"Check logs", loadingLabel:"Checking…", doneLabel:"Confirmed: the new environment variable broke the app's startup on every instance simultaneously.", loadingMs:500,
                 errorText:"Nobody's confirmed what actually broke — worth a look before rolling back blind."
               },
-              { id:"h-rollback", type:"action",
+              { id:"h-rollback", type:"choice",
                 label:"Shift traffic back to the previous version",
-                actionLabel:"Shift traffic back", loadingLabel:"Shifting…", doneLabel:"Traffic shifted back — the app is running the last known-good version again.", loadingMs:600,
+                prompt:"Shifting traffic back needs to target the right version — which one is actually the last known-good?",
+                options:[
+                  { key:"skip1", label:"The version deployed just before this one, already flagged in an unrelated, still-open memory-leak investigation", correct:false, feedback:"That version trades this problem for a different one that's already under investigation." },
+                  { key:"lastgood", label:"The version that was serving 100% of traffic right before this deploy", correct:true, feedback:"Shifted — that's the version that was actually healthy and serving all traffic right before this deploy broke things." },
+                  { key:"redeploy", label:"Redeploy the current broken version with the config value manually edited", correct:false, feedback:"That still deploys an unverified new version — a valid emergency move in some cases, but not the same as returning traffic to a version that's already proven healthy." }
+                ],
                 errorText:"Traffic is still going to the version that broke it."
               },
               { id:"h-policy", type:"choice",
                 label:"Pick a rollout approach that wouldn't have let this happen",
-                prompt:"Which approach actually limits the blast radius of a bad deploy?",
+                prompt:"App Engine has more than one way to avoid an instant 100% shift — which one actually limits how much traffic a bad version can reach before anyone notices?",
                 options:[
-                  { key:"allatonce", label:"Keep shifting 100% of traffic to a new version immediately", correct:false, feedback:"That's exactly what turned one bad config change into a total outage in seconds." },
-                  { key:"split", label:"Split traffic gradually between the old and new version, and watch it before going to 100%", correct:true, feedback:"A gradual traffic split means a bad version only ever sees a small slice of real traffic before anyone commits to it fully." }
+                  { key:"promote-immediately", label:"Deploy with --promote so the new version takes traffic instantly", correct:false, feedback:"--promote is exactly what shifts 100% of traffic to the new version the moment it deploys — that's the behavior causing this outage, not a fix for it." },
+                  { key:"split", label:"Split traffic gradually between the old and new version, and watch it before going to 100%", correct:true, feedback:"A gradual traffic split means a bad version only ever sees a small slice of real traffic before anyone commits to it fully." },
+                  { key:"allatonce", label:"Keep shifting 100% of traffic to a new version immediately", correct:false, feedback:"That's exactly what turned one bad config change into a total outage in seconds." }
                 ],
                 errorText:"Deploys are still shifting 100% of traffic at once — the next bad config change will take the whole app down again."
               },
@@ -2621,16 +2843,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm why this actually happened",
-                prompt:"What's really going on?",
+                prompt:"Before touching the cache config — what does it actually mean that a different user got the exact same bytes back?",
                 options:[
                   { key:"dbbug", label:"The application's database has a bug mixing up accounts", correct:false, feedback:"The database returns the right data for the right request — the problem is what happens after that." },
+                  { key:"race", label:"A race condition in the application let two requests overwrite each other's session", correct:false, feedback:"A session race would corrupt one specific request's own data — it wouldn't hand two different users the literal same cached response bytes." },
                   { key:"cachekey", label:"CloudFront's cache key doesn't vary by user — it treats every request to this URL as identical", correct:true, feedback:"That's it — the first user's personalized response got cached, and CloudFront has been serving it to everyone else who hits the same URL since." }
                 ],
                 errorText:"You haven't confirmed why this is actually happening — worth confirming before touching the cache config."
               },
-              { id:"h-headers", type:"action",
+              { id:"h-headers", type:"choice",
                 label:"Update the origin to mark this response as private and not cacheable",
-                actionLabel:"Fix response headers", loadingLabel:"Updating…", doneLabel:"Origin now sends Cache-Control: private, no-store on this response — each user gets their own live response.", loadingMs:600,
+                prompt:"Which response header configuration actually stops this?",
+                options:[
+                  { key:"maxage0", label:"Cache-Control: max-age=0", correct:false, feedback:"max-age=0 tells a cache to revalidate before reuse, but the response can still be stored and shared between users — that's not the same as refusing to store it at all." },
+                  { key:"private-nostore", label:"Cache-Control: private, no-store", correct:true, feedback:"Set — private tells any shared cache this response belongs to one user, and no-store means it's never written to the cache at all." },
+                  { key:"etag-only", label:"Add an ETag but leave Cache-Control unset", correct:false, feedback:"An ETag helps a cache validate whether its own copy is still fresh — it does nothing to stop that one shared copy from being handed to every other user in the first place." }
+                ],
                 errorText:"This response is still being cached and served to whichever user asks for that URL next, whether it's theirs or not."
               },
               { id:"h-invalidate", type:"choice",
@@ -2674,16 +2902,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm why this actually happened",
-                prompt:"What's really going on?",
+                prompt:"Before touching the cache config — what does it actually mean that a different user got the exact same bytes back?",
                 options:[
                   { key:"dbbug", label:"The application's database has a bug mixing up accounts", correct:false, feedback:"The database returns the right data for the right request — the problem is what happens after that." },
+                  { key:"race", label:"A race condition in the application let two requests overwrite each other's session", correct:false, feedback:"A session race would corrupt one specific request's own data — it wouldn't hand two different users the literal same cached response bytes." },
                   { key:"cachekey", label:"Front Door's cache key doesn't vary by user — it treats every request to this URL as identical", correct:true, feedback:"That's it — the first user's personalized response got cached, and Front Door has been serving it to everyone else who hits the same URL since." }
                 ],
                 errorText:"You haven't confirmed why this is actually happening — worth confirming before touching the cache config."
               },
-              { id:"h-headers", type:"action",
+              { id:"h-headers", type:"choice",
                 label:"Update the origin to mark this response as private and not cacheable",
-                actionLabel:"Fix response headers", loadingLabel:"Updating…", doneLabel:"Origin now sends Cache-Control: private, no-store on this response — each user gets their own live response.", loadingMs:600,
+                prompt:"Which response header configuration actually stops this?",
+                options:[
+                  { key:"maxage0", label:"Cache-Control: max-age=0", correct:false, feedback:"max-age=0 tells a cache to revalidate before reuse, but the response can still be stored and shared between users — that's not the same as refusing to store it at all." },
+                  { key:"private-nostore", label:"Cache-Control: private, no-store", correct:true, feedback:"Set — private tells any shared cache this response belongs to one user, and no-store means it's never written to the cache at all." },
+                  { key:"etag-only", label:"Add an ETag but leave Cache-Control unset", correct:false, feedback:"An ETag helps a cache validate whether its own copy is still fresh — it does nothing to stop that one shared copy from being handed to every other user in the first place." }
+                ],
                 errorText:"This response is still being cached and served to whichever user asks for that URL next, whether it's theirs or not."
               },
               { id:"h-invalidate", type:"choice",
@@ -2727,16 +2961,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm why this actually happened",
-                prompt:"What's really going on?",
+                prompt:"Before touching the cache config — what does it actually mean that a different user got the exact same bytes back?",
                 options:[
                   { key:"dbbug", label:"The application's database has a bug mixing up accounts", correct:false, feedback:"The database returns the right data for the right request — the problem is what happens after that." },
+                  { key:"race", label:"A race condition in the application let two requests overwrite each other's session", correct:false, feedback:"A session race would corrupt one specific request's own data — it wouldn't hand two different users the literal same cached response bytes." },
                   { key:"cachekey", label:"Cloud CDN's default cache key is just scheme, host, path, and query — it doesn't vary by cookie or user at all", correct:true, feedback:"That's it — and unlike some other CDNs, Cloud CDN has no built-in way to key by a header or cookie, so the first user's personalized response got cached and served to everyone else who hit the same URL since." }
                 ],
                 errorText:"You haven't confirmed why this is actually happening — worth confirming before touching the cache config."
               },
-              { id:"h-headers", type:"action",
+              { id:"h-headers", type:"choice",
                 label:"Update the origin to mark this response as private and not cacheable",
-                actionLabel:"Fix response headers", loadingLabel:"Updating…", doneLabel:"Origin now sends Cache-Control: private, no-store on this response — Cloud CDN respects it and stops caching this response.", loadingMs:600,
+                prompt:"Which response header configuration actually stops this?",
+                options:[
+                  { key:"maxage0", label:"Cache-Control: max-age=0", correct:false, feedback:"max-age=0 tells a cache to revalidate before reuse, but the response can still be stored and shared between users — that's not the same as refusing to store it at all." },
+                  { key:"private-nostore", label:"Cache-Control: private, no-store", correct:true, feedback:"Set — private tells Cloud CDN this response belongs to one user, and no-store means it's never written to the cache at all." },
+                  { key:"etag-only", label:"Add an ETag but leave Cache-Control unset", correct:false, feedback:"An ETag helps a cache validate whether its own copy is still fresh — it does nothing to stop that one shared copy from being handed to every other user in the first place." }
+                ],
                 errorText:"This response is still being cached and served to whichever user asks for that URL next, whether it's theirs or not."
               },
               { id:"h-invalidate", type:"choice",
@@ -2776,14 +3016,24 @@
               }
             ],
             hardSteps:[
-              { id:"h-diagnose", type:"action",
+              { id:"h-diagnose", type:"choice",
                 label:"Check the item's version history for a discarded write",
-                actionLabel:"Check history", loadingLabel:"Checking…", doneLabel:"Confirmed — one region's write silently lost to the other's, purely based on timestamp.", loadingMs:600,
+                prompt:"The item's current value matches one region's write — what does the version history actually need to confirm before you touch anything?",
+                options:[
+                  { key:"assume", label:"Nothing — whichever value is there now must be the correct one", correct:false, feedback:"That's exactly the assumption that lets a silently discarded write stay lost forever — the current value is just whichever write happened to have the later timestamp, not necessarily the one that should have won." },
+                  { key:"history", label:"Whether the version history actually shows a second, discarded write for this item during the partition window", correct:true, feedback:"Confirmed — one region's write silently lost to the other's, purely based on timestamp." },
+                  { key:"replica", label:"Whether a read replica has a different value than the primary", correct:false, feedback:"A replica lagging behind the primary is a separate, normal replication-lag issue — it doesn't tell you whether a write was actually discarded during the partition." }
+                ],
                 errorText:"Nobody's confirmed a write was actually lost — worth checking before assuming the current value is correct."
               },
-              { id:"h-recover", type:"action",
+              { id:"h-recover", type:"choice",
                 label:"Recover the discarded write from the table's change stream before it ages out",
-                actionLabel:"Recover from stream", loadingLabel:"Recovering…", doneLabel:"Recovered — the losing write has been pulled from the stream before its retention window closed.", loadingMs:600,
+                prompt:"Which source actually still has the discarded write available to recover?",
+                options:[
+                  { key:"currentitem", label:"Read the item's current value again, more carefully this time", correct:false, feedback:"The current value is the write that won the conflict — it was never the one that got discarded. Reading it again doesn't recover anything." },
+                  { key:"stream", label:"The table's change stream, within its retention window", correct:true, feedback:"Recovered — the losing write has been pulled from the stream before its retention window closed." },
+                  { key:"backup", label:"Restore the entire table from last night's backup", correct:false, feedback:"A full table restore would roll back every other item's writes since last night too — a wildly disproportionate way to recover one discarded write on one item." }
+                ],
                 errorText:"The losing write only exists in the stream for a limited retention window — after that, it's gone for good."
               },
               { id:"h-strategy", type:"choice",
@@ -2821,14 +3071,24 @@
               }
             ],
             hardSteps:[
-              { id:"h-diagnose", type:"action",
+              { id:"h-diagnose", type:"choice",
                 label:"Check the container's conflicts feed for a discarded write",
-                actionLabel:"Check conflicts feed", loadingLabel:"Checking…", doneLabel:"Confirmed — one region's write silently lost to the other's, purely based on timestamp.", loadingMs:600,
+                prompt:"The item's current value matches one region's write — what does the conflicts feed actually need to confirm before you touch anything?",
+                options:[
+                  { key:"assume", label:"Nothing — whichever value is there now must be the correct one", correct:false, feedback:"That's exactly the assumption that lets a silently discarded write stay lost forever — the current value is just whichever write happened to have the later timestamp, not necessarily the one that should have won." },
+                  { key:"history", label:"Whether the conflicts feed actually shows a second, discarded write for this item during the partition window", correct:true, feedback:"Confirmed — one region's write silently lost to the other's, purely based on timestamp." },
+                  { key:"replica", label:"Whether a secondary read region has a different value than the primary", correct:false, feedback:"A secondary region lagging behind is a separate, normal replication-lag issue — it doesn't tell you whether a write was actually discarded during the partition." }
+                ],
                 errorText:"Nobody's confirmed a write was actually lost — worth checking before assuming the current value is correct."
               },
-              { id:"h-recover", type:"action",
+              { id:"h-recover", type:"choice",
                 label:"Recover the discarded write from the conflicts feed before it ages out",
-                actionLabel:"Recover from conflicts feed", loadingLabel:"Recovering…", doneLabel:"Recovered — the losing write has been pulled from the conflicts feed before it expired.", loadingMs:600,
+                prompt:"Which source actually still has the discarded write available to recover?",
+                options:[
+                  { key:"currentitem", label:"Read the item's current value again, more carefully this time", correct:false, feedback:"The current value is the write that won the conflict — it was never the one that got discarded. Reading it again doesn't recover anything." },
+                  { key:"stream", label:"The container's conflicts feed, within its retention window", correct:true, feedback:"Recovered — the losing write has been pulled from the conflicts feed before it expired." },
+                  { key:"backup", label:"Restore the entire container from last night's backup", correct:false, feedback:"A full container restore would roll back every other item's writes since last night too — a wildly disproportionate way to recover one discarded write on one item." }
+                ],
                 errorText:"The losing write only stays in the conflicts feed for a limited window — after that, it's gone for good."
               },
               { id:"h-strategy", type:"choice",
@@ -2866,14 +3126,24 @@
               }
             ],
             hardSteps:[
-              { id:"h-diagnose", type:"action",
+              { id:"h-diagnose", type:"choice",
                 label:"Check the document's audit history for a discarded write",
-                actionLabel:"Check audit history", loadingLabel:"Checking…", doneLabel:"Confirmed — one region's write silently lost to the other's, purely based on timestamp.", loadingMs:600,
+                prompt:"The document's current value matches one region's write — what does the audit history actually need to confirm before you touch anything?",
+                options:[
+                  { key:"assume", label:"Nothing — whichever value is there now must be the correct one", correct:false, feedback:"That's exactly the assumption that lets a silently discarded write stay lost forever — the current value is just whichever write happened to have the later timestamp, not necessarily the one that should have won." },
+                  { key:"history", label:"Whether the audit history actually shows a second, discarded write for this document during the partition window", correct:true, feedback:"Confirmed — one region's write silently lost to the other's, purely based on timestamp." },
+                  { key:"replica", label:"Whether a different Firestore region has a different value", correct:false, feedback:"A region lagging behind is a separate, normal replication-lag issue — it doesn't tell you whether a write was actually discarded during the partition." }
+                ],
                 errorText:"Nobody's confirmed a write was actually lost — worth checking before assuming the current value is correct."
               },
-              { id:"h-recover", type:"action",
+              { id:"h-recover", type:"choice",
                 label:"Recover the discarded write from the export before it's gone",
-                actionLabel:"Recover write", loadingLabel:"Recovering…", doneLabel:"Recovered — the losing write has been pulled and reconciled.", loadingMs:600,
+                prompt:"Which source actually still has the discarded write available to recover?",
+                options:[
+                  { key:"currentitem", label:"Read the document's current value again, more carefully this time", correct:false, feedback:"The current value is the write that won the conflict — it was never the one that got discarded. Reading it again doesn't recover anything." },
+                  { key:"stream", label:"The audit history export, within its retention window", correct:true, feedback:"Recovered — the losing write has been pulled and reconciled." },
+                  { key:"backup", label:"Restore the entire database from last night's backup", correct:false, feedback:"A full database restore would roll back every other document's writes since last night too — a wildly disproportionate way to recover one discarded write on one document." }
+                ],
                 errorText:"The losing write is only recoverable for a limited window — after that, it's gone for good."
               },
               { id:"h-strategy", type:"choice",
@@ -2919,9 +3189,10 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm why split-brain was even possible here",
-                prompt:"What actually let two nodes both think they were primary?",
+                prompt:"Before changing anything — which specific condition made a 50/50 split ambiguous, instead of the cluster just correctly refusing to elect any primary at all?",
                 options:[
                   { key:"slow", label:"The nodes were just slow to respond", correct:false, feedback:"Slowness alone doesn't create two primaries — something let both sides independently decide they had quorum." },
+                  { key:"noquorum", label:"Quorum wasn't required for write acceptance at all", correct:false, feedback:"Quorum-based writes were in fact required — that's exactly why each side needed to believe it held the majority. The problem is that each side's math for what counts as \"the majority\" allowed a tie." },
                   { key:"tie", label:"An even node count split evenly across two zones means a partition can tie 50/50, with neither side able to tell it lacks quorum", correct:true, feedback:"That's it — with an even split, both halves of the partition can convince themselves they're the majority." }
                 ],
                 errorText:"You haven't confirmed why split-brain was possible here — worth understanding before changing the cluster's shape."
@@ -2972,9 +3243,10 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm why split-brain was even possible here",
-                prompt:"What actually let two nodes both think they were primary?",
+                prompt:"Before changing anything — which specific condition made a 50/50 split ambiguous, instead of the cluster just correctly refusing to elect any primary at all?",
                 options:[
                   { key:"slow", label:"The nodes were just slow to respond", correct:false, feedback:"Slowness alone doesn't create two primaries — something let both sides independently decide they had quorum." },
+                  { key:"noquorum", label:"Quorum wasn't required for write acceptance at all", correct:false, feedback:"Quorum-based writes were in fact required — that's exactly why each side needed to believe it held the majority. The problem is that each side's math for what counts as \"the majority\" allowed a tie." },
                   { key:"tie", label:"An even node count split evenly across two zones means a partition can tie 50/50, with neither side able to tell it lacks quorum", correct:true, feedback:"That's it — with an even split, both halves of the partition can convince themselves they're the majority." }
                 ],
                 errorText:"You haven't confirmed why split-brain was possible here — worth understanding before changing the cluster's shape."
@@ -3025,9 +3297,10 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm why split-brain was even possible here",
-                prompt:"What actually let two nodes both think they were primary?",
+                prompt:"Before changing anything — which specific condition made a 50/50 split ambiguous, instead of the cluster just correctly refusing to elect any primary at all?",
                 options:[
                   { key:"slow", label:"The nodes were just slow to respond", correct:false, feedback:"Slowness alone doesn't create two primaries — something let both sides independently decide they had quorum." },
+                  { key:"noquorum", label:"Quorum wasn't required for write acceptance at all", correct:false, feedback:"Quorum-based writes were in fact required — that's exactly why each side needed to believe it held the majority. The problem is that each side's math for what counts as \"the majority\" allowed a tie." },
                   { key:"tie", label:"An even node count split evenly across two zones means a partition can tie 50/50, with neither side able to tell it lacks quorum", correct:true, feedback:"That's it — with an even split, both halves of the partition can convince themselves they're the majority." }
                 ],
                 errorText:"You haven't confirmed why split-brain was possible here — worth understanding before changing the cluster's shape."
@@ -3080,16 +3353,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm why this subscriber is missing everything",
-                prompt:"What does the subscription's configuration show?",
+                prompt:"Before touching the filter policy — what does the subscription's configuration actually need to show first?",
                 options:[
                   { key:"topicbroken", label:"The topic itself isn't actually publishing", correct:false, feedback:"The topic's publish count keeps climbing — messages are going out. The problem is on the receiving end." },
+                  { key:"permission", label:"The queue's access policy doesn't allow the SNS topic to send it messages", correct:false, feedback:"A missing access policy would show up as explicit delivery failures in the topic's delivery status logs, not as a subscription that's silently never even attempted." },
                   { key:"filter", label:"The subscription's filter policy excludes every message this topic actually sends", correct:true, feedback:"That's it — the filter policy is scoped so narrowly that nothing published here ever matches it." }
                 ],
                 errorText:"You haven't confirmed why this subscriber is missing everything — worth checking before assuming the topic is broken."
               },
-              { id:"h-filter", type:"action",
+              { id:"h-filter", type:"choice",
                 label:"Fix the subscription's filter policy so it actually matches this topic's real messages",
-                actionLabel:"Fix filter policy", loadingLabel:"Updating…", doneLabel:"Filter policy corrected — this queue now receives the messages it's supposed to.", loadingMs:600,
+                prompt:"Which filter policy change actually lets this topic's real messages through?",
+                options:[
+                  { key:"removeall", label:"Delete the filter policy entirely", correct:false, feedback:"That works, but it also means this queue now receives every message on the topic, including ones it was never meant to handle — a much bigger change than fixing the actual mismatch." },
+                  { key:"widen", label:"Update the filter policy's attribute values to match what this topic's messages actually carry", correct:true, feedback:"Corrected — this queue now receives the messages it's supposed to, and only those." },
+                  { key:"addOR", label:"Add a second, unrelated filter policy in parallel and keep the broken one active too", correct:false, feedback:"SNS evaluates a subscription's filter policy as a single set of conditions — adding an unrelated second policy alongside the broken one doesn't fix what the broken one is excluding." }
+                ],
                 errorText:"The filter policy still excludes the messages this subscriber is supposed to receive."
               },
               { id:"h-dlq", type:"choice",
@@ -3133,16 +3412,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm why this subscription is missing everything",
-                prompt:"What does the subscription's configuration show?",
+                prompt:"Before touching the filter — what does the subscription's configuration actually need to show first?",
                 options:[
                   { key:"topicbroken", label:"The topic itself isn't actually receiving messages", correct:false, feedback:"The topic's incoming message count keeps climbing — messages are arriving. The problem is on the receiving end." },
+                  { key:"permission", label:"The subscription's authorization rule doesn't have Listen permission", correct:false, feedback:"A missing Listen permission would show up as an authorization error when a client tries to receive — not as a subscription that looks healthy but never gets a matching message in the first place." },
                   { key:"filter", label:"The subscription's SQL filter excludes every message this topic actually carries", correct:true, feedback:"That's it — the filter is scoped so narrowly that nothing sent here ever matches it." }
                 ],
                 errorText:"You haven't confirmed why this subscription is missing everything — worth checking before assuming the topic is broken."
               },
-              { id:"h-filter", type:"action",
+              { id:"h-filter", type:"choice",
                 label:"Fix the subscription's filter so it actually matches this topic's real messages",
-                actionLabel:"Fix filter rule", loadingLabel:"Updating…", doneLabel:"Filter rule corrected — this subscription now receives the messages it's supposed to.", loadingMs:600,
+                prompt:"Which filter change actually lets this topic's real messages through?",
+                options:[
+                  { key:"removeall", label:"Delete the SQL filter rule entirely", correct:false, feedback:"That works, but it also means this subscription now receives every message on the topic, including ones it was never meant to handle — a much bigger change than fixing the actual mismatch." },
+                  { key:"widen", label:"Update the SQL filter's condition to match what this topic's messages actually carry", correct:true, feedback:"Corrected — this subscription now receives the messages it's supposed to, and only those." },
+                  { key:"addOR", label:"Add a second, unrelated filter rule in parallel and keep the broken one active too", correct:false, feedback:"A subscription can have multiple rules, but each one is still evaluated on its own — adding an unrelated second rule doesn't fix what the broken one is excluding." }
+                ],
                 errorText:"The filter still excludes the messages this subscription is supposed to receive."
               },
               { id:"h-dlq", type:"choice",
@@ -3186,16 +3471,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Confirm why this subscription is missing everything",
-                prompt:"What does the subscription's configuration show?",
+                prompt:"Before touching the filter — what does the subscription's configuration actually need to show first?",
                 options:[
                   { key:"topicbroken", label:"The topic itself isn't actually receiving messages", correct:false, feedback:"The topic's incoming message count keeps climbing — messages are arriving. The problem is on the receiving end." },
+                  { key:"permission", label:"The subscription's service account doesn't have the Pub/Sub Subscriber role", correct:false, feedback:"A missing Subscriber role would show up as a permission-denied error when pulling messages — not as a subscription that looks healthy but never gets a matching message in the first place." },
                   { key:"filter", label:"The subscription's filter expression excludes every message this topic actually carries", correct:true, feedback:"That's it — the filter is scoped so narrowly that nothing published here ever matches it." }
                 ],
                 errorText:"You haven't confirmed why this subscription is missing everything — worth checking before assuming the topic is broken."
               },
-              { id:"h-filter", type:"action",
+              { id:"h-filter", type:"choice",
                 label:"Fix the subscription's filter so it actually matches this topic's real messages",
-                actionLabel:"Fix filter expression", loadingLabel:"Updating…", doneLabel:"Filter expression corrected — this subscription now receives the messages it's supposed to.", loadingMs:600,
+                prompt:"Which filter change actually lets this topic's real messages through?",
+                options:[
+                  { key:"removeall", label:"Recreate the subscription with no filter expression at all", correct:false, feedback:"That works, but it also means this subscription now receives every message on the topic, including ones it was never meant to handle — a much bigger change than fixing the actual mismatch." },
+                  { key:"widen", label:"Update the filter expression's attribute match to what this topic's messages actually carry", correct:true, feedback:"Corrected — this subscription now receives the messages it's supposed to, and only those." },
+                  { key:"addOR", label:"Create a second subscription with a different filter and leave the broken one active too", correct:false, feedback:"A second subscription would receive its own separate copy of matching messages — it doesn't fix what the original, broken subscription is still excluding." }
+                ],
                 errorText:"The filter still excludes the messages this subscription is supposed to receive."
               },
               { id:"h-dlq", type:"choice",
@@ -3241,9 +3532,10 @@
             hardSteps:[
               { id:"h-method", type:"choice",
                 label:"Pick the right transfer method for this",
-                prompt:"How should this data actually move?",
+                prompt:"Before ordering anything — which method actually fits both the 2-week deadline and the fact that the link is shared with other traffic?",
                 options:[
                   { key:"network", label:"Transfer it over the existing internet connection", correct:false, feedback:"At 100 Mbps, 250TB would take roughly 230+ days — nowhere close to the 2-week deadline." },
+                  { key:"compress", label:"Compress the data first, then transfer it over the same connection", correct:false, feedback:"Most of this data is already-compressed media and backups — realistic compression ratios wouldn't get 250TB anywhere near small enough to fit a 2-week window at 100 Mbps." },
                   { key:"snowball", label:"Order physical Snowball Edge devices", correct:true, feedback:"A device can move this in days, not months — completely independent of the site's internet bandwidth." }
                 ],
                 errorText:"At this bandwidth, the transfer alone blows past the deadline before it's even a third done."
@@ -3294,9 +3586,10 @@
             hardSteps:[
               { id:"h-method", type:"choice",
                 label:"Pick the right transfer method for this",
-                prompt:"How should this data actually move?",
+                prompt:"Before ordering anything — which method actually fits both the 2-week deadline and the fact that the link is shared with other traffic?",
                 options:[
                   { key:"network", label:"Transfer it over the existing internet connection", correct:false, feedback:"At 100 Mbps, 250TB would take roughly 230+ days — nowhere close to the 2-week deadline." },
+                  { key:"compress", label:"Compress the data first, then transfer it over the same connection", correct:false, feedback:"Most of this data is already-compressed media and backups — realistic compression ratios wouldn't get 250TB anywhere near small enough to fit a 2-week window at 100 Mbps." },
                   { key:"databox", label:"Order physical Data Box devices", correct:true, feedback:"A device can move this in days, not months — completely independent of the site's internet bandwidth." }
                 ],
                 errorText:"At this bandwidth, the transfer alone blows past the deadline before it's even a third done."
@@ -3347,9 +3640,10 @@
             hardSteps:[
               { id:"h-method", type:"choice",
                 label:"Pick the right transfer method for this",
-                prompt:"How should this data actually move?",
+                prompt:"Before ordering anything — which method actually fits both the 2-week deadline and the fact that the link is shared with other traffic?",
                 options:[
                   { key:"network", label:"Transfer it over the existing internet connection", correct:false, feedback:"At 100 Mbps, 250TB would take roughly 230+ days — nowhere close to the 2-week deadline." },
+                  { key:"compress", label:"Compress the data first, then transfer it over the same connection", correct:false, feedback:"Most of this data is already-compressed media and backups — realistic compression ratios wouldn't get 250TB anywhere near small enough to fit a 2-week window at 100 Mbps." },
                   { key:"appliance", label:"Order physical Transfer Appliance devices", correct:true, feedback:"A device can move this in days, not months — completely independent of the site's internet bandwidth." }
                 ],
                 errorText:"At this bandwidth, the transfer alone blows past the deadline before it's even a third done."
@@ -3411,9 +3705,10 @@
               },
               { id:"h-choice", type:"choice",
                 label:"Decide how to get this patch through right now",
-                prompt:"What's actually the safe move?",
+                prompt:"With flakiness confirmed — what's actually the safe move for this specific patch?",
                 options:[
                   { key:"disable", label:"Disable the test stage entirely", correct:false, feedback:"That gets this patch through, but it also lets the next actually-broken build through with nothing to catch it." },
+                  { key:"skipone", label:"Manually mark just this one pipeline run as passed without actually running the stage", correct:false, feedback:"That's functionally the same as disabling the check for this run — the patch ships without ever actually passing the test that's supposed to gate it." },
                   { key:"retry", label:"Retry the failing stage — if it's genuinely flaky, a retry should pass, and the patch still goes through the real gate", correct:true, feedback:"Retried and passed — the patch went through the same gate everything else does, and the test suite is still watching the next build." }
                 ],
                 errorText:"The patch still hasn't gone through a real, intact test gate — either it's stuck, or it skipped the check entirely."
@@ -3423,9 +3718,14 @@
                 actionLabel:"Add approval gate", loadingLabel:"Configuring…", doneLabel:"Manual approval gate added for emergency patches — urgent fixes get a deliberate human override, not a disabled safety net.", loadingMs:600,
                 errorText:"The only bypass anyone has for an urgent fix right now is disabling the tests — that's the wrong lever, and someone will pull it again."
               },
-              { id:"h-ticket", type:"action",
+              { id:"h-ticket", type:"choice",
                 label:"File a ticket to fix the flaky test itself",
-                actionLabel:"File ticket", loadingLabel:"Filing…", doneLabel:"Ticket filed — the flaky test is now tracked instead of silently tolerated.", loadingMs:500,
+                prompt:"What should the ticket actually call for?",
+                options:[
+                  { key:"delete", label:"Delete the flaky test since it clearly can't be trusted", correct:false, feedback:"Deleting it removes whatever real coverage it provides along with the flakiness — the goal is a reliable test, not zero test." },
+                  { key:"fix", label:"Investigate and fix the underlying timing issue causing the intermittent failures", correct:true, feedback:"Filed — the flaky test is now tracked for an actual fix instead of being silently tolerated or quietly worked around forever." },
+                  { key:"quarantine", label:"Move it to a permanent \"known flaky, ignore results\" list", correct:false, feedback:"A permanent ignore-list entry means this test stops meaning anything at all, forever — that's a slower version of just deleting it." }
+                ],
                 errorText:"The flaky test is still just sitting there, ready to block or falsely gate the next urgent fix too."
               }
             ]
@@ -3464,9 +3764,10 @@
               },
               { id:"h-choice", type:"choice",
                 label:"Decide how to get this patch through right now",
-                prompt:"What's actually the safe move?",
+                prompt:"With flakiness confirmed — what's actually the safe move for this specific patch?",
                 options:[
                   { key:"disable", label:"Disable the test stage entirely", correct:false, feedback:"That gets this patch through, but it also lets the next actually-broken build through with nothing to catch it." },
+                  { key:"skipone", label:"Manually mark just this one pipeline run as passed without actually running the stage", correct:false, feedback:"That's functionally the same as disabling the check for this run — the patch ships without ever actually passing the test that's supposed to gate it." },
                   { key:"retry", label:"Retry the failing stage — if it's genuinely flaky, a retry should pass, and the patch still goes through the real gate", correct:true, feedback:"Retried and passed — the patch went through the same gate everything else does, and the test suite is still watching the next build." }
                 ],
                 errorText:"The patch still hasn't gone through a real, intact test gate — either it's stuck, or it skipped the check entirely."
@@ -3476,9 +3777,14 @@
                 actionLabel:"Add approval gate", loadingLabel:"Configuring…", doneLabel:"Manual approval gate added for emergency patches — urgent fixes get a deliberate human override, not a disabled safety net.", loadingMs:600,
                 errorText:"The only bypass anyone has for an urgent fix right now is disabling the tests — that's the wrong lever, and someone will pull it again."
               },
-              { id:"h-ticket", type:"action",
+              { id:"h-ticket", type:"choice",
                 label:"File a work item to fix the flaky test itself",
-                actionLabel:"File work item", loadingLabel:"Filing…", doneLabel:"Work item filed — the flaky test is now tracked instead of silently tolerated.", loadingMs:500,
+                prompt:"What should the work item actually call for?",
+                options:[
+                  { key:"delete", label:"Delete the flaky test since it clearly can't be trusted", correct:false, feedback:"Deleting it removes whatever real coverage it provides along with the flakiness — the goal is a reliable test, not zero test." },
+                  { key:"fix", label:"Investigate and fix the underlying timing issue causing the intermittent failures", correct:true, feedback:"Filed — the flaky test is now tracked for an actual fix instead of being silently tolerated or quietly worked around forever." },
+                  { key:"quarantine", label:"Move it to a permanent \"known flaky, ignore results\" list", correct:false, feedback:"A permanent ignore-list entry means this test stops meaning anything at all, forever — that's a slower version of just deleting it." }
+                ],
                 errorText:"The flaky test is still just sitting there, ready to block or falsely gate the next urgent fix too."
               }
             ]
@@ -3517,9 +3823,10 @@
               },
               { id:"h-choice", type:"choice",
                 label:"Decide how to get this patch through right now",
-                prompt:"What's actually the safe move?",
+                prompt:"With flakiness confirmed — what's actually the safe move for this specific patch?",
                 options:[
                   { key:"disable", label:"Disable the test step entirely", correct:false, feedback:"That gets this patch through, but it also lets the next actually-broken build through with nothing to catch it." },
+                  { key:"skipone", label:"Manually mark just this one build as passed without actually running the step", correct:false, feedback:"That's functionally the same as disabling the check for this run — the patch ships without ever actually passing the test that's supposed to gate it." },
                   { key:"retry", label:"Retry the failing build — if it's genuinely flaky, a retry should pass, and the patch still goes through the real gate", correct:true, feedback:"Retried and passed — the patch went through the same gate everything else does, and the test suite is still watching the next build." }
                 ],
                 errorText:"The patch still hasn't gone through a real, intact test gate — either it's stuck, or it skipped the check entirely."
@@ -3529,9 +3836,14 @@
                 actionLabel:"Require approval", loadingLabel:"Configuring…", doneLabel:"Required approval added for emergency patches — urgent fixes get a deliberate human override, not a disabled safety net.", loadingMs:600,
                 errorText:"The only bypass anyone has for an urgent fix right now is disabling the tests — that's the wrong lever, and someone will pull it again."
               },
-              { id:"h-ticket", type:"action",
+              { id:"h-ticket", type:"choice",
                 label:"File a ticket to fix the flaky test itself",
-                actionLabel:"File ticket", loadingLabel:"Filing…", doneLabel:"Ticket filed — the flaky test is now tracked instead of silently tolerated.", loadingMs:500,
+                prompt:"What should the ticket actually call for?",
+                options:[
+                  { key:"delete", label:"Delete the flaky test since it clearly can't be trusted", correct:false, feedback:"Deleting it removes whatever real coverage it provides along with the flakiness — the goal is a reliable test, not zero test." },
+                  { key:"fix", label:"Investigate and fix the underlying timing issue causing the intermittent failures", correct:true, feedback:"Filed — the flaky test is now tracked for an actual fix instead of being silently tolerated or quietly worked around forever." },
+                  { key:"quarantine", label:"Move it to a permanent \"known flaky, ignore results\" list", correct:false, feedback:"A permanent ignore-list entry means this test stops meaning anything at all, forever — that's a slower version of just deleting it." }
+                ],
                 errorText:"The flaky test is still just sitting there, ready to block or falsely gate the next urgent fix too."
               }
             ]
@@ -3570,16 +3882,22 @@
                 ],
                 errorText:"Nobody's actually confirmed whether this key was used by anyone besides the developer — that changes how big a deal this is."
               },
-              { id:"h-deactivate", type:"action",
+              { id:"h-deactivate", type:"choice",
                 label:"Deactivate the leaked access key immediately",
-                actionLabel:"Deactivate key", loadingLabel:"Deactivating…", doneLabel:"Access key deactivated — it can no longer authenticate at all.", loadingMs:600,
+                prompt:"AWS's automatic quarantine already narrowed this key's permissions — what does deactivating it actually add on top of that?",
+                options:[
+                  { key:"nothing", label:"Nothing — the quarantine policy already stops it from doing damage", correct:false, feedback:"Quarantine narrows what the key can do, but the key can still authenticate and still shows up as a valid, active credential — it's contained, not killed." },
+                  { key:"deactivate", label:"Deactivate the key so it can no longer authenticate at all", correct:true, feedback:"Deactivated — it can no longer authenticate at all, quarantine policy or not." },
+                  { key:"rotate", label:"Generate a second access key for the same IAM user and start using that instead", correct:false, feedback:"A second key doesn't touch the first one — the leaked key stays valid and quarantined, not dead, alongside the new one." }
+                ],
                 errorText:"AWS's automatic quarantine narrows what the key can do, but it doesn't deactivate it — the key is still valid until someone does that explicitly."
               },
               { id:"h-purge", type:"choice",
                 label:"Decide what to do about the exposed commit itself",
-                prompt:"What about the leaked key sitting in the repo's history?",
+                prompt:"With the key dead, what's still actually exposed?",
                 options:[
                   { key:"leave", label:"Leave the commit — the key is already deactivated, so it doesn't matter", correct:false, feedback:"The key being dead doesn't erase the exposure — the commit history (and anyone who already cloned or scraped it) still has it, and scanners will keep flagging this repo." },
+                  { key:"deleterepo", label:"Delete the entire repository", correct:false, feedback:"That takes the exposed key down along with every legitimate commit, issue, and pull request in the repo's history — a much bigger loss than the actual problem requires." },
                   { key:"purgehistory", label:"Purge the key from the repo's git history and force-push the cleaned history", correct:true, feedback:"Cleaned — the key is gone from history, not just from the latest commit." }
                 ],
                 errorText:"The dead key is still sitting in plain sight in the repo's history — this repo will keep getting flagged by every scanner that finds it."
@@ -3623,16 +3941,22 @@
                 ],
                 errorText:"Nobody's actually confirmed whether this secret was used by anyone besides the developer — that changes how big a deal this is."
               },
-              { id:"h-deactivate", type:"action",
+              { id:"h-deactivate", type:"choice",
                 label:"Delete the leaked client secret immediately",
-                actionLabel:"Delete secret", loadingLabel:"Deleting…", doneLabel:"Client secret deleted — it can no longer authenticate at all.", loadingMs:600,
+                prompt:"There's no automatic quarantine here — which action actually stops this secret from being usable?",
+                options:[
+                  { key:"disableapp", label:"Disable the entire app registration's sign-in", correct:false, feedback:"That blocks every legitimate use of this app too, not just the leaked secret — the incident calls for killing the one leaked credential, not the whole app." },
+                  { key:"deactivate", label:"Delete just the leaked client secret from the app registration", correct:true, feedback:"Deleted — it can no longer authenticate at all." },
+                  { key:"rotate", label:"Add a new client secret and start using that instead", correct:false, feedback:"Adding a new secret doesn't touch the old one — the leaked secret stays fully valid alongside it until it's explicitly deleted." }
+                ],
                 errorText:"Nothing narrows what this secret can do automatically here — it stays fully valid until someone explicitly deletes it, and it's been sitting exposed this whole time."
               },
               { id:"h-purge", type:"choice",
                 label:"Decide what to do about the exposed commit itself",
-                prompt:"What about the leaked secret sitting in the repo's history?",
+                prompt:"With the secret dead, what's still actually exposed?",
                 options:[
                   { key:"leave", label:"Leave the commit — the secret is already deleted, so it doesn't matter", correct:false, feedback:"The secret being dead doesn't erase the exposure — the commit history (and anyone who already cloned or scraped it) still has it, and scanners will keep flagging this repo." },
+                  { key:"deleterepo", label:"Delete the entire repository", correct:false, feedback:"That takes the exposed secret down along with every legitimate commit, issue, and pull request in the repo's history — a much bigger loss than the actual problem requires." },
                   { key:"purgehistory", label:"Purge the secret from the repo's git history and force-push the cleaned history", correct:true, feedback:"Cleaned — the secret is gone from history, not just from the latest commit." }
                 ],
                 errorText:"The dead secret is still sitting in plain sight in the repo's history — this repo will keep getting flagged by every scanner that finds it."
@@ -3676,16 +4000,22 @@
                 ],
                 errorText:"Nobody's actually confirmed whether this key was used by anyone besides the developer — that changes how big a deal this is."
               },
-              { id:"h-deactivate", type:"action",
+              { id:"h-deactivate", type:"choice",
                 label:"Delete the leaked service account key immediately",
-                actionLabel:"Delete key", loadingLabel:"Deleting…", doneLabel:"Service account key deleted — it can no longer authenticate at all.", loadingMs:600,
+                prompt:"There's no automatic quarantine here — which action actually stops this key from being usable?",
+                options:[
+                  { key:"disablesa", label:"Disable the entire service account", correct:false, feedback:"That blocks every legitimate use of this service account too, not just the leaked key — the incident calls for killing the one leaked credential, not everything that uses this identity." },
+                  { key:"deactivate", label:"Delete just the leaked key from the service account", correct:true, feedback:"Deleted — it can no longer authenticate at all." },
+                  { key:"rotate", label:"Create a new key for the same service account and start using that instead", correct:false, feedback:"Creating a new key doesn't touch the old one — the leaked key stays fully valid alongside it until it's explicitly deleted." }
+                ],
                 errorText:"Nothing narrows what this key can do automatically here — it stays fully valid until someone explicitly deletes it, and it's been sitting exposed this whole time."
               },
               { id:"h-purge", type:"choice",
                 label:"Decide what to do about the exposed commit itself",
-                prompt:"What about the leaked key sitting in the repo's history?",
+                prompt:"With the key dead, what's still actually exposed?",
                 options:[
                   { key:"leave", label:"Leave the commit — the key is already deleted, so it doesn't matter", correct:false, feedback:"The key being dead doesn't erase the exposure — the commit history (and anyone who already cloned or scraped it) still has it, and scanners will keep flagging this repo." },
+                  { key:"deleterepo", label:"Delete the entire repository", correct:false, feedback:"That takes the exposed key down along with every legitimate commit, issue, and pull request in the repo's history — a much bigger loss than the actual problem requires." },
                   { key:"purgehistory", label:"Purge the key from the repo's git history and force-push the cleaned history", correct:true, feedback:"Cleaned — the key is gone from history, not just from the latest commit." }
                 ],
                 errorText:"The dead key is still sitting in plain sight in the repo's history — this repo will keep getting flagged by every scanner that finds it."
@@ -3724,16 +4054,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Find the metric that actually shows what's wrong",
-                prompt:"Which one tells the real story?",
+                prompt:"The obvious place to look first is fleet-wide compute health — but which metric actually tells the real story here?",
                 options:[
                   { key:"cpu", label:"EC2 CPUUtilization", correct:false, feedback:"CPU across the fleet has stayed completely normal this whole time. Not this." },
+                  { key:"networkin", label:"EC2 NetworkIn", correct:false, feedback:"Network traffic climbed with the spike, same as always — that's expected, not the anomaly that explains connection errors." },
                   { key:"dbconn", label:"RDS DatabaseConnections", correct:true, feedback:"That's it — it's pinned at the connection limit. Every new instance the Auto Scaling group launches opens more connections, and the database can't accept any more." }
                 ],
                 errorText:"Nobody's found the metric that actually explains this outage yet."
               },
-              { id:"h-pool", type:"action",
+              { id:"h-pool", type:"choice",
                 label:"Put a connection pooler in front of the database so new instances share a small pool of real connections instead of each opening their own",
-                actionLabel:"Add RDS Proxy", loadingLabel:"Configuring…", doneLabel:"RDS Proxy added — connections are now pooled and reused.", loadingMs:700,
+                prompt:"Which fix actually stops new instances from exhausting the connection limit?",
+                options:[
+                  { key:"maxconn", label:"Just raise the database's max_connections parameter", correct:false, feedback:"Raising the ceiling buys a little headroom, but the Auto Scaling group can launch instances faster than any reasonable connection limit increase keeps up with — it delays the same outage, it doesn't fix it." },
+                  { key:"pool", label:"Put a connection pooler in front of the database", correct:true, feedback:"Added — connections are now pooled and reused, so scaling out the fleet no longer means scaling out raw database connections 1-to-1." },
+                  { key:"fewerinstances", label:"Cap the Auto Scaling group at its current instance count", correct:false, feedback:"That stops new connections, but it also stops the fleet from scaling to handle the traffic spike at all — trading a connection outage for a capacity outage." }
+                ],
                 errorText:"Every new instance is still opening its own direct connection to the database — the limit gets hit just as fast as before."
               },
               { id:"h-trigger", type:"choice",
@@ -3777,16 +4113,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Find the metric that actually shows what's wrong",
-                prompt:"Which one tells the real story?",
+                prompt:"The obvious place to look first is fleet-wide compute health — but which metric actually tells the real story here?",
                 options:[
                   { key:"cpu", label:"VM scale set CPU percentage", correct:false, feedback:"CPU across the fleet has stayed completely normal this whole time. Not this." },
+                  { key:"networkin", label:"VM scale set Network In", correct:false, feedback:"Network traffic climbed with the spike, same as always — that's expected, not the anomaly that explains connection errors." },
                   { key:"dbconn", label:"Azure Database active connections", correct:true, feedback:"That's it — it's pinned at the connection limit. Every new instance the scale set launches opens more connections, and the database can't accept any more." }
                 ],
                 errorText:"Nobody's found the metric that actually explains this outage yet."
               },
-              { id:"h-pool", type:"action",
+              { id:"h-pool", type:"choice",
                 label:"Turn on the database's built-in connection pooling so new instances share a small pool of real connections instead of each opening their own",
-                actionLabel:"Enable connection pooling", loadingLabel:"Configuring…", doneLabel:"Connection pooling enabled — connections are now pooled and reused.", loadingMs:700,
+                prompt:"Which fix actually stops new instances from exhausting the connection limit?",
+                options:[
+                  { key:"maxconn", label:"Just raise the database's max connections parameter", correct:false, feedback:"Raising the ceiling buys a little headroom, but the scale set can launch instances faster than any reasonable connection limit increase keeps up with — it delays the same outage, it doesn't fix it." },
+                  { key:"pool", label:"Turn on the database's built-in connection pooling", correct:true, feedback:"Enabled — connections are now pooled and reused, so scaling out the fleet no longer means scaling out raw database connections 1-to-1." },
+                  { key:"fewerinstances", label:"Cap the scale set at its current instance count", correct:false, feedback:"That stops new connections, but it also stops the fleet from scaling to handle the traffic spike at all — trading a connection outage for a capacity outage." }
+                ],
                 errorText:"Every new instance is still opening its own direct connection to the database — the limit gets hit just as fast as before."
               },
               { id:"h-trigger", type:"choice",
@@ -3830,16 +4172,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Find the metric that actually shows what's wrong",
-                prompt:"Which one tells the real story?",
+                prompt:"The obvious place to look first is fleet-wide compute health — but which metric actually tells the real story here?",
                 options:[
                   { key:"cpu", label:"Instance group CPU utilization", correct:false, feedback:"CPU across the fleet has stayed completely normal this whole time. Not this." },
+                  { key:"networkin", label:"Instance group network bytes received", correct:false, feedback:"Network traffic climbed with the spike, same as always — that's expected, not the anomaly that explains connection errors." },
                   { key:"dbconn", label:"Cloud SQL active connections", correct:true, feedback:"That's it — it's pinned at the connection limit. Every new instance the group launches opens more connections, and the database can't accept any more." }
                 ],
                 errorText:"Nobody's found the metric that actually explains this outage yet."
               },
-              { id:"h-pool", type:"action",
+              { id:"h-pool", type:"choice",
                 label:"Deploy a connection pooler in front of Cloud SQL so new instances share a small pool of real connections instead of each opening their own",
-                actionLabel:"Deploy PgBouncer", loadingLabel:"Deploying…", doneLabel:"Connection pooler deployed — connections are now pooled and reused.", loadingMs:700,
+                prompt:"Which fix actually stops new instances from exhausting the connection limit?",
+                options:[
+                  { key:"maxconn", label:"Just raise Cloud SQL's max connections flag", correct:false, feedback:"Raising the ceiling buys a little headroom, but the instance group can launch instances faster than any reasonable connection limit increase keeps up with — it delays the same outage, it doesn't fix it." },
+                  { key:"pool", label:"Deploy a connection pooler in front of Cloud SQL", correct:true, feedback:"Deployed — connections are now pooled and reused, so scaling out the fleet no longer means scaling out raw database connections 1-to-1." },
+                  { key:"fewerinstances", label:"Cap the instance group at its current size", correct:false, feedback:"That stops new connections, but it also stops the fleet from scaling to handle the traffic spike at all — trading a connection outage for a capacity outage." }
+                ],
                 errorText:"Every new instance is still opening its own direct connection to the database — the limit gets hit just as fast as before."
               },
               { id:"h-trigger", type:"choice",
@@ -3892,16 +4240,22 @@
                 ],
                 errorText:"You haven't actually identified which bucket policy statement is causing the exposure yet."
               },
-              { id:"h-bucket", type:"action",
+              { id:"h-bucket", type:"choice",
                 label:"Remove the public-read statement from the S3 bucket policy",
-                actionLabel:"Fix bucket policy", loadingLabel:"Updating…", doneLabel:"Bucket policy fixed — the bucket is no longer directly public.", loadingMs:600,
+                prompt:"Which fix actually removes the public grant without leaving a trap for later?",
+                options:[
+                  { key:"blockpublic", label:"Just turn on Block Public Access for the bucket, and leave the policy statement in place", correct:false, feedback:"Block Public Access is a strong safety net, but leaving an explicit Principal: * statement in the policy means the exposure comes right back the moment anyone toggles that account-level setting off." },
+                  { key:"removestatement", label:"Remove the public-read statement from the bucket policy", correct:true, feedback:"Fixed — the bucket is no longer directly public." },
+                  { key:"deletebucket", label:"Delete the bucket and recreate it with default settings", correct:false, feedback:"That destroys every object currently in it — a production bucket full of real data isn't something to throw away to fix a policy statement." }
+                ],
                 errorText:"The bucket policy still has a Principal: * statement granting read access to literally anyone on the internet."
               },
               { id:"h-iam", type:"choice",
                 label:"Decide what to do about the EC2 instance's IAM role",
-                prompt:"The instance's role currently has full S3 access account-wide. What now?",
+                prompt:"The instance's role currently has full S3 access account-wide. Which fix actually closes this path without breaking what the instance legitimately needs?",
                 options:[
                   { key:"leave", label:"Leave it — the bucket itself is private now, so it doesn't matter", correct:false, feedback:"Relying on just one control is exactly how chains like this happen. If any other bucket or policy ever slips, this role can still reach everything." },
+                  { key:"removerole", label:"Detach the role from the instance entirely", correct:false, feedback:"That breaks whatever legitimate S3 access this instance actually needs to do its job — the goal is scoping the permission down, not removing the instance's ability to function." },
                   { key:"scope", label:"Scope the role down to only the one bucket and prefix this instance actually needs", correct:true, feedback:"Scoped — even if something else goes wrong later, this role can no longer reach data it has no business touching." }
                 ],
                 errorText:"This role can still read and write every bucket in the account — the bucket policy fix only closed one of the paths here."
@@ -3945,16 +4299,22 @@
                 ],
                 errorText:"You haven't actually identified which container's access level is causing the exposure yet."
               },
-              { id:"h-bucket", type:"action",
+              { id:"h-bucket", type:"choice",
                 label:"Turn off Blob anonymous access on the storage account",
-                actionLabel:"Fix storage access", loadingLabel:"Updating…", doneLabel:"Blob anonymous access disabled — the container is no longer directly public.", loadingMs:600,
+                prompt:"Which fix actually removes the public grant without leaving a trap for later?",
+                options:[
+                  { key:"containeronly", label:"Just set this one container's access level to Private, and leave account-level anonymous access on", correct:false, feedback:"That closes this container, but the account-level \"Allow Blob anonymous access\" setting is still on — any other container, or a new one, can still be made public." },
+                  { key:"disable", label:"Turn off Blob anonymous access on the storage account", correct:true, feedback:"Disabled — the container is no longer directly public." },
+                  { key:"deleteaccount", label:"Delete the storage account and recreate it with default settings", correct:false, feedback:"That destroys every blob currently in it — a production account full of real data isn't something to throw away to fix an access setting." }
+                ],
                 errorText:"The storage account still allows anonymous read access to blobs — literally anyone on the internet can read this container."
               },
               { id:"h-iam", type:"choice",
                 label:"Decide what to do about the VM's managed identity",
-                prompt:"The VM's identity currently has Storage Blob Data Contributor at the subscription level. What now?",
+                prompt:"The VM's identity currently has Storage Blob Data Contributor at the subscription level. Which fix actually closes this path without breaking what the VM legitimately needs?",
                 options:[
                   { key:"leave", label:"Leave it — the container itself is private now, so it doesn't matter", correct:false, feedback:"Relying on just one control is exactly how chains like this happen. If any other container or setting ever slips, this identity can still reach everything." },
+                  { key:"removeidentity", label:"Remove the managed identity from the VM entirely", correct:false, feedback:"That breaks whatever legitimate storage access this VM actually needs to do its job — the goal is scoping the permission down, not removing the VM's ability to function." },
                   { key:"scope", label:"Scope the role assignment down to only the one storage account this VM actually needs", correct:true, feedback:"Scoped — even if something else goes wrong later, this identity can no longer reach data it has no business touching." }
                 ],
                 errorText:"This identity can still read and write every storage account in the subscription — the storage access fix only closed one of the paths here."
@@ -3998,16 +4358,22 @@
                 ],
                 errorText:"You haven't actually identified which IAM binding is causing the exposure yet."
               },
-              { id:"h-bucket", type:"action",
+              { id:"h-bucket", type:"choice",
                 label:"Remove the allUsers IAM binding from the bucket",
-                actionLabel:"Fix bucket IAM", loadingLabel:"Updating…", doneLabel:"allUsers binding removed — the bucket is no longer directly public.", loadingMs:600,
+                prompt:"Which fix actually removes the public grant without leaving a trap for later?",
+                options:[
+                  { key:"pap-only", label:"Just turn on Public Access Prevention for the bucket, and leave the allUsers binding in place", correct:false, feedback:"Public Access Prevention is a strong safety net, but leaving an explicit allUsers binding on the bucket means the exposure comes right back the moment anyone turns that setting off." },
+                  { key:"removebinding", label:"Remove the allUsers IAM binding from the bucket", correct:true, feedback:"Removed — the bucket is no longer directly public." },
+                  { key:"deletebucket", label:"Delete the bucket and recreate it with default settings", correct:false, feedback:"That destroys every object currently in it — a production bucket full of real data isn't something to throw away to fix an IAM binding." }
+                ],
                 errorText:"The bucket's IAM policy still grants allUsers read access — literally anyone on the internet can read this bucket."
               },
               { id:"h-iam", type:"choice",
                 label:"Decide what to do about the instance's service account",
-                prompt:"The instance's service account currently has roles/storage.admin at the project level. What now?",
+                prompt:"The instance's service account currently has roles/storage.admin at the project level. Which fix actually closes this path without breaking what the instance legitimately needs?",
                 options:[
                   { key:"leave", label:"Leave it — the bucket itself is private now, so it doesn't matter", correct:false, feedback:"Relying on just one control is exactly how chains like this happen. If any other bucket or binding ever slips, this service account can still reach everything." },
+                  { key:"removesa", label:"Detach the service account from the instance entirely", correct:false, feedback:"That breaks whatever legitimate storage access this instance actually needs to do its job — the goal is scoping the permission down, not removing the instance's ability to function." },
                   { key:"scope", label:"Scope it down to roles/storage.objectViewer on just the one bucket this instance actually needs", correct:true, feedback:"Scoped — even if something else goes wrong later, this service account can no longer reach data it has no business touching." }
                 ],
                 errorText:"This service account can still read and write every bucket in the project — the bucket IAM fix only closed one of the paths here."
@@ -4043,8 +4409,8 @@
         statusChanged:"durum → {status}",
         analogyLabel:"Basitçe söylemek gerekirse", technicalLabel:"Perde arkasında",
         tryThisLabel:"Dene bunu", realIncidentLabel:"Gerçek olay",
-        footer:"Yukarıdaki her şey tarayıcınızda JavaScript ile çalışır — gerçek sunucu, düğüm veya ağ isteği yoktur.",
-        resetAll:"Tüm modülleri sıfırla", resetAllShort:"Sıfırla"
+        resetAll:"Tüm modülleri sıfırla", resetAllShort:"Sıfırla",
+        openMenu:"Menüyü aç", closeMenu:"Menüyü kapat", backToTop:"Başa dön"
       },
       cloud101:{
         modId:"MODÜL 00", title:"\"Bulut\" Gerçekte Nedir?",
@@ -4674,15 +5040,31 @@
               }
             ],
             hardSteps:[
-              { id:"h-idp", type:"action",
-                label:"Google'ı kullanıcı havuzuna federe kimlik sağlayıcı olarak ekle",
-                actionLabel:"Sağlayıcı ekle", loadingLabel:"Ekleniyor…", doneLabel:"Google kimlik sağlayıcı olarak eklendi.", loadingMs:600,
+              { id:"h-diagnose", type:"choice",
+                label:"Barındırılan Arayüz'de neden hiç Google butonu görünmediğini teşhis et",
+                prompt:"Barındırılan Arayüz yükleniyor ama üzerinde hiç Google seçeneği yok — herhangi bir ayara dokunmadan önce, bu size ne anlatıyor?",
+                options:[
+                  { key:"scopes", label:"İstenen OAuth kapsamları geçersiz", correct:false, feedback:"Bir kapsam sorunu, Google'ın onay ekranından sonra bir hata olarak ortaya çıkardı — Google'a hiç ulaşılmadan eksik bir buton olarak değil." },
+                  { key:"noidp", label:"Bu kullanıcı havuzuna henüz hiçbir kimlik sağlayıcı eklenmemiş", correct:true, feedback:"Doğru — Barındırılan Arayüz sadece havuzda gerçekten var olan kimlik sağlayıcıları için giriş seçenekleri listeler. Sıfır sağlayıcı, sıfır buton demek." },
+                  { key:"expired", label:"Uygulama istemcisinin gizli anahtarı süresi dolmuş", correct:false, feedback:"Süresi dolmuş bir gizli anahtar, geri dönüşten sonra jeton değişimini başarısız kılardı — giriş butonunun görünmesini engellemezdi." }
+                ],
+                errorText:"Aslında neyin eksik olduğunu doğrulamadan bir düzeltmeye atladınız."
+              },
+              { id:"h-scope", type:"choice",
+                label:"Google'ı kullanıcı havuzuna federe kimlik sağlayıcı olarak ekle — bu havuzun gerçekten ihtiyaç duyduğu kapsamlarla",
+                prompt:"Bu kimlik sağlayıcı Google'dan hangi yetkili kapsamları istemeli?",
+                options:[
+                  { key:"openid-only", label:"openid", correct:false, feedback:"Kimlik doğrulamak için yeterli, ama Google sadece bununla bir e-posta talebi döndürmez — havuzun sonradan eşleştirecek hiçbir şeyi olmaz." },
+                  { key:"full", label:"openid email profile", correct:true, feedback:"Doğru kapsamlarla eklendi — bu kimlik sağlayıcı artık bu havuzun ihtiyaç duyduğu e-posta talebini gerçekten döndürüyor." },
+                  { key:"broad", label:"openid email profile https://www.googleapis.com/auth/drive.readonly", correct:false, feedback:"Bir giriş butonunun ihtiyacından çok daha fazlası — Drive erişimi gibi kullanılmayan hassas bir kapsam istemek, gerçek bir OAuth onay ekranının Google'ın doğrulama incelemesinde işaretlenmesine tam olarak sebep olan şeydir." }
+                ],
                 errorText:"Bu kullanıcı havuzunda henüz hiçbir kimlik sağlayıcı yapılandırılmamış — Cognito'nun girişi devredeceği hiçbir şey yok."
               },
               { id:"h-appclient", type:"choice",
                 label:"Bu uygulama istemcisi için kimlik sağlayıcıyı etkinleştir",
-                prompt:"Google'ı giriş istekleri için gerçekte nerede açarsınız?",
+                prompt:"Bu kullanıcı havuzunda geçici AWS kimlik bilgileri için bağlı bir Identity Pool da var. Google'ı giriş istekleri için gerçekte nerede açarsınız?",
                 options:[
+                  { key:"identitypool", label:"Identity Pool'un kimlik doğrulama sağlayıcılarında", correct:false, feedback:"Bu, hangi sağlayıcıların geçici AWS kimlik bilgileriyle değiştirilebileceğini kontrol eder — Google'ın bir giriş seçeneği olarak görünüp görünmemesiyle hiçbir ilgisi yok." },
                   { key:"auto", label:"Hiçbir yerde — kullanıcı havuzuna eklendiğinde otomatik olur", correct:false, feedback:"Gerçek bir Cognito tuzağı: bir kimlik sağlayıcıyı havuza eklemek, onu tek başına herhangi bir uygulama istemcisi için etkinleştirmez." },
                   { key:"client", label:"Uygulama istemcisinin \"Kimlik sağlayıcıları\" ayarında", correct:true, feedback:"Etkinleştirildi — bu uygulama istemcisi artık Google'ı gerçekten bir giriş seçeneği olarak sunabiliyor." }
                 ],
@@ -4728,15 +5110,31 @@
               }
             ],
             hardSteps:[
-              { id:"h-idp", type:"action",
-                label:"Google'ı harici kimlik sağlayıcı olarak ekle",
-                actionLabel:"Sağlayıcı ekle", loadingLabel:"Ekleniyor…", doneLabel:"Google kimlik sağlayıcı olarak eklendi.", loadingMs:600,
+              { id:"h-diagnose", type:"choice",
+                label:"Giriş sayfasında neden hiç Google butonu görünmediğini teşhis et",
+                prompt:"Herhangi bir ayara dokunmadan önce — tamamen eksik bir Google butonu size ne anlatıyor?",
+                options:[
+                  { key:"scopes", label:"İstenen talepler geçersiz", correct:false, feedback:"Bir talep sorunu, Google'ın onay ekranından sonra bir hata olarak ortaya çıkardı — Google'a hiç ulaşılmadan eksik bir buton olarak değil." },
+                  { key:"noidp", label:"Bu kiracıya henüz hiçbir harici kimlik sağlayıcı eklenmemiş", correct:true, feedback:"Doğru — giriş sayfası sadece kiracıda gerçekten var olan kimlik sağlayıcıları için seçenekler listeler. Sıfır sağlayıcı, sıfır buton demek." },
+                  { key:"expired", label:"Uygulama kaydının gizli anahtarının süresi dolmuş", correct:false, feedback:"Süresi dolmuş bir gizli anahtar, geri dönüşten sonra jeton değişimini başarısız kılardı — giriş butonunun görünmesini engellemezdi." }
+                ],
+                errorText:"Aslında neyin eksik olduğunu doğrulamadan bir düzeltmeye atladınız."
+              },
+              { id:"h-scope", type:"choice",
+                label:"Google'ı harici kimlik sağlayıcı olarak ekle — bu kiracının gerçekten ihtiyaç duyduğu kapsamlarla",
+                prompt:"Bu kimlik sağlayıcı Google'dan hangi yetkili kapsamları istemeli?",
+                options:[
+                  { key:"openid-only", label:"openid", correct:false, feedback:"Kimlik doğrulamak için yeterli, ama Google sadece bununla bir e-posta talebi döndürmez — kiracının sonradan eşleştirecek hiçbir şeyi olmaz." },
+                  { key:"full", label:"openid email profile", correct:true, feedback:"Doğru kapsamlarla eklendi — bu kimlik sağlayıcı artık bu kiracının ihtiyaç duyduğu e-posta talebini gerçekten döndürüyor." },
+                  { key:"broad", label:"openid email profile https://www.googleapis.com/auth/drive.readonly", correct:false, feedback:"Bir giriş butonunun ihtiyacından çok daha fazlası — Drive erişimi gibi kullanılmayan hassas bir kapsam istemek, gerçek bir OAuth onay ekranının Google'ın doğrulama incelemesinde işaretlenmesine tam olarak sebep olan şeydir." }
+                ],
                 errorText:"Henüz hiçbir harici kimlik sağlayıcı yapılandırılmamış — Entra'nın bu girişi federe edeceği hiçbir şey yok."
               },
               { id:"h-userflow", type:"choice",
                 label:"Google'ı uygulamanın kullanıcı akışına ekle",
-                prompt:"Google'ı bir giriş seçeneği olarak nerede görünür kılarsınız?",
+                prompt:"Bu kiracıda dahili uygulama kayıtları için bir Enterprise Applications listesi de var. Google'ı bir giriş seçeneği olarak gerçekte nerede görünür kılarsınız?",
                 options:[
+                  { key:"enterpriseapps", label:"Kiracının Enterprise Applications listesinde", correct:false, feedback:"O liste uygulama kayıtlarını ve izinlerini yönetmek içindir — herhangi bir giriş sayfasında hangi kimlik sağlayıcılarının görüneceğiyle ilgisi yoktur." },
                   { key:"auto", label:"Hiçbir yerde — sağlayıcıyı eklemek yeterli", correct:false, feedback:"Bir kimlik sağlayıcıyı kiracıya eklemek, onu herhangi bir belirli kayıt/giriş kullanıcı akışına eklemez. Bu ayrı bir adım." },
                   { key:"flow", label:"Kullanıcı akışının \"Kimlik sağlayıcıları\" listesinde", correct:true, feedback:"Eklendi — Google artık bu akıştan geçen kullanıcılar için gerçekten bir giriş butonu olarak görünüyor." }
                 ],
@@ -4807,14 +5205,15 @@
                 ],
                 errorText:"Hata 400: redirect_uri_mismatch — istekteki yönlendirme URI'si bu istemci için yetkili hiçbir URI ile eşleşmiyor."
               },
-              { id:"h-consent", type:"choice",
-                label:"OAuth onay ekranını yapılandır",
-                prompt:"Onay ekranı için bir kullanıcı türü seçin:",
+              { id:"h-scope", type:"choice",
+                label:"Bu uygulamanın hangi OAuth kapsamlarını isteyeceğini seç",
+                prompt:"Hangi kapsam kümesi bu uygulamaya giriş yapan kullanıcının e-postasını ve adını gerçekten kazandırır?",
                 options:[
-                  { key:"internal", label:"Dahili (Internal)", correct:false, feedback:"Dahili, tek bir Google Workspace kuruluşundaki hesaplarla sınırlıdır. CloudLab herkesin giriş yapabildiği herkese açık bir uygulama — Dahili seçilirse hepsi dışarıda kalır, ve Google'ın kendi incelemesi de herkese açık bir uygulamayı bu şekilde yapılandırılmış olarak reddederdi." },
-                  { key:"external", label:"Harici (External)", correct:true, feedback:"Harici — herhangi bir Google Hesabı giriş yapabilir. Onay ekranı kaydedildi." }
+                  { key:"minimal", label:"sadece openid", correct:false, feedback:"Kimlik doğrulamak için yeterli, ama e-posta ya da profil talebi döndürmez — giriş başarılı olur ve kayıtlı e-postası olmayan bir kullanıcı oluşturur." },
+                  { key:"full", label:"openid, .../auth/userinfo.email, .../auth/userinfo.profile", correct:true, feedback:"Bu, gerçekten e-posta ve temel profil döndüren kapsam kümesi — ve bundan hemen sonraki People API çağrısının bağlı olduğu şey de tam olarak bu." },
+                  { key:"broad", label:"openid artı tam Drive ve Takvim erişimi", correct:false, feedback:"Bir giriş butonunun ihtiyacından çok daha fazlası — Drive ya da Takvim gibi kullanılmayan hassas kapsamlar istemek, bir uygulamanın OAuth onay ekranının Google'ın doğrulama incelemesinde takılı kalmasına tam olarak sebep olan şeydir." }
                 ],
-                errorText:"Hata 403: access_denied — bu uygulamanın OAuth onay ekranı henüz yapılandırılmadı."
+                errorText:"Hata 403: access_denied — bu uygulama, giriş yapan kullanıcının e-postasını okumak için gereken kapsamları istemedi."
               },
               { id:"h-api", type:"action",
                 label:"People API'sini etkinleştir",
@@ -4859,9 +5258,14 @@
                 ],
                 errorText:"Anahtarın gerçekte ne yaptığını incelemediniz — kör bir şekilde devre dışı bırakmak saldırganın dokunduğu başka kanıtları yok edebilir."
               },
-              { id:"h-revoke", type:"action",
-                label:"Sızmış erişim anahtarını devre dışı bırak",
-                actionLabel:"Anahtarı devre dışı bırak", loadingLabel:"Devre dışı bırakılıyor…", doneLabel:"Anahtar devre dışı bırakıldı — artık kimlik doğrulayamaz.", loadingMs:600,
+              { id:"h-revoke", type:"choice",
+                label:"Sızmış anahtarı nasıl etkisiz hale getireceğinize karar verin",
+                prompt:"Anahtarın hemen çalışmayı durdurması gerekiyor — olaya müdahalede gerçekte doğru hareket hangisi?",
+                options:[
+                  { key:"delete", label:"Erişim anahtarını hemen sil", correct:false, feedback:"Silmek kalıcı ve geri alınamaz — anahtarın neye dokunduğunu tam olarak doğrulamadan onun kaydını yok eder. Olay müdahalesi önce devre dışı bırakır, ancak soruşturma kapandıktan sonra siler." },
+                  { key:"deactivate", label:"Erişim anahtarını devre dışı bırak", correct:true, feedback:"Devre dışı bırakıldı — artık kimlik doğrulayamaz, ama anahtarın kendisi ve tam kullanım geçmişi, soruşturma ihtiyaç duyarsa diye korunuyor." },
+                  { key:"rotate", label:"Aktif bırakıp yanına yeni bir anahtar ekle", correct:false, feedback:"Bilinen bir şekilde ele geçmiş bir anahtarı bir saniye daha bile aktif bırakmak, yetkisiz erişimin devam etmesini garanti eden tek seçenek." }
+                ],
                 errorText:"Sızmış anahtar hâlâ aktif. Onu elinde bulunduran herkes şu anda hâlâ kullanabilir."
               },
               { id:"h-selfpolicy", type:"choice",
@@ -4913,9 +5317,14 @@
                 ],
                 errorText:"Sırrın gerçekte ne yaptığını incelemediniz — kör bir şekilde silmek bir yetki yükseltmesini yerinde bırakabilir."
               },
-              { id:"h-revoke", type:"action",
-                label:"Uygulama kaydından sızmış istemci sırrını sil",
-                actionLabel:"Sırrı sil", loadingLabel:"Siliniyor…", doneLabel:"İstemci sırrı silindi — artık kimlik doğrulayamaz.", loadingMs:600,
+              { id:"h-revoke", type:"choice",
+                label:"Sızmış sırrı nasıl etkisiz hale getireceğinize karar verin",
+                prompt:"Sırrın hemen çalışmayı durdurması gerekiyor — olaya müdahalede gerçekte doğru hareket hangisi?",
+                options:[
+                  { key:"disableapp", label:"Tüm uygulama kaydının girişini devre dışı bırak", correct:false, feedback:"Bu, sadece saldırganı değil bu uygulamanın her meşru kullanımını da engeller — olay, tüm uygulamayı çökertmeyi değil, sızan tek sırrı öldürmeyi gerektiriyor." },
+                  { key:"delete", label:"Uygulama kaydından sadece sızan istemci sırrını sil", correct:true, feedback:"Silindi — o belirli sır artık kimlik doğrulayamaz, ve bu uygulama kaydındaki diğer tüm meşru kimlik bilgileri dokunulmadan kalıyor." },
+                  { key:"rotate", label:"Aktif bırakıp yanına yeni bir sır ekle", correct:false, feedback:"Bilinen bir şekilde ele geçmiş bir sırrı bir saniye daha bile aktif bırakmak, yetkisiz erişimin devam etmesini garanti eden tek seçenek." }
+                ],
                 errorText:"Sızmış istemci sırrı hâlâ geçerli. Onu elinde bulunduran herkes şu anda hâlâ kullanabilir."
               },
               { id:"h-selfrole", type:"choice",
@@ -4967,9 +5376,14 @@
                 ],
                 errorText:"Anahtarın gerçekte ne yaptığını incelemediniz — kör bir şekilde silmek bir yetki yükseltmesini yerinde bırakabilir."
               },
-              { id:"h-revoke", type:"action",
-                label:"Sızmış hizmet hesabı anahtarını sil",
-                actionLabel:"Anahtarı sil", loadingLabel:"Siliniyor…", doneLabel:"Anahtar silindi — artık kimlik doğrulayamaz.", loadingMs:600,
+              { id:"h-revoke", type:"choice",
+                label:"Sızmış anahtarı nasıl etkisiz hale getireceğinize karar verin",
+                prompt:"Anahtarın hemen çalışmayı durdurması gerekiyor — olaya müdahalede gerçekte doğru hareket hangisi?",
+                options:[
+                  { key:"delete", label:"Hizmet hesabı anahtarını hemen sil", correct:false, feedback:"Silmek kalıcıdır — anahtarın neye dokunduğunu tam olarak doğrulamadan onun kaydını yok eder. Olay müdahalesi önce devre dışı bırakır, ancak soruşturma kapandıktan sonra siler." },
+                  { key:"disable", label:"Hizmet hesabı anahtarını devre dışı bırak", correct:true, feedback:"Devre dışı bırakıldı — artık kimlik doğrulayamaz, ama anahtarın kendisi ve tam kullanım geçmişi, soruşturma ihtiyaç duyarsa diye korunuyor." },
+                  { key:"rotate", label:"Aktif bırakıp yanına yeni bir anahtar oluştur", correct:false, feedback:"Bilinen bir şekilde ele geçmiş bir anahtarı bir saniye daha bile aktif bırakmak, yetkisiz erişimin devam etmesini garanti eden tek seçenek." }
+                ],
                 errorText:"Sızmış anahtar hâlâ aktif. Onu elinde bulunduran herkes şu anda hâlâ kullanabilir."
               },
               { id:"h-selfrole", type:"choice",
@@ -5013,17 +5427,23 @@
               }
             ],
             hardSteps:[
-              { id:"h-block", type:"action",
-                label:"Kova için Herkese Açık Erişimi Engelle'yi aç",
-                actionLabel:"Aç", loadingLabel:"Uygulanıyor…", doneLabel:"Herkese Açık Erişimi Engelle açık.", loadingMs:500,
+              { id:"h-block", type:"choice",
+                label:"Bunu gerçekten kapatan Herkese Açık Erişimi Engelle ayarlarını aç",
+                prompt:"Kovanın Herkese Açık Erişimi Engelle ayarlarının hangi kombinasyonu bu sızıntıyı gerçekten durdurur?",
+                options:[
+                  { key:"newonly", label:"Sadece \"Yeni ACL'ler ve yeni herkese açık kova politikaları aracılığıyla verilen herkese açık erişimi engelle\"", correct:false, feedback:"Bu sadece gelecekteki herkese açık izinlerin devreye girmesini durdurur — zaten ekli olan ve zaten sızdıran kova politikasına dokunmaz." },
+                  { key:"all", label:"Dört Herkese Açık Erişimi Engelle ayarının tamamı", correct:true, feedback:"Açıldı — bu hem yeni herkese açık izinleri hem de zaten var olanları, bu kovayı şu anda açığa çıkaran politika dahil, engeller." },
+                  { key:"acls", label:"Sadece iki ACL ile ilgili ayar", correct:false, feedback:"Bu, herkese açık ACL'leri yok sayar, ama herkese açık bir kova politikası konusunda hiçbir şey yapmaz — ki bu kovayı şu anda tam olarak açığa çıkaran şey de bu." }
+                ],
                 errorText:"Herkese Açık Erişimi Engelle hâlâ kapalı — kova, ona izin veren herhangi bir politika ya da ACL tarafından açığa çıkarılabilir."
               },
               { id:"h-policy", type:"choice",
-                label:"Erişime izin veren kova politikasını kaldır",
-                prompt:"Kova politikası ne yapmalı?",
+                label:"Herkese açık izni gerçekten nasıl kaldıracağınıza karar verin",
+                prompt:"Kova politikasında bir Principal: * ifadesi var — doğru düzeltme nedir?",
                 options:[
-                  { key:"keep", label:"Principal: * ifadesi kalsın", correct:false, feedback:"Principal: * gerçekten internetteki herkes demek, giriş yapmış ya da yapmamış fark etmez. Sızıntı bu." },
-                  { key:"delete", label:"Herkese açık okuma ifadesini sil", correct:true, feedback:"Kaldırıldı — artık hiçbir politika anonim erişime izin vermiyor." }
+                  { key:"condition", label:"Mevcut ifadeye bir aws:SourceIp koşulu ekle", correct:false, feedback:"Bir kaynak-IP koşulu, izni kimin kullanabileceğini daraltır, ama Principal: * herhangi bir koşulla birlikte bile özel olması gereken bir kovada hâlâ herkese açık bir izindir — ve bir IP izin listesi, URL'yi zaten bilen biri için kolayca aşılabilir." },
+                  { key:"delete", label:"Herkese açık okuma ifadesini tamamen sil", correct:true, feedback:"Kaldırıldı — artık hiçbir politika anonim erişime izin vermiyor." },
+                  { key:"narrowprincipal", label:"Principal'ı *'dan henüz kontrol etmediğiniz belirli bir AWS hesabına değiştir", correct:false, feedback:"Bu hâlâ kuruluşunuz dışına, henüz doğrulamadığınız bir hesaba erişim veriyor demek. İfadenin başka birine atanması değil, tamamen kaldırılması gerekiyor." }
                 ],
                 errorText:"Kova politikası hâlâ Principal: *'a okuma erişimi veriyor — URL'yi bilen herkes hâlâ her nesneyi okuyabilir."
               },
@@ -5067,17 +5487,23 @@
               }
             ],
             hardSteps:[
-              { id:"h-block", type:"action",
-                label:"Depolama hesabında \"Blob anonim erişimine izin ver\"i kapat",
-                actionLabel:"Kapat", loadingLabel:"Uygulanıyor…", doneLabel:"Blob anonim erişimi devre dışı.", loadingMs:500,
+              { id:"h-block", type:"choice",
+                label:"Anonim erişimi gerçekten nerede kapatacağınıza karar verin",
+                prompt:"Bu depolama hesabının hem bir hesap düzeyi anahtarı var, hem de her kapsayıcının kendi erişim düzeyi ayarı var. Buradaki gerçek düzeltme hangisi?",
+                options:[
+                  { key:"containeronly", label:"Sadece bu kapsayıcının erişim düzeyini Özel olarak ayarla", correct:false, feedback:"Bu, bu kapsayıcıyı kapatır, ama hesap düzeyindeki \"Blob anonim erişimine izin ver\" ayarı hâlâ açık — başka bir kapsayıcı (ya da yeni biri) hâlâ herkese açık yapılabilir." },
+                  { key:"account", label:"Depolama hesabı düzeyinde \"Blob anonim erişimine izin ver\"i kapat", correct:true, feedback:"Devre dışı bırakıldı — bu, hesap genelindeki ana anahtar. Bu hesaptaki hiçbir kapsayıcı, kendi ayarı ne olursa olsun artık anonim erişim veremez." },
+                  { key:"neither", label:"Hiçbiri — tek başına bir özel uç nokta yeterli", correct:false, feedback:"Bir özel uç nokta ağ yolunu kontrol eder, anonim erişim izinlerini değil — herkese açık okumaya ayarlı bir kapsayıcı, özel bir ağın içinden bile hâlâ herkese açıktır." }
+                ],
                 errorText:"Blob anonim erişimine izin ver hâlâ açık — herhangi bir kapsayıcının erişim düzeyi bunu açığa çıkarabilir."
               },
               { id:"h-container", type:"choice",
-                label:"Kapsayıcının herkese açık erişim düzeyini düzelt",
-                prompt:"Bu kapsayıcının erişim düzeyi ne olmalı?",
+                label:"Kapsayıcının erişim düzeyini nasıl düzelteceğinize karar verin",
+                prompt:"Bu kapsayıcı \"Kapsayıcı\" erişimine ayarlı — hesap düzeyindeki ayar artık kapalıyken doğru düzeltme nedir?",
                 options:[
-                  { key:"container", label:"\"Kapsayıcı\" (kapsayıcı ve bloblara anonim okuma erişimi) kalsın", correct:false, feedback:"\"Kapsayıcı\" demek internetteki herkes içindeki her blobu listeleyip okuyabilir demek. Sızıntı bu." },
-                  { key:"private", label:"\"Özel (anonim erişim yok)\" olarak ayarla", correct:true, feedback:"Düzeltildi — bu kapsayıcıya artık anonim erişim verilmiyor." }
+                  { key:"leaveit", label:"Kapsayıcının erişim düzeyini olduğu gibi bırak — hesap düzeyindeki ayar zaten engelliyor", correct:false, feedback:"Hesap düzeyindeki anahtar şimdilik engelliyor, ama kapsayıcının kendisini \"Kapsayıcı\" olarak bırakmak, yanlışlıkla değiştirilecek bir hesap düzeyi ayarının tekrar herkese açık hale gelmesine bir adım uzakta olması demek — ve zaten bir güvenlik taramasından geçemiyor." },
+                  { key:"private", label:"Kapsayıcının erişim düzeyini \"Özel (anonim erişim yok)\" olarak ayarla", correct:true, feedback:"Düzeltildi — hesap düzeyindeki ayardan bağımsız olarak bu kapsayıcıya artık anonim erişim verilmiyor." },
+                  { key:"blob", label:"\"Kapsayıcı\" yerine \"Blob\" erişimine ayarla", correct:false, feedback:"\"Blob\" hâlâ tam URL'si bilinen herhangi bir blobun anonim okunmasına izin veriyor — sadece anonim listelemeyi durdurur. Hâlâ herkese açık, sadece biraz daha az keşfedilebilir." }
                 ],
                 errorText:"Bu kapsayıcının herkese açık erişim düzeyi hâlâ URL'yi bilen herkese anonim okuma erişimi veriyor."
               },
@@ -5121,17 +5547,23 @@
               }
             ],
             hardSteps:[
-              { id:"h-block", type:"action",
-                label:"Kova için Herkese Açık Erişimi Önlemeyi aç",
-                actionLabel:"Aç", loadingLabel:"Uygulanıyor…", doneLabel:"Herkese Açık Erişimi Önleme açık.", loadingMs:500,
+              { id:"h-block", type:"choice",
+                label:"Herkese Açık Erişimi Önlemeyi gerçekten nerede açacağınıza karar verin",
+                prompt:"Herkese Açık Erişimi Önleme doğrudan bu kovada ayarlanabilir ya da projeden miras alınabilir. Buradaki gerçek düzeltme hangisi?",
+                options:[
+                  { key:"bucketonly", label:"Sadece bu kova için aç", correct:true, feedback:"Bu kova için açıldı — proje düzeyi ayarlardan bağımsız olarak artık hiçbir IAM bağlaması ya da ACL tarafından herkese açık yapılamaz." },
+                  { key:"none", label:"Hiçbir şey — projenin varsayılanı otomatik olarak miras alınır", correct:false, feedback:"Bu kova bir geçersiz kılmayla oluşturulmuş, yani proje varsayılanını miras almıyor — kendi ayarının açıkça açılması gerekiyor." },
+                  { key:"orgpolicy", label:"Sadece tüm kuruluş için bir Organizasyon Politikasıyla zorunlu kıl", correct:false, feedback:"Bir organizasyon politikası daha güçlü, uzun vadeli düzeltme — ama tek başına bu kovanın şu anki açığa çıkmasını yeterince hızlı kapatmaz. Bu kovanın kendi ayarının şimdi açılması gerekiyor." }
+                ],
                 errorText:"Herkese Açık Erişimi Önleme hâlâ kapalı — kova, ona izin veren herhangi bir IAM bağlaması ya da ACL tarafından açığa çıkarılabilir."
               },
               { id:"h-iam", type:"choice",
-                label:"Erişime izin veren IAM bağlamasını kaldır",
-                prompt:"Kovanın IAM politikası ne yapmalı?",
+                label:"Herkese açık izni gerçekten nasıl kaldıracağınıza karar verin",
+                prompt:"Kovanın IAM politikası allUsers'a Storage Object Viewer veriyor — doğru düzeltme nedir?",
                 options:[
-                  { key:"keep", label:"allUsers'a Storage Object Viewer kalsın", correct:false, feedback:"allUsers gerçekten internetteki herkes demek, giriş yapmış ya da yapmamış fark etmez. Sızıntı bu." },
-                  { key:"remove", label:"allUsers bağlamasını kaldır", correct:true, feedback:"Kaldırıldı — artık hiçbir bağlama anonim erişime izin vermiyor." }
+                  { key:"condition", label:"allUsers bağlamasını IP'ye göre kısıtlayan bir IAM koşulu ekle", correct:false, feedback:"allUsers herhangi bir koşulla birlikte bile özel olması gereken bir kovada hâlâ herkese açık bir izindir — ve bir IP koşulu, URL'yi zaten bilen biri için kolayca aşılabilir." },
+                  { key:"remove", label:"allUsers bağlamasını tamamen kaldır", correct:true, feedback:"Kaldırıldı — artık hiçbir bağlama anonim erişime izin vermiyor." },
+                  { key:"downgrade", label:"Rolü Object Viewer'dan daha az izinli özel bir role değiştir, ama allUsers'ı koru", correct:false, feedback:"Hangi rolle eşleştirilirse eşleştirilsin allUsers sorunun kendisi — internetteki herkes hâlâ erişim kazanıyor. Kaldırılması gereken ekli rol değil, bağlamanın kendisi." }
                 ],
                 errorText:"Kovanın IAM politikası hâlâ allUsers'a Storage Object Viewer veriyor — URL'yi bilen herkes hâlâ her nesneyi okuyabilir."
               },
@@ -5177,9 +5609,14 @@
               }
             ],
             hardSteps:[
-              { id:"h-subnet", type:"action",
-                label:"Veritabanı örneğini özel alt ağa taşı",
-                actionLabel:"Örneği taşı", loadingLabel:"Taşınıyor…", doneLabel:"DB-1 artık özel alt ağda.", loadingMs:700,
+              { id:"h-subnet", type:"choice",
+                label:"Veritabanını herkese açık alt ağdan gerçekten nasıl çıkaracağınıza karar verin",
+                prompt:"Veritabanı örneği herkese açık bir alt ağda duruyor — doğru düzeltme nedir?",
+                options:[
+                  { key:"sgonly", label:"Herkese açık alt ağda bırakıp sadece güvenlik grubunu sıkılaştır", correct:false, feedback:"Güvenlik grubu tek bir savunma katmanı — örneği internetten yönlendirilebilir bir alt ağda bırakmak, şimdi ya da ileride yanlış yapılandırılmış herhangi bir kuralın onu tekrar erişilebilir kılması demek." },
+                  { key:"move", label:"Veritabanı örneğini özel alt ağa taşı", correct:true, feedback:"Taşındı — DB-1 artık internete hiç rotası olmayan bir alt ağda, sadece daha sıkı bir güvenlik duvarına sahip bir alt ağda değil." },
+                  { key:"eip", label:"Herkese açık alt ağda bırakıp sadece herkese açık IP'sini kaldır", correct:false, feedback:"Herkese açık IP'yi kaldırmak yardımcı olur, ama bu alt ağın yönlendirme tablosu hâlâ 0.0.0.0/0'ı bir İnternet Ağ Geçidi'ne gönderiyor — sonradan herkese açık bir IP yeniden eklenirse yine erişilebilir olur." }
+                ],
                 errorText:"Veritabanı hâlâ herkese açık alt ağda duruyor, sadece yönlendirme ile erişilebilir."
               },
               { id:"h-sg", type:"choice",
@@ -5232,9 +5669,14 @@
               }
             ],
             hardSteps:[
-              { id:"h-pip", type:"action",
-                label:"Veritabanı VM'sinden herkese açık IP adresini kaldır",
-                actionLabel:"Herkese açık IP'yi kaldır", loadingLabel:"Kaldırılıyor…", doneLabel:"DB-1 artık herkese açık IP'ye sahip değil.", loadingMs:700,
+              { id:"h-pip", type:"choice",
+                label:"Veritabanını herkese açık ağ yolundan gerçekten nasıl çıkaracağınıza karar verin",
+                prompt:"Veritabanı VM'sinin herkese açık bir IP'si var — doğru düzeltme nedir?",
+                options:[
+                  { key:"nsgonly", label:"Herkese açık IP'yi bırakıp sadece NSG'yi sıkılaştır", correct:false, feedback:"NSG tek bir savunma katmanı — herkese açık bir IP'yi bağlı bırakmak, şimdi ya da ileride yanlış yapılandırılmış herhangi bir kuralın onu tekrar erişilebilir kılması demek." },
+                  { key:"remove", label:"Veritabanı VM'sinden herkese açık IP adresini kaldır", correct:true, feedback:"Kaldırıldı — DB-1'in artık hiç herkese açık ağ yolu yok, sadece daha sıkı bir güvenlik duvarına sahip bir VM değil." },
+                  { key:"reassign", label:"Herkese açık IP'yi bırakıp aynı VM'deki başka bir NIC'e taşı", correct:false, feedback:"Bu herkese açık maruziyeti kaldırmıyor — sadece aynı erişilebilir VM üzerinde hangi arayüzün onu taşıdığını değiştiriyor." }
+                ],
                 errorText:"Veritabanı VM'sinin hâlâ herkese açık bir IP adresi var, doğrudan internetten erişilebilir."
               },
               { id:"h-nsg", type:"choice",
@@ -5287,9 +5729,14 @@
               }
             ],
             hardSteps:[
-              { id:"h-extip", type:"action",
-                label:"Veritabanı VM'sinden harici IP adresini kaldır",
-                actionLabel:"Harici IP'yi kaldır", loadingLabel:"Kaldırılıyor…", doneLabel:"DB-1 artık harici IP'ye sahip değil.", loadingMs:700,
+              { id:"h-extip", type:"choice",
+                label:"Veritabanını herkese açık ağ yolundan gerçekten nasıl çıkaracağınıza karar verin",
+                prompt:"Veritabanı VM'sinin harici bir IP'si var — doğru düzeltme nedir?",
+                options:[
+                  { key:"fwonly", label:"Harici IP'yi bırakıp sadece güvenlik duvarı kuralını sıkılaştır", correct:false, feedback:"Güvenlik duvarı kuralı tek bir savunma katmanı — harici bir IP'yi bağlı bırakmak, şimdi ya da ileride yanlış yapılandırılmış herhangi bir kuralın onu tekrar erişilebilir kılması demek." },
+                  { key:"remove", label:"Veritabanı VM'sinden harici IP adresini kaldır", correct:true, feedback:"Kaldırıldı — DB-1'in artık hiç herkese açık ağ yolu yok, sadece daha sıkı bir güvenlik duvarı kuralına sahip bir VM değil." },
+                  { key:"ephemeral", label:"Harici IP'yi bırakıp statikten geçiciye çevir", correct:false, feedback:"Geçici ile statik arasındaki fark sadece IP'nin yeniden başlatmalarda kalıcı olup olmadığını değiştirir — VM her iki durumda da herkese açık internetten erişilebilir kalır." }
+                ],
                 errorText:"Veritabanı VM'sinin hâlâ harici bir IP adresi var, doğrudan internetten erişilebilir."
               },
               { id:"h-fw", type:"choice",
@@ -5346,17 +5793,23 @@
             hardSteps:[
               { id:"h-policy", type:"choice",
                 label:"Yönlendirme politikasını değiştir",
-                prompt:"Bir bölgenin çökmesine gerçekten hangi politika tepki verir?",
+                prompt:"Route 53'te Basit dışında birden fazla politika var — bir sağlık kontrolünün kötüleşmesine gerçekten tepki vermek için tasarlanan hangisi?",
                 options:[
                   { key:"simple", label:"Basit", correct:false, feedback:"Basit her zaman aynı şekilde yanıt verir — ana bölgenin çöktüğünden haberi yok." },
                   { key:"weighted", label:"Ağırlıklı", correct:false, feedback:"Ağırlıklı trafiği sabit bir yüzdeyle böler — kendiliğinden sağlığa tepki vermez." },
+                  { key:"latency", label:"Gecikmeye dayalı", correct:false, feedback:"Gecikmeye dayalı, her kullanıcı için en hızlı yanıt veren sağlıklı bölgeyi seçer — performans için iyi, ama bu senaryonun ihtiyaç duyduğu belirli bir ana/ikincil yük devretme sırası etrafında tasarlanmamış." },
                   { key:"failover", label:"Yük devretme", correct:true, feedback:"Yük devretme — bu politika özellikle bir sağlık kontrolünün kötüleşmesine tepki vermek için tasarlanmış." }
                 ],
                 errorText:"Yönlendirme politikası hâlâ Yük devretme değil — burada hiçbir şey ana bölgenin çökmesine gerçekten tepki vermiyor."
               },
-              { id:"h-target", type:"action",
+              { id:"h-target", type:"choice",
                 label:"Yük devretme kaydını sağlıklı ikincil bölgeye yönlendir",
-                actionLabel:"İkincil hedefi ayarla", loadingLabel:"Kayıt güncelleniyor…", doneLabel:"İkincil bölge yük devretme hedefi olarak ayarlandı.", loadingMs:500,
+                prompt:"Hangi kayıt yapılandırması bunu iki bağımsız kayıt yerine gerçek bir yük devretme çifti yapar?",
+                options:[
+                  { key:"separate", label:"İkincil bölgenin kaydını kendi ayrı PRIMARY yük devretme kaydı olarak oluştur", correct:false, feedback:"İkisi de PRIMARY işaretli iki kayıt hiç çift oluşturmaz — Route 53'ün hangisine geri döneceğini bilmesi için aynı kayıt adı ve türü altında tam olarak bir PRIMARY ve bir SECONDARY gerekir." },
+                  { key:"secondary", label:"İkincil bölgenin kaydını aynı ad ve türle, SECONDARY olarak oluştur", correct:true, feedback:"Ayarlandı — Route 53 artık bu kayıt adı altında gerçek bir PRIMARY/SECONDARY çifte sahip ve ana bölgenin sağlık kontrolü başarısız olduğunda trafiği tam olarak nereye göndereceğini biliyor." },
+                  { key:"noset", label:"Her iki kayıtta da yük devretme kayıt türünü boş bırak", correct:false, feedback:"Kayıtlardan hiçbirinde bir yük devretme kayıt türü olmadan, Route 53'ün hangisinin ana hangisinin yedek olduğunu bilmesinin hiçbir yolu yok." }
+                ],
                 errorText:"İkincil bir hedef yapılandırılmamış — Yük devretme seçili olsa bile trafiğin gidecek bir yeri yok."
               },
               { id:"h-threshold", type:"choice",
@@ -5406,17 +5859,23 @@
             hardSteps:[
               { id:"h-method", type:"choice",
                 label:"Yönlendirme yöntemini değiştir",
-                prompt:"Bir bölgenin çökmesine gerçekten hangi yöntem tepki verir?",
+                prompt:"Traffic Manager'da Ağırlıklı dışında birden fazla yöntem var — üstteki uç noktanın sağlık kontrolü kötüleştiğinde bir sonraki uç noktaya devretmek için gerçekten tasarlanan hangisi?",
                 options:[
                   { key:"performance", label:"Performans", correct:false, feedback:"Performans her kullanıcı için en düşük gecikmeli sağlıklı uç noktaya yönlendirir — bir ana/ikincil yük devretme sırası etrafında tasarlanmamıştır." },
                   { key:"weighted", label:"Ağırlıklı", correct:false, feedback:"Ağırlıklı trafiği sabit bir oranla böler — kendiliğinden sağlığa tepki vermez." },
+                  { key:"geographic", label:"Coğrafi", correct:false, feedback:"Coğrafi, isteğin nereden geldiğine göre yönlendirir — veri yerleşimi kuralları için kullanışlı, ama bir ana/ikincil yük devretme sırası etrafında tasarlanmamış." },
                   { key:"priority", label:"Öncelik", correct:true, feedback:"Öncelik — bu yönlendirme yöntemi, üstteki uç noktanın sağlık kontrolü kötüleştiğinde bir sonraki uç noktaya devretmek için özellikle tasarlanmış." }
                 ],
                 errorText:"Yönlendirme yöntemi hâlâ Öncelik değil — burada hiçbir şey ana bölgenin çökmesine gerçekten tepki vermiyor."
               },
-              { id:"h-endpoint", type:"action",
+              { id:"h-endpoint", type:"choice",
                 label:"İkincil uç noktanın önceliğini otomatik devralacak şekilde ayarla",
-                actionLabel:"Önceliği ayarla", loadingLabel:"Uç nokta güncelleniyor…", doneLabel:"İkincil uç nokta artık 2. öncelikte.", loadingMs:500,
+                prompt:"Hangi öncelik yapılandırması bunu gerçekten çalışan bir ana/ikincil çift yapar?",
+                options:[
+                  { key:"samepriority", label:"Her iki uç noktaya da 1. önceliği ver", correct:false, feedback:"Aynı öncelikte eşitlenmiş iki uç nokta bir ana/ikincil çift değildir — Traffic Manager'ın hangisinin devralacağını bilmesi için net bir düşük öncelikli yedek gerekir." },
+                  { key:"priority2", label:"İkincil uç noktanın önceliğini, ana uç noktanın 1. önceliğinin altında 2 olarak ayarla", correct:true, feedback:"Ayarlandı — Traffic Manager artık net bir öncelik sırasına sahip ve ana uç noktanın sağlık kontrolü kötüleştiğinde hangi uç noktaya devredeceğini tam olarak biliyor." },
+                  { key:"disabled", label:"İkincil uç noktayı devre dışı bırakılmış bırak ama bir öncelik ver", correct:false, feedback:"Devre dışı bir uç nokta önceliği ne olursa olsun asla seçilmez — trafiği gerçekten devralması için etkinleştirilmesi gerekir." }
+                ],
                 errorText:"İkincil uç noktanın önceliği ayarlanmamış — Öncelik yöntemi seçili olsa bile trafiğin gidecek tanımlı bir yeri yok."
               },
               { id:"h-tolerated", type:"choice",
@@ -5466,17 +5925,23 @@
             hardSteps:[
               { id:"h-policy", type:"choice",
                 label:"Yönlendirme politikasını değiştir",
-                prompt:"Bir bölgenin çökmesine gerçekten hangi politika tepki verir?",
+                prompt:"Cloud DNS'te Ağırlıklı round robin dışında birden fazla politika var — bir sağlık kontrolünün kötüleşmesine gerçekten tepki vermek için tasarlanan hangisi?",
                 options:[
                   { key:"geo", label:"Coğrafi konum", correct:false, feedback:"Coğrafi konum, isteğin nereden geldiğine göre yönlendirir — bir ana/yedek yük devretme sırası etrafında tasarlanmamıştır." },
                   { key:"weighted", label:"Ağırlıklı round robin", correct:false, feedback:"Ağırlıklı trafiği sabit bir oranla böler — kendiliğinden sağlığa tepki vermez." },
+                  { key:"multivalue", label:"Birden çok değer arasında basit round robin", correct:false, feedback:"Round robin, sağlık durumundan bağımsız olarak sırayla birkaç değerden herhangi biriyle yanıt verir — geri dönülecek bir yedek kavramı yoktur." },
                   { key:"failover", label:"Yük devretme", correct:true, feedback:"Yük devretme — bu politika özellikle bir sağlık kontrolünün kötüleşmesine tepki vermek için tasarlanmış." }
                 ],
                 errorText:"Yönlendirme politikası hâlâ Yük devretme değil — burada hiçbir şey ana bölgenin çökmesine gerçekten tepki vermiyor."
               },
-              { id:"h-backup", type:"action",
+              { id:"h-backup", type:"choice",
                 label:"Yedek kayıt kümesini sağlıklı ikincil bölgeye ayarla",
-                actionLabel:"Yedek kayıt kümesini ayarla", loadingLabel:"Kayıt güncelleniyor…", doneLabel:"İkincil bölge yedek kayıt kümesi olarak ayarlandı.", loadingMs:500,
+                prompt:"Hangi kayıt kümesi yapılandırması bunu gerçekten çalışan bir ana/yedek çift yapar?",
+                options:[
+                  { key:"bothprimary", label:"Hem ana hem ikincil kayıt kümelerini ana veri olarak yapılandır", correct:false, feedback:"İkisi de ana veri olarak işaretli iki kayıt kümesi hiç çift oluşturmaz — Cloud DNS'in hangisine geri döneceğini bilmesi için bir ana veri kümesi ve ondan ayrı, belirgin bir yedek veri kümesi gerekir." },
+                  { key:"backup", label:"İkincil bölgeyi, ana veriden ayrı olarak politikanın yedek verisi olarak yapılandır", correct:true, feedback:"Ayarlandı — Cloud DNS artık bu yük devretme politikası altında gerçek bir ana/yedek çifte sahip ve ana bölgenin sağlık kontrolü başarısız olduğunda trafiği tam olarak nereye göndereceğini biliyor." },
+                  { key:"noeval", label:"Tek yapılandırılmış seçenek olarak \"Coğrafi sınırlamayı etkinleştir\"i bırak", correct:false, feedback:"Coğrafi sınırlama hangi bölgelerin yanıt vermeye uygun olduğunu kontrol eder — ana bölge sağlıksız olduğunda devredilecek bir yedek kayıt kümesi tanımlamaz." }
+                ],
                 errorText:"Yedek bir kayıt kümesi yapılandırılmamış — Yük devretme seçili olsa bile trafiğin gidecek bir yeri yok."
               },
               { id:"h-threshold", type:"choice",
@@ -5528,7 +5993,7 @@
             hardSteps:[
               { id:"h-metric", type:"choice",
                 label:"Alarm için metriği seç",
-                prompt:"Hangi metrik bu arızayı gerçekten yansıtıyor?",
+                prompt:"CloudWatch varsayılan olarak bir sürü altyapı metriği sunuyor — hangisi gerçekten başarısız istekleri yansıtıyor?",
                 options:[
                   { key:"network", label:"NetworkIn", correct:false, feedback:"Her istek sessizce başarısız olurken trafik tamamen normal görünebilir. Bu değil." },
                   { key:"errorrate", label:"ErrorRate", correct:true, feedback:"Başarısız istekleri gerçekten yansıtan bu." },
@@ -5536,9 +6001,14 @@
                 ],
                 errorText:"Hiçbir alarm bu tür bir arızayı gerçekten yakalayacak bir metriği izlemiyor."
               },
-              { id:"h-threshold", type:"action",
+              { id:"h-threshold", type:"choice",
                 label:"Bir eşik belirle ve alarmı oluştur",
-                actionLabel:"Alarm oluştur", loadingLabel:"Oluşturuluyor…", doneLabel:"Alarm oluşturuldu.", loadingMs:500,
+                prompt:"Hangi alarm yapılandırması yanlış pozitiflere boğulmadan bu arızayı gerçekten yakalar?",
+                options:[
+                  { key:"toolow", label:"Hata oranı %0'ın üzerine çıkar çıkmaz alarmı çal", correct:false, feedback:"Aksi halde sağlıklı bir serviste geçici tek bir hata bile bu alarmı sürekli tetikler — gerçek arızayı normal gürültüden ayıracak bir eşik ve değerlendirme dönemi gerekir." },
+                  { key:"reasonable", label:"Hata oranı 3 ardışık dönem boyunca %5'i aşarsa alarmı çal", correct:true, feedback:"Oluşturuldu — rutin dalgalanmaları yok sayacak kadar yüksek, gerçek bir arızayı birkaç dakika içinde yakalayacak kadar hızlı." },
+                  { key:"toohigh", label:"Sadece hata oranı %90'ı aşarsa alarmı çal", correct:false, feedback:"Diyelim %40 hata oranıyla sessizce başarısız olan bir servis, istediği kadar bu eşiğin rahatça altında kalır." }
+                ],
                 errorText:"Henüz gerçekten bir alarm oluşturulmadı — doğru metrik tek başına kimseyi çağırmaz."
               },
               { id:"h-missingdata", type:"choice",
@@ -5582,7 +6052,7 @@
             hardSteps:[
               { id:"h-metric", type:"choice",
                 label:"Uyarı için metriği seç",
-                prompt:"Hangi metrik bu arızayı gerçekten yansıtıyor?",
+                prompt:"Azure Monitor varsayılan olarak bir sürü altyapı metriği sunuyor — hangisi gerçekten başarısız istekleri yansıtıyor?",
                 options:[
                   { key:"network", label:"Ağ Girişi", correct:false, feedback:"Her istek sessizce başarısız olurken trafik tamamen normal görünebilir. Bu değil." },
                   { key:"failedreq", label:"Başarısız İstekler", correct:true, feedback:"Başarısız istekleri gerçekten yansıtan bu." },
@@ -5590,9 +6060,14 @@
                 ],
                 errorText:"Hiçbir uyarı bu tür bir arızayı gerçekten yakalayacak bir metriği izlemiyor."
               },
-              { id:"h-threshold", type:"action",
+              { id:"h-threshold", type:"choice",
                 label:"Bir eşik belirle ve uyarı kuralını oluştur",
-                actionLabel:"Uyarı kuralı oluştur", loadingLabel:"Oluşturuluyor…", doneLabel:"Uyarı kuralı oluşturuldu.", loadingMs:500,
+                prompt:"Hangi uyarı kuralı yapılandırması yanlış pozitiflere boğulmadan bu arızayı gerçekten yakalar?",
+                options:[
+                  { key:"toolow", label:"Başarısız İstekler 0'ın üzerine çıkar çıkmaz uyar", correct:false, feedback:"Aksi halde sağlıklı bir serviste geçici tek bir hata bile bunu sürekli tetikler — gerçek arızayı normal gürültüden ayıracak bir eşik ve değerlendirme penceresi gerekir." },
+                  { key:"reasonable", label:"Başarısız İstekler 3 ardışık değerlendirme dönemi boyunca toplamın %5'ini aşarsa uyar", correct:true, feedback:"Oluşturuldu — rutin dalgalanmaları yok sayacak kadar yüksek, gerçek bir arızayı birkaç dakika içinde yakalayacak kadar hızlı." },
+                  { key:"toohigh", label:"Sadece Başarısız İstekler toplamın %90'ını aşarsa uyar", correct:false, feedback:"Diyelim %40 hata oranıyla sessizce başarısız olan bir servis, istediği kadar bu eşiğin rahatça altında kalır." }
+                ],
                 errorText:"Henüz gerçekten bir uyarı kuralı oluşturulmadı — doğru metrik tek başına kimseyi çağırmaz."
               },
               { id:"h-missingdata", type:"choice",
@@ -5636,7 +6111,7 @@
             hardSteps:[
               { id:"h-metric", type:"choice",
                 label:"Uyarı için metriği seç",
-                prompt:"Hangi metrik bu arızayı gerçekten yansıtıyor?",
+                prompt:"Cloud Monitoring varsayılan olarak bir sürü altyapı metriği sunuyor — hangisi gerçekten başarısız istekleri yansıtıyor?",
                 options:[
                   { key:"network", label:"Alınan ağ baytları", correct:false, feedback:"Her istek sessizce başarısız olurken trafik tamamen normal görünebilir. Bu değil." },
                   { key:"errorrate", label:"İstek hata oranı", correct:true, feedback:"Başarısız istekleri gerçekten yansıtan bu." },
@@ -5644,9 +6119,14 @@
                 ],
                 errorText:"Hiçbir uyarı politikası bu tür bir arızayı gerçekten yakalayacak bir metriği izlemiyor."
               },
-              { id:"h-threshold", type:"action",
+              { id:"h-threshold", type:"choice",
                 label:"Bir eşik belirle ve uyarı politikasını oluştur",
-                actionLabel:"Politika oluştur", loadingLabel:"Oluşturuluyor…", doneLabel:"Uyarı politikası oluşturuldu.", loadingMs:500,
+                prompt:"Hangi uyarı politikası yapılandırması yanlış pozitiflere boğulmadan bu arızayı gerçekten yakalar?",
+                options:[
+                  { key:"toolow", label:"Hata oranı %0'ın üzerine çıkar çıkmaz uyar", correct:false, feedback:"Aksi halde sağlıklı bir serviste geçici tek bir hata bile bunu sürekli tetikler — gerçek arızayı normal gürültüden ayıracak bir eşik ve değerlendirme penceresi gerekir." },
+                  { key:"reasonable", label:"Hata oranı 3 ardışık değerlendirme dönemi boyunca %5'i aşarsa uyar", correct:true, feedback:"Oluşturuldu — rutin dalgalanmaları yok sayacak kadar yüksek, gerçek bir arızayı birkaç dakika içinde yakalayacak kadar hızlı." },
+                  { key:"toohigh", label:"Sadece hata oranı %90'ı aşarsa uyar", correct:false, feedback:"Diyelim %40 hata oranıyla sessizce başarısız olan bir servis, istediği kadar bu eşiğin rahatça altında kalır." }
+                ],
                 errorText:"Henüz gerçekten bir uyarı politikası oluşturulmadı — doğru metrik tek başına kimseyi çağırmaz."
               },
               { id:"h-missingdata", type:"choice",
@@ -5692,16 +6172,22 @@
             hardSteps:[
               { id:"h-lag", type:"choice",
                 label:"Herhangi bir şeye dokunmadan önce okuma replikasının replikasyon gecikmesini kontrol et",
-                prompt:"Terfi ettirmeden önce neyi kontrol edersiniz?",
+                prompt:"Herhangi bir şeyi terfi ettirmeden önce — bunlardan hangisi gerçekte ne kadar veri kaybedileceğini söyler?",
                 options:[
                   { key:"skip", label:"Atlayın — hemen terfi ettirin", correct:false, feedback:"Replikasyonda geride kalmış bir replikayı terfi ettirmek, gerekenden daha fazla veriyi çöpe atar. Önce on saniyelik bir kontrol ucuz bir sigorta." },
+                  { key:"cpu", label:"Replikanın CPUUtilization metriği", correct:false, feedback:"CPU, replikanın ne kadar zorlandığını söyler, ana sunucunun yazmalarını uygulamakta ne kadar geride olduğunu değil." },
                   { key:"check", label:"Önce ReplicaLag metriğini kontrol edin", correct:true, feedback:"Gecikme düşük — bu replika minimal veri kaybıyla terfi ettirilmeye güvenli." }
                 ],
                 errorText:"Kimse bu replikanın gerçekte ne kadar geride olduğunu kontrol etmedi — körlemesine terfi ettirmek kesintinin kendisinden daha fazlasını kaybetme riski taşır."
               },
-              { id:"h-promote", type:"action",
+              { id:"h-promote", type:"choice",
                 label:"Okuma replikasını bağımsız bir örneğe terfi ettir",
-                actionLabel:"Replikayı terfi ettir", loadingLabel:"Terfi ettiriliyor…", doneLabel:"Replika terfi ettirildi — artık yazma kabul ediyor.", loadingMs:700,
+                prompt:"Replikasyon gecikmesinin düşük olduğu doğrulandığına göre, doğru sonraki eylem nedir?",
+                options:[
+                  { key:"reboot", label:"Ölü ana sunucuyu yeniden başlatıp geri gelmesini bekleyin", correct:false, feedback:"Ana sunucunun geri geleceğinin hiçbir garantisi yok, ve beklenen her saniye, zaten sağlıklı ve düşük gecikmeli bir replikası hazır bekleyen bir veritabanında daha fazla kayıp yazma demek." },
+                  { key:"promote", label:"Okuma replikasını bağımsız bir örneğe terfi ettir", correct:true, feedback:"Terfi ettirildi — artık yazma kabul ediyor." },
+                  { key:"newinstance", label:"Yepyeni, boş bir RDS örneği başlatıp uygulamayı ona yönlendirin", correct:false, feedback:"Yepyeni bir örnekte bu veritabanının hiçbir verisi yok — bu, zaten güncel olan replikayı terfi ettirmekten daha büyük bir veri kaybı." }
+                ],
                 errorText:"Bu kümede şu anda hiçbir örnek yazma kabul etmiyor — henüz hiçbir şey terfi ettirilmedi."
               },
               { id:"h-endpoint", type:"choice",
@@ -5745,16 +6231,22 @@
             hardSteps:[
               { id:"h-lag", type:"choice",
                 label:"Herhangi bir şeye dokunmadan önce okuma replikasının replikasyon gecikmesini kontrol et",
-                prompt:"Terfi ettirmeden önce neyi kontrol edersiniz?",
+                prompt:"Herhangi bir şeyi terfi ettirmeden önce — bunlardan hangisi gerçekte ne kadar veri kaybedileceğini söyler?",
                 options:[
                   { key:"skip", label:"Atlayın — hemen replikasyonu durdurun", correct:false, feedback:"Replikasyonda geride kalmış bir replikayı terfi ettirmek, gerekenden daha fazla veriyi çöpe atar. Önce on saniyelik bir kontrol ucuz bir sigorta." },
+                  { key:"cpu", label:"Replikanın CPU yüzdesi metriği", correct:false, feedback:"CPU, replikanın ne kadar zorlandığını söyler, ana sunucunun yazmalarını uygulamakta ne kadar geride olduğunu değil." },
                   { key:"check", label:"Önce Replikasyon Gecikmesi metriğini kontrol edin", correct:true, feedback:"Gecikme düşük — bu replika minimal veri kaybıyla terfi ettirilmeye güvenli." }
                 ],
                 errorText:"Kimse bu replikanın gerçekte ne kadar geride olduğunu kontrol etmedi — körlemesine terfi ettirmek kesintinin kendisinden daha fazlasını kaybetme riski taşır."
               },
-              { id:"h-promote", type:"action",
+              { id:"h-promote", type:"choice",
                 label:"Okuma replikasını bağımsız bir sunucuya terfi ettirmek için replikasyonu durdur",
-                actionLabel:"Replikasyonu durdur", loadingLabel:"Terfi ettiriliyor…", doneLabel:"Replika terfi ettirildi — artık yazma kabul ediyor.", loadingMs:700,
+                prompt:"Replikasyon gecikmesinin düşük olduğu doğrulandığına göre, doğru sonraki eylem nedir?",
+                options:[
+                  { key:"reboot", label:"Ölü ana sunucuyu yeniden başlatıp geri gelmesini bekleyin", correct:false, feedback:"Ana sunucunun geri geleceğinin hiçbir garantisi yok, ve beklenen her saniye, zaten sağlıklı ve düşük gecikmeli bir replikası hazır bekleyen bir veritabanında daha fazla kayıp yazma demek." },
+                  { key:"promote", label:"Okuma replikasını bağımsız bir sunucuya terfi ettirmek için replikasyonu durdur", correct:true, feedback:"Terfi ettirildi — artık yazma kabul ediyor." },
+                  { key:"newinstance", label:"Yepyeni, boş bir veritabanı sunucusu dağıtıp uygulamayı ona yönlendirin", correct:false, feedback:"Yepyeni bir sunucuda bu veritabanının hiçbir verisi yok — bu, zaten güncel olan replikayı terfi ettirmekten daha büyük bir veri kaybı." }
+                ],
                 errorText:"Bu dağıtımda şu anda hiçbir sunucu yazma kabul etmiyor — henüz hiçbir şey terfi ettirilmedi."
               },
               { id:"h-endpoint", type:"choice",
@@ -5798,16 +6290,22 @@
             hardSteps:[
               { id:"h-lag", type:"choice",
                 label:"Herhangi bir şeye dokunmadan önce okuma replikasının replikasyon gecikmesini kontrol et",
-                prompt:"Terfi ettirmeden önce neyi kontrol edersiniz?",
+                prompt:"Herhangi bir şeyi terfi ettirmeden önce — bunlardan hangisi gerçekte ne kadar veri kaybedileceğini söyler?",
                 options:[
                   { key:"skip", label:"Atlayın — hemen terfi ettirin", correct:false, feedback:"Replikasyonda geride kalmış bir replikayı terfi ettirmek, gerekenden daha fazla veriyi çöpe atar. Önce on saniyelik bir kontrol ucuz bir sigorta." },
+                  { key:"cpu", label:"Replikanın CPU kullanım metriği", correct:false, feedback:"CPU, replikanın ne kadar zorlandığını söyler, ana sunucunun yazmalarını uygulamakta ne kadar geride olduğunu değil." },
                   { key:"check", label:"Önce replikasyon gecikmesi metriğini kontrol edin", correct:true, feedback:"Gecikme düşük — bu replika minimal veri kaybıyla terfi ettirilmeye güvenli." }
                 ],
                 errorText:"Kimse bu replikanın gerçekte ne kadar geride olduğunu kontrol etmedi — körlemesine terfi ettirmek kesintinin kendisinden daha fazlasını kaybetme riski taşır."
               },
-              { id:"h-promote", type:"action",
+              { id:"h-promote", type:"choice",
                 label:"Okuma replikasını terfi ettir",
-                actionLabel:"Okuma replikasını terfi ettir", loadingLabel:"Terfi ettiriliyor…", doneLabel:"Replika terfi ettirildi — artık yazma kabul ediyor.", loadingMs:700,
+                prompt:"Replikasyon gecikmesinin düşük olduğu doğrulandığına göre, doğru sonraki eylem nedir?",
+                options:[
+                  { key:"reboot", label:"Ölü ana sunucuyu yeniden başlatıp geri gelmesini bekleyin", correct:false, feedback:"Ana sunucunun geri geleceğinin hiçbir garantisi yok, ve beklenen her saniye, zaten sağlıklı ve düşük gecikmeli bir replikası hazır bekleyen bir veritabanında daha fazla kayıp yazma demek." },
+                  { key:"promote", label:"Okuma replikasını terfi ettir", correct:true, feedback:"Terfi ettirildi — artık yazma kabul ediyor." },
+                  { key:"newinstance", label:"Yepyeni, boş bir Cloud SQL örneği oluşturup uygulamayı ona yönlendirin", correct:false, feedback:"Yepyeni bir örnekte bu veritabanının hiçbir verisi yok — bu, zaten güncel olan replikayı terfi ettirmekten daha büyük bir veri kaybı." }
+                ],
                 errorText:"Bu kümede şu anda hiçbir örnek yazma kabul etmiyor — henüz hiçbir şey terfi ettirilmedi."
               },
               { id:"h-endpoint", type:"choice",
@@ -5860,16 +6358,22 @@
                 ],
                 errorText:"Yeni sürümün gerçekten başarısız olan şey olduğunu doğrulamadan tepki verdiniz — canlı bir dağıtıma dokunmadan önce on saniyeye değer."
               },
-              { id:"h-stop", type:"action",
+              { id:"h-stop", type:"choice",
                 label:"Devam eden dağıtımı durdur",
-                actionLabel:"Dağıtımı durdur", loadingLabel:"Durduruluyor…", doneLabel:"Dağıtım durduruldu — artık hiçbir görev bozuk sürümle değiştirilmeyecek.", loadingMs:600,
+                prompt:"Şu anda daha fazla sağlıklı görevin değiştirilmesini gerçekte hangi eylem durdurur?",
+                options:[
+                  { key:"scaleup", label:"Başarısız görevlerin yanına daha fazla kapasite eklemek için servisi ölçeklendir", correct:false, feedback:"Kapasite eklemek, ECS'in mevcut görevleri aynı bozuk sürümle değiştirmeye devam etmesini durdurmaz — sadece toplam görev sayısını artırır, bunların bir kısmı da başarısız olmaya devam eder." },
+                  { key:"stop", label:"Devam eden dağıtımı durdur", correct:true, feedback:"Durduruldu — artık hiçbir görev bozuk sürümle değiştirilmeyecek." },
+                  { key:"delete", label:"Servisi tamamen sil ve yeniden oluştur", correct:false, feedback:"Servisi silmek sağlıklı olsun olmasın her görevi yıkar — asıl hedef hâlâ çalışanı düşürmeden kanamayı durdurmakken tam bir kesinti demek." }
+                ],
                 errorText:"Dağıtım hâlâ çalışıyor — sağlıklı görevleri sağlık kontrolünü geçemeyenlerle değiştirmeye devam ediyor."
               },
               { id:"h-rollback", type:"choice",
                 label:"Servisi çalışır duruma geri getir",
-                prompt:"Bunu gerçekte ne düzeltir?",
+                prompt:"Bozuk dağıtım durdurulduğuna göre, sağlıklı görevleri gerçekte tekrar ne çalıştırır?",
                 options:[
                   { key:"force", label:"Aynı görev tanımı sürümünü yeniden zorla dağıt", correct:false, feedback:"Aynı bozuk sürümü yeniden dağıtmak tam olarak aynı şekilde başarısız olur." },
+                  { key:"manual", label:"Hatayı aşmak için çalışan görevlerin ortam değişkenlerini elle düzenle", correct:false, feedback:"Çalışan bir görevin ortamını canlı yamak, onun başlatıldığı görev tanımını değiştirmez — bir sonraki yedek görev doğrudan bozuk sürüme geri döner." },
                   { key:"rollback", label:"Servisi önceki görev tanımı sürümüne geri al", correct:true, feedback:"Geri alındı — servis gerçekten sağlıklı olan son sürümü çalıştırıyor." }
                 ],
                 errorText:"Servis hâlâ bozuk görev tanımı sürümünde — henüz gerçekten hiçbir şey geri alınmadı."
@@ -5913,16 +6417,22 @@
                 ],
                 errorText:"Yeni sürümün gerçekten başarısız olan şey olduğunu doğrulamadan tepki verdiniz — canlı bir dağıtıma dokunmadan önce on saniyeye değer."
               },
-              { id:"h-stop", type:"action",
+              { id:"h-stop", type:"choice",
                 label:"Rollout'u duraklat",
-                actionLabel:"Rollout'u duraklat", loadingLabel:"Duraklatılıyor…", doneLabel:"Rollout duraklatıldı — artık hiçbir pod bozuk sürümle değiştirilmeyecek.", loadingMs:600,
+                prompt:"Şu anda daha fazla sağlıklı pod'un değiştirilmesini gerçekte hangi eylem durdurur?",
+                options:[
+                  { key:"scaleup", label:"Başarısız pod'ların yanına daha fazla replika eklemek için dağıtımı ölçeklendir", correct:false, feedback:"Replika eklemek, rollout denetleyicisinin mevcut pod'ları aynı bozuk sürümle değiştirmeye devam etmesini durdurmaz — sadece toplam pod sayısını artırır, bunların bir kısmı da çöküp yeniden başlamaya devam eder." },
+                  { key:"stop", label:"Rollout'u duraklat", correct:true, feedback:"Duraklatıldı — artık hiçbir pod bozuk sürümle değiştirilmeyecek." },
+                  { key:"delete", label:"Dağıtımı tamamen sil ve yeniden oluştur", correct:false, feedback:"Dağıtımı silmek sağlıklı olsun olmasın her pod'u yıkar — asıl hedef hâlâ çalışanı düşürmeden kanamayı durdurmakken tam bir kesinti demek." }
+                ],
                 errorText:"Rollout hâlâ çalışıyor — sağlıklı pod'ları çöküp yeniden başlayanlarla değiştirmeye devam ediyor."
               },
               { id:"h-rollback", type:"choice",
                 label:"Dağıtımı çalışır duruma geri getir",
-                prompt:"Bunu gerçekte ne düzeltir?",
+                prompt:"Rollout duraklatıldığına göre, sağlıklı pod'ları gerçekte tekrar ne çalıştırır?",
                 options:[
                   { key:"scale", label:"Yeni (bozuk) ReplicaSet'i ölçeklendir", correct:false, feedback:"Çöküp duran bir sürümün daha fazla kopyası, yine çöküp duran bir sürümdür — sadece fazladan yeniden başlatmalarla." },
+                  { key:"manual", label:"Hatayı aşmak için çalışan pod'ların ortam değişkenlerini elle düzenle", correct:false, feedback:"Çalışan bir pod'un ortamını canlı yamak, onun oluşturulduğu sürümü değiştirmez — bir sonraki yedek pod doğrudan bozuk sürüme geri döner." },
                   { key:"rollback", label:"Önceki sürüme geri al", correct:true, feedback:"Geri alındı — dağıtım gerçekten sağlıklı olan son sürümü çalıştırıyor." }
                 ],
                 errorText:"Dağıtım hâlâ bozuk sürümde — henüz gerçekten hiçbir şey geri alınmadı."
@@ -5966,16 +6476,22 @@
                 ],
                 errorText:"Yeni sürümün gerçekten başarısız olan şey olduğunu doğrulamadan tepki verdiniz — canlı bir dağıtıma dokunmadan önce on saniyeye değer."
               },
-              { id:"h-stop", type:"action",
+              { id:"h-stop", type:"choice",
                 label:"Rollout'u duraklat",
-                actionLabel:"Rollout'u duraklat", loadingLabel:"Duraklatılıyor…", doneLabel:"Rollout duraklatıldı — artık hiçbir pod bozuk sürümle değiştirilmeyecek.", loadingMs:600,
+                prompt:"Şu anda daha fazla sağlıklı pod'un değiştirilmesini gerçekte hangi eylem durdurur?",
+                options:[
+                  { key:"scaleup", label:"Başarısız pod'ların yanına daha fazla replika eklemek için dağıtımı ölçeklendir", correct:false, feedback:"Replika eklemek, rollout denetleyicisinin mevcut pod'ları aynı bozuk sürümle değiştirmeye devam etmesini durdurmaz — sadece toplam pod sayısını artırır, bunların bir kısmı da çöküp yeniden başlamaya devam eder." },
+                  { key:"stop", label:"Rollout'u duraklat", correct:true, feedback:"Duraklatıldı — artık hiçbir pod bozuk sürümle değiştirilmeyecek." },
+                  { key:"delete", label:"Dağıtımı tamamen sil ve yeniden oluştur", correct:false, feedback:"Dağıtımı silmek sağlıklı olsun olmasın her pod'u yıkar — asıl hedef hâlâ çalışanı düşürmeden kanamayı durdurmakken tam bir kesinti demek." }
+                ],
                 errorText:"Rollout hâlâ çalışıyor — sağlıklı pod'ları çöküp yeniden başlayanlarla değiştirmeye devam ediyor."
               },
               { id:"h-rollback", type:"choice",
                 label:"Dağıtımı çalışır duruma geri getir",
-                prompt:"Bunu gerçekte ne düzeltir?",
+                prompt:"Rollout duraklatıldığına göre, sağlıklı pod'ları gerçekte tekrar ne çalıştırır?",
                 options:[
                   { key:"scale", label:"Yeni (bozuk) ReplicaSet'i ölçeklendir", correct:false, feedback:"Çöküp duran bir sürümün daha fazla kopyası, yine çöküp duran bir sürümdür — sadece fazladan yeniden başlatmalarla." },
+                  { key:"manual", label:"Hatayı aşmak için çalışan pod'ların ortam değişkenlerini elle düzenle", correct:false, feedback:"Çalışan bir pod'un ortamını canlı yamak, onun oluşturulduğu sürümü değiştirmez — bir sonraki yedek pod doğrudan bozuk sürüme geri döner." },
                   { key:"rollback", label:"Önceki sürüme geri al", correct:true, feedback:"Geri alındı — dağıtım gerçekten sağlıklı olan son sürümü çalıştırıyor." }
                 ],
                 errorText:"Dağıtım hâlâ bozuk sürümde — henüz gerçekten hiçbir şey geri alınmadı."
@@ -6021,17 +6537,23 @@
                 ],
                 errorText:"Bunun gerçekten meta veri kimlik bilgisi hırsızlığı olduğunu doğrulamadınız — herhangi bir şeyi karantinaya almadan önce doğrulamaya değer."
               },
-              { id:"h-isolate", type:"action",
-                label:"Tüm gelen ve giden trafiği engelleyen bir karantina güvenlik grubu ekle",
-                actionLabel:"Örneği karantinaya al", loadingLabel:"İzole ediliyor…", doneLabel:"Örnek izole edildi — giren çıkan trafik yok.", loadingMs:600,
+              { id:"h-isolate", type:"choice",
+                label:"Örneği gerçekten nasıl kontrol altına alacağınıza karar verin",
+                prompt:"Örneğin saldırgan için hemen işe yaramaz hale gelmesi gerekiyor — doğru kontrol altına alma hareketi hangisi?",
+                options:[
+                  { key:"terminate", label:"Örneği hemen sonlandır", correct:false, feedback:"Sonlandırmak, saldırganın başka neye dokunduğu doğrulanmadan örneğin diskini, belleğini ve günlüklerini yok eder — sızmış bir anahtarı silmekle aynı kanıt-koruma sorunu." },
+                  { key:"quarantine", label:"Tüm gelen ve giden trafiği engelleyen bir karantina güvenlik grubu ekle", correct:true, feedback:"İzole edildi — giren çıkan trafik yok, ama örneğin kendisi, diski ve günlükleri soruşturma için hâlâ bozulmadan duruyor." },
+                  { key:"detachrole", label:"Sadece IAM rolünü örnekten ayır", correct:false, feedback:"Rolü ayırmak bu örneğin yeni kimlik bilgisi istemesini durdurur, ama saldırganın zaten çaldığı kimlik bilgileri konusunda hiçbir şey yapmaz — ve örneğin başka bir şey için kullanılmasını da durdurmaz." }
+                ],
                 errorText:"Örnek hâlâ tamamen bağlı — üzerinde çalışan başka her ne varsa internetle konuşmaya devam edebilir."
               },
               { id:"h-revoke", type:"choice",
                 label:"Çalınan kimlik bilgilerini kes",
-                prompt:"Saldırganın onları kullanmasını gerçekte ne durdurur?",
+                prompt:"SSRF'nin aldığı kimlik bilgileri, örneğin roluna bağlı geçici oturum kimlik bilgileri — saldırganın onları kullanmasını gerçekte ne durdurur?",
                 options:[
                   { key:"terminate", label:"Örneği sonlandır", correct:false, feedback:"Saldırganın zaten aldığı kimlik bilgileri geçici oturum kimlik bilgileridir — bu örnek var olsun ya da olmasın, süreleri dolana ya da açıkça iptal edilene kadar her yerden çalışmaya devam ederler." },
-                  { key:"revoke", label:"Rolün aktif oturumlarını iptal et", correct:true, feedback:"İptal edildi — bu andan önce yayımlanmış her geçici kimlik bilgisi artık kimde bir kopyası olursa olsun reddediliyor." }
+                  { key:"revoke", label:"Rolün aktif oturumlarını iptal et", correct:true, feedback:"İptal edildi — bu andan önce yayımlanmış her geçici kimlik bilgisi artık kimde bir kopyası olursa olsun reddediliyor." },
+                  { key:"swap", label:"Rolü ayırıp örneğe farklı bir rol bağla", correct:false, feedback:"Bu örneğin bundan sonra hangi rolü kullandığını değiştirmek, eski rol altında zaten yayımlanmış kimlik bilgilerine dokunmaz — bunlar açıkça iptal edilene kadar başka yerlerde çalışmaya devam eder." }
                 ],
                 errorText:"Çalınan oturum kimlik bilgileri hâlâ geçerli — saldırgan açıkça iptal edilene kadar onları her yerden kullanmaya devam edebilir."
               },
@@ -6074,17 +6596,23 @@
                 ],
                 errorText:"Bunun gerçekten meta veri jetonu hırsızlığı olduğunu doğrulamadınız — herhangi bir şeyi karantinaya almadan önce doğrulamaya değer."
               },
-              { id:"h-isolate", type:"action",
-                label:"Tüm gelen ve giden trafiği engelleyen bir karantina ağ güvenlik grubu ekle",
-                actionLabel:"VM'yi karantinaya al", loadingLabel:"İzole ediliyor…", doneLabel:"VM izole edildi — giren çıkan trafik yok.", loadingMs:600,
+              { id:"h-isolate", type:"choice",
+                label:"VM'yi gerçekten nasıl kontrol altına alacağınıza karar verin",
+                prompt:"VM'nin saldırgan için hemen işe yaramaz hale gelmesi gerekiyor — doğru kontrol altına alma hareketi hangisi?",
+                options:[
+                  { key:"delete", label:"VM'yi hemen sil", correct:false, feedback:"Silmek, saldırganın başka neye dokunduğu doğrulanmadan VM'nin diskini, belleğini ve günlüklerini yok eder — sızmış bir kimlik bilgisini silmekle aynı kanıt-koruma sorunu." },
+                  { key:"quarantine", label:"Tüm gelen ve giden trafiği engelleyen bir karantina ağ güvenlik grubu ekle", correct:true, feedback:"İzole edildi — giren çıkan trafik yok, ama VM'nin kendisi, diski ve günlükleri soruşturma için hâlâ bozulmadan duruyor." },
+                  { key:"removeidentity", label:"Sadece yönetilen kimliği VM'den kaldır", correct:false, feedback:"Kimliği kaldırmak bu VM'nin yeni jeton istemesini durdurur, ama saldırganın zaten çaldığı jeton konusunda hiçbir şey yapmaz — ve VM'nin başka bir şey için kullanılmasını da durdurmaz." }
+                ],
                 errorText:"VM hâlâ tamamen bağlı — üzerinde çalışan başka her ne varsa internetle konuşmaya devam edebilir."
               },
               { id:"h-revoke", type:"choice",
                 label:"Çalınan jetonun ulaşabildiği yerleri kes",
-                prompt:"Saldırganın onu kullanmasını gerçekte ne durdurur?",
+                prompt:"Saldırganın aldığı jeton, VM'nin yönetilen kimliği için bir taşıyıcı jeton — onu kullanışsız hale getiren gerçekte nedir?",
                 options:[
                   { key:"delete", label:"VM'yi sil", correct:false, feedback:"Yönetilen bir kimlik için Azure AD erişim jetonları taşıyıcı (bearer) jetonlardır — VM ya da kimlik hâlâ var olsun olmasın, doğal olarak süresi dolana kadar (genellikle 24 saate kadar) geçerli kalırlar." },
-                  { key:"unassign", label:"Yönetilen kimliğin ulaşabildiği kaynaklardaki rol atamalarını kaldır", correct:true, feedback:"Kaldırıldı — jeton hâlâ var, ama artık hiçbir şey yapamaz, çünkü ait olduğu kimliğin bu kaynaklara dokunma izni artık yok." }
+                  { key:"unassign", label:"Yönetilen kimliğin ulaşabildiği kaynaklardaki rol atamalarını kaldır", correct:true, feedback:"Kaldırıldı — jeton hâlâ var, ama artık hiçbir şey yapamaz, çünkü ait olduğu kimliğin bu kaynaklara dokunma izni artık yok." },
+                  { key:"disableidentity", label:"Yönetilen kimliği bundan sonrası için VM'de devre dışı bırak", correct:false, feedback:"VM üzerinde devre dışı bırakmak yeni jeton üretilmesini durdurur, ama zaten çalınmış olan jeton kendi başına, doğal olarak süresi dolana kadar geçerli kalan bir taşıyıcı jetondur — bu, zaten var olan bir jetona dokunmaz." }
                 ],
                 errorText:"Çalınan jetonun arkasındaki kimlik hâlâ atandığı her kaynağa erişebiliyor — jetonun kendisi tek tek iptal edilemez."
               },
@@ -6127,17 +6655,23 @@
                 ],
                 errorText:"Bunun gerçekten meta veri jetonu hırsızlığı olduğunu doğrulamadınız — herhangi bir şeyi karantinaya almadan önce doğrulamaya değer."
               },
-              { id:"h-isolate", type:"action",
-                label:"Tüm gelen ve giden trafiği engelleyen bir karantina güvenlik duvarı kuralı uygula",
-                actionLabel:"Örneği karantinaya al", loadingLabel:"İzole ediliyor…", doneLabel:"Örnek izole edildi — giren çıkan trafik yok.", loadingMs:600,
+              { id:"h-isolate", type:"choice",
+                label:"Örneği gerçekten nasıl kontrol altına alacağınıza karar verin",
+                prompt:"Örneğin saldırgan için hemen işe yaramaz hale gelmesi gerekiyor — doğru kontrol altına alma hareketi hangisi?",
+                options:[
+                  { key:"delete", label:"Örneği hemen sil", correct:false, feedback:"Silmek, saldırganın başka neye dokunduğu doğrulanmadan örneğin diskini, belleğini ve günlüklerini yok eder — sızmış bir kimlik bilgisini silmekle aynı kanıt-koruma sorunu." },
+                  { key:"quarantine", label:"Tüm gelen ve giden trafiği engelleyen bir karantina güvenlik duvarı kuralı uygula", correct:true, feedback:"İzole edildi — giren çıkan trafik yok, ama örneğin kendisi, diski ve günlükleri soruşturma için hâlâ bozulmadan duruyor." },
+                  { key:"detachsa", label:"Sadece hizmet hesabını örnekten ayır", correct:false, feedback:"Hizmet hesabını ayırmak bu örneğin yeni jeton üretmesini durdurur, ama saldırganın zaten çaldığı jeton konusunda hiçbir şey yapmaz — ve örneğin başka bir şey için kullanılmasını da durdurmaz." }
+                ],
                 errorText:"Örnek hâlâ tamamen bağlı — üzerinde çalışan başka her ne varsa internetle konuşmaya devam edebilir."
               },
               { id:"h-revoke", type:"choice",
                 label:"Çalınan jetonun ulaşabildiği yerleri kes",
-                prompt:"Saldırganın onu kullanmasını gerçekte ne durdurur?",
+                prompt:"Saldırganın aldığı jeton, örneğin hizmet hesabına bağlı kısa ömürlü bir OAuth jetonu — onu kullanışsız hale getiren gerçekte nedir?",
                 options:[
                   { key:"delete", label:"Örneği sil", correct:false, feedback:"Saldırganın zaten aldığı erişim jetonu kısa ömürlü bir OAuth jetonudur — bu örnek var olsun ya da olmasın, doğal olarak süresi dolana kadar her yerden çalışmaya devam eder." },
-                  { key:"unbind", label:"Hizmet hesabının IAM rol bağlamalarını kaldır", correct:true, feedback:"Kaldırıldı — jeton süresi dolana kadar hâlâ var, ama artık hiçbir şey yapamaz, çünkü ait olduğu hizmet hesabının bu kaynaklara dokunma izni artık yok." }
+                  { key:"unbind", label:"Hizmet hesabının IAM rol bağlamalarını kaldır", correct:true, feedback:"Kaldırıldı — jeton süresi dolana kadar hâlâ var, ama artık hiçbir şey yapamaz, çünkü ait olduğu hizmet hesabının bu kaynaklara dokunma izni artık yok." },
+                  { key:"detach", label:"Hizmet hesabını bundan sonrası için örnekten ayır", correct:false, feedback:"Örnekten ayırmak burada yeni jeton üretilmesini durdurur, ama zaten çalınmış jeton kendi başına, doğal olarak süresi dolana kadar çalışmaya devam eder — bu, zaten var olan bir jetona dokunmaz." }
                 ],
                 errorText:"Çalınan jetonun arkasındaki hizmet hesabı hâlâ bağlı olduğu her kaynağa erişebiliyor — jetonun kendisi tek tek iptal edilemez."
               },
@@ -6182,17 +6716,23 @@
                 ],
                 errorText:"Bunun gerçekten bir eşzamanlılık/kısıtlama sorunu olduğunu doğrulamadan tepki verdiniz."
               },
-              { id:"h-dlq", type:"action",
+              { id:"h-dlq", type:"choice",
                 label:"Asenkron çağrılar için bir hata durumu hedefi (on-failure destination) yapılandır",
-                actionLabel:"Hedef ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Hata durumu hedefi yapılandırıldı — başarısız olaylar artık bir SQS kuyruğuna düşüyor.", loadingMs:600,
+                prompt:"Hangi hedef, başarısız bir olayı gerçekten daha sonra yeniden işlenmek üzere yakalar?",
+                options:[
+                  { key:"dlq-sns", label:"Henüz aboneliği olmayan bir SNS konusu", correct:false, feedback:"Geçerli bir hedef türü, ama ona abone olan hiçbir şey yokken başarısız olayın yükü yayımlandığı anda buharlaşıyor — kimse ondan bir şey yeniden oynatmıyor." },
+                  { key:"dlq-sqs", label:"Bir SQS kuyruğu", correct:true, feedback:"Yapılandırıldı — başarısız olaylar artık biri (ya da bir şey) onları açıkça işleyene kadar tutan bir kuyruğa düşüyor." },
+                  { key:"cloudwatch", label:"Bir CloudWatch Logs grubu", correct:false, feedback:"Lambda sadece bir çağrının başarısız olduğunu günlüğe kaydeder — olayın kendisi tek başına bir günlük satırından yeniden işlenebilir şekilde hiçbir yerde saklanmaz." }
+                ],
                 errorText:"Başarısız asenkron çağrıların yeniden denemeleri tükendikten sonra gidecek hiçbir yeri yok — sadece kayboluyorlar."
               },
               { id:"h-concurrency", type:"choice",
                 label:"Kısıtlamanın kendisini durdur",
-                prompt:"Kısıtlamayı gerçekte ne durdurur?",
+                prompt:"Ayrılmış eşzamanlılık bu fonksiyondaki tek eşzamanlılık ayarı değil — hangi değişiklik kısıtlamayı gerçekte durdurur?",
                 options:[
-                  { key:"nothing", label:"Hiçbir şey — kısıtlama geçicidir ve kendiliğinden çözülür", correct:false, feedback:"Hiçbir şeyi çözmez — trafik yüksek kaldığı sürece eşzamanlılık sınırının üzerindeki çağrıları reddetmeye devam eder." },
-                  { key:"concurrency", label:"Fonksiyonun ayrılmış eşzamanlılık sınırını yükselt", correct:true, feedback:"Yükseltildi — fonksiyon artık bu trafik seviyesine yetecek kadar eşzamanlı örnek çalıştırabiliyor." }
+                  { key:"provisioned", label:"Bunun yerine sağlanmış eşzamanlılık (provisioned concurrency) ekle", correct:false, feedback:"Sağlanmış eşzamanlılık, soğuk başlangıçları önlemek için örnekleri sıcak tutar — fonksiyonun aynı anda kaç eşzamanlı çağrı çalıştırabileceği tavanını hiç yükseltmez." },
+                  { key:"concurrency", label:"Fonksiyonun ayrılmış eşzamanlılık sınırını yükselt", correct:true, feedback:"Yükseltildi — fonksiyon artık bu trafik seviyesine yetecek kadar eşzamanlı örnek çalıştırabiliyor." },
+                  { key:"timeout", label:"Fonksiyonun zaman aşımı ayarını artır", correct:false, feedback:"Zaman aşımı, tek bir çağrının ne kadar çalışabileceğini kontrol eder — aynı anda kaç tanesinin çalışabileceğiyle hiçbir ilgisi yok." }
                 ],
                 errorText:"Hata: TooManyRequestsException — fonksiyon hâlâ bu trafik seviyesinin gerektirdiğinin altında sınırlı."
               },
@@ -6235,17 +6775,23 @@
                 ],
                 errorText:"Bunun gerçekten bir verimlilik sorunu olduğunu doğrulamadan tepki verdiniz."
               },
-              { id:"h-dlq", type:"action",
+              { id:"h-dlq", type:"choice",
                 label:"Zehir kuyruğu üzerinde izleme ve uyarı ekle",
-                actionLabel:"Zehir kuyruğunu izle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Zehir kuyruğunda uyarı yapılandırıldı — başarısız mesajlar artık fark ediliyor.", loadingMs:600,
+                prompt:"Hangi uyarı yapılandırması, mesajlar zehir kuyruğuna düştüğünde birinin gerçekten haberdar olmasını sağlar?",
+                options:[
+                  { key:"logonly", label:"Sadece uygulamada ayrıntılı günlüklemeyi etkinleştir", correct:false, feedback:"Günlükleme olduğunu kaydeder, ama kimse günlükleri gerçek zamanlı izlemiyor — sadece günlükleme açıkken bir mesaj haftalarca zehir kuyruğunda fark edilmeden durabilir." },
+                  { key:"alert", label:"Zehir kuyruğunun mesaj sayısı üzerinde, birini gerçekten bilgilendiren bir eylem grubuna sahip bir uyarı kuralı", correct:true, feedback:"Yapılandırıldı — bir mesaj zehir kuyruğuna düştüğü anda, biri bir müşteriden öğrenmek yerine gerçekten çağrılıyor." },
+                  { key:"dashboard", label:"Kimsenin otomatik yenilemeye ayarlamadığı ya da günlük kontrol etmediği bir panoya grafik ekle", correct:false, feedback:"Bir pano sadece biri ona aktif olarak bakıyorsa yardımcı olur — bu, önceki gibi aynı kör nokta, sadece kimsenin izlemediği bir kuyruk yerine kimsenin izlemediği bir grafik." }
+                ],
                 errorText:"Zehir kuyruğu doluyor ve kimse izlemiyor — hatalar görünmez durumda."
               },
               { id:"h-concurrency", type:"choice",
                 label:"Fonksiyonun geride kalmasını durdur",
-                prompt:"Onu gerçekte ne yetişik tutar?",
+                prompt:"Consumption planının azami örnek sayısı buradaki tek kaldıraç değil — hangi değişiklik bu fonksiyonu gerçekte yetişik tutar?",
                 options:[
-                  { key:"nothing", label:"Hiçbir şey — Consumption planı kendiliğinden sonsuz ölçeklenir", correct:false, feedback:"Ölçeklenir, ama sonsuz değil — her uygulama başına gerçek bir azami örnek tavanı vardır, ve bu iş yükü ona çarpıyor." },
-                  { key:"maxinstances", label:"Uygulamanın azami örnek sayısını yükselt", correct:true, feedback:"Yükseltildi — uygulama artık bu trafik seviyesine yetecek kadar dışa doğru ölçeklenebiliyor." }
+                  { key:"premium-noop", label:"Örnek ayarlarını değiştirmeden Premium plana geç", correct:false, feedback:"Premium plan soğuk başlangıçları kaldırır ve önceden ısıtılmış örnekler ekler, ama bu iş yükü için örnek tavanını da yükseltmeden, bu trafik seviyesinde aynı dışa ölçeklenme sınırına yine çarpar." },
+                  { key:"maxinstances", label:"Uygulamanın azami örnek sayısını yükselt", correct:true, feedback:"Yükseltildi — uygulama artık bu trafik seviyesine yetecek kadar dışa doğru ölçeklenebiliyor." },
+                  { key:"timeout", label:"Fonksiyonun zaman aşımı ayarını artır", correct:false, feedback:"Zaman aşımı, tek bir çalıştırmanın ne kadar sürebileceğini kontrol eder — aynı anda kaç tanesinin çalışabileceğiyle hiçbir ilgisi yok." }
                 ],
                 errorText:"Uygulama hâlâ bu trafik seviyesinin gerektirdiğinin altında sınırlı — mesajlar işlenenden daha hızlı birikmeye devam ediyor."
               },
@@ -6288,17 +6834,23 @@
                 ],
                 errorText:"Bunun gerçekten bir verimlilik sorunu olduğunu doğrulamadan tepki verdiniz."
               },
-              { id:"h-dlq", type:"action",
+              { id:"h-dlq", type:"choice",
                 label:"Abonelik üzerinde bir ölü mektup konusu yapılandır",
-                actionLabel:"Ölü mektup konusu ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Ölü mektup konusu yapılandırıldı — yeniden denemeleri tükenen mesajlar artık yok olmak yerine oraya düşüyor.", loadingMs:600,
+                prompt:"Hangi yapılandırma, başarısız bir mesajı gerçekten kaybolmak yerine bir ölü mektup konusuna ulaştırır?",
+                options:[
+                  { key:"topiconly", label:"Bir ölü mektup konusu oluştur, ama aboneliğin azami teslim denemesini ayarsız bırak", correct:false, feedback:"Bir azami teslim denemesi değeri olmadan, Pub/Sub ölü mektup konusuna hiç yönlendirmeden sonsuza kadar yeniden denemeye devam eder — konu var ama hiçbir şey ona ulaşmıyor." },
+                  { key:"full", label:"Bir ölü mektup konusu oluştur ve aboneliğin azami teslim denemesini ayarla", correct:true, feedback:"Yapılandırıldı — yeniden deneme sınırını aşan mesajlar artık yok olmak yerine ölü mektup konusuna düşüyor." },
+                  { key:"sub-only", label:"Ölü mektup politikasını bir konu yerine başka bir aboneliğe yönlendir", correct:false, feedback:"Pub/Sub'ın ölü mektup politikası bir konuya yönlendirir, doğrudan bir aboneliğe değil — bir abonelik bir konudan okur, kendisi geçerli bir ölü mektup hedefi değildir." }
+                ],
                 errorText:"Aboneliğin tekrar deneme sınırını aşan mesajların hâlâ gidecek hiçbir yeri yok — sadece kayboluyorlar."
               },
               { id:"h-concurrency", type:"choice",
                 label:"Fonksiyonun geride kalmasını durdur",
-                prompt:"Onu gerçekte ne yetişik tutar?",
+                prompt:"Azami örnek sayısı buradaki verimliliği sınırlayan tek ayar değil — hangi değişiklik bu fonksiyonu gerçekte yetişik tutar?",
                 options:[
-                  { key:"nothing", label:"Hiçbir şey — Cloud Functions kendiliğinden sonsuz ölçeklenir", correct:false, feedback:"Ölçeklenir, ama sonsuz değil — gerçek bir azami örnek ayarı vardır, ve bu iş yükü ona çarpıyor." },
-                  { key:"maxinstances", label:"Fonksiyonun azami örnek ayarını yükselt", correct:true, feedback:"Yükseltildi — fonksiyon artık bu trafik seviyesine yetecek kadar dışa doğru ölçeklenebiliyor." }
+                  { key:"memory", label:"Azami örnek sayısına dokunmadan fonksiyonun bellek ayırmasını artır", correct:false, feedback:"Daha fazla bellek tek bir çalıştırmayı hızlandırabilir, ama kaç çalıştırmanın paralel çalışabileceği tavanını yükseltmez — fonksiyon hâlâ aynı örnek sayısıyla sınırlı." },
+                  { key:"maxinstances", label:"Fonksiyonun azami örnek ayarını yükselt", correct:true, feedback:"Yükseltildi — fonksiyon artık bu trafik seviyesine yetecek kadar dışa doğru ölçeklenebiliyor." },
+                  { key:"region", label:"Fonksiyonu farklı bir bölgeye yeniden dağıt", correct:false, feedback:"Bölge gecikmeyi ve veri yerleşimini etkiler, bu fonksiyonun kaç eşzamanlı örnek çalıştırabileceğini değil." }
                 ],
                 errorText:"Fonksiyon hâlâ bu trafik seviyesinin gerektirdiğinin altında sınırlı — mesajlar işlenenden daha hızlı birikmeye devam ediyor."
               },
@@ -6336,16 +6888,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Yeni örnekleri gerçekte neyin öldürdüğünü doğrula",
-                prompt:"Örneğin sağlık kontrolü geçmişi ne gösteriyor?",
+                prompt:"Sağlık kontrolleri, uygulamanın kendi başlangıç günlüğü henüz \"hazır\" bile demeden başarısız oluyor — tolerans süresine dokunmadan önce, sorun hangisi?",
                 options:[
                   { key:"appcrash", label:"Uygulama başlangıçta çöküyor", correct:false, feedback:"Uygulama günlükleri düzgün başladığını gösteriyor — sadece yavaş. Bu değil." },
+                  { key:"toofew", label:"Yükü karşılamaya yetecek kadar sağlıklı örnek yok", correct:false, feedback:"Kapasitenin düşmesi, örneklerin erken öldürülmesinin bir sonucu, sebebi değil — buradaki kök sorun bu değil." },
                   { key:"tooearly", label:"Sağlık kontrolü, uygulama başlamayı bitirmeden önce çalışıyor", correct:true, feedback:"İşte bu — sağlık kontrolünün uygulamanın daha fazla zamana ihtiyacı olduğundan haberi yok." }
                 ],
                 errorText:"Yeni örneklerin gerçekte neden sağlık kontrollerini geçemediğini doğrulamadan tepki verdiniz."
               },
-              { id:"h-grace", type:"action",
+              { id:"h-grace", type:"choice",
                 label:"Uygulamanın gerçekten başlamayı bitirmesine yetecek kadar uzun bir sağlık kontrolü tolerans süresi ayarla",
-                actionLabel:"Tolerans süresi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Sağlık kontrolü tolerans süresi uzatıldı — yeni örnekler değerlendirilmeden önce başlamak için zaman kazanıyor.", loadingMs:600,
+                prompt:"Uygulamanın başlangıç günlüğü tutarlı biçimde 90 saniye içinde hazır olduğunu gösteriyor — hangi tolerans süresi bunu gerçekten güvenilir şekilde karşılar?",
+                options:[
+                  { key:"tooshort", label:"30 saniye", correct:false, feedback:"Uygulamanın kendi tipik başlangıç süresinden bile kısa — örnekler, alışılmadık derecede hızlı bir açılış dışında hâlâ hazır olmadan önce değerlendirilir." },
+                  { key:"right", label:"120 saniye", correct:true, feedback:"Ayarlandı — bu, uygulamanın tipik 90 saniyelik başlangıcını normal değişkenlik için pay bırakarak rahatça aşıyor." },
+                  { key:"excessive", label:"600 saniye", correct:false, feedback:"Teknik olarak güvenli, ama bu hiçbir sağlık kontrolünün çalışmadığı on dakika demek — gerçekten çökmüş bir örnek, tüm bu süre boyunca fark edilmeden grupta öylece durur." }
+                ],
                 errorText:"Yeni örnekler hâlâ başlamayı bitirme şansı bulamadan sağlık kontrolünden geçiriliyor — ve öldürülüyor."
               },
               { id:"h-threshold", type:"choice",
@@ -6389,16 +6947,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Yeni örnekleri gerçekte neyin kaldırdığını doğrula",
-                prompt:"Örneğin sağlık geçmişi ne gösteriyor?",
+                prompt:"Sağlık probları, uygulamanın kendi başlangıç günlüğü henüz \"hazır\" bile demeden başarısız oluyor — tolerans süresine dokunmadan önce, sorun hangisi?",
                 options:[
                   { key:"appcrash", label:"Uygulama başlangıçta çöküyor", correct:false, feedback:"Uygulama günlükleri düzgün başladığını gösteriyor — sadece yavaş. Bu değil." },
+                  { key:"toofew", label:"Yükü karşılamaya yetecek kadar sağlıklı örnek yok", correct:false, feedback:"Kapasitenin düşmesi, örneklerin erken kaldırılmasının bir sonucu, sebebi değil — buradaki kök sorun bu değil." },
                   { key:"tooearly", label:"Sağlık probu, uygulama başlamayı bitirmeden önce çalışıyor", correct:true, feedback:"İşte bu — probun uygulamanın daha fazla zamana ihtiyacı olduğundan haberi yok." }
                 ],
                 errorText:"Yeni örneklerin gerçekte neden sağlık probunu geçemediğini doğrulamadan tepki verdiniz."
               },
-              { id:"h-grace", type:"action",
+              { id:"h-grace", type:"choice",
                 label:"Application Health uzantısının tolerans süresini, uygulamanın gerçekten başlamayı bitirmesine yetecek kadar uzun ayarla",
-                actionLabel:"Tolerans süresi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Tolerans süresi uzatıldı — yeni örnekler değerlendirilmeden önce başlamak için zaman kazanıyor.", loadingMs:600,
+                prompt:"Uygulamanın başlangıç günlüğü tutarlı biçimde 90 saniye içinde hazır olduğunu gösteriyor — hangi tolerans süresi bunu gerçekten güvenilir şekilde karşılar?",
+                options:[
+                  { key:"tooshort", label:"30 saniye", correct:false, feedback:"Uygulamanın kendi tipik başlangıç süresinden bile kısa — örnekler, alışılmadık derecede hızlı bir açılış dışında hâlâ hazır olmadan önce değerlendirilir." },
+                  { key:"right", label:"120 saniye", correct:true, feedback:"Ayarlandı — bu, uygulamanın tipik 90 saniyelik başlangıcını normal değişkenlik için pay bırakarak rahatça aşıyor." },
+                  { key:"excessive", label:"600 saniye", correct:false, feedback:"Teknik olarak güvenli, ama bu hiçbir sağlık probunun çalışmadığı on dakika demek — gerçekten çökmüş bir örnek, tüm bu süre boyunca fark edilmeden kümede öylece durur." }
+                ],
                 errorText:"Yeni örnekler hâlâ başlamayı bitirme şansı bulamadan sağlık probundan geçiriliyor — ve kaldırılıyor."
               },
               { id:"h-threshold", type:"choice",
@@ -6442,16 +7006,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Yeni örnekleri gerçekte neyin öldürdüğünü doğrula",
-                prompt:"Örneğin sağlık kontrolü geçmişi ne gösteriyor?",
+                prompt:"Sağlık kontrolleri, uygulamanın kendi başlangıç günlüğü henüz \"hazır\" bile demeden başarısız oluyor — başlangıç gecikmesine dokunmadan önce, sorun hangisi?",
                 options:[
                   { key:"appcrash", label:"Uygulama başlangıçta çöküyor", correct:false, feedback:"Uygulama günlükleri düzgün başladığını gösteriyor — sadece yavaş. Bu değil." },
+                  { key:"toofew", label:"Yükü karşılamaya yetecek kadar sağlıklı örnek yok", correct:false, feedback:"Kapasitenin düşmesi, örneklerin erken yeniden oluşturulmasının bir sonucu, sebebi değil — buradaki kök sorun bu değil." },
                   { key:"tooearly", label:"Sağlık kontrolü, uygulama başlamayı bitirmeden önce çalışıyor", correct:true, feedback:"İşte bu — sağlık kontrolünün uygulamanın daha fazla zamana ihtiyacı olduğundan haberi yok." }
                 ],
                 errorText:"Yeni örneklerin gerçekte neden sağlık kontrollerini geçemediğini doğrulamadan tepki verdiniz."
               },
-              { id:"h-grace", type:"action",
+              { id:"h-grace", type:"choice",
                 label:"Sağlık kontrolünün başlangıç gecikmesini, uygulamanın gerçekten başlamayı bitirmesine yetecek kadar uzun ayarla",
-                actionLabel:"Başlangıç gecikmesi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Başlangıç gecikmesi uzatıldı — yeni örnekler değerlendirilmeden önce başlamak için zaman kazanıyor.", loadingMs:600,
+                prompt:"Uygulamanın başlangıç günlüğü tutarlı biçimde 90 saniye içinde hazır olduğunu gösteriyor — hangi başlangıç gecikmesi bunu gerçekten güvenilir şekilde karşılar?",
+                options:[
+                  { key:"tooshort", label:"30 saniye", correct:false, feedback:"Uygulamanın kendi tipik başlangıç süresinden bile kısa — örnekler, alışılmadık derecede hızlı bir açılış dışında hâlâ hazır olmadan önce değerlendirilir." },
+                  { key:"right", label:"120 saniye", correct:true, feedback:"Ayarlandı — bu, uygulamanın tipik 90 saniyelik başlangıcını normal değişkenlik için pay bırakarak rahatça aşıyor." },
+                  { key:"excessive", label:"600 saniye", correct:false, feedback:"Teknik olarak güvenli, ama bu hiçbir sağlık kontrolünün çalışmadığı on dakika demek — gerçekten çökmüş bir örnek, tüm bu süre boyunca fark edilmeden grupta öylece durur." }
+                ],
                 errorText:"Yeni örnekler hâlâ başlamayı bitirme şansı bulamadan sağlık kontrolünden geçiriliyor — ve yeniden oluşturuluyor."
               },
               { id:"h-threshold", type:"choice",
@@ -6500,17 +7070,23 @@
                 actionLabel:"Olay günlüğünü kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı: yeni ortam değişkeni, uygulamanın başlangıcını tüm örneklerde eşzamanlı olarak bozdu.", loadingMs:500,
                 errorText:"Kimse gerçekte neyin bozulduğunu doğrulamadı — körlemesine geri almadan önce bir bakışa değer."
               },
-              { id:"h-rollback", type:"action",
+              { id:"h-rollback", type:"choice",
                 label:"Önceki uygulama sürümüne geri dön",
-                actionLabel:"Geri al", loadingLabel:"Geri alınıyor…", doneLabel:"Geri alındı — ortam tekrar son bilinen iyi sürümü çalıştırıyor.", loadingMs:600,
+                prompt:"Geri almanın doğru sürümü hedeflemesi gerekiyor — hangisi gerçekten son bilinen iyi sürüm?",
+                options:[
+                  { key:"skip1", label:"v47 — şu anki sürümden bir önceki sürüm", correct:false, feedback:"v47, ilgisiz ve hâlâ açık olan bir bellek sızıntısı biletinde şüphelenilen bir yapılandırma bayrağının zaten kısmi bir dağıtımıydı — ona geri dönmek bu sorunu başka biriyle değiştirmek olur." },
+                  { key:"v46", label:"v46 — ortam değişkeni eklenmeden önceki sürüm", correct:true, feedback:"Geri alındı — v46, başlangıcı bozan değişiklikten önce geliyor ve iki haftadır alt bir ortamda temiz çalışıyor." },
+                  { key:"latest-minus-config", label:"Şu anki sürüm, ama yeni ortam değişkeni elle kaldırılmış", correct:false, feedback:"Bu hâlâ aynı test edilmemiş sürüm ikili dosyasını elle düzenlenmiş bir yapılandırmayla dağıtıyor — bazı ekiplerde geçerli bir acil durum hamlesi, ama uçtan uca doğrulanmış bir sürüme dönmekle aynı şey değil." }
+                ],
                 errorText:"Ortam hâlâ onu bozan sürümü çalıştırıyor."
               },
               { id:"h-policy", type:"choice",
                 label:"Bunun olmasına izin vermeyecek bir dağıtım politikası seç",
-                prompt:"Hangi politika kötü bir dağıtımın etki alanını gerçekten sınırlar?",
+                prompt:"Elastic Beanstalk'ta \"Hepsi bir anda\" olmayan birden fazla politika var — hangisi kötü bir sürümün canlı trafiğe hiç dokunmasını gerçekten engeller?",
                 options:[
-                  { key:"allatonce", label:"\"Hepsi bir anda\"yı koru", correct:false, feedback:"Tam olarak tek bir kötü ortam değişkenini saniyeler içinde tam bir kesintiye dönüştüren politika bu." },
-                  { key:"immutable", label:"\"Değişmez (Immutable)\"e geç", correct:true, feedback:"Değişmez, eskilerin yanına tam yeni bir örnek seti dağıtır ve sadece sağlık kontrollerini geçtikten sonra trafiği devreder — kötü bir sürüm asla canlı trafiğe dokunmaz." }
+                  { key:"rolling", label:"\"Kademeli (Rolling)\"e geç", correct:false, feedback:"Kademeli, örnekleri bir seferde bir grup halinde günceller, ama güncellenen her grup sağlık kontrolüyle kapılı bir takas olmadan yerinde ve hemen canlıya çıkar — filo geri kalanı yetişirken kötü bir sürüm hâlâ gerçek trafiğe hizmet eder." },
+                  { key:"immutable", label:"\"Değişmez (Immutable)\"e geç", correct:true, feedback:"Değişmez, eskilerin yanına tam yeni bir örnek seti dağıtır ve sadece sağlık kontrollerini geçtikten sonra trafiği devreder — kötü bir sürüm asla canlı trafiğe dokunmaz." },
+                  { key:"allatonce", label:"\"Hepsi bir anda\"yı koru", correct:false, feedback:"Tam olarak tek bir kötü ortam değişkenini saniyeler içinde tam bir kesintiye dönüştüren politika bu." }
                 ],
                 errorText:"Dağıtım politikası hâlâ \"Hepsi bir anda\" — bir sonraki kötü dağıtım yine tüm örnekleri birlikte çökertecek."
               },
@@ -6549,17 +7125,23 @@
                 actionLabel:"Dağıtım günlüğünü kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı: yeni uygulama ayarı, uygulamanın başlangıcını tüm örneklerde eşzamanlı olarak bozdu.", loadingMs:500,
                 errorText:"Kimse gerçekte neyin bozulduğunu doğrulamadı — körlemesine geri almadan önce bir bakışa değer."
               },
-              { id:"h-rollback", type:"action",
+              { id:"h-rollback", type:"choice",
                 label:"Önceki üretim sürümüne geri takas et",
-                actionLabel:"Geri takas et", loadingLabel:"Takas ediliyor…", doneLabel:"Geri takas edildi — üretim tekrar son bilinen iyi sürümü çalıştırıyor.", loadingMs:600,
+                prompt:"Geri takasın doğru yuvayı hedeflemesi gerekiyor — hangisinde gerçekten son bilinen iyi sürüm var?",
+                options:[
+                  { key:"emptyslot", label:"Yeni oluşturulmuş, boş bir aşama yuvası", correct:false, feedback:"Boş bir yuvada dağıtılmış hiç uygulama yok — ona takas etmek üretimi tamamen çökertir, geri yüklemez." },
+                  { key:"staging", label:"Bu dağıtımdan önceki sürümü hâlâ tutan aşama yuvası", correct:true, feedback:"Takas edildi — aşama yuvası önceki, bilinen iyi sürümü tutuyordu ve şimdi tekrar üretimde." },
+                  { key:"redeploy", label:"Şu anki bozuk sürümü yeni bir yuvaya yeniden dağıtıp ona takas et", correct:false, feedback:"Bu sadece aynı bozuk derlemeyi farklı bir yuva adının arkasına koyar — gerçek kod ya da yapılandırmada hiçbir şey değişmedi." }
+                ],
                 errorText:"Üretim hâlâ onu bozan sürümü çalıştırıyor."
               },
               { id:"h-policy", type:"choice",
                 label:"Bunun olmasına izin vermeyecek bir dağıtım yaklaşımı seç",
-                prompt:"Hangi yaklaşım kötü bir dağıtımın etki alanını gerçekten sınırlar?",
+                prompt:"App Service'te doğrudan üretime dağıtmaktan kaçınmanın birden fazla yolu var — hangisi kötü bir sürümün doğrulanmadan canlı trafiğe hizmet etmesini gerçekten engelliyor?",
                 options:[
-                  { key:"direct", label:"Doğrudan üretim yuvasına dağıtmaya devam et", correct:false, feedback:"Tam olarak tek bir kötü yapılandırma değişikliğini saniyeler içinde tam bir kesintiye dönüştüren yaklaşım bu." },
-                  { key:"slot", label:"Önce bir aşama yuvasına dağıt, doğrula, sonra takas et", correct:true, feedback:"Bir aşama yuvası, sahne arkasında yeni sürümü doğrulamanıza izin verir — kötü bir sürüm, biri gerçekten sağlıklı olduğunu onaylayana kadar asla canlı trafiğe dokunmaz." }
+                  { key:"autoswap", label:"Aşamadan üretime otomatik takası aç", correct:false, feedback:"Otomatik takas, manuel onay adımını tamamen kaldırır — aşamaya dağıtır ve hiçbir insan ya da sağlık kontrolü doğrulamadan otomatik olarak üretime takas eder. Bu daha hızlı, daha güvenli değil." },
+                  { key:"slot", label:"Önce bir aşama yuvasına dağıt, doğrula, sonra elle takas et", correct:true, feedback:"Bir aşama yuvası, sahne arkasında yeni sürümü doğrulamanıza izin verir — kötü bir sürüm, biri gerçekten sağlıklı olduğunu onaylayana kadar asla canlı trafiğe dokunmaz." },
+                  { key:"direct", label:"Doğrudan üretim yuvasına dağıtmaya devam et", correct:false, feedback:"Tam olarak tek bir kötü yapılandırma değişikliğini saniyeler içinde tam bir kesintiye dönüştüren yaklaşım bu." }
                 ],
                 errorText:"Dağıtımlar hâlâ doğrudan üretime gidiyor — bir sonraki kötü yapılandırma değişikliği yine tüm uygulamayı çökertecek."
               },
@@ -6598,17 +7180,23 @@
                 actionLabel:"Günlükleri kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı: yeni ortam değişkeni, uygulamanın başlangıcını tüm örneklerde eşzamanlı olarak bozdu.", loadingMs:500,
                 errorText:"Kimse gerçekte neyin bozulduğunu doğrulamadı — körlemesine geri almadan önce bir bakışa değer."
               },
-              { id:"h-rollback", type:"action",
+              { id:"h-rollback", type:"choice",
                 label:"Trafiği önceki sürüme geri kaydır",
-                actionLabel:"Trafiği geri kaydır", loadingLabel:"Kaydırılıyor…", doneLabel:"Trafik geri kaydırıldı — uygulama tekrar son bilinen iyi sürümü çalıştırıyor.", loadingMs:600,
+                prompt:"Trafiği geri kaydırmanın doğru sürümü hedeflemesi gerekiyor — hangisi gerçekten son bilinen iyi sürüm?",
+                options:[
+                  { key:"skip1", label:"Bundan hemen önce dağıtılan, ilgisiz ve hâlâ açık bir bellek sızıntısı incelemesinde işaretlenmiş sürüm", correct:false, feedback:"Bu sürüm, bu sorunu zaten inceleme altında olan başka bir sorunla değiştiriyor." },
+                  { key:"lastgood", label:"Bu dağıtımdan hemen önce trafiğin %100'üne hizmet eden sürüm", correct:true, feedback:"Kaydırıldı — bu dağıtım her şeyi bozmadan hemen önce gerçekten sağlıklı olan ve tüm trafiğe hizmet eden sürüm bu." },
+                  { key:"redeploy", label:"Şu anki bozuk sürümü, yapılandırma değeri elle düzenlenmiş şekilde yeniden dağıt", correct:false, feedback:"Bu hâlâ doğrulanmamış yeni bir sürüm dağıtıyor — bazı durumlarda geçerli bir acil durum hamlesi, ama trafiği zaten sağlıklı olduğu kanıtlanmış bir sürüme döndürmekle aynı şey değil." }
+                ],
                 errorText:"Trafik hâlâ onu bozan sürüme gidiyor."
               },
               { id:"h-policy", type:"choice",
                 label:"Bunun olmasına izin vermeyecek bir yayılım yaklaşımı seç",
-                prompt:"Hangi yaklaşım kötü bir dağıtımın etki alanını gerçekten sınırlar?",
+                prompt:"App Engine'de anlık %100 kaydırmadan kaçınmanın birden fazla yolu var — hangisi kötü bir sürümün kimse fark etmeden önce ulaşabileceği trafiği gerçekten sınırlıyor?",
                 options:[
-                  { key:"allatonce", label:"Trafiğin %100'ünü hemen yeni bir sürüme kaydırmaya devam et", correct:false, feedback:"Tam olarak tek bir kötü yapılandırma değişikliğini saniyeler içinde tam bir kesintiye dönüştüren yaklaşım bu." },
-                  { key:"split", label:"Trafiği eski ve yeni sürüm arasında kademeli olarak böl, ve %100'e gitmeden önce izle", correct:true, feedback:"Kademeli bir trafik bölmesi, kötü bir sürümün biri tamamen taahhüt etmeden önce gerçek trafiğin sadece küçük bir dilimini görmesi anlamına gelir." }
+                  { key:"promote-immediately", label:"Yeni sürümün anında trafik alması için --promote ile dağıt", correct:false, feedback:"--promote, dağıtıldığı anda trafiğin %100'ünü yeni sürüme kaydıran tam olarak şey — bu, bu kesintiye sebep olan davranış, ona çözüm değil." },
+                  { key:"split", label:"Trafiği eski ve yeni sürüm arasında kademeli olarak böl, ve %100'e gitmeden önce izle", correct:true, feedback:"Kademeli bir trafik bölmesi, kötü bir sürümün biri tamamen taahhüt etmeden önce gerçek trafiğin sadece küçük bir dilimini görmesi anlamına gelir." },
+                  { key:"allatonce", label:"Trafiğin %100'ünü hemen yeni bir sürüme kaydırmaya devam et", correct:false, feedback:"Tam olarak tek bir kötü yapılandırma değişikliğini saniyeler içinde tam bir kesintiye dönüştüren yaklaşım bu." }
                 ],
                 errorText:"Dağıtımlar hâlâ trafiğin %100'ünü bir anda kaydırıyor — bir sonraki kötü yapılandırma değişikliği yine tüm uygulamayı çökertecek."
               },
@@ -6646,16 +7234,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Bunun gerçekte neden olduğunu doğrula",
-                prompt:"Gerçekte ne oluyor?",
+                prompt:"Önbellek yapılandırmasına dokunmadan önce — farklı bir kullanıcının tam olarak aynı baytları geri almış olması aslında ne anlama gelir?",
                 options:[
                   { key:"dbbug", label:"Uygulamanın veritabanında hesapları karıştıran bir hata var", correct:false, feedback:"Veritabanı doğru istek için doğru veriyi döndürüyor — sorun bundan sonra oluyor." },
+                  { key:"race", label:"Uygulamada bir yarış durumu iki isteğin birbirinin oturumunun üzerine yazmasına izin verdi", correct:false, feedback:"Bir oturum yarışı, tek bir isteğin kendi verisini bozardı — iki farklı kullanıcıya tam olarak aynı önbelleğe alınmış yanıt baytlarını vermezdi." },
                   { key:"cachekey", label:"CloudFront'un önbellek anahtarı kullanıcıya göre değişmiyor — bu URL'ye gelen her isteği aynı kabul ediyor", correct:true, feedback:"İşte bu — ilk kullanıcının kişiselleştirilmiş yanıtı önbelleğe alındı, ve CloudFront o zamandan beri aynı URL'ye gelen herkese onu sunuyor." }
                 ],
                 errorText:"Önbellek yapılandırmasına dokunmadan önce bunun gerçekte neden olduğunu doğrulamadınız."
               },
-              { id:"h-headers", type:"action",
+              { id:"h-headers", type:"choice",
                 label:"Bu yanıtı özel ve önbelleklenemez olarak işaretlemesi için origin'i güncelle",
-                actionLabel:"Yanıt başlıklarını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Origin artık bu yanıtta Cache-Control: private, no-store gönderiyor — her kullanıcı kendi canlı yanıtını alıyor.", loadingMs:600,
+                prompt:"Hangi yanıt başlığı yapılandırması bunu gerçekten durdurur?",
+                options:[
+                  { key:"maxage0", label:"Cache-Control: max-age=0", correct:false, feedback:"max-age=0, bir önbelleğe yeniden kullanmadan önce doğrulama yapmasını söyler, ama yanıt hâlâ saklanıp kullanıcılar arasında paylaşılabilir — bu, onu hiç saklamamakla aynı şey değil." },
+                  { key:"private-nostore", label:"Cache-Control: private, no-store", correct:true, feedback:"Ayarlandı — private, herhangi bir paylaşılan önbelleğe bu yanıtın tek bir kullanıcıya ait olduğunu söyler, ve no-store önbelleğe hiç yazılmayacağı anlamına gelir." },
+                  { key:"etag-only", label:"Bir ETag ekle ama Cache-Control'ü ayarsız bırak", correct:false, feedback:"Bir ETag, bir önbelleğin KENDİ kopyasının hâlâ taze olup olmadığını doğrulamasına yardımcı olur — o tek paylaşılan kopyanın en baştan diğer her kullanıcıya verilmesini durdurmak için hiçbir şey yapmaz." }
+                ],
                 errorText:"Bu yanıt hâlâ önbelleğe alınıyor ve o URL'yi sıradaki isteyen kullanıcıya sunuluyor, onun olsun olmasın."
               },
               { id:"h-invalidate", type:"choice",
@@ -6699,16 +7293,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Bunun gerçekte neden olduğunu doğrula",
-                prompt:"Gerçekte ne oluyor?",
+                prompt:"Önbellek yapılandırmasına dokunmadan önce — farklı bir kullanıcının tam olarak aynı baytları geri almış olması aslında ne anlama gelir?",
                 options:[
                   { key:"dbbug", label:"Uygulamanın veritabanında hesapları karıştıran bir hata var", correct:false, feedback:"Veritabanı doğru istek için doğru veriyi döndürüyor — sorun bundan sonra oluyor." },
+                  { key:"race", label:"Uygulamada bir yarış durumu iki isteğin birbirinin oturumunun üzerine yazmasına izin verdi", correct:false, feedback:"Bir oturum yarışı, tek bir isteğin kendi verisini bozardı — iki farklı kullanıcıya tam olarak aynı önbelleğe alınmış yanıt baytlarını vermezdi." },
                   { key:"cachekey", label:"Front Door'un önbellek anahtarı kullanıcıya göre değişmiyor — bu URL'ye gelen her isteği aynı kabul ediyor", correct:true, feedback:"İşte bu — ilk kullanıcının kişiselleştirilmiş yanıtı önbelleğe alındı, ve Front Door o zamandan beri aynı URL'ye gelen herkese onu sunuyor." }
                 ],
                 errorText:"Önbellek yapılandırmasına dokunmadan önce bunun gerçekte neden olduğunu doğrulamadınız."
               },
-              { id:"h-headers", type:"action",
+              { id:"h-headers", type:"choice",
                 label:"Bu yanıtı özel ve önbelleklenemez olarak işaretlemesi için origin'i güncelle",
-                actionLabel:"Yanıt başlıklarını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Origin artık bu yanıtta Cache-Control: private, no-store gönderiyor — her kullanıcı kendi canlı yanıtını alıyor.", loadingMs:600,
+                prompt:"Hangi yanıt başlığı yapılandırması bunu gerçekten durdurur?",
+                options:[
+                  { key:"maxage0", label:"Cache-Control: max-age=0", correct:false, feedback:"max-age=0, bir önbelleğe yeniden kullanmadan önce doğrulama yapmasını söyler, ama yanıt hâlâ saklanıp kullanıcılar arasında paylaşılabilir — bu, onu hiç saklamamakla aynı şey değil." },
+                  { key:"private-nostore", label:"Cache-Control: private, no-store", correct:true, feedback:"Ayarlandı — private, herhangi bir paylaşılan önbelleğe bu yanıtın tek bir kullanıcıya ait olduğunu söyler, ve no-store önbelleğe hiç yazılmayacağı anlamına gelir." },
+                  { key:"etag-only", label:"Bir ETag ekle ama Cache-Control'ü ayarsız bırak", correct:false, feedback:"Bir ETag, bir önbelleğin KENDİ kopyasının hâlâ taze olup olmadığını doğrulamasına yardımcı olur — o tek paylaşılan kopyanın en baştan diğer her kullanıcıya verilmesini durdurmak için hiçbir şey yapmaz." }
+                ],
                 errorText:"Bu yanıt hâlâ önbelleğe alınıyor ve o URL'yi sıradaki isteyen kullanıcıya sunuluyor, onun olsun olmasın."
               },
               { id:"h-invalidate", type:"choice",
@@ -6752,16 +7352,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Bunun gerçekte neden olduğunu doğrula",
-                prompt:"Gerçekte ne oluyor?",
+                prompt:"Önbellek yapılandırmasına dokunmadan önce — farklı bir kullanıcının tam olarak aynı baytları geri almış olması aslında ne anlama gelir?",
                 options:[
                   { key:"dbbug", label:"Uygulamanın veritabanında hesapları karıştıran bir hata var", correct:false, feedback:"Veritabanı doğru istek için doğru veriyi döndürüyor — sorun bundan sonra oluyor." },
+                  { key:"race", label:"Uygulamada bir yarış durumu iki isteğin birbirinin oturumunun üzerine yazmasına izin verdi", correct:false, feedback:"Bir oturum yarışı, tek bir isteğin kendi verisini bozardı — iki farklı kullanıcıya tam olarak aynı önbelleğe alınmış yanıt baytlarını vermezdi." },
                   { key:"cachekey", label:"Cloud CDN'in varsayılan önbellek anahtarı sadece şema, host, yol ve sorgudur — hiç çerez ya da kullanıcıya göre değişmez", correct:true, feedback:"İşte bu — ve bazı diğer CDN'lerin aksine, Cloud CDN'in bir başlık ya da çerezle anahtarlama için yerleşik bir yolu yok, bu yüzden ilk kullanıcının kişiselleştirilmiş yanıtı önbelleğe alındı ve o zamandan beri aynı URL'ye gelen herkese sunuldu." }
                 ],
                 errorText:"Önbellek yapılandırmasına dokunmadan önce bunun gerçekte neden olduğunu doğrulamadınız."
               },
-              { id:"h-headers", type:"action",
+              { id:"h-headers", type:"choice",
                 label:"Bu yanıtı özel ve önbelleklenemez olarak işaretlemesi için origin'i güncelle",
-                actionLabel:"Yanıt başlıklarını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Origin artık bu yanıtta Cache-Control: private, no-store gönderiyor — Cloud CDN buna uyuyor ve bu yanıtı önbelleğe almayı durduruyor.", loadingMs:600,
+                prompt:"Hangi yanıt başlığı yapılandırması bunu gerçekten durdurur?",
+                options:[
+                  { key:"maxage0", label:"Cache-Control: max-age=0", correct:false, feedback:"max-age=0, bir önbelleğe yeniden kullanmadan önce doğrulama yapmasını söyler, ama yanıt hâlâ saklanıp kullanıcılar arasında paylaşılabilir — bu, onu hiç saklamamakla aynı şey değil." },
+                  { key:"private-nostore", label:"Cache-Control: private, no-store", correct:true, feedback:"Ayarlandı — private, Cloud CDN'e bu yanıtın tek bir kullanıcıya ait olduğunu söyler, ve no-store önbelleğe hiç yazılmayacağı anlamına gelir." },
+                  { key:"etag-only", label:"Bir ETag ekle ama Cache-Control'ü ayarsız bırak", correct:false, feedback:"Bir ETag, bir önbelleğin KENDİ kopyasının hâlâ taze olup olmadığını doğrulamasına yardımcı olur — o tek paylaşılan kopyanın en baştan diğer her kullanıcıya verilmesini durdurmak için hiçbir şey yapmaz." }
+                ],
                 errorText:"Bu yanıt hâlâ önbelleğe alınıyor ve o URL'yi sıradaki isteyen kullanıcıya sunuluyor, onun olsun olmasın."
               },
               { id:"h-invalidate", type:"choice",
@@ -6801,14 +7407,24 @@
               }
             ],
             hardSteps:[
-              { id:"h-diagnose", type:"action",
+              { id:"h-diagnose", type:"choice",
                 label:"Öğenin sürüm geçmişini çöpe atılan bir yazma için kontrol et",
-                actionLabel:"Geçmişi kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti.", loadingMs:600,
+                prompt:"Öğenin mevcut değeri bir bölgenin yazmasıyla eşleşiyor — herhangi bir şeye dokunmadan önce sürüm geçmişinin gerçekten doğrulaması gereken ne?",
+                options:[
+                  { key:"assume", label:"Hiçbir şey — şu anda orada olan değer doğru olan olmalı", correct:false, feedback:"Sessizce çöpe atılan bir yazmanın sonsuza dek kayıp kalmasına izin veren tam olarak bu varsayım — mevcut değer sadece daha geç zaman damgasına sahip olan yazma, mutlaka kazanması gereken yazma değil." },
+                  { key:"history", label:"Sürüm geçmişinin, bölünme penceresi sırasında bu öğe için gerçekten ikinci, çöpe atılan bir yazma gösterip göstermediği", correct:true, feedback:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti." },
+                  { key:"replica", label:"Bir okuma replikasının ana düğümden farklı bir değere sahip olup olmadığı", correct:false, feedback:"Ana düğümün gerisinde kalan bir replika, ayrı ve normal bir replikasyon gecikmesi sorunudur — bölünme sırasında bir yazmanın gerçekten çöpe atılıp atılmadığını söylemez." }
+                ],
                 errorText:"Kimse gerçekten bir yazmanın kaybolduğunu doğrulamadı — mevcut değerin doğru olduğunu varsaymadan önce kontrol etmeye değer."
               },
-              { id:"h-recover", type:"action",
+              { id:"h-recover", type:"choice",
                 label:"Süresi dolmadan önce çöpe atılan yazmayı tablonun değişiklik akışından kurtar",
-                actionLabel:"Akıştan kurtar", loadingLabel:"Kurtarılıyor…", doneLabel:"Kurtarıldı — kaybeden yazma, saklama penceresi kapanmadan akıştan çekildi.", loadingMs:600,
+                prompt:"Çöpe atılan yazma gerçekte hangi kaynakta hâlâ kurtarılabilir durumda?",
+                options:[
+                  { key:"currentitem", label:"Öğenin mevcut değerini bu sefer daha dikkatli tekrar oku", correct:false, feedback:"Mevcut değer çakışmayı kazanan yazma — asla çöpe atılan yazma olmadı. Onu tekrar okumak hiçbir şey kurtarmaz." },
+                  { key:"stream", label:"Tablonun değişiklik akışı, saklama penceresi içinde", correct:true, feedback:"Kurtarıldı — kaybeden yazma, saklama penceresi kapanmadan akıştan çekildi." },
+                  { key:"backup", label:"Tüm tabloyu dün geceki yedekten geri yükle", correct:false, feedback:"Tam bir tablo geri yüklemesi, dün geceden beri yapılan diğer her öğenin yazmalarını da geri alırdı — tek bir öğedeki tek bir çöpe atılan yazmayı kurtarmak için son derece orantısız bir yol." }
+                ],
                 errorText:"Kaybeden yazma sadece sınırlı bir saklama penceresi boyunca akışta var — ondan sonra kalıcı olarak kayboldu."
               },
               { id:"h-strategy", type:"choice",
@@ -6846,14 +7462,24 @@
               }
             ],
             hardSteps:[
-              { id:"h-diagnose", type:"action",
+              { id:"h-diagnose", type:"choice",
                 label:"Konteynerin çakışmalar akışını çöpe atılan bir yazma için kontrol et",
-                actionLabel:"Çakışmalar akışını kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti.", loadingMs:600,
+                prompt:"Öğenin mevcut değeri bir bölgenin yazmasıyla eşleşiyor — herhangi bir şeye dokunmadan önce çakışmalar akışının gerçekten doğrulaması gereken ne?",
+                options:[
+                  { key:"assume", label:"Hiçbir şey — şu anda orada olan değer doğru olan olmalı", correct:false, feedback:"Sessizce çöpe atılan bir yazmanın sonsuza dek kayıp kalmasına izin veren tam olarak bu varsayım — mevcut değer sadece daha geç zaman damgasına sahip olan yazma, mutlaka kazanması gereken yazma değil." },
+                  { key:"history", label:"Çakışmalar akışının, bölünme penceresi sırasında bu öğe için gerçekten ikinci, çöpe atılan bir yazma gösterip göstermediği", correct:true, feedback:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti." },
+                  { key:"replica", label:"İkincil bir okuma bölgesinin ana bölgeden farklı bir değere sahip olup olmadığı", correct:false, feedback:"Gerisinde kalan ikincil bir bölge, ayrı ve normal bir replikasyon gecikmesi sorunudur — bölünme sırasında bir yazmanın gerçekten çöpe atılıp atılmadığını söylemez." }
+                ],
                 errorText:"Kimse gerçekten bir yazmanın kaybolduğunu doğrulamadı — mevcut değerin doğru olduğunu varsaymadan önce kontrol etmeye değer."
               },
-              { id:"h-recover", type:"action",
+              { id:"h-recover", type:"choice",
                 label:"Süresi dolmadan önce çöpe atılan yazmayı çakışmalar akışından kurtar",
-                actionLabel:"Çakışmalar akışından kurtar", loadingLabel:"Kurtarılıyor…", doneLabel:"Kurtarıldı — kaybeden yazma, süresi dolmadan çakışmalar akışından çekildi.", loadingMs:600,
+                prompt:"Çöpe atılan yazma gerçekte hangi kaynakta hâlâ kurtarılabilir durumda?",
+                options:[
+                  { key:"currentitem", label:"Öğenin mevcut değerini bu sefer daha dikkatli tekrar oku", correct:false, feedback:"Mevcut değer çakışmayı kazanan yazma — asla çöpe atılan yazma olmadı. Onu tekrar okumak hiçbir şey kurtarmaz." },
+                  { key:"stream", label:"Konteynerin çakışmalar akışı, saklama penceresi içinde", correct:true, feedback:"Kurtarıldı — kaybeden yazma, süresi dolmadan çakışmalar akışından çekildi." },
+                  { key:"backup", label:"Tüm konteyneri dün geceki yedekten geri yükle", correct:false, feedback:"Tam bir konteyner geri yüklemesi, dün geceden beri yapılan diğer her öğenin yazmalarını da geri alırdı — tek bir öğedeki tek bir çöpe atılan yazmayı kurtarmak için son derece orantısız bir yol." }
+                ],
                 errorText:"Kaybeden yazma sadece sınırlı bir pencere boyunca çakışmalar akışında kalır — ondan sonra kalıcı olarak kayboldu."
               },
               { id:"h-strategy", type:"choice",
@@ -6891,14 +7517,24 @@
               }
             ],
             hardSteps:[
-              { id:"h-diagnose", type:"action",
+              { id:"h-diagnose", type:"choice",
                 label:"Belgenin denetim geçmişini çöpe atılan bir yazma için kontrol et",
-                actionLabel:"Denetim geçmişini kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti.", loadingMs:600,
+                prompt:"Belgenin mevcut değeri bir bölgenin yazmasıyla eşleşiyor — herhangi bir şeye dokunmadan önce denetim geçmişinin gerçekten doğrulaması gereken ne?",
+                options:[
+                  { key:"assume", label:"Hiçbir şey — şu anda orada olan değer doğru olan olmalı", correct:false, feedback:"Sessizce çöpe atılan bir yazmanın sonsuza dek kayıp kalmasına izin veren tam olarak bu varsayım — mevcut değer sadece daha geç zaman damgasına sahip olan yazma, mutlaka kazanması gereken yazma değil." },
+                  { key:"history", label:"Denetim geçmişinin, bölünme penceresi sırasında bu belge için gerçekten ikinci, çöpe atılan bir yazma gösterip göstermediği", correct:true, feedback:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti." },
+                  { key:"replica", label:"Farklı bir Firestore bölgesinin farklı bir değere sahip olup olmadığı", correct:false, feedback:"Gerisinde kalan bir bölge, ayrı ve normal bir replikasyon gecikmesi sorunudur — bölünme sırasında bir yazmanın gerçekten çöpe atılıp atılmadığını söylemez." }
+                ],
                 errorText:"Kimse gerçekten bir yazmanın kaybolduğunu doğrulamadı — mevcut değerin doğru olduğunu varsaymadan önce kontrol etmeye değer."
               },
-              { id:"h-recover", type:"action",
+              { id:"h-recover", type:"choice",
                 label:"Kaybolmadan önce çöpe atılan yazmayı dışa aktarımdan kurtar",
-                actionLabel:"Yazmayı kurtar", loadingLabel:"Kurtarılıyor…", doneLabel:"Kurtarıldı — kaybeden yazma çekildi ve uzlaştırıldı.", loadingMs:600,
+                prompt:"Çöpe atılan yazma gerçekte hangi kaynakta hâlâ kurtarılabilir durumda?",
+                options:[
+                  { key:"currentitem", label:"Belgenin mevcut değerini bu sefer daha dikkatli tekrar oku", correct:false, feedback:"Mevcut değer çakışmayı kazanan yazma — asla çöpe atılan yazma olmadı. Onu tekrar okumak hiçbir şey kurtarmaz." },
+                  { key:"stream", label:"Denetim geçmişi dışa aktarımı, saklama penceresi içinde", correct:true, feedback:"Kurtarıldı — kaybeden yazma çekildi ve uzlaştırıldı." },
+                  { key:"backup", label:"Tüm veritabanını dün geceki yedekten geri yükle", correct:false, feedback:"Tam bir veritabanı geri yüklemesi, dün geceden beri yapılan diğer her belgenin yazmalarını da geri alırdı — tek bir belgedeki tek bir çöpe atılan yazmayı kurtarmak için son derece orantısız bir yol." }
+                ],
                 errorText:"Kaybeden yazma sadece sınırlı bir pencere boyunca kurtarılabilir — ondan sonra kalıcı olarak kayboldu."
               },
               { id:"h-strategy", type:"choice",
@@ -6944,9 +7580,10 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Split-brain'in burada neden mümkün olduğunu doğrula",
-                prompt:"İki düğümün ikisinin de kendini birincil sanmasına gerçekte ne izin verdi?",
+                prompt:"Herhangi bir şeyi değiştirmeden önce — kümenin hiçbir birincil seçmemesi gerekirken, 50/50'lik bir bölünmeyi tam olarak hangi koşul belirsiz hale getirdi?",
                 options:[
                   { key:"slow", label:"Düğümler sadece yanıt vermekte yavaştı", correct:false, feedback:"Yavaşlığın tek başına iki birincil yaratmaz — bir şey her iki tarafın da bağımsız olarak çoğunluğa sahip olduğuna karar vermesine izin verdi." },
+                  { key:"noquorum", label:"Yazma kabulü için hiç çoğunluk gerekmiyordu", correct:false, feedback:"Çoğunluğa dayalı yazmalar aslında gerekliydi — her tarafın çoğunluğa sahip olduğuna inanması gerekmesinin sebebi tam olarak bu. Sorun, her tarafın \"çoğunluk\" sayılan şeyi hesaplama biçiminin bir beraberliğe izin vermesiydi." },
                   { key:"tie", label:"İki bölgeye eşit bölünmüş çift sayıda düğüm, bir bölünmenin 50/50 berabere kalabileceği anlamına gelir, ve hiçbir taraf çoğunluktan yoksun olduğunu anlayamaz", correct:true, feedback:"İşte bu — eşit bir bölünmeyle, bölünmenin her iki yarısı da kendini çoğunluk sanabilir." }
                 ],
                 errorText:"Kümenin şeklini değiştirmeden önce split-brain'in burada neden mümkün olduğunu doğrulamadınız."
@@ -6997,9 +7634,10 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Split-brain'in burada neden mümkün olduğunu doğrula",
-                prompt:"İki düğümün ikisinin de kendini birincil sanmasına gerçekte ne izin verdi?",
+                prompt:"Herhangi bir şeyi değiştirmeden önce — kümenin hiçbir birincil seçmemesi gerekirken, 50/50'lik bir bölünmeyi tam olarak hangi koşul belirsiz hale getirdi?",
                 options:[
                   { key:"slow", label:"Düğümler sadece yanıt vermekte yavaştı", correct:false, feedback:"Yavaşlığın tek başına iki birincil yaratmaz — bir şey her iki tarafın da bağımsız olarak çoğunluğa sahip olduğuna karar vermesine izin verdi." },
+                  { key:"noquorum", label:"Yazma kabulü için hiç çoğunluk gerekmiyordu", correct:false, feedback:"Çoğunluğa dayalı yazmalar aslında gerekliydi — her tarafın çoğunluğa sahip olduğuna inanması gerekmesinin sebebi tam olarak bu. Sorun, her tarafın \"çoğunluk\" sayılan şeyi hesaplama biçiminin bir beraberliğe izin vermesiydi." },
                   { key:"tie", label:"İki bölgeye eşit bölünmüş çift sayıda düğüm, bir bölünmenin 50/50 berabere kalabileceği anlamına gelir, ve hiçbir taraf çoğunluktan yoksun olduğunu anlayamaz", correct:true, feedback:"İşte bu — eşit bir bölünmeyle, bölünmenin her iki yarısı da kendini çoğunluk sanabilir." }
                 ],
                 errorText:"Kümenin şeklini değiştirmeden önce split-brain'in burada neden mümkün olduğunu doğrulamadınız."
@@ -7050,9 +7688,10 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Split-brain'in burada neden mümkün olduğunu doğrula",
-                prompt:"İki düğümün ikisinin de kendini birincil sanmasına gerçekte ne izin verdi?",
+                prompt:"Herhangi bir şeyi değiştirmeden önce — kümenin hiçbir birincil seçmemesi gerekirken, 50/50'lik bir bölünmeyi tam olarak hangi koşul belirsiz hale getirdi?",
                 options:[
                   { key:"slow", label:"Düğümler sadece yanıt vermekte yavaştı", correct:false, feedback:"Yavaşlığın tek başına iki birincil yaratmaz — bir şey her iki tarafın da bağımsız olarak çoğunluğa sahip olduğuna karar vermesine izin verdi." },
+                  { key:"noquorum", label:"Yazma kabulü için hiç çoğunluk gerekmiyordu", correct:false, feedback:"Çoğunluğa dayalı yazmalar aslında gerekliydi — her tarafın çoğunluğa sahip olduğuna inanması gerekmesinin sebebi tam olarak bu. Sorun, her tarafın \"çoğunluk\" sayılan şeyi hesaplama biçiminin bir beraberliğe izin vermesiydi." },
                   { key:"tie", label:"İki bölgeye eşit bölünmüş çift sayıda düğüm, bir bölünmenin 50/50 berabere kalabileceği anlamına gelir, ve hiçbir taraf çoğunluktan yoksun olduğunu anlayamaz", correct:true, feedback:"İşte bu — eşit bir bölünmeyle, bölünmenin her iki yarısı da kendini çoğunluk sanabilir." }
                 ],
                 errorText:"Kümenin şeklini değiştirmeden önce split-brain'in burada neden mümkün olduğunu doğrulamadınız."
@@ -7105,16 +7744,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Bu abonenin neden her şeyi kaçırdığını doğrula",
-                prompt:"Aboneliğin yapılandırması ne gösteriyor?",
+                prompt:"Filtre politikasına dokunmadan önce — aboneliğin yapılandırmasının önce gerçekten göstermesi gereken ne?",
                 options:[
                   { key:"topicbroken", label:"Konunun kendisi aslında yayın yapmıyor", correct:false, feedback:"Konunun yayın sayısı artmaya devam ediyor — mesajlar gidiyor. Sorun alım tarafında." },
+                  { key:"permission", label:"Kuyruğun erişim politikası SNS konusunun ona mesaj göndermesine izin vermiyor", correct:false, feedback:"Eksik bir erişim politikası, konunun teslimat durumu günlüklerinde açık teslimat hataları olarak ortaya çıkardı, hiç denenmemiş sessiz bir abonelik olarak değil." },
                   { key:"filter", label:"Aboneliğin filtre politikası bu konunun gerçekte gönderdiği her mesajı dışlıyor", correct:true, feedback:"İşte bu — filtre politikası o kadar dar kapsamlı ki burada yayınlanan hiçbir şey ona uymuyor." }
                 ],
                 errorText:"Konunun bozuk olduğunu varsaymadan önce bu abonenin neden her şeyi kaçırdığını doğrulamadınız."
               },
-              { id:"h-filter", type:"action",
+              { id:"h-filter", type:"choice",
                 label:"Aboneliğin filtre politikasını bu konunun gerçek mesajlarıyla eşleşecek şekilde düzelt",
-                actionLabel:"Filtre politikasını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Filtre politikası düzeltildi — bu kuyruk artık alması gereken mesajları alıyor.", loadingMs:600,
+                prompt:"Hangi filtre politikası değişikliği bu konunun gerçek mesajlarının gerçekten geçmesini sağlar?",
+                options:[
+                  { key:"removeall", label:"Filtre politikasını tamamen sil", correct:false, feedback:"Bu işe yarar, ama aynı zamanda bu kuyruğun artık hiç yönetmemesi gereken mesajlar dahil, konudaki her mesajı alması demek — asıl uyuşmazlığı düzeltmekten çok daha büyük bir değişiklik." },
+                  { key:"widen", label:"Filtre politikasının öznitelik değerlerini bu konunun mesajlarının gerçekte taşıdığıyla eşleşecek şekilde güncelle", correct:true, feedback:"Düzeltildi — bu kuyruk artık alması gereken, ve sadece onları, alıyor." },
+                  { key:"addOR", label:"İkinci, ilgisiz bir filtre politikasını paralel olarak ekle ve bozuk olanı da aktif tut", correct:false, feedback:"SNS bir aboneliğin filtre politikasını tek bir koşul kümesi olarak değerlendirir — bozuk olanın yanına ilgisiz ikinci bir politika eklemek, bozuk olanın dışladığı şeyi düzeltmez." }
+                ],
                 errorText:"Filtre politikası hâlâ bu abonenin alması gereken mesajları dışlıyor."
               },
               { id:"h-dlq", type:"choice",
@@ -7158,16 +7803,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Bu aboneliğin neden her şeyi kaçırdığını doğrula",
-                prompt:"Aboneliğin yapılandırması ne gösteriyor?",
+                prompt:"Filtreye dokunmadan önce — aboneliğin yapılandırmasının önce gerçekten göstermesi gereken ne?",
                 options:[
                   { key:"topicbroken", label:"Konunun kendisi aslında mesaj almıyor", correct:false, feedback:"Konunun gelen mesaj sayısı artmaya devam ediyor — mesajlar geliyor. Sorun alım tarafında." },
+                  { key:"permission", label:"Aboneliğin yetkilendirme kuralının Listen izni yok", correct:false, feedback:"Eksik bir Listen izni, bir istemci almaya çalıştığında bir yetkilendirme hatası olarak ortaya çıkardı — sağlıklı görünen ama hiç eşleşen bir mesaj almayan bir abonelik olarak değil." },
                   { key:"filter", label:"Aboneliğin SQL filtresi bu konunun gerçekte taşıdığı her mesajı dışlıyor", correct:true, feedback:"İşte bu — filtre o kadar dar kapsamlı ki buraya gönderilen hiçbir şey ona uymuyor." }
                 ],
                 errorText:"Konunun bozuk olduğunu varsaymadan önce bu aboneliğin neden her şeyi kaçırdığını doğrulamadınız."
               },
-              { id:"h-filter", type:"action",
+              { id:"h-filter", type:"choice",
                 label:"Aboneliğin filtresini bu konunun gerçek mesajlarıyla eşleşecek şekilde düzelt",
-                actionLabel:"Filtre kuralını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Filtre kuralı düzeltildi — bu abonelik artık alması gereken mesajları alıyor.", loadingMs:600,
+                prompt:"Hangi filtre değişikliği bu konunun gerçek mesajlarının gerçekten geçmesini sağlar?",
+                options:[
+                  { key:"removeall", label:"SQL filtre kuralını tamamen sil", correct:false, feedback:"Bu işe yarar, ama aynı zamanda bu aboneliğin artık hiç yönetmemesi gereken mesajlar dahil, konudaki her mesajı alması demek — asıl uyuşmazlığı düzeltmekten çok daha büyük bir değişiklik." },
+                  { key:"widen", label:"SQL filtresinin koşulunu bu konunun mesajlarının gerçekte taşıdığıyla eşleşecek şekilde güncelle", correct:true, feedback:"Düzeltildi — bu abonelik artık alması gereken, ve sadece onları, alıyor." },
+                  { key:"addOR", label:"İkinci, ilgisiz bir filtre kuralını paralel olarak ekle ve bozuk olanı da aktif tut", correct:false, feedback:"Bir abonelikte birden fazla kural olabilir, ama her biri hâlâ kendi başına değerlendirilir — bozuk olanın yanına ilgisiz ikinci bir kural eklemek, bozuk olanın dışladığı şeyi düzeltmez." }
+                ],
                 errorText:"Filtre hâlâ bu aboneliğin alması gereken mesajları dışlıyor."
               },
               { id:"h-dlq", type:"choice",
@@ -7211,16 +7862,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Bu aboneliğin neden her şeyi kaçırdığını doğrula",
-                prompt:"Aboneliğin yapılandırması ne gösteriyor?",
+                prompt:"Filtreye dokunmadan önce — aboneliğin yapılandırmasının önce gerçekten göstermesi gereken ne?",
                 options:[
                   { key:"topicbroken", label:"Konunun kendisi aslında mesaj almıyor", correct:false, feedback:"Konunun gelen mesaj sayısı artmaya devam ediyor — mesajlar geliyor. Sorun alım tarafında." },
+                  { key:"permission", label:"Aboneliğin hizmet hesabının Pub/Sub Subscriber rolü yok", correct:false, feedback:"Eksik bir Subscriber rolü, mesajlar çekilmeye çalışıldığında bir izin-reddedildi hatası olarak ortaya çıkardı — sağlıklı görünen ama hiç eşleşen bir mesaj almayan bir abonelik olarak değil." },
                   { key:"filter", label:"Aboneliğin filtre ifadesi bu konunun gerçekte taşıdığı her mesajı dışlıyor", correct:true, feedback:"İşte bu — filtre o kadar dar kapsamlı ki burada yayınlanan hiçbir şey ona uymuyor." }
                 ],
                 errorText:"Konunun bozuk olduğunu varsaymadan önce bu aboneliğin neden her şeyi kaçırdığını doğrulamadınız."
               },
-              { id:"h-filter", type:"action",
+              { id:"h-filter", type:"choice",
                 label:"Aboneliğin filtresini bu konunun gerçek mesajlarıyla eşleşecek şekilde düzelt",
-                actionLabel:"Filtre ifadesini düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Filtre ifadesi düzeltildi — bu abonelik artık alması gereken mesajları alıyor.", loadingMs:600,
+                prompt:"Hangi filtre değişikliği bu konunun gerçek mesajlarının gerçekten geçmesini sağlar?",
+                options:[
+                  { key:"removeall", label:"Aboneliği hiç filtre ifadesi olmadan yeniden oluştur", correct:false, feedback:"Bu işe yarar, ama aynı zamanda bu aboneliğin artık hiç yönetmemesi gereken mesajlar dahil, konudaki her mesajı alması demek — asıl uyuşmazlığı düzeltmekten çok daha büyük bir değişiklik." },
+                  { key:"widen", label:"Filtre ifadesinin öznitelik eşleşmesini bu konunun mesajlarının gerçekte taşıdığıyla eşleşecek şekilde güncelle", correct:true, feedback:"Düzeltildi — bu abonelik artık alması gereken, ve sadece onları, alıyor." },
+                  { key:"addOR", label:"Farklı bir filtreyle ikinci bir abonelik oluştur ve bozuk olanı da aktif bırak", correct:false, feedback:"İkinci bir abonelik, eşleşen mesajların kendi ayrı kopyasını alırdı — orijinal, bozuk aboneliğin hâlâ dışladığı şeyi düzeltmez." }
+                ],
                 errorText:"Filtre hâlâ bu aboneliğin alması gereken mesajları dışlıyor."
               },
               { id:"h-dlq", type:"choice",
@@ -7266,9 +7923,10 @@
             hardSteps:[
               { id:"h-method", type:"choice",
                 label:"Bunun için doğru transfer yöntemini seç",
-                prompt:"Bu veri gerçekte nasıl taşınmalı?",
+                prompt:"Herhangi bir şey sipariş etmeden önce — hem 2 haftalık son tarihe hem de bağlantının diğer trafikle paylaşılıyor olmasına gerçekten uyan yöntem hangisi?",
                 options:[
                   { key:"network", label:"Mevcut internet bağlantısı üzerinden transfer et", correct:false, feedback:"100 Mbps'te, 250TB kabaca 230+ gün sürerdi — 2 haftalık son tarihe hiç yaklaşamaz." },
+                  { key:"compress", label:"Veriyi önce sıkıştır, sonra aynı bağlantı üzerinden transfer et", correct:false, feedback:"Bu verinin çoğu zaten sıkıştırılmış medya ve yedeklerden oluşuyor — gerçekçi sıkıştırma oranları 250TB'ı 100 Mbps'te 2 haftalık bir pencereye sığacak kadar küçültmeye yakın bile gelmez." },
                   { key:"snowball", label:"Fiziksel Snowball Edge cihazları sipariş et", correct:true, feedback:"Bir cihaz bunu aylar değil günler içinde taşıyabilir — sitenin internet bant genişliğinden tamamen bağımsız." }
                 ],
                 errorText:"Bu bant genişliğinde, transferin kendisi daha üçte biri bile bitmeden son tarihi geçiyor."
@@ -7319,9 +7977,10 @@
             hardSteps:[
               { id:"h-method", type:"choice",
                 label:"Bunun için doğru transfer yöntemini seç",
-                prompt:"Bu veri gerçekte nasıl taşınmalı?",
+                prompt:"Herhangi bir şey sipariş etmeden önce — hem 2 haftalık son tarihe hem de bağlantının diğer trafikle paylaşılıyor olmasına gerçekten uyan yöntem hangisi?",
                 options:[
                   { key:"network", label:"Mevcut internet bağlantısı üzerinden transfer et", correct:false, feedback:"100 Mbps'te, 250TB kabaca 230+ gün sürerdi — 2 haftalık son tarihe hiç yaklaşamaz." },
+                  { key:"compress", label:"Veriyi önce sıkıştır, sonra aynı bağlantı üzerinden transfer et", correct:false, feedback:"Bu verinin çoğu zaten sıkıştırılmış medya ve yedeklerden oluşuyor — gerçekçi sıkıştırma oranları 250TB'ı 100 Mbps'te 2 haftalık bir pencereye sığacak kadar küçültmeye yakın bile gelmez." },
                   { key:"databox", label:"Fiziksel Data Box cihazları sipariş et", correct:true, feedback:"Bir cihaz bunu aylar değil günler içinde taşıyabilir — sitenin internet bant genişliğinden tamamen bağımsız." }
                 ],
                 errorText:"Bu bant genişliğinde, transferin kendisi daha üçte biri bile bitmeden son tarihi geçiyor."
@@ -7372,9 +8031,10 @@
             hardSteps:[
               { id:"h-method", type:"choice",
                 label:"Bunun için doğru transfer yöntemini seç",
-                prompt:"Bu veri gerçekte nasıl taşınmalı?",
+                prompt:"Herhangi bir şey sipariş etmeden önce — hem 2 haftalık son tarihe hem de bağlantının diğer trafikle paylaşılıyor olmasına gerçekten uyan yöntem hangisi?",
                 options:[
                   { key:"network", label:"Mevcut internet bağlantısı üzerinden transfer et", correct:false, feedback:"100 Mbps'te, 250TB kabaca 230+ gün sürerdi — 2 haftalık son tarihe hiç yaklaşamaz." },
+                  { key:"compress", label:"Veriyi önce sıkıştır, sonra aynı bağlantı üzerinden transfer et", correct:false, feedback:"Bu verinin çoğu zaten sıkıştırılmış medya ve yedeklerden oluşuyor — gerçekçi sıkıştırma oranları 250TB'ı 100 Mbps'te 2 haftalık bir pencereye sığacak kadar küçültmeye yakın bile gelmez." },
                   { key:"appliance", label:"Fiziksel Transfer Appliance cihazları sipariş et", correct:true, feedback:"Bir cihaz bunu aylar değil günler içinde taşıyabilir — sitenin internet bant genişliğinden tamamen bağımsız." }
                 ],
                 errorText:"Bu bant genişliğinde, transferin kendisi daha üçte biri bile bitmeden son tarihi geçiyor."
@@ -7436,9 +8096,10 @@
               },
               { id:"h-choice", type:"choice",
                 label:"Bu yamayı şu anda nasıl geçireceğine karar ver",
-                prompt:"Gerçekte güvenli hamle ne?",
+                prompt:"Kararsızlık doğrulandığına göre — bu spesifik yama için gerçekte güvenli hamle ne?",
                 options:[
                   { key:"disable", label:"Test aşamasını tamamen devre dışı bırak", correct:false, feedback:"Bu yamayı geçirir, ama bir sonraki gerçekten bozuk build'in de hiçbir şey onu yakalamadan geçmesine izin verir." },
+                  { key:"skipone", label:"Aşamayı gerçekten çalıştırmadan sadece bu bir pipeline çalıştırmasını elle geçti olarak işaretle", correct:false, feedback:"Bu, bu çalıştırma için kontrolü devre dışı bırakmakla işlevsel olarak aynı şey — yama, onu kapılaması gereken testi hiç gerçekten geçmeden gönderiliyor." },
                   { key:"retry", label:"Başarısız aşamayı yeniden dene — gerçekten kararsızsa, bir yeniden deneme geçmeli, ve yama yine de gerçek kapıdan geçer", correct:true, feedback:"Yeniden denendi ve geçti — yama, her şeyin geçtiği aynı kapıdan geçti, ve test paketi bir sonraki build'i hâlâ izliyor." }
                 ],
                 errorText:"Yama hâlâ gerçek, bozulmamış bir test kapısından geçmedi — ya takılı kaldı, ya da kontrolü tamamen atladı."
@@ -7448,9 +8109,14 @@
                 actionLabel:"Onay kapısı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Acil yamalar için manuel onay kapısı eklendi — acil düzeltmeler devre dışı bırakılmış bir güvenlik ağı değil, bilinçli bir insan geçersiz kılması alıyor.", loadingMs:600,
                 errorText:"Şu anda acil bir düzeltme için kimsenin sahip olduğu tek atlatma yolu testleri devre dışı bırakmak — bu yanlış kaldıraç, ve biri onu tekrar çekecek."
               },
-              { id:"h-ticket", type:"action",
+              { id:"h-ticket", type:"choice",
                 label:"Kararsız testin kendisini düzeltmek için bir bilet aç",
-                actionLabel:"Bilet aç", loadingLabel:"Açılıyor…", doneLabel:"Bilet açıldı — kararsız test artık sessizce tolere edilmek yerine takip ediliyor.", loadingMs:500,
+                prompt:"Bilet gerçekte ne istemeli?",
+                options:[
+                  { key:"delete", label:"Açıkça güvenilmez olduğu için kararsız testi sil", correct:false, feedback:"Onu silmek, kararsızlıkla birlikte sağladığı gerçek kapsamı da götürür — hedef güvenilir bir test, sıfır test değil." },
+                  { key:"fix", label:"Aralıklı başarısızlıklara sebep olan altta yatan zamanlama sorununu araştır ve düzelt", correct:true, feedback:"Açıldı — kararsız test artık sonsuza kadar sessizce tolere edilmek ya da sessizce dolanılmak yerine gerçek bir düzeltme için takip ediliyor." },
+                  { key:"quarantine", label:"Onu kalıcı bir \"bilinen kararsız, sonuçları yok say\" listesine taşı", correct:false, feedback:"Kalıcı bir yok-say listesi kaydı, bu testin sonsuza dek hiçbir anlam ifade etmemesi demek — bu, onu doğrudan silmenin daha yavaş bir versiyonu." }
+                ],
                 errorText:"Kararsız test hâlâ orada duruyor, bir sonraki acil düzeltmeyi de engellemeye ya da yanlış kapılamaya hazır."
               }
             ]
@@ -7489,9 +8155,10 @@
               },
               { id:"h-choice", type:"choice",
                 label:"Bu yamayı şu anda nasıl geçireceğine karar ver",
-                prompt:"Gerçekte güvenli hamle ne?",
+                prompt:"Kararsızlık doğrulandığına göre — bu spesifik yama için gerçekte güvenli hamle ne?",
                 options:[
                   { key:"disable", label:"Test aşamasını tamamen devre dışı bırak", correct:false, feedback:"Bu yamayı geçirir, ama bir sonraki gerçekten bozuk build'in de hiçbir şey onu yakalamadan geçmesine izin verir." },
+                  { key:"skipone", label:"Aşamayı gerçekten çalıştırmadan sadece bu bir pipeline çalıştırmasını elle geçti olarak işaretle", correct:false, feedback:"Bu, bu çalıştırma için kontrolü devre dışı bırakmakla işlevsel olarak aynı şey — yama, onu kapılaması gereken testi hiç gerçekten geçmeden gönderiliyor." },
                   { key:"retry", label:"Başarısız aşamayı yeniden dene — gerçekten kararsızsa, bir yeniden deneme geçmeli, ve yama yine de gerçek kapıdan geçer", correct:true, feedback:"Yeniden denendi ve geçti — yama, her şeyin geçtiği aynı kapıdan geçti, ve test paketi bir sonraki build'i hâlâ izliyor." }
                 ],
                 errorText:"Yama hâlâ gerçek, bozulmamış bir test kapısından geçmedi — ya takılı kaldı, ya da kontrolü tamamen atladı."
@@ -7501,9 +8168,14 @@
                 actionLabel:"Onay kapısı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Acil yamalar için manuel onay kapısı eklendi — acil düzeltmeler devre dışı bırakılmış bir güvenlik ağı değil, bilinçli bir insan geçersiz kılması alıyor.", loadingMs:600,
                 errorText:"Şu anda acil bir düzeltme için kimsenin sahip olduğu tek atlatma yolu testleri devre dışı bırakmak — bu yanlış kaldıraç, ve biri onu tekrar çekecek."
               },
-              { id:"h-ticket", type:"action",
+              { id:"h-ticket", type:"choice",
                 label:"Kararsız testin kendisini düzeltmek için bir iş öğesi aç",
-                actionLabel:"İş öğesi aç", loadingLabel:"Açılıyor…", doneLabel:"İş öğesi açıldı — kararsız test artık sessizce tolere edilmek yerine takip ediliyor.", loadingMs:500,
+                prompt:"İş öğesi gerçekte ne istemeli?",
+                options:[
+                  { key:"delete", label:"Açıkça güvenilmez olduğu için kararsız testi sil", correct:false, feedback:"Onu silmek, kararsızlıkla birlikte sağladığı gerçek kapsamı da götürür — hedef güvenilir bir test, sıfır test değil." },
+                  { key:"fix", label:"Aralıklı başarısızlıklara sebep olan altta yatan zamanlama sorununu araştır ve düzelt", correct:true, feedback:"Açıldı — kararsız test artık sonsuza kadar sessizce tolere edilmek ya da sessizce dolanılmak yerine gerçek bir düzeltme için takip ediliyor." },
+                  { key:"quarantine", label:"Onu kalıcı bir \"bilinen kararsız, sonuçları yok say\" listesine taşı", correct:false, feedback:"Kalıcı bir yok-say listesi kaydı, bu testin sonsuza dek hiçbir anlam ifade etmemesi demek — bu, onu doğrudan silmenin daha yavaş bir versiyonu." }
+                ],
                 errorText:"Kararsız test hâlâ orada duruyor, bir sonraki acil düzeltmeyi de engellemeye ya da yanlış kapılamaya hazır."
               }
             ]
@@ -7542,9 +8214,10 @@
               },
               { id:"h-choice", type:"choice",
                 label:"Bu yamayı şu anda nasıl geçireceğine karar ver",
-                prompt:"Gerçekte güvenli hamle ne?",
+                prompt:"Kararsızlık doğrulandığına göre — bu spesifik yama için gerçekte güvenli hamle ne?",
                 options:[
                   { key:"disable", label:"Test adımını tamamen devre dışı bırak", correct:false, feedback:"Bu yamayı geçirir, ama bir sonraki gerçekten bozuk build'in de hiçbir şey onu yakalamadan geçmesine izin verir." },
+                  { key:"skipone", label:"Adımı gerçekten çalıştırmadan sadece bu bir build'i elle geçti olarak işaretle", correct:false, feedback:"Bu, bu çalıştırma için kontrolü devre dışı bırakmakla işlevsel olarak aynı şey — yama, onu kapılaması gereken testi hiç gerçekten geçmeden gönderiliyor." },
                   { key:"retry", label:"Başarısız build'i yeniden dene — gerçekten kararsızsa, bir yeniden deneme geçmeli, ve yama yine de gerçek kapıdan geçer", correct:true, feedback:"Yeniden denendi ve geçti — yama, her şeyin geçtiği aynı kapıdan geçti, ve test paketi bir sonraki build'i hâlâ izliyor." }
                 ],
                 errorText:"Yama hâlâ gerçek, bozulmamış bir test kapısından geçmedi — ya takılı kaldı, ya da kontrolü tamamen atladı."
@@ -7554,9 +8227,14 @@
                 actionLabel:"Onay zorunlu kıl", loadingLabel:"Yapılandırılıyor…", doneLabel:"Acil yamalar için zorunlu onay eklendi — acil düzeltmeler devre dışı bırakılmış bir güvenlik ağı değil, bilinçli bir insan geçersiz kılması alıyor.", loadingMs:600,
                 errorText:"Şu anda acil bir düzeltme için kimsenin sahip olduğu tek atlatma yolu testleri devre dışı bırakmak — bu yanlış kaldıraç, ve biri onu tekrar çekecek."
               },
-              { id:"h-ticket", type:"action",
+              { id:"h-ticket", type:"choice",
                 label:"Kararsız testin kendisini düzeltmek için bir bilet aç",
-                actionLabel:"Bilet aç", loadingLabel:"Açılıyor…", doneLabel:"Bilet açıldı — kararsız test artık sessizce tolere edilmek yerine takip ediliyor.", loadingMs:500,
+                prompt:"Bilet gerçekte ne istemeli?",
+                options:[
+                  { key:"delete", label:"Açıkça güvenilmez olduğu için kararsız testi sil", correct:false, feedback:"Onu silmek, kararsızlıkla birlikte sağladığı gerçek kapsamı da götürür — hedef güvenilir bir test, sıfır test değil." },
+                  { key:"fix", label:"Aralıklı başarısızlıklara sebep olan altta yatan zamanlama sorununu araştır ve düzelt", correct:true, feedback:"Açıldı — kararsız test artık sonsuza kadar sessizce tolere edilmek ya da sessizce dolanılmak yerine gerçek bir düzeltme için takip ediliyor." },
+                  { key:"quarantine", label:"Onu kalıcı bir \"bilinen kararsız, sonuçları yok say\" listesine taşı", correct:false, feedback:"Kalıcı bir yok-say listesi kaydı, bu testin sonsuza dek hiçbir anlam ifade etmemesi demek — bu, onu doğrudan silmenin daha yavaş bir versiyonu." }
+                ],
                 errorText:"Kararsız test hâlâ orada duruyor, bir sonraki acil düzeltmeyi de engellemeye ya da yanlış kapılamaya hazır."
               }
             ]
@@ -7595,16 +8273,22 @@
                 ],
                 errorText:"Kimse bu anahtarın geliştirici dışında biri tarafından kullanılıp kullanılmadığını gerçekten doğrulamadı — bu, bunun ne kadar büyük bir sorun olduğunu değiştirir."
               },
-              { id:"h-deactivate", type:"action",
+              { id:"h-deactivate", type:"choice",
                 label:"Sızan erişim anahtarını hemen devre dışı bırak",
-                actionLabel:"Anahtarı devre dışı bırak", loadingLabel:"Devre dışı bırakılıyor…", doneLabel:"Erişim anahtarı devre dışı bırakıldı — artık hiç kimlik doğrulayamıyor.", loadingMs:600,
+                prompt:"AWS'nin otomatik karantinası bu anahtarın izinlerini zaten daralttı — devre dışı bırakmak buna gerçekte ne ekler?",
+                options:[
+                  { key:"nothing", label:"Hiçbir şey — karantina politikası zaten zarar vermesini engelliyor", correct:false, feedback:"Karantina anahtarın yapabileceklerini daraltır, ama anahtar hâlâ kimlik doğrulayabilir ve hâlâ geçerli, aktif bir kimlik bilgisi olarak görünür — çevrelenmiş, öldürülmemiş." },
+                  { key:"deactivate", label:"Anahtarı artık hiç kimlik doğrulayamayacak şekilde devre dışı bırak", correct:true, feedback:"Devre dışı bırakıldı — karantina politikası olsun olmasın artık hiç kimlik doğrulayamıyor." },
+                  { key:"rotate", label:"Aynı IAM kullanıcısı için ikinci bir erişim anahtarı oluştur ve onu kullanmaya başla", correct:false, feedback:"İkinci bir anahtar birinciye dokunmaz — sızan anahtar, yeni olanın yanında geçerli ve karantinalı olarak kalır, ölü değil." }
+                ],
                 errorText:"AWS'nin otomatik karantinası anahtarın yapabileceklerini daraltıyor, ama devre dışı bırakmıyor — biri açıkça bunu yapana kadar anahtar hâlâ geçerli."
               },
               { id:"h-purge", type:"choice",
                 label:"Açığa çıkan commit'in kendisi hakkında ne yapılacağına karar ver",
-                prompt:"Depo geçmişinde oturan sızan anahtar hakkında ne yapılmalı?",
+                prompt:"Anahtar öldüğüne göre, hâlâ gerçekte açıkta olan ne?",
                 options:[
                   { key:"leave", label:"Commit'i bırak — anahtar zaten devre dışı, o yüzden önemli değil", correct:false, feedback:"Anahtarın ölü olması sızıntıyı silmiyor — commit geçmişi (ve onu zaten klonlayan ya da kazıyan herkes) hâlâ ona sahip, ve tarayıcılar bu depoyu işaretlemeye devam edecek." },
+                  { key:"deleterepo", label:"Deponun tamamını sil", correct:false, feedback:"Bu, açığa çıkan anahtarı deponun geçmişindeki her meşru commit, issue ve pull request ile birlikte götürür — asıl sorunun gerektirdiğinden çok daha büyük bir kayıp." },
                   { key:"purgehistory", label:"Anahtarı deponun git geçmişinden temizle ve temizlenmiş geçmişi force-push et", correct:true, feedback:"Temizlendi — anahtar sadece son commit'ten değil, geçmişten de gitti." }
                 ],
                 errorText:"Ölü anahtar hâlâ deponun geçmişinde açıkça duruyor — bu depo onu bulan her tarayıcı tarafından işaretlenmeye devam edecek."
@@ -7648,16 +8332,22 @@
                 ],
                 errorText:"Kimse bu sırrın geliştirici dışında biri tarafından kullanılıp kullanılmadığını gerçekten doğrulamadı — bu, bunun ne kadar büyük bir sorun olduğunu değiştirir."
               },
-              { id:"h-deactivate", type:"action",
+              { id:"h-deactivate", type:"choice",
                 label:"Sızan istemci sırrını hemen sil",
-                actionLabel:"Sırrı sil", loadingLabel:"Siliniyor…", doneLabel:"İstemci sırrı silindi — artık hiç kimlik doğrulayamıyor.", loadingMs:600,
+                prompt:"Burada otomatik bir karantina yok — bu sırrın kullanılabilir olmasını gerçekte hangi eylem durdurur?",
+                options:[
+                  { key:"disableapp", label:"Tüm uygulama kaydının girişini devre dışı bırak", correct:false, feedback:"Bu, sadece sızan sırrı değil bu uygulamanın her meşru kullanımını da engeller — olay, tüm uygulamayı değil sızan tek kimlik bilgisini öldürmeyi gerektiriyor." },
+                  { key:"deactivate", label:"Uygulama kaydından sadece sızan istemci sırrını sil", correct:true, feedback:"Silindi — artık hiç kimlik doğrulayamıyor." },
+                  { key:"rotate", label:"Yeni bir istemci sırrı ekle ve onu kullanmaya başla", correct:false, feedback:"Yeni bir sır eklemek eskisine dokunmaz — sızan sır, açıkça silinene kadar yanında tamamen geçerli kalır." }
+                ],
                 errorText:"Burada hiçbir şey bu sırrın yapabileceklerini otomatik olarak daraltmıyor — biri açıkça silene kadar tamamen geçerli kalıyor, ve bu süre boyunca açıkta duruyordu."
               },
               { id:"h-purge", type:"choice",
                 label:"Açığa çıkan commit'in kendisi hakkında ne yapılacağına karar ver",
-                prompt:"Depo geçmişinde oturan sızan sır hakkında ne yapılmalı?",
+                prompt:"Sır öldüğüne göre, hâlâ gerçekte açıkta olan ne?",
                 options:[
                   { key:"leave", label:"Commit'i bırak — sır zaten silindi, o yüzden önemli değil", correct:false, feedback:"Sırrın ölü olması sızıntıyı silmiyor — commit geçmişi (ve onu zaten klonlayan ya da kazıyan herkes) hâlâ ona sahip, ve tarayıcılar bu depoyu işaretlemeye devam edecek." },
+                  { key:"deleterepo", label:"Deponun tamamını sil", correct:false, feedback:"Bu, açığa çıkan sırrı deponun geçmişindeki her meşru commit, issue ve pull request ile birlikte götürür — asıl sorunun gerektirdiğinden çok daha büyük bir kayıp." },
                   { key:"purgehistory", label:"Sırrı deponun git geçmişinden temizle ve temizlenmiş geçmişi force-push et", correct:true, feedback:"Temizlendi — sır sadece son commit'ten değil, geçmişten de gitti." }
                 ],
                 errorText:"Ölü sır hâlâ deponun geçmişinde açıkça duruyor — bu depo onu bulan her tarayıcı tarafından işaretlenmeye devam edecek."
@@ -7701,16 +8391,22 @@
                 ],
                 errorText:"Kimse bu anahtarın geliştirici dışında biri tarafından kullanılıp kullanılmadığını gerçekten doğrulamadı — bu, bunun ne kadar büyük bir sorun olduğunu değiştirir."
               },
-              { id:"h-deactivate", type:"action",
+              { id:"h-deactivate", type:"choice",
                 label:"Sızan hizmet hesabı anahtarını hemen sil",
-                actionLabel:"Anahtarı sil", loadingLabel:"Siliniyor…", doneLabel:"Hizmet hesabı anahtarı silindi — artık hiç kimlik doğrulayamıyor.", loadingMs:600,
+                prompt:"Burada otomatik bir karantina yok — bu anahtarın kullanılabilir olmasını gerçekte hangi eylem durdurur?",
+                options:[
+                  { key:"disablesa", label:"Hizmet hesabının tamamını devre dışı bırak", correct:false, feedback:"Bu, sadece sızan anahtarı değil bu hizmet hesabının her meşru kullanımını da engeller — olay, bu kimliği kullanan her şeyi değil sızan tek kimlik bilgisini öldürmeyi gerektiriyor." },
+                  { key:"deactivate", label:"Hizmet hesabından sadece sızan anahtarı sil", correct:true, feedback:"Silindi — artık hiç kimlik doğrulayamıyor." },
+                  { key:"rotate", label:"Aynı hizmet hesabı için yeni bir anahtar oluştur ve onu kullanmaya başla", correct:false, feedback:"Yeni bir anahtar oluşturmak eskisine dokunmaz — sızan anahtar, açıkça silinene kadar yanında tamamen geçerli kalır." }
+                ],
                 errorText:"Burada hiçbir şey bu anahtarın yapabileceklerini otomatik olarak daraltmıyor — biri açıkça silene kadar tamamen geçerli kalıyor, ve bu süre boyunca açıkta duruyordu."
               },
               { id:"h-purge", type:"choice",
                 label:"Açığa çıkan commit'in kendisi hakkında ne yapılacağına karar ver",
-                prompt:"Depo geçmişinde oturan sızan anahtar hakkında ne yapılmalı?",
+                prompt:"Anahtar öldüğüne göre, hâlâ gerçekte açıkta olan ne?",
                 options:[
                   { key:"leave", label:"Commit'i bırak — anahtar zaten silindi, o yüzden önemli değil", correct:false, feedback:"Anahtarın ölü olması sızıntıyı silmiyor — commit geçmişi (ve onu zaten klonlayan ya da kazıyan herkes) hâlâ ona sahip, ve tarayıcılar bu depoyu işaretlemeye devam edecek." },
+                  { key:"deleterepo", label:"Deponun tamamını sil", correct:false, feedback:"Bu, açığa çıkan anahtarı deponun geçmişindeki her meşru commit, issue ve pull request ile birlikte götürür — asıl sorunun gerektirdiğinden çok daha büyük bir kayıp." },
                   { key:"purgehistory", label:"Anahtarı deponun git geçmişinden temizle ve temizlenmiş geçmişi force-push et", correct:true, feedback:"Temizlendi — anahtar sadece son commit'ten değil, geçmişten de gitti." }
                 ],
                 errorText:"Ölü anahtar hâlâ deponun geçmişinde açıkça duruyor — bu depo onu bulan her tarayıcı tarafından işaretlenmeye devam edecek."
@@ -7749,16 +8445,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Gerçekte neyin yanlış olduğunu gösteren metriği bul",
-                prompt:"Hangisi gerçek hikayeyi anlatıyor?",
+                prompt:"İlk bakılacak bariz yer filo genelindeki işlem sağlığı — ama gerçek hikayeyi gerçekte hangi metrik anlatıyor?",
                 options:[
                   { key:"cpu", label:"EC2 CPUUtilization", correct:false, feedback:"Filodaki CPU tüm bu süre boyunca tamamen normal kaldı. Bu değil." },
+                  { key:"networkin", label:"EC2 NetworkIn", correct:false, feedback:"Ağ trafiği sıçramayla birlikte her zamanki gibi yükseldi — bu beklenen bir şey, bağlantı hatalarını açıklayan anormallik değil." },
                   { key:"dbconn", label:"RDS DatabaseConnections", correct:true, feedback:"İşte bu — bağlantı sınırına sabitlenmiş durumda. Otomatik Ölçeklendirme grubunun başlattığı her yeni örnek daha fazla bağlantı açıyor, ve veritabanı artık daha fazlasını kabul edemiyor." }
                 ],
                 errorText:"Kimse bu kesintiyi gerçekten açıklayan metriği henüz bulmadı."
               },
-              { id:"h-pool", type:"action",
+              { id:"h-pool", type:"choice",
                 label:"Yeni örneklerin her biri kendi bağlantısını açmak yerine gerçek bağlantılardan küçük bir havuzu paylaşması için veritabanının önüne bir bağlantı havuzlayıcı koy",
-                actionLabel:"RDS Proxy ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"RDS Proxy eklendi — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor.", loadingMs:700,
+                prompt:"Hangi düzeltme yeni örneklerin bağlantı sınırını tüketmesini gerçekte durdurur?",
+                options:[
+                  { key:"maxconn", label:"Sadece veritabanının max_connections parametresini yükselt", correct:false, feedback:"Tavanı yükseltmek biraz alan kazandırır, ama Otomatik Ölçeklendirme grubu, herhangi bir makul bağlantı sınırı artışının yetişebileceğinden daha hızlı örnek başlatabilir — aynı kesintiyi düzeltmez, sadece geciktirir." },
+                  { key:"pool", label:"Veritabanının önüne bir bağlantı havuzlayıcı koy", correct:true, feedback:"Eklendi — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor, bu yüzden filoyu ölçeklendirmek artık ham veritabanı bağlantılarını bire bir ölçeklendirmek anlamına gelmiyor." },
+                  { key:"fewerinstances", label:"Otomatik Ölçeklendirme grubunu şu anki örnek sayısında sabitle", correct:false, feedback:"Bu yeni bağlantıları durdurur, ama filonun trafik sıçramasını karşılamak için ölçeklenmesini de tamamen durdurur — bir bağlantı kesintisini bir kapasite kesintisiyle takas eder." }
+                ],
                 errorText:"Her yeni örnek hâlâ veritabanına kendi doğrudan bağlantısını açıyor — sınıra öncekiyle aynı hızda ulaşılıyor."
               },
               { id:"h-trigger", type:"choice",
@@ -7802,16 +8504,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Gerçekte neyin yanlış olduğunu gösteren metriği bul",
-                prompt:"Hangisi gerçek hikayeyi anlatıyor?",
+                prompt:"İlk bakılacak bariz yer filo genelindeki işlem sağlığı — ama gerçek hikayeyi gerçekte hangi metrik anlatıyor?",
                 options:[
                   { key:"cpu", label:"VM ölçek kümesi CPU yüzdesi", correct:false, feedback:"Filodaki CPU tüm bu süre boyunca tamamen normal kaldı. Bu değil." },
+                  { key:"networkin", label:"VM ölçek kümesi Gelen Ağ", correct:false, feedback:"Ağ trafiği sıçramayla birlikte her zamanki gibi yükseldi — bu beklenen bir şey, bağlantı hatalarını açıklayan anormallik değil." },
                   { key:"dbconn", label:"Azure Database aktif bağlantıları", correct:true, feedback:"İşte bu — bağlantı sınırına sabitlenmiş durumda. Ölçek kümesinin başlattığı her yeni örnek daha fazla bağlantı açıyor, ve veritabanı artık daha fazlasını kabul edemiyor." }
                 ],
                 errorText:"Kimse bu kesintiyi gerçekten açıklayan metriği henüz bulmadı."
               },
-              { id:"h-pool", type:"action",
+              { id:"h-pool", type:"choice",
                 label:"Yeni örneklerin her biri kendi bağlantısını açmak yerine gerçek bağlantılardan küçük bir havuzu paylaşması için veritabanının yerleşik bağlantı havuzlamasını aç",
-                actionLabel:"Bağlantı havuzlamayı etkinleştir", loadingLabel:"Yapılandırılıyor…", doneLabel:"Bağlantı havuzlama etkinleştirildi — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor.", loadingMs:700,
+                prompt:"Hangi düzeltme yeni örneklerin bağlantı sınırını tüketmesini gerçekte durdurur?",
+                options:[
+                  { key:"maxconn", label:"Sadece veritabanının azami bağlantı parametresini yükselt", correct:false, feedback:"Tavanı yükseltmek biraz alan kazandırır, ama ölçek kümesi, herhangi bir makul bağlantı sınırı artışının yetişebileceğinden daha hızlı örnek başlatabilir — aynı kesintiyi düzeltmez, sadece geciktirir." },
+                  { key:"pool", label:"Veritabanının yerleşik bağlantı havuzlamasını aç", correct:true, feedback:"Etkinleştirildi — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor, bu yüzden filoyu ölçeklendirmek artık ham veritabanı bağlantılarını bire bir ölçeklendirmek anlamına gelmiyor." },
+                  { key:"fewerinstances", label:"Ölçek kümesini şu anki örnek sayısında sabitle", correct:false, feedback:"Bu yeni bağlantıları durdurur, ama filonun trafik sıçramasını karşılamak için ölçeklenmesini de tamamen durdurur — bir bağlantı kesintisini bir kapasite kesintisiyle takas eder." }
+                ],
                 errorText:"Her yeni örnek hâlâ veritabanına kendi doğrudan bağlantısını açıyor — sınıra öncekiyle aynı hızda ulaşılıyor."
               },
               { id:"h-trigger", type:"choice",
@@ -7855,16 +8563,22 @@
             hardSteps:[
               { id:"h-diagnose", type:"choice",
                 label:"Gerçekte neyin yanlış olduğunu gösteren metriği bul",
-                prompt:"Hangisi gerçek hikayeyi anlatıyor?",
+                prompt:"İlk bakılacak bariz yer filo genelindeki işlem sağlığı — ama gerçek hikayeyi gerçekte hangi metrik anlatıyor?",
                 options:[
                   { key:"cpu", label:"Örnek grubu CPU kullanımı", correct:false, feedback:"Filodaki CPU tüm bu süre boyunca tamamen normal kaldı. Bu değil." },
+                  { key:"networkin", label:"Örnek grubunun aldığı ağ baytları", correct:false, feedback:"Ağ trafiği sıçramayla birlikte her zamanki gibi yükseldi — bu beklenen bir şey, bağlantı hatalarını açıklayan anormallik değil." },
                   { key:"dbconn", label:"Cloud SQL aktif bağlantıları", correct:true, feedback:"İşte bu — bağlantı sınırına sabitlenmiş durumda. Grubun başlattığı her yeni örnek daha fazla bağlantı açıyor, ve veritabanı artık daha fazlasını kabul edemiyor." }
                 ],
                 errorText:"Kimse bu kesintiyi gerçekten açıklayan metriği henüz bulmadı."
               },
-              { id:"h-pool", type:"action",
+              { id:"h-pool", type:"choice",
                 label:"Yeni örneklerin her biri kendi bağlantısını açmak yerine gerçek bağlantılardan küçük bir havuzu paylaşması için Cloud SQL'in önüne bir bağlantı havuzlayıcı dağıt",
-                actionLabel:"PgBouncer dağıt", loadingLabel:"Dağıtılıyor…", doneLabel:"Bağlantı havuzlayıcı dağıtıldı — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor.", loadingMs:700,
+                prompt:"Hangi düzeltme yeni örneklerin bağlantı sınırını tüketmesini gerçekte durdurur?",
+                options:[
+                  { key:"maxconn", label:"Sadece Cloud SQL'in azami bağlantı bayrağını yükselt", correct:false, feedback:"Tavanı yükseltmek biraz alan kazandırır, ama örnek grubu, herhangi bir makul bağlantı sınırı artışının yetişebileceğinden daha hızlı örnek başlatabilir — aynı kesintiyi düzeltmez, sadece geciktirir." },
+                  { key:"pool", label:"Cloud SQL'in önüne bir bağlantı havuzlayıcı dağıt", correct:true, feedback:"Dağıtıldı — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor, bu yüzden filoyu ölçeklendirmek artık ham veritabanı bağlantılarını bire bir ölçeklendirmek anlamına gelmiyor." },
+                  { key:"fewerinstances", label:"Örnek grubunu şu anki boyutunda sabitle", correct:false, feedback:"Bu yeni bağlantıları durdurur, ama filonun trafik sıçramasını karşılamak için ölçeklenmesini de tamamen durdurur — bir bağlantı kesintisini bir kapasite kesintisiyle takas eder." }
+                ],
                 errorText:"Her yeni örnek hâlâ veritabanına kendi doğrudan bağlantısını açıyor — sınıra öncekiyle aynı hızda ulaşılıyor."
               },
               { id:"h-trigger", type:"choice",
@@ -7917,16 +8631,22 @@
                 ],
                 errorText:"Hangi kova politikası ifadesinin sızıntıya sebep olduğunu henüz gerçekten belirlemediniz."
               },
-              { id:"h-bucket", type:"action",
+              { id:"h-bucket", type:"choice",
                 label:"S3 kova politikasından herkese açık okuma ifadesini kaldır",
-                actionLabel:"Kova politikasını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Kova politikası düzeltildi — kova artık doğrudan herkese açık değil.", loadingMs:600,
+                prompt:"Hangi düzeltme, herkese açık izni sonradan bir tuzak bırakmadan gerçekten kaldırır?",
+                options:[
+                  { key:"blockpublic", label:"Sadece kova için Herkese Açık Erişimi Engelle'yi aç, politika ifadesini olduğu gibi bırak", correct:false, feedback:"Herkese Açık Erişimi Engelle güçlü bir güvenlik ağı, ama politikada açık bir Principal: * ifadesini bırakmak, biri bu hesap düzeyi ayarı kapattığı anda sızıntının geri gelmesi demek." },
+                  { key:"removestatement", label:"Kova politikasından herkese açık okuma ifadesini kaldır", correct:true, feedback:"Düzeltildi — kova artık doğrudan herkese açık değil." },
+                  { key:"deletebucket", label:"Kovayı sil ve varsayılan ayarlarla yeniden oluştur", correct:false, feedback:"Bu, içindeki her nesneyi yok eder — gerçek verilerle dolu bir üretim kovası, bir politika ifadesini düzeltmek için atılacak bir şey değil." }
+                ],
                 errorText:"Kova politikasında hâlâ internetteki gerçekten herkese okuma erişimi veren bir Principal: * ifadesi var."
               },
               { id:"h-iam", type:"choice",
                 label:"EC2 örneğinin IAM rolü hakkında ne yapılacağına karar ver",
-                prompt:"Örneğin rolünün şu anda hesap genelinde tam S3 erişimi var. Şimdi ne olacak?",
+                prompt:"Örneğin rolünün şu anda hesap genelinde tam S3 erişimi var. Hangi düzeltme, örneğin gerçekten ihtiyaç duyduğu şeyi bozmadan bu yolu kapatır?",
                 options:[
                   { key:"leave", label:"Bırak — kovanın kendisi artık özel, o yüzden önemli değil", correct:false, feedback:"Sadece tek bir kontrole güvenmek, bunun gibi zincirlerin tam olarak nasıl oluştuğu şey. Başka bir kova ya da politika bir gün gevşerse, bu rol hâlâ her şeye ulaşabilir." },
+                  { key:"removerole", label:"Rolü örnekten tamamen ayır", correct:false, feedback:"Bu, örneğin işini yapmak için gerçekten ihtiyaç duyduğu meşru S3 erişimini bozar — hedef izni daraltmak, örneğin çalışma yeteneğini kaldırmak değil." },
                   { key:"scope", label:"Rolü sadece bu örneğin gerçekten ihtiyaç duyduğu tek kova ve önekle sınırla", correct:true, feedback:"Daraltıldı — daha sonra başka bir şey ters giderse bile, bu rol artık dokunma işi olmayan verilere ulaşamıyor." }
                 ],
                 errorText:"Bu rol hâlâ hesaptaki her kovayı okuyup yazabiliyor — kova politikası düzeltmesi buradaki yollardan sadece birini kapattı."
@@ -7970,16 +8690,22 @@
                 ],
                 errorText:"Hangi konteynerin erişim düzeyinin sızıntıya sebep olduğunu henüz gerçekten belirlemediniz."
               },
-              { id:"h-bucket", type:"action",
+              { id:"h-bucket", type:"choice",
                 label:"Depolama hesabında Blob anonim erişimini kapat",
-                actionLabel:"Depolama erişimini düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Blob anonim erişimi devre dışı bırakıldı — konteyner artık doğrudan herkese açık değil.", loadingMs:600,
+                prompt:"Hangi düzeltme, herkese açık izni sonradan bir tuzak bırakmadan gerçekten kaldırır?",
+                options:[
+                  { key:"containeronly", label:"Sadece bu konteynerin erişim düzeyini Özel yap, hesap düzeyi anonim erişimi açık bırak", correct:false, feedback:"Bu, bu konteyneri kapatır, ama hesap düzeyindeki \"Blob anonim erişimine izin ver\" ayarı hâlâ açık — başka bir konteyner (ya da yeni biri) hâlâ herkese açık yapılabilir." },
+                  { key:"disable", label:"Depolama hesabında Blob anonim erişimini kapat", correct:true, feedback:"Devre dışı bırakıldı — konteyner artık doğrudan herkese açık değil." },
+                  { key:"deleteaccount", label:"Depolama hesabını sil ve varsayılan ayarlarla yeniden oluştur", correct:false, feedback:"Bu, içindeki her blob'u yok eder — gerçek verilerle dolu bir üretim hesabı, bir erişim ayarını düzeltmek için atılacak bir şey değil." }
+                ],
                 errorText:"Depolama hesabı hâlâ blob'lara anonim okuma erişimine izin veriyor — internetteki gerçekten herkes bu konteyneri okuyabilir."
               },
               { id:"h-iam", type:"choice",
                 label:"VM'in yönetilen kimliği hakkında ne yapılacağına karar ver",
-                prompt:"VM'in kimliğinin şu anda abonelik düzeyinde Storage Blob Data Contributor yetkisi var. Şimdi ne olacak?",
+                prompt:"VM'in kimliğinin şu anda abonelik düzeyinde Storage Blob Data Contributor yetkisi var. Hangi düzeltme, VM'in gerçekten ihtiyaç duyduğu şeyi bozmadan bu yolu kapatır?",
                 options:[
                   { key:"leave", label:"Bırak — konteynerin kendisi artık özel, o yüzden önemli değil", correct:false, feedback:"Sadece tek bir kontrole güvenmek, bunun gibi zincirlerin tam olarak nasıl oluştuğu şey. Başka bir konteyner ya da ayar bir gün gevşerse, bu kimlik hâlâ her şeye ulaşabilir." },
+                  { key:"removeidentity", label:"Yönetilen kimliği VM'den tamamen kaldır", correct:false, feedback:"Bu, VM'in işini yapmak için gerçekten ihtiyaç duyduğu meşru depolama erişimini bozar — hedef izni daraltmak, VM'in çalışma yeteneğini kaldırmak değil." },
                   { key:"scope", label:"Rol atamasını sadece bu VM'in gerçekten ihtiyaç duyduğu tek depolama hesabıyla sınırla", correct:true, feedback:"Daraltıldı — daha sonra başka bir şey ters giderse bile, bu kimlik artık dokunma işi olmayan verilere ulaşamıyor." }
                 ],
                 errorText:"Bu kimlik hâlâ abonelikteki her depolama hesabını okuyup yazabiliyor — depolama erişimi düzeltmesi buradaki yollardan sadece birini kapattı."
@@ -8023,16 +8749,22 @@
                 ],
                 errorText:"Hangi IAM bağlamasının sızıntıya sebep olduğunu henüz gerçekten belirlemediniz."
               },
-              { id:"h-bucket", type:"action",
+              { id:"h-bucket", type:"choice",
                 label:"Kovadan allUsers IAM bağlamasını kaldır",
-                actionLabel:"Kova IAM'ını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"allUsers bağlaması kaldırıldı — kova artık doğrudan herkese açık değil.", loadingMs:600,
+                prompt:"Hangi düzeltme, herkese açık izni sonradan bir tuzak bırakmadan gerçekten kaldırır?",
+                options:[
+                  { key:"pap-only", label:"Sadece kova için Herkese Açık Erişimi Önleme'yi aç, allUsers bağlamasını olduğu gibi bırak", correct:false, feedback:"Herkese Açık Erişimi Önleme güçlü bir güvenlik ağı, ama kovada açık bir allUsers bağlamasını bırakmak, biri bu ayarı kapattığı anda sızıntının geri gelmesi demek." },
+                  { key:"removebinding", label:"Kovadan allUsers IAM bağlamasını kaldır", correct:true, feedback:"Kaldırıldı — kova artık doğrudan herkese açık değil." },
+                  { key:"deletebucket", label:"Kovayı sil ve varsayılan ayarlarla yeniden oluştur", correct:false, feedback:"Bu, içindeki her nesneyi yok eder — gerçek verilerle dolu bir üretim kovası, bir IAM bağlamasını düzeltmek için atılacak bir şey değil." }
+                ],
                 errorText:"Kovanın IAM politikası hâlâ allUsers'a okuma erişimi veriyor — internetteki gerçekten herkes bu kovayı okuyabilir."
               },
               { id:"h-iam", type:"choice",
                 label:"Örneğin hizmet hesabı hakkında ne yapılacağına karar ver",
-                prompt:"Örneğin hizmet hesabının şu anda proje düzeyinde roles/storage.admin yetkisi var. Şimdi ne olacak?",
+                prompt:"Örneğin hizmet hesabının şu anda proje düzeyinde roles/storage.admin yetkisi var. Hangi düzeltme, örneğin gerçekten ihtiyaç duyduğu şeyi bozmadan bu yolu kapatır?",
                 options:[
                   { key:"leave", label:"Bırak — kovanın kendisi artık özel, o yüzden önemli değil", correct:false, feedback:"Sadece tek bir kontrole güvenmek, bunun gibi zincirlerin tam olarak nasıl oluştuğu şey. Başka bir kova ya da bağlama bir gün gevşerse, bu hizmet hesabı hâlâ her şeye ulaşabilir." },
+                  { key:"removesa", label:"Hizmet hesabını örnekten tamamen ayır", correct:false, feedback:"Bu, örneğin işini yapmak için gerçekten ihtiyaç duyduğu meşru depolama erişimini bozar — hedef izni daraltmak, örneğin çalışma yeteneğini kaldırmak değil." },
                   { key:"scope", label:"Sadece bu örneğin gerçekten ihtiyaç duyduğu tek kovada roles/storage.objectViewer'a indir", correct:true, feedback:"Daraltıldı — daha sonra başka bir şey ters giderse bile, bu hizmet hesabı artık dokunma işi olmayan verilere ulaşamıyor." }
                 ],
                 errorText:"Bu hizmet hesabı hâlâ projedeki her kovayı okuyup yazabiliyor — kova IAM düzeltmesi buradaki yollardan sadece birini kapattı."
@@ -8143,8 +8875,9 @@
   $("#themeBtn").addEventListener("click", cycleTheme);
   applyTheme(themeMode);
 
-  /* ============ jump nav: smooth scroll to module ============ */
-  document.querySelectorAll(".jumpnav a").forEach(function(link){
+  /* ============ side nav: smooth scroll to module ============ */
+  const sidenavLinks = Array.from(document.querySelectorAll(".sidenav-links a"));
+  sidenavLinks.forEach(function(link){
     link.addEventListener("click", function(e){
       const id = link.getAttribute("href").slice(1);
       const target = document.getElementById(id);
@@ -8155,7 +8888,46 @@
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       window.scrollTo({ top: Math.max(0, top), behavior: reduceMotion ? "auto" : "smooth" });
       history.pushState(null, "", "#"+id);
+      setSidenavOpen(false);
     });
+  });
+
+  /* ============ side nav: mobile open/close ============ */
+  function setSidenavOpen(open){
+    $("#sidenav").classList.toggle("open", open);
+    $("#sidenavBackdrop").classList.toggle("open", open);
+    $("#sidenavToggle").setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  $("#sidenavToggle").addEventListener("click", function(){ setSidenavOpen(true); });
+  $("#sidenavClose").addEventListener("click", function(){ setSidenavOpen(false); });
+  $("#sidenavBackdrop").addEventListener("click", function(){ setSidenavOpen(false); });
+  document.addEventListener("keydown", function(e){
+    if(e.key==="Escape" && $("#sidenav").classList.contains("open")) setSidenavOpen(false);
+  });
+
+  /* ============ side nav: highlight the section in view ============ */
+  const sidenavSections = sidenavLinks
+    .map(function(link){ return document.getElementById(link.getAttribute("href").slice(1)); })
+    .filter(Boolean);
+  if("IntersectionObserver" in window){
+    const sectionObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        const link = sidenavLinks.find(function(l){ return l.getAttribute("href")==="#"+entry.target.id; });
+        if(!link) return;
+        link.classList.toggle("active", entry.isIntersecting);
+      });
+    }, { rootMargin:"-15% 0px -70% 0px" });
+    sidenavSections.forEach(function(section){ sectionObserver.observe(section); });
+  }
+
+  /* ============ scroll to top ============ */
+  const toTopBtn = $("#toTopBtn");
+  window.addEventListener("scroll", function(){
+    toTopBtn.classList.toggle("visible", window.scrollY > 480);
+  }, { passive:true });
+  toTopBtn.addEventListener("click", function(){
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top:0, behavior: reduceMotion ? "auto" : "smooth" });
   });
 
   /* ============ MODULE 01 — LOAD BALANCING ============ */
