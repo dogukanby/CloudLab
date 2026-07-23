@@ -4,7 +4,7 @@
   // Keep in sync with package.json's "version" — there's no build step to
   // inject this automatically, so it's a manual mirror. Shown in the topbar
   // (and read as the desktop window title via app.getVersion() in main.js).
-  const APP_VERSION = "1.5.0";
+  const APP_VERSION = "1.6.0";
   $("#versionTag").textContent = "v"+APP_VERSION;
 
   /* ============ i18n dictionary ============ */
@@ -12,7 +12,7 @@
     en: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS" },
+        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS", capstone1:"20 Capstone: Outage", capstone2:"21 Capstone: Exposure" },
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"CloudLab",
         statusChanged:"status → {status}",
@@ -43,8 +43,8 @@
       },
       intro:{
         title:"Cloud systems, taken apart",
-        p:"Twenty small, live simulations of the mechanisms that keep large systems running — no real servers behind any of it, just the logic. Turn the dials and watch what actually happens under load, under a network partition, under a cache miss, under a failure.",
-        meta:"20 modules · runs entirely in your browser · no real infrastructure"
+        p:"Twenty small, live simulations of the mechanisms that keep large systems running, plus two capstone incidents that tie several of them together — no real servers behind any of it, just the logic. Turn the dials and watch what actually happens under load, under a network partition, under a cache miss, under a failure.",
+        meta:"20 modules · 19 incident-response quests · runs entirely in your browser"
       },
       lb:{
         modId:"MODULE 07", title:"Load Balancing & Auto-Scaling",
@@ -609,6 +609,16 @@
           daysPassed:"{n} days passed with no rotation — a leaked version stays live the whole time",
           stale:"rotation overdue — this version has been live for {n} days"
         }
+      },
+      capstone1:{
+        modId:"MODULE 20", title:"Capstone: A Friday-Night Outage",
+        dek:"No single service is broken here. A traffic spike, a scaling policy, and a database's connection limit all did exactly what they were configured to do — and together, that was the outage.",
+        analogy:"It's three people who each followed their own instructions perfectly, and the combination of those three correct instructions is what caused the accident."
+      },
+      capstone2:{
+        modId:"MODULE 21", title:"Capstone: A Data Exposure Chain",
+        dek:"A pentest just found a path from a low-privilege laptop to every object in a production bucket — and it runs through three separate modules you've already seen, each one a real control that was set just a little too loose.",
+        analogy:"It's not one unlocked door. It's a locked front door, an open window around back, and a spare key under the mat — any one of them alone would've been fine."
       },
       quests:{
         eyebrow:"QUEST",
@@ -2114,6 +2124,1902 @@
             ]
           }
         },
+        lambda:{
+          aws:{
+            title:"Stop losing events silently",
+            scenario:"This Lambda function processes upload events asynchronously. Under a traffic spike it started throttling, and every event that fails after its automatic retries just disappears — nobody noticed until a customer said their order never got processed.",
+            consoleLabel:"AWS Lambda Console (simulated)",
+            actionBtn:"Replay the failed event",
+            successText:"The failed event was recovered and reprocessed — nothing gets silently dropped anymore.",
+            easySteps:[
+              { id:"e-dlq", type:"action",
+                label:"Configure an on-failure destination for asynchronous invocations",
+                actionLabel:"Add destination", loadingLabel:"Configuring…", doneLabel:"On-failure destination configured — failed events now land in an SQS queue.", loadingMs:600,
+                errorText:"Failed async invocations still have nowhere to go after they exhaust their retries — they're just gone."
+              },
+              { id:"e-concurrency", type:"choice",
+                label:"Stop the throttling itself",
+                prompt:"What actually stops the throttling?",
+                options:[
+                  { key:"nothing", label:"Nothing — throttling is temporary and self-resolves", correct:false, feedback:"It doesn't resolve anything — it just keeps rejecting invocations above the concurrency limit for as long as traffic stays high." },
+                  { key:"concurrency", label:"Raise the function's reserved concurrency limit", correct:true, feedback:"Raised — the function can now run enough concurrent instances to keep up with this traffic level." }
+                ],
+                errorText:"Error: TooManyRequestsException — the function is still capped below what this traffic level needs."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm this is actually a concurrency problem",
+                prompt:"Which CloudWatch metric actually confirms it?",
+                options:[
+                  { key:"duration", label:"Duration", correct:false, feedback:"Duration tells you how long invocations take, not why some are being rejected outright." },
+                  { key:"throttles", label:"Throttles", correct:true, feedback:"That's it — a nonzero Throttles count means invocations are being rejected before they even run." }
+                ],
+                errorText:"You reacted without confirming this is actually a concurrency/throttling problem."
+              },
+              { id:"h-dlq", type:"action",
+                label:"Configure an on-failure destination for asynchronous invocations",
+                actionLabel:"Add destination", loadingLabel:"Configuring…", doneLabel:"On-failure destination configured — failed events now land in an SQS queue.", loadingMs:600,
+                errorText:"Failed async invocations still have nowhere to go after they exhaust their retries — they're just gone."
+              },
+              { id:"h-concurrency", type:"choice",
+                label:"Stop the throttling itself",
+                prompt:"What actually stops the throttling?",
+                options:[
+                  { key:"nothing", label:"Nothing — throttling is temporary and self-resolves", correct:false, feedback:"It doesn't resolve anything — it just keeps rejecting invocations above the concurrency limit for as long as traffic stays high." },
+                  { key:"concurrency", label:"Raise the function's reserved concurrency limit", correct:true, feedback:"Raised — the function can now run enough concurrent instances to keep up with this traffic level." }
+                ],
+                errorText:"Error: TooManyRequestsException — the function is still capped below what this traffic level needs."
+              },
+              { id:"h-idempotent", type:"action",
+                label:"Add an idempotency check so a retried event can't be processed twice",
+                actionLabel:"Add idempotency check", loadingLabel:"Adding…", doneLabel:"Idempotency check added — a retried event with the same id is skipped instead of reprocessed.", loadingMs:600,
+                errorText:"Nothing stops a retried event from running twice — a customer who was charged once could be charged again."
+              }
+            ]
+          },
+          azure:{
+            title:"Stop losing events silently",
+            scenario:"This Azure Function processes upload events from a Storage Queue trigger. Under a traffic spike it started falling behind, and messages that fail repeatedly are quietly moved to the built-in poison queue — nobody's watching that queue, so failures just disappear from view.",
+            consoleLabel:"Azure Portal — Function App (simulated)",
+            actionBtn:"Replay the failed message",
+            successText:"The failed message was recovered from the poison queue and reprocessed — nothing gets silently dropped anymore.",
+            easySteps:[
+              { id:"e-dlq", type:"action",
+                label:"Add monitoring and an alert on the poison queue",
+                actionLabel:"Monitor poison queue", loadingLabel:"Configuring…", doneLabel:"Alert configured on the poison queue — failed messages now get noticed.", loadingMs:600,
+                errorText:"The poison queue is filling up and nobody is watching it — failures are invisible."
+              },
+              { id:"e-concurrency", type:"choice",
+                label:"Stop the function from falling behind",
+                prompt:"What actually keeps it caught up?",
+                options:[
+                  { key:"nothing", label:"Nothing — the Consumption plan scales infinitely on its own", correct:false, feedback:"It scales, but not infinitely — there's a real max instance ceiling per function app, and this workload is hitting it." },
+                  { key:"maxinstances", label:"Raise the function app's max instance count", correct:true, feedback:"Raised — the app can now scale out far enough to keep up with this traffic level." }
+                ],
+                errorText:"The function app is still capped below what this traffic level needs — messages keep piling up faster than they're processed."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm this is actually a throughput problem",
+                prompt:"Which metric actually confirms it?",
+                options:[
+                  { key:"duration", label:"Average execution time", correct:false, feedback:"Execution time tells you how long each run takes, not why the backlog is growing." },
+                  { key:"queuelength", label:"Storage queue message count", correct:true, feedback:"That's it — a steadily growing queue length means the function can't keep up with the arrival rate." }
+                ],
+                errorText:"You reacted without confirming this is actually a throughput problem."
+              },
+              { id:"h-dlq", type:"action",
+                label:"Add monitoring and an alert on the poison queue",
+                actionLabel:"Monitor poison queue", loadingLabel:"Configuring…", doneLabel:"Alert configured on the poison queue — failed messages now get noticed.", loadingMs:600,
+                errorText:"The poison queue is filling up and nobody is watching it — failures are invisible."
+              },
+              { id:"h-concurrency", type:"choice",
+                label:"Stop the function from falling behind",
+                prompt:"What actually keeps it caught up?",
+                options:[
+                  { key:"nothing", label:"Nothing — the Consumption plan scales infinitely on its own", correct:false, feedback:"It scales, but not infinitely — there's a real max instance ceiling per function app, and this workload is hitting it." },
+                  { key:"maxinstances", label:"Raise the function app's max instance count", correct:true, feedback:"Raised — the app can now scale out far enough to keep up with this traffic level." }
+                ],
+                errorText:"The function app is still capped below what this traffic level needs — messages keep piling up faster than they're processed."
+              },
+              { id:"h-idempotent", type:"action",
+                label:"Add an idempotency check so a retried message can't be processed twice",
+                actionLabel:"Add idempotency check", loadingLabel:"Adding…", doneLabel:"Idempotency check added — a retried message with the same id is skipped instead of reprocessed.", loadingMs:600,
+                errorText:"Nothing stops a retried message from running twice — a customer who was charged once could be charged again."
+              }
+            ]
+          },
+          gcp:{
+            title:"Stop losing events silently",
+            scenario:"This Cloud Function processes upload events from a Pub/Sub subscription. Under a traffic spike it started falling behind, and messages that exceed the subscription's retry limit are being permanently dropped because no dead-letter topic is configured.",
+            consoleLabel:"Google Cloud Console — Cloud Functions (simulated)",
+            actionBtn:"Replay the failed message",
+            successText:"The failed message was recovered from the dead-letter topic and reprocessed — nothing gets silently dropped anymore.",
+            easySteps:[
+              { id:"e-dlq", type:"action",
+                label:"Configure a dead-letter topic on the subscription",
+                actionLabel:"Add dead-letter topic", loadingLabel:"Configuring…", doneLabel:"Dead-letter topic configured — messages that exhaust retries land there instead of vanishing.", loadingMs:600,
+                errorText:"Messages that exceed the subscription's retry limit still have nowhere to go — they're just gone."
+              },
+              { id:"e-concurrency", type:"choice",
+                label:"Stop the function from falling behind",
+                prompt:"What actually keeps it caught up?",
+                options:[
+                  { key:"nothing", label:"Nothing — Cloud Functions scales infinitely on its own", correct:false, feedback:"It scales, but not infinitely — there's a real max instances setting, and this workload is hitting it." },
+                  { key:"maxinstances", label:"Raise the function's max instances setting", correct:true, feedback:"Raised — the function can now scale out far enough to keep up with this traffic level." }
+                ],
+                errorText:"The function is still capped below what this traffic level needs — messages keep piling up faster than they're processed."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm this is actually a throughput problem",
+                prompt:"Which metric actually confirms it?",
+                options:[
+                  { key:"duration", label:"Execution time", correct:false, feedback:"Execution time tells you how long each run takes, not why the backlog is growing." },
+                  { key:"oldest", label:"Oldest unacked message age", correct:true, feedback:"That's it — a steadily growing oldest-unacked age means messages are arriving faster than the function can process them." }
+                ],
+                errorText:"You reacted without confirming this is actually a throughput problem."
+              },
+              { id:"h-dlq", type:"action",
+                label:"Configure a dead-letter topic on the subscription",
+                actionLabel:"Add dead-letter topic", loadingLabel:"Configuring…", doneLabel:"Dead-letter topic configured — messages that exhaust retries land there instead of vanishing.", loadingMs:600,
+                errorText:"Messages that exceed the subscription's retry limit still have nowhere to go — they're just gone."
+              },
+              { id:"h-concurrency", type:"choice",
+                label:"Stop the function from falling behind",
+                prompt:"What actually keeps it caught up?",
+                options:[
+                  { key:"nothing", label:"Nothing — Cloud Functions scales infinitely on its own", correct:false, feedback:"It scales, but not infinitely — there's a real max instances setting, and this workload is hitting it." },
+                  { key:"maxinstances", label:"Raise the function's max instances setting", correct:true, feedback:"Raised — the function can now scale out far enough to keep up with this traffic level." }
+                ],
+                errorText:"The function is still capped below what this traffic level needs — messages keep piling up faster than they're processed."
+              },
+              { id:"h-idempotent", type:"action",
+                label:"Add an idempotency check so a retried message can't be processed twice",
+                actionLabel:"Add idempotency check", loadingLabel:"Adding…", doneLabel:"Idempotency check added — a retried message with the same id is skipped instead of reprocessed.", loadingMs:600,
+                errorText:"Nothing stops a retried message from running twice — a customer who was charged once could be charged again."
+              }
+            ]
+          }
+        },
+        lb:{
+          aws:{
+            title:"Break the scale-in death spiral",
+            scenario:"New instances keep getting marked unhealthy and terminated before they even finish starting up — the Auto Scaling group is stuck replacing instances faster than any of them can come online, and capacity keeps dropping.",
+            consoleLabel:"AWS EC2 Auto Scaling Console (simulated)",
+            actionBtn:"Verify the group is stable",
+            successText:"New instances are passing health checks and staying up — the group is stable at full capacity.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm what's actually killing new instances",
+                prompt:"What does the instance's health check history show?",
+                options:[
+                  { key:"appcrash", label:"The application is crashing on startup", correct:false, feedback:"The app logs show it starting up fine — just slowly. Not this." },
+                  { key:"tooearly", label:"The health check runs before the app has finished starting up", correct:true, feedback:"That's it — the health check has no idea the app needs more time to start." }
+                ],
+                errorText:"You reacted without confirming why new instances are actually failing their health checks."
+              },
+              { id:"e-grace", type:"action",
+                label:"Set a health check grace period long enough for the app to actually finish starting",
+                actionLabel:"Set grace period", loadingLabel:"Applying…", doneLabel:"Health check grace period extended — new instances get time to start before being judged.", loadingMs:600,
+                errorText:"New instances are still being health-checked — and killed — before they've had a chance to finish starting up."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm what's actually killing new instances",
+                prompt:"What does the instance's health check history show?",
+                options:[
+                  { key:"appcrash", label:"The application is crashing on startup", correct:false, feedback:"The app logs show it starting up fine — just slowly. Not this." },
+                  { key:"tooearly", label:"The health check runs before the app has finished starting up", correct:true, feedback:"That's it — the health check has no idea the app needs more time to start." }
+                ],
+                errorText:"You reacted without confirming why new instances are actually failing their health checks."
+              },
+              { id:"h-grace", type:"action",
+                label:"Set a health check grace period long enough for the app to actually finish starting",
+                actionLabel:"Set grace period", loadingLabel:"Applying…", doneLabel:"Health check grace period extended — new instances get time to start before being judged.", loadingMs:600,
+                errorText:"New instances are still being health-checked — and killed — before they've had a chance to finish starting up."
+              },
+              { id:"h-threshold", type:"choice",
+                label:"Fix the thresholds themselves, not just the timing",
+                prompt:"What else about the health check is too aggressive?",
+                options:[
+                  { key:"tighten", label:"Lower the unhealthy threshold so bad instances are caught even faster", correct:false, feedback:"That makes the spiral worse, not better — instances get killed on even less evidence." },
+                  { key:"raise", label:"Raise the unhealthy threshold so it takes more consecutive failures to condemn an instance", correct:true, feedback:"Raised — a single slow response no longer dooms an otherwise-fine instance." }
+                ],
+                errorText:"The unhealthy threshold is still tight enough that ordinary startup jitter can condemn a healthy instance."
+              },
+              { id:"h-cooldown", type:"action",
+                label:"Set a scaling cooldown so the group doesn't immediately launch another replacement into the same failure loop",
+                actionLabel:"Set scaling cooldown", loadingLabel:"Applying…", doneLabel:"Scaling cooldown set — the group gives each new instance room to stabilize before reacting again.", loadingMs:600,
+                errorText:"With no cooldown, the group keeps reacting to every single instance swap as a fresh signal to launch or terminate again."
+              }
+            ]
+          },
+          azure:{
+            title:"Break the scale-in death spiral",
+            scenario:"New VM instances keep getting marked unhealthy and removed before they even finish starting up — the scale set is stuck replacing instances faster than any of them can come online, and capacity keeps dropping.",
+            consoleLabel:"Azure Portal — Virtual machine scale set (simulated)",
+            actionBtn:"Verify the scale set is stable",
+            successText:"New instances are passing health checks and staying up — the scale set is stable at full capacity.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm what's actually removing new instances",
+                prompt:"What does the instance's health history show?",
+                options:[
+                  { key:"appcrash", label:"The application is crashing on startup", correct:false, feedback:"The app logs show it starting up fine — just slowly. Not this." },
+                  { key:"tooearly", label:"The health probe runs before the app has finished starting up", correct:true, feedback:"That's it — the probe has no idea the app needs more time to start." }
+                ],
+                errorText:"You reacted without confirming why new instances are actually failing their health probe."
+              },
+              { id:"e-grace", type:"action",
+                label:"Set the Application Health extension's grace period long enough for the app to actually finish starting",
+                actionLabel:"Set grace period", loadingLabel:"Applying…", doneLabel:"Grace period extended — new instances get time to start before being judged.", loadingMs:600,
+                errorText:"New instances are still being health-probed — and removed — before they've had a chance to finish starting up."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm what's actually removing new instances",
+                prompt:"What does the instance's health history show?",
+                options:[
+                  { key:"appcrash", label:"The application is crashing on startup", correct:false, feedback:"The app logs show it starting up fine — just slowly. Not this." },
+                  { key:"tooearly", label:"The health probe runs before the app has finished starting up", correct:true, feedback:"That's it — the probe has no idea the app needs more time to start." }
+                ],
+                errorText:"You reacted without confirming why new instances are actually failing their health probe."
+              },
+              { id:"h-grace", type:"action",
+                label:"Set the Application Health extension's grace period long enough for the app to actually finish starting",
+                actionLabel:"Set grace period", loadingLabel:"Applying…", doneLabel:"Grace period extended — new instances get time to start before being judged.", loadingMs:600,
+                errorText:"New instances are still being health-probed — and removed — before they've had a chance to finish starting up."
+              },
+              { id:"h-threshold", type:"choice",
+                label:"Fix the thresholds themselves, not just the timing",
+                prompt:"What else about the health probe is too aggressive?",
+                options:[
+                  { key:"tighten", label:"Lower the unhealthy threshold so bad instances are caught even faster", correct:false, feedback:"That makes the spiral worse, not better — instances get removed on even less evidence." },
+                  { key:"raise", label:"Raise the unhealthy threshold so it takes more consecutive failures to condemn an instance", correct:true, feedback:"Raised — a single slow response no longer dooms an otherwise-fine instance." }
+                ],
+                errorText:"The unhealthy threshold is still tight enough that ordinary startup jitter can condemn a healthy instance."
+              },
+              { id:"h-cooldown", type:"action",
+                label:"Set a scale-in cooldown so the set doesn't immediately replace another instance into the same failure loop",
+                actionLabel:"Set scaling cooldown", loadingLabel:"Applying…", doneLabel:"Scaling cooldown set — the scale set gives each new instance room to stabilize before reacting again.", loadingMs:600,
+                errorText:"With no cooldown, the scale set keeps reacting to every single instance swap as a fresh signal to scale again."
+              }
+            ]
+          },
+          gcp:{
+            title:"Break the scale-in death spiral",
+            scenario:"New instances keep getting marked unhealthy and recreated before they even finish starting up — the managed instance group is stuck replacing instances faster than any of them can come online, and capacity keeps dropping.",
+            consoleLabel:"Google Cloud Console — Instance groups (simulated)",
+            actionBtn:"Verify the group is stable",
+            successText:"New instances are passing health checks and staying up — the group is stable at full capacity.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm what's actually killing new instances",
+                prompt:"What does the instance's health check history show?",
+                options:[
+                  { key:"appcrash", label:"The application is crashing on startup", correct:false, feedback:"The app logs show it starting up fine — just slowly. Not this." },
+                  { key:"tooearly", label:"The health check runs before the app has finished starting up", correct:true, feedback:"That's it — the health check has no idea the app needs more time to start." }
+                ],
+                errorText:"You reacted without confirming why new instances are actually failing their health check."
+              },
+              { id:"e-grace", type:"action",
+                label:"Set the health check's initial delay long enough for the app to actually finish starting",
+                actionLabel:"Set initial delay", loadingLabel:"Applying…", doneLabel:"Initial delay extended — new instances get time to start before being judged.", loadingMs:600,
+                errorText:"New instances are still being health-checked — and recreated — before they've had a chance to finish starting up."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm what's actually killing new instances",
+                prompt:"What does the instance's health check history show?",
+                options:[
+                  { key:"appcrash", label:"The application is crashing on startup", correct:false, feedback:"The app logs show it starting up fine — just slowly. Not this." },
+                  { key:"tooearly", label:"The health check runs before the app has finished starting up", correct:true, feedback:"That's it — the health check has no idea the app needs more time to start." }
+                ],
+                errorText:"You reacted without confirming why new instances are actually failing their health check."
+              },
+              { id:"h-grace", type:"action",
+                label:"Set the health check's initial delay long enough for the app to actually finish starting",
+                actionLabel:"Set initial delay", loadingLabel:"Applying…", doneLabel:"Initial delay extended — new instances get time to start before being judged.", loadingMs:600,
+                errorText:"New instances are still being health-checked — and recreated — before they've had a chance to finish starting up."
+              },
+              { id:"h-threshold", type:"choice",
+                label:"Fix the thresholds themselves, not just the timing",
+                prompt:"What else about the health check is too aggressive?",
+                options:[
+                  { key:"tighten", label:"Lower the unhealthy threshold so bad instances are caught even faster", correct:false, feedback:"That makes the spiral worse, not better — instances get recreated on even less evidence." },
+                  { key:"raise", label:"Raise the unhealthy threshold so it takes more consecutive failures to condemn an instance", correct:true, feedback:"Raised — a single slow response no longer dooms an otherwise-fine instance." }
+                ],
+                errorText:"The unhealthy threshold is still tight enough that ordinary startup jitter can condemn a healthy instance."
+              },
+              { id:"h-cooldown", type:"action",
+                label:"Set a cooldown period so the group doesn't immediately recreate another instance into the same failure loop",
+                actionLabel:"Set cooldown period", loadingLabel:"Applying…", doneLabel:"Cooldown period set — the group gives each new instance room to stabilize before reacting again.", loadingMs:600,
+                errorText:"With no cooldown, the group keeps reacting to every single instance swap as a fresh signal to act again."
+              }
+            ]
+          }
+        },
+        beanstalk:{
+          aws:{
+            title:"Choose the deployment policy that would have prevented this",
+            scenario:"The last deploy pushed a bad environment variable straight to every instance at once — the whole environment went unhealthy in seconds, because the deployment policy was set to \"All at once.\"",
+            consoleLabel:"AWS Elastic Beanstalk Console (simulated)",
+            actionBtn:"Verify the environment is healthy",
+            successText:"The environment is healthy again, and the next bad deploy won't be able to take it down all at once.",
+            easySteps:[
+              { id:"e-rollback", type:"action",
+                label:"Roll back to the previous application version",
+                actionLabel:"Roll back", loadingLabel:"Rolling back…", doneLabel:"Rolled back — the environment is running the last known-good version again.", loadingMs:600,
+                errorText:"The environment is still running the version that broke it."
+              },
+              { id:"e-policy", type:"choice",
+                label:"Pick a deployment policy that wouldn't have let this happen",
+                prompt:"Which policy actually limits the blast radius of a bad deploy?",
+                options:[
+                  { key:"allatonce", label:"Keep \"All at once\"", correct:false, feedback:"That's exactly the policy that turned one bad environment variable into a total outage in seconds." },
+                  { key:"immutable", label:"Switch to \"Immutable\"", correct:true, feedback:"Immutable deploys a full new set of instances alongside the old ones and only swaps traffic over after they pass health checks — a bad version never touches live traffic." }
+                ],
+                errorText:"The deployment policy is still \"All at once\" — the next bad deploy will take down every instance again, together."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Check the environment event log to confirm the exact cause",
+                actionLabel:"Check event log", loadingLabel:"Checking…", doneLabel:"Confirmed: the new environment variable broke the app's startup on every instance simultaneously.", loadingMs:500,
+                errorText:"Nobody's confirmed what actually broke — worth a look before rolling back blind."
+              },
+              { id:"h-rollback", type:"action",
+                label:"Roll back to the previous application version",
+                actionLabel:"Roll back", loadingLabel:"Rolling back…", doneLabel:"Rolled back — the environment is running the last known-good version again.", loadingMs:600,
+                errorText:"The environment is still running the version that broke it."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Pick a deployment policy that wouldn't have let this happen",
+                prompt:"Which policy actually limits the blast radius of a bad deploy?",
+                options:[
+                  { key:"allatonce", label:"Keep \"All at once\"", correct:false, feedback:"That's exactly the policy that turned one bad environment variable into a total outage in seconds." },
+                  { key:"immutable", label:"Switch to \"Immutable\"", correct:true, feedback:"Immutable deploys a full new set of instances alongside the old ones and only swaps traffic over after they pass health checks — a bad version never touches live traffic." }
+                ],
+                errorText:"The deployment policy is still \"All at once\" — the next bad deploy will take down every instance again, together."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Add an environment health alarm so a bad deploy pages someone instead of waiting for a customer to notice",
+                actionLabel:"Add health alarm", loadingLabel:"Configuring…", doneLabel:"Environment health alarm configured.", loadingMs:500,
+                errorText:"Nothing pages anyone when environment health degrades — the team finds out from customers, not from monitoring."
+              }
+            ]
+          },
+          azure:{
+            title:"Choose the deployment policy that would have prevented this",
+            scenario:"The last deploy went straight to the production slot — no staging slot, no swap — so the whole app went down the instant the bad config landed on every instance at once.",
+            consoleLabel:"Azure Portal — App Service (simulated)",
+            actionBtn:"Verify the app is healthy",
+            successText:"The app is healthy again, and the next bad deploy can be verified in staging before it ever reaches production.",
+            easySteps:[
+              { id:"e-rollback", type:"action",
+                label:"Swap back to the previous production version",
+                actionLabel:"Swap back", loadingLabel:"Swapping…", doneLabel:"Swapped back — production is running the last known-good version again.", loadingMs:600,
+                errorText:"Production is still running the version that broke it."
+              },
+              { id:"e-policy", type:"choice",
+                label:"Pick a deployment approach that wouldn't have let this happen",
+                prompt:"Which approach actually limits the blast radius of a bad deploy?",
+                options:[
+                  { key:"direct", label:"Keep deploying straight to the production slot", correct:false, feedback:"That's exactly what turned one bad config change into a total outage in seconds." },
+                  { key:"slot", label:"Deploy to a staging slot first, verify it, then swap", correct:true, feedback:"A staging slot lets you verify the new version behind the scenes — a bad version never touches live traffic until someone confirms it's actually healthy." }
+                ],
+                errorText:"Deploys are still going straight to production — the next bad config change will take the whole app down again."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Check the deployment log to confirm the exact cause",
+                actionLabel:"Check deployment log", loadingLabel:"Checking…", doneLabel:"Confirmed: the new app setting broke the app's startup on every instance simultaneously.", loadingMs:500,
+                errorText:"Nobody's confirmed what actually broke — worth a look before rolling back blind."
+              },
+              { id:"h-rollback", type:"action",
+                label:"Swap back to the previous production version",
+                actionLabel:"Swap back", loadingLabel:"Swapping…", doneLabel:"Swapped back — production is running the last known-good version again.", loadingMs:600,
+                errorText:"Production is still running the version that broke it."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Pick a deployment approach that wouldn't have let this happen",
+                prompt:"Which approach actually limits the blast radius of a bad deploy?",
+                options:[
+                  { key:"direct", label:"Keep deploying straight to the production slot", correct:false, feedback:"That's exactly what turned one bad config change into a total outage in seconds." },
+                  { key:"slot", label:"Deploy to a staging slot first, verify it, then swap", correct:true, feedback:"A staging slot lets you verify the new version behind the scenes — a bad version never touches live traffic until someone confirms it's actually healthy." }
+                ],
+                errorText:"Deploys are still going straight to production — the next bad config change will take the whole app down again."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Add an Application Insights availability alert so a bad deploy pages someone instead of waiting for a customer to notice",
+                actionLabel:"Add availability alert", loadingLabel:"Configuring…", doneLabel:"Availability alert configured.", loadingMs:500,
+                errorText:"Nothing pages anyone when the app stops responding — the team finds out from customers, not from monitoring."
+              }
+            ]
+          },
+          gcp:{
+            title:"Choose the deployment policy that would have prevented this",
+            scenario:"The last deploy shifted 100% of traffic to the new version the instant it finished deploying — no gradual split, no verification — so the whole app went down as soon as the bad config landed.",
+            consoleLabel:"Google Cloud Console — App Engine versions (simulated)",
+            actionBtn:"Verify the app is healthy",
+            successText:"The app is healthy again, and the next bad deploy can be verified on a small slice of traffic before it ever reaches everyone.",
+            easySteps:[
+              { id:"e-rollback", type:"action",
+                label:"Shift traffic back to the previous version",
+                actionLabel:"Shift traffic back", loadingLabel:"Shifting…", doneLabel:"Traffic shifted back — the app is running the last known-good version again.", loadingMs:600,
+                errorText:"Traffic is still going to the version that broke it."
+              },
+              { id:"e-policy", type:"choice",
+                label:"Pick a rollout approach that wouldn't have let this happen",
+                prompt:"Which approach actually limits the blast radius of a bad deploy?",
+                options:[
+                  { key:"allatonce", label:"Keep shifting 100% of traffic to a new version immediately", correct:false, feedback:"That's exactly what turned one bad config change into a total outage in seconds." },
+                  { key:"split", label:"Split traffic gradually between the old and new version, and watch it before going to 100%", correct:true, feedback:"A gradual traffic split means a bad version only ever sees a small slice of real traffic before anyone commits to it fully." }
+                ],
+                errorText:"Deploys are still shifting 100% of traffic at once — the next bad config change will take the whole app down again."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Check the version's logs to confirm the exact cause",
+                actionLabel:"Check logs", loadingLabel:"Checking…", doneLabel:"Confirmed: the new environment variable broke the app's startup on every instance simultaneously.", loadingMs:500,
+                errorText:"Nobody's confirmed what actually broke — worth a look before rolling back blind."
+              },
+              { id:"h-rollback", type:"action",
+                label:"Shift traffic back to the previous version",
+                actionLabel:"Shift traffic back", loadingLabel:"Shifting…", doneLabel:"Traffic shifted back — the app is running the last known-good version again.", loadingMs:600,
+                errorText:"Traffic is still going to the version that broke it."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Pick a rollout approach that wouldn't have let this happen",
+                prompt:"Which approach actually limits the blast radius of a bad deploy?",
+                options:[
+                  { key:"allatonce", label:"Keep shifting 100% of traffic to a new version immediately", correct:false, feedback:"That's exactly what turned one bad config change into a total outage in seconds." },
+                  { key:"split", label:"Split traffic gradually between the old and new version, and watch it before going to 100%", correct:true, feedback:"A gradual traffic split means a bad version only ever sees a small slice of real traffic before anyone commits to it fully." }
+                ],
+                errorText:"Deploys are still shifting 100% of traffic at once — the next bad config change will take the whole app down again."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Add an uptime check alert so a bad deploy pages someone instead of waiting for a customer to notice",
+                actionLabel:"Add uptime alert", loadingLabel:"Configuring…", doneLabel:"Uptime check alert configured.", loadingMs:500,
+                errorText:"Nothing pages anyone when the app stops responding — the team finds out from customers, not from monitoring."
+              }
+            ]
+          }
+        },
+        cache:{
+          aws:{
+            title:"Stop the cache from leaking another user's response",
+            scenario:"A support ticket says a customer saw someone else's account data on a page that's supposed to be personal to them. The page is served through CloudFront, and it's cacheable.",
+            consoleLabel:"AWS CloudFront Console (simulated)",
+            actionBtn:"Verify the leak is fixed",
+            successText:"Personalized responses are no longer cached and shared between users — the leak is closed.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm why this actually happened",
+                prompt:"What's really going on?",
+                options:[
+                  { key:"dbbug", label:"The application's database has a bug mixing up accounts", correct:false, feedback:"The database returns the right data for the right request — the problem is what happens after that." },
+                  { key:"cachekey", label:"CloudFront's cache key doesn't vary by user — it treats every request to this URL as identical", correct:true, feedback:"That's it — the first user's personalized response got cached, and CloudFront has been serving it to everyone else who hits the same URL since." }
+                ],
+                errorText:"You haven't confirmed why this is actually happening — worth confirming before touching the cache config."
+              },
+              { id:"e-headers", type:"action",
+                label:"Update the origin to mark this response as private and not cacheable",
+                actionLabel:"Fix response headers", loadingLabel:"Updating…", doneLabel:"Origin now sends Cache-Control: private, no-store on this response — each user gets their own live response.", loadingMs:600,
+                errorText:"This response is still being cached and served to whichever user asks for that URL next, whether it's theirs or not."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm why this actually happened",
+                prompt:"What's really going on?",
+                options:[
+                  { key:"dbbug", label:"The application's database has a bug mixing up accounts", correct:false, feedback:"The database returns the right data for the right request — the problem is what happens after that." },
+                  { key:"cachekey", label:"CloudFront's cache key doesn't vary by user — it treats every request to this URL as identical", correct:true, feedback:"That's it — the first user's personalized response got cached, and CloudFront has been serving it to everyone else who hits the same URL since." }
+                ],
+                errorText:"You haven't confirmed why this is actually happening — worth confirming before touching the cache config."
+              },
+              { id:"h-headers", type:"action",
+                label:"Update the origin to mark this response as private and not cacheable",
+                actionLabel:"Fix response headers", loadingLabel:"Updating…", doneLabel:"Origin now sends Cache-Control: private, no-store on this response — each user gets their own live response.", loadingMs:600,
+                errorText:"This response is still being cached and served to whichever user asks for that URL next, whether it's theirs or not."
+              },
+              { id:"h-invalidate", type:"choice",
+                label:"Decide what to do about the copies already cached right now",
+                prompt:"What about the exposure that's already live?",
+                options:[
+                  { key:"wait", label:"Wait for the cached copies to expire naturally", correct:false, feedback:"Every minute those entries sit in cache is another minute the wrong person could load someone else's data." },
+                  { key:"invalidate", label:"Invalidate the cached entries for this path right now", correct:true, feedback:"Invalidated — the exposure stops immediately instead of trailing off over the rest of the TTL." }
+                ],
+                errorText:"The cached copies from before the fix are still live and could still be served."
+              },
+              { id:"h-monitor", type:"action",
+                label:"Turn on cache-hit logging for this behavior path so a future misconfiguration is caught quickly",
+                actionLabel:"Enable logging", loadingLabel:"Enabling…", doneLabel:"Logging enabled — a future personalized-response-caching mistake will show up fast instead of waiting for a support ticket.", loadingMs:500,
+                errorText:"There's still no visibility into whether this path is being cached the way it shouldn't be — the only signal right now is a customer complaint."
+              }
+            ]
+          },
+          azure:{
+            title:"Stop the cache from leaking another user's response",
+            scenario:"A support ticket says a customer saw someone else's account data on a page that's supposed to be personal to them. The page is served through Azure Front Door, and it's cacheable.",
+            consoleLabel:"Azure Portal — Front Door (simulated)",
+            actionBtn:"Verify the leak is fixed",
+            successText:"Personalized responses are no longer cached and shared between users — the leak is closed.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm why this actually happened",
+                prompt:"What's really going on?",
+                options:[
+                  { key:"dbbug", label:"The application's database has a bug mixing up accounts", correct:false, feedback:"The database returns the right data for the right request — the problem is what happens after that." },
+                  { key:"cachekey", label:"Front Door's cache key doesn't vary by user — it treats every request to this URL as identical", correct:true, feedback:"That's it — the first user's personalized response got cached, and Front Door has been serving it to everyone else who hits the same URL since." }
+                ],
+                errorText:"You haven't confirmed why this is actually happening — worth confirming before touching the cache config."
+              },
+              { id:"e-headers", type:"action",
+                label:"Update the origin to mark this response as private and not cacheable",
+                actionLabel:"Fix response headers", loadingLabel:"Updating…", doneLabel:"Origin now sends Cache-Control: private, no-store on this response — each user gets their own live response.", loadingMs:600,
+                errorText:"This response is still being cached and served to whichever user asks for that URL next, whether it's theirs or not."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm why this actually happened",
+                prompt:"What's really going on?",
+                options:[
+                  { key:"dbbug", label:"The application's database has a bug mixing up accounts", correct:false, feedback:"The database returns the right data for the right request — the problem is what happens after that." },
+                  { key:"cachekey", label:"Front Door's cache key doesn't vary by user — it treats every request to this URL as identical", correct:true, feedback:"That's it — the first user's personalized response got cached, and Front Door has been serving it to everyone else who hits the same URL since." }
+                ],
+                errorText:"You haven't confirmed why this is actually happening — worth confirming before touching the cache config."
+              },
+              { id:"h-headers", type:"action",
+                label:"Update the origin to mark this response as private and not cacheable",
+                actionLabel:"Fix response headers", loadingLabel:"Updating…", doneLabel:"Origin now sends Cache-Control: private, no-store on this response — each user gets their own live response.", loadingMs:600,
+                errorText:"This response is still being cached and served to whichever user asks for that URL next, whether it's theirs or not."
+              },
+              { id:"h-invalidate", type:"choice",
+                label:"Decide what to do about the copies already cached right now",
+                prompt:"What about the exposure that's already live?",
+                options:[
+                  { key:"wait", label:"Wait for the cached copies to expire naturally", correct:false, feedback:"Every minute those entries sit in cache is another minute the wrong person could load someone else's data." },
+                  { key:"purge", label:"Purge the cached content for this path right now", correct:true, feedback:"Purged — the exposure stops immediately instead of trailing off over the rest of the TTL." }
+                ],
+                errorText:"The cached copies from before the fix are still live and could still be served."
+              },
+              { id:"h-monitor", type:"action",
+                label:"Turn on caching diagnostics for this route so a future misconfiguration is caught quickly",
+                actionLabel:"Enable diagnostics", loadingLabel:"Enabling…", doneLabel:"Diagnostics enabled — a future personalized-response-caching mistake will show up fast instead of waiting for a support ticket.", loadingMs:500,
+                errorText:"There's still no visibility into whether this route is being cached the way it shouldn't be — the only signal right now is a customer complaint."
+              }
+            ]
+          },
+          gcp:{
+            title:"Stop the cache from leaking another user's response",
+            scenario:"A support ticket says a customer saw someone else's account data on a page that's supposed to be personal to them. The page is served through Cloud CDN, and it's cacheable.",
+            consoleLabel:"Google Cloud Console — Cloud CDN (simulated)",
+            actionBtn:"Verify the leak is fixed",
+            successText:"Personalized responses are no longer cached and shared between users — the leak is closed.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm why this actually happened",
+                prompt:"What's really going on?",
+                options:[
+                  { key:"dbbug", label:"The application's database has a bug mixing up accounts", correct:false, feedback:"The database returns the right data for the right request — the problem is what happens after that." },
+                  { key:"cachekey", label:"Cloud CDN's default cache key is just scheme, host, path, and query — it doesn't vary by cookie or user at all", correct:true, feedback:"That's it — and unlike some other CDNs, Cloud CDN has no built-in way to key by a header or cookie, so the first user's personalized response got cached and served to everyone else who hit the same URL since." }
+                ],
+                errorText:"You haven't confirmed why this is actually happening — worth confirming before touching the cache config."
+              },
+              { id:"e-headers", type:"action",
+                label:"Update the origin to mark this response as private and not cacheable",
+                actionLabel:"Fix response headers", loadingLabel:"Updating…", doneLabel:"Origin now sends Cache-Control: private, no-store on this response — Cloud CDN respects it and stops caching this response.", loadingMs:600,
+                errorText:"This response is still being cached and served to whichever user asks for that URL next, whether it's theirs or not."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm why this actually happened",
+                prompt:"What's really going on?",
+                options:[
+                  { key:"dbbug", label:"The application's database has a bug mixing up accounts", correct:false, feedback:"The database returns the right data for the right request — the problem is what happens after that." },
+                  { key:"cachekey", label:"Cloud CDN's default cache key is just scheme, host, path, and query — it doesn't vary by cookie or user at all", correct:true, feedback:"That's it — and unlike some other CDNs, Cloud CDN has no built-in way to key by a header or cookie, so the first user's personalized response got cached and served to everyone else who hit the same URL since." }
+                ],
+                errorText:"You haven't confirmed why this is actually happening — worth confirming before touching the cache config."
+              },
+              { id:"h-headers", type:"action",
+                label:"Update the origin to mark this response as private and not cacheable",
+                actionLabel:"Fix response headers", loadingLabel:"Updating…", doneLabel:"Origin now sends Cache-Control: private, no-store on this response — Cloud CDN respects it and stops caching this response.", loadingMs:600,
+                errorText:"This response is still being cached and served to whichever user asks for that URL next, whether it's theirs or not."
+              },
+              { id:"h-invalidate", type:"choice",
+                label:"Decide what to do about the copies already cached right now",
+                prompt:"What about the exposure that's already live?",
+                options:[
+                  { key:"wait", label:"Wait for the cached copies to expire naturally", correct:false, feedback:"Every minute those entries sit in cache is another minute the wrong person could load someone else's data." },
+                  { key:"invalidate", label:"Invalidate the cached content for this path right now", correct:true, feedback:"Invalidated — the exposure stops immediately instead of trailing off over the rest of the TTL." }
+                ],
+                errorText:"The cached copies from before the fix are still live and could still be served."
+              },
+              { id:"h-monitor", type:"action",
+                label:"Turn on cache logging for this path so a future misconfiguration is caught quickly",
+                actionLabel:"Enable logging", loadingLabel:"Enabling…", doneLabel:"Logging enabled — a future personalized-response-caching mistake will show up fast instead of waiting for a support ticket.", loadingMs:500,
+                errorText:"There's still no visibility into whether this path is being cached the way it shouldn't be — the only signal right now is a customer complaint."
+              }
+            ]
+          }
+        },
+        consistency:{
+          aws:{
+            title:"Reconcile a conflicting write after a partition healed",
+            scenario:"Two regions were split by a network partition. Both accepted a write to the same item during the split. Now that the partition has healed, the database has already picked a winner using last-writer-wins — and silently discarded the other write.",
+            consoleLabel:"AWS DynamoDB Console (simulated)",
+            actionBtn:"Verify the conflict is resolved",
+            successText:"The discarded write has been recovered, and future conflicts will be caught instead of silently dropped.",
+            easySteps:[
+              { id:"e-diagnose", type:"action",
+                label:"Check the item's version history for a discarded write",
+                actionLabel:"Check history", loadingLabel:"Checking…", doneLabel:"Confirmed — one region's write silently lost to the other's, purely based on timestamp.", loadingMs:600,
+                errorText:"Nobody's confirmed a write was actually lost — worth checking before assuming the current value is correct."
+              },
+              { id:"e-recover", type:"action",
+                label:"Recover the discarded write from the table's change stream before it ages out",
+                actionLabel:"Recover from stream", loadingLabel:"Recovering…", doneLabel:"Recovered — the losing write has been pulled from the stream before its retention window closed.", loadingMs:600,
+                errorText:"The losing write only exists in the stream for a limited retention window — after that, it's gone for good."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Check the item's version history for a discarded write",
+                actionLabel:"Check history", loadingLabel:"Checking…", doneLabel:"Confirmed — one region's write silently lost to the other's, purely based on timestamp.", loadingMs:600,
+                errorText:"Nobody's confirmed a write was actually lost — worth checking before assuming the current value is correct."
+              },
+              { id:"h-recover", type:"action",
+                label:"Recover the discarded write from the table's change stream before it ages out",
+                actionLabel:"Recover from stream", loadingLabel:"Recovering…", doneLabel:"Recovered — the losing write has been pulled from the stream before its retention window closed.", loadingMs:600,
+                errorText:"The losing write only exists in the stream for a limited retention window — after that, it's gone for good."
+              },
+              { id:"h-strategy", type:"choice",
+                label:"Decide how the next conflict should be handled",
+                prompt:"What actually stops this from silently happening again?",
+                options:[
+                  { key:"lww", label:"Nothing — keep relying on last-writer-wins", correct:false, feedback:"That's what silently lost this write in the first place. It'll do the same thing to the next one." },
+                  { key:"conditional", label:"Add a conditional write / version check in the app so a conflicting update is rejected instead of silently overwritten", correct:true, feedback:"Added — the next conflicting write gets caught and surfaced to the app instead of vanishing without a trace." }
+                ],
+                errorText:"The next conflicting write between these two regions will be silently resolved by timestamp again, exactly like this one was."
+              },
+              { id:"h-notify", type:"action",
+                label:"Loop in whoever needs to know that this write was affected by the conflict",
+                actionLabel:"Notify stakeholders", loadingLabel:"Notifying…", doneLabel:"Stakeholders notified of the recovered write and what it means for their records.", loadingMs:500,
+                errorText:"The recovered data is sitting in a stream export — nobody who actually needs to reconcile it has been told yet."
+              }
+            ]
+          },
+          azure:{
+            title:"Reconcile a conflicting write after a partition healed",
+            scenario:"Two regions were split by a network partition. Both accepted a write to the same item during the split. Now that the partition has healed, the database's default conflict policy has already picked a winner using last-write-wins — and silently discarded the other write.",
+            consoleLabel:"Azure Portal — Cosmos DB (simulated)",
+            actionBtn:"Verify the conflict is resolved",
+            successText:"The discarded write has been recovered, and future conflicts will go through a real merge instead of being silently dropped.",
+            easySteps:[
+              { id:"e-diagnose", type:"action",
+                label:"Check the container's conflicts feed for a discarded write",
+                actionLabel:"Check conflicts feed", loadingLabel:"Checking…", doneLabel:"Confirmed — one region's write silently lost to the other's, purely based on timestamp.", loadingMs:600,
+                errorText:"Nobody's confirmed a write was actually lost — worth checking before assuming the current value is correct."
+              },
+              { id:"e-recover", type:"action",
+                label:"Recover the discarded write from the conflicts feed before it ages out",
+                actionLabel:"Recover from conflicts feed", loadingLabel:"Recovering…", doneLabel:"Recovered — the losing write has been pulled from the conflicts feed before it expired.", loadingMs:600,
+                errorText:"The losing write only stays in the conflicts feed for a limited window — after that, it's gone for good."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Check the container's conflicts feed for a discarded write",
+                actionLabel:"Check conflicts feed", loadingLabel:"Checking…", doneLabel:"Confirmed — one region's write silently lost to the other's, purely based on timestamp.", loadingMs:600,
+                errorText:"Nobody's confirmed a write was actually lost — worth checking before assuming the current value is correct."
+              },
+              { id:"h-recover", type:"action",
+                label:"Recover the discarded write from the conflicts feed before it ages out",
+                actionLabel:"Recover from conflicts feed", loadingLabel:"Recovering…", doneLabel:"Recovered — the losing write has been pulled from the conflicts feed before it expired.", loadingMs:600,
+                errorText:"The losing write only stays in the conflicts feed for a limited window — after that, it's gone for good."
+              },
+              { id:"h-strategy", type:"choice",
+                label:"Decide how the next conflict should be handled",
+                prompt:"What actually stops this from silently happening again?",
+                options:[
+                  { key:"lww", label:"Nothing — keep the default last-write-wins policy", correct:false, feedback:"That's what silently lost this write in the first place. It'll do the same thing to the next one." },
+                  { key:"custom", label:"Register a custom conflict resolution procedure for this container", correct:true, feedback:"Registered — the next conflict runs through actual merge logic instead of a coin flip based on timestamp." }
+                ],
+                errorText:"The next conflicting write between these two regions will be silently resolved by timestamp again, exactly like this one was."
+              },
+              { id:"h-notify", type:"action",
+                label:"Loop in whoever needs to know that this write was affected by the conflict",
+                actionLabel:"Notify stakeholders", loadingLabel:"Notifying…", doneLabel:"Stakeholders notified of the recovered write and what it means for their records.", loadingMs:500,
+                errorText:"The recovered data is sitting in an export — nobody who actually needs to reconcile it has been told yet."
+              }
+            ]
+          },
+          gcp:{
+            title:"Reconcile a conflicting write after a partition healed",
+            scenario:"Two regions were split by a network partition. Both accepted a write to the same document during the split. Now that the partition has healed, the database has already picked a winner using last-write-wins — and silently discarded the other write.",
+            consoleLabel:"Google Cloud Console — Firestore (simulated)",
+            actionBtn:"Verify the conflict is resolved",
+            successText:"The discarded write has been recovered, and future conflicts will be caught by the app instead of silently dropped.",
+            easySteps:[
+              { id:"e-diagnose", type:"action",
+                label:"Check the document's audit history for a discarded write",
+                actionLabel:"Check audit history", loadingLabel:"Checking…", doneLabel:"Confirmed — one region's write silently lost to the other's, purely based on timestamp.", loadingMs:600,
+                errorText:"Nobody's confirmed a write was actually lost — worth checking before assuming the current value is correct."
+              },
+              { id:"e-recover", type:"action",
+                label:"Recover the discarded write from the export before it's gone",
+                actionLabel:"Recover write", loadingLabel:"Recovering…", doneLabel:"Recovered — the losing write has been pulled and reconciled.", loadingMs:600,
+                errorText:"The losing write is only recoverable for a limited window — after that, it's gone for good."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Check the document's audit history for a discarded write",
+                actionLabel:"Check audit history", loadingLabel:"Checking…", doneLabel:"Confirmed — one region's write silently lost to the other's, purely based on timestamp.", loadingMs:600,
+                errorText:"Nobody's confirmed a write was actually lost — worth checking before assuming the current value is correct."
+              },
+              { id:"h-recover", type:"action",
+                label:"Recover the discarded write from the export before it's gone",
+                actionLabel:"Recover write", loadingLabel:"Recovering…", doneLabel:"Recovered — the losing write has been pulled and reconciled.", loadingMs:600,
+                errorText:"The losing write is only recoverable for a limited window — after that, it's gone for good."
+              },
+              { id:"h-strategy", type:"choice",
+                label:"Decide how the next conflict should be handled",
+                prompt:"What actually stops this from silently happening again?",
+                options:[
+                  { key:"lww", label:"Nothing — keep relying on last-write-wins", correct:false, feedback:"That's what silently lost this write in the first place. It'll do the same thing to the next one." },
+                  { key:"precondition", label:"Add a precondition check in the app's transaction so a conflicting update is rejected instead of silently overwritten", correct:true, feedback:"Added — the next conflicting write gets caught and surfaced to the app instead of vanishing without a trace." }
+                ],
+                errorText:"The next conflicting write between these two regions will be silently resolved by timestamp again, exactly like this one was."
+              },
+              { id:"h-notify", type:"action",
+                label:"Loop in whoever needs to know that this write was affected by the conflict",
+                actionLabel:"Notify stakeholders", loadingLabel:"Notifying…", doneLabel:"Stakeholders notified of the recovered write and what it means for their records.", loadingMs:500,
+                errorText:"The recovered data is sitting in an export — nobody who actually needs to reconcile it has been told yet."
+              }
+            ]
+          }
+        },
+        failover:{
+          aws:{
+            title:"Prevent split-brain during the next partition",
+            scenario:"During the last network blip, two nodes in this cluster both believed they were primary at the same time — for about 40 seconds, writes were accepted by both. The cluster has an even number of nodes split evenly across two Availability Zones, so a partition has no way to tell which side actually has quorum.",
+            consoleLabel:"AWS cluster console (simulated)",
+            actionBtn:"Verify quorum is unambiguous",
+            successText:"The cluster can now always tell which side has quorum — a partition can no longer produce two primaries at once.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm why split-brain was even possible here",
+                prompt:"What actually let two nodes both think they were primary?",
+                options:[
+                  { key:"slow", label:"The nodes were just slow to respond", correct:false, feedback:"Slowness alone doesn't create two primaries — something let both sides independently decide they had quorum." },
+                  { key:"tie", label:"An even node count split evenly across two zones means a partition can tie 50/50, with neither side able to tell it lacks quorum", correct:true, feedback:"That's it — with an even split, both halves of the partition can convince themselves they're the majority." }
+                ],
+                errorText:"You haven't confirmed why split-brain was possible here — worth understanding before changing the cluster's shape."
+              },
+              { id:"e-thirdaz", type:"action",
+                label:"Add a node in a third Availability Zone so quorum is always decidable",
+                actionLabel:"Add quorum node", loadingLabel:"Adding…", doneLabel:"Node added in a third Availability Zone — a 2-1 split can never tie.", loadingMs:600,
+                errorText:"The cluster is still split evenly across two zones — a partition between them is still a coin flip for quorum."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm why split-brain was even possible here",
+                prompt:"What actually let two nodes both think they were primary?",
+                options:[
+                  { key:"slow", label:"The nodes were just slow to respond", correct:false, feedback:"Slowness alone doesn't create two primaries — something let both sides independently decide they had quorum." },
+                  { key:"tie", label:"An even node count split evenly across two zones means a partition can tie 50/50, with neither side able to tell it lacks quorum", correct:true, feedback:"That's it — with an even split, both halves of the partition can convince themselves they're the majority." }
+                ],
+                errorText:"You haven't confirmed why split-brain was possible here — worth understanding before changing the cluster's shape."
+              },
+              { id:"h-thirdaz", type:"choice",
+                label:"Fix the cluster's shape, not just its size",
+                prompt:"What actually guarantees quorum is always decidable?",
+                options:[
+                  { key:"morenodes2az", label:"Add more nodes, but keep them split across just the same two Availability Zones", correct:false, feedback:"More nodes across only two zones can still tie exactly down the middle — the number of zones is the problem, not the node count alone." },
+                  { key:"threeaz", label:"Spread an odd number of nodes across three Availability Zones", correct:true, feedback:"With three zones, any single zone's isolation always leaves the other two zones holding a clear majority — a tie becomes impossible." }
+                ],
+                errorText:"The cluster still can't guarantee a clear majority survives a single zone's isolation."
+              },
+              { id:"h-fencing", type:"action",
+                label:"Require a fencing token before any node can accept writes as primary",
+                actionLabel:"Enable fencing", loadingLabel:"Configuring…", doneLabel:"Fencing enabled — a node can no longer accept writes as primary without proving it holds the current quorum lease.", loadingMs:600,
+                errorText:"Even with better quorum math, nothing stops a stale node from accepting writes if it doesn't first prove it still holds leadership."
+              },
+              { id:"h-verify", type:"action",
+                label:"Run a simulated partition to confirm split-brain can no longer happen",
+                actionLabel:"Simulate partition", loadingLabel:"Simulating…", doneLabel:"Simulated partition handled correctly — exactly one side retained quorum and accepted writes.", loadingMs:700,
+                errorText:"Nobody's actually verified the fix under a simulated partition — it's still just a theory."
+              }
+            ]
+          },
+          azure:{
+            title:"Prevent split-brain during the next partition",
+            scenario:"During the last network blip, two nodes in this cluster both believed they were primary at the same time — for about 40 seconds, writes were accepted by both. The cluster has an even number of nodes split evenly across two Availability Zones, so a partition has no way to tell which side actually has quorum.",
+            consoleLabel:"Azure Portal — Availability zones (simulated)",
+            actionBtn:"Verify quorum is unambiguous",
+            successText:"The cluster can now always tell which side has quorum — a partition can no longer produce two primaries at once.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm why split-brain was even possible here",
+                prompt:"What actually let two nodes both think they were primary?",
+                options:[
+                  { key:"slow", label:"The nodes were just slow to respond", correct:false, feedback:"Slowness alone doesn't create two primaries — something let both sides independently decide they had quorum." },
+                  { key:"tie", label:"An even node count split evenly across two zones means a partition can tie 50/50, with neither side able to tell it lacks quorum", correct:true, feedback:"That's it — with an even split, both halves of the partition can convince themselves they're the majority." }
+                ],
+                errorText:"You haven't confirmed why split-brain was possible here — worth understanding before changing the cluster's shape."
+              },
+              { id:"e-thirdaz", type:"action",
+                label:"Add a node in a third Availability Zone so quorum is always decidable",
+                actionLabel:"Add quorum node", loadingLabel:"Adding…", doneLabel:"Node added in a third Availability Zone — a 2-1 split can never tie.", loadingMs:600,
+                errorText:"The cluster is still split evenly across two zones — a partition between them is still a coin flip for quorum."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm why split-brain was even possible here",
+                prompt:"What actually let two nodes both think they were primary?",
+                options:[
+                  { key:"slow", label:"The nodes were just slow to respond", correct:false, feedback:"Slowness alone doesn't create two primaries — something let both sides independently decide they had quorum." },
+                  { key:"tie", label:"An even node count split evenly across two zones means a partition can tie 50/50, with neither side able to tell it lacks quorum", correct:true, feedback:"That's it — with an even split, both halves of the partition can convince themselves they're the majority." }
+                ],
+                errorText:"You haven't confirmed why split-brain was possible here — worth understanding before changing the cluster's shape."
+              },
+              { id:"h-thirdaz", type:"choice",
+                label:"Fix the cluster's shape, not just its size",
+                prompt:"What actually guarantees quorum is always decidable?",
+                options:[
+                  { key:"morenodes2az", label:"Add more nodes, but keep them split across just the same two Availability Zones", correct:false, feedback:"More nodes across only two zones can still tie exactly down the middle — the number of zones is the problem, not the node count alone." },
+                  { key:"threeaz", label:"Spread an odd number of nodes across three Availability Zones", correct:true, feedback:"With three zones, any single zone's isolation always leaves the other two zones holding a clear majority — a tie becomes impossible." }
+                ],
+                errorText:"The cluster still can't guarantee a clear majority survives a single zone's isolation."
+              },
+              { id:"h-fencing", type:"action",
+                label:"Require a fencing token before any node can accept writes as primary",
+                actionLabel:"Enable fencing", loadingLabel:"Configuring…", doneLabel:"Fencing enabled — a node can no longer accept writes as primary without proving it holds the current quorum lease.", loadingMs:600,
+                errorText:"Even with better quorum math, nothing stops a stale node from accepting writes if it doesn't first prove it still holds leadership."
+              },
+              { id:"h-verify", type:"action",
+                label:"Run a simulated partition to confirm split-brain can no longer happen",
+                actionLabel:"Simulate partition", loadingLabel:"Simulating…", doneLabel:"Simulated partition handled correctly — exactly one side retained quorum and accepted writes.", loadingMs:700,
+                errorText:"Nobody's actually verified the fix under a simulated partition — it's still just a theory."
+              }
+            ]
+          },
+          gcp:{
+            title:"Prevent split-brain during the next partition",
+            scenario:"During the last network blip, two nodes in this cluster both believed they were primary at the same time — for about 40 seconds, writes were accepted by both. The cluster has an even number of nodes split evenly across two zones, so a partition has no way to tell which side actually has quorum.",
+            consoleLabel:"Google Cloud Console — Zones (simulated)",
+            actionBtn:"Verify quorum is unambiguous",
+            successText:"The cluster can now always tell which side has quorum — a partition can no longer produce two primaries at once.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm why split-brain was even possible here",
+                prompt:"What actually let two nodes both think they were primary?",
+                options:[
+                  { key:"slow", label:"The nodes were just slow to respond", correct:false, feedback:"Slowness alone doesn't create two primaries — something let both sides independently decide they had quorum." },
+                  { key:"tie", label:"An even node count split evenly across two zones means a partition can tie 50/50, with neither side able to tell it lacks quorum", correct:true, feedback:"That's it — with an even split, both halves of the partition can convince themselves they're the majority." }
+                ],
+                errorText:"You haven't confirmed why split-brain was possible here — worth understanding before changing the cluster's shape."
+              },
+              { id:"e-thirdaz", type:"action",
+                label:"Add a node in a third zone so quorum is always decidable",
+                actionLabel:"Add quorum node", loadingLabel:"Adding…", doneLabel:"Node added in a third zone — a 2-1 split can never tie.", loadingMs:600,
+                errorText:"The cluster is still split evenly across two zones — a partition between them is still a coin flip for quorum."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm why split-brain was even possible here",
+                prompt:"What actually let two nodes both think they were primary?",
+                options:[
+                  { key:"slow", label:"The nodes were just slow to respond", correct:false, feedback:"Slowness alone doesn't create two primaries — something let both sides independently decide they had quorum." },
+                  { key:"tie", label:"An even node count split evenly across two zones means a partition can tie 50/50, with neither side able to tell it lacks quorum", correct:true, feedback:"That's it — with an even split, both halves of the partition can convince themselves they're the majority." }
+                ],
+                errorText:"You haven't confirmed why split-brain was possible here — worth understanding before changing the cluster's shape."
+              },
+              { id:"h-thirdaz", type:"choice",
+                label:"Fix the cluster's shape, not just its size",
+                prompt:"What actually guarantees quorum is always decidable?",
+                options:[
+                  { key:"morenodes2az", label:"Add more nodes, but keep them split across just the same two zones", correct:false, feedback:"More nodes across only two zones can still tie exactly down the middle — the number of zones is the problem, not the node count alone." },
+                  { key:"threeaz", label:"Spread an odd number of nodes across three zones", correct:true, feedback:"With three zones, any single zone's isolation always leaves the other two zones holding a clear majority — a tie becomes impossible." }
+                ],
+                errorText:"The cluster still can't guarantee a clear majority survives a single zone's isolation."
+              },
+              { id:"h-fencing", type:"action",
+                label:"Require a fencing token before any node can accept writes as primary",
+                actionLabel:"Enable fencing", loadingLabel:"Configuring…", doneLabel:"Fencing enabled — a node can no longer accept writes as primary without proving it holds the current quorum lease.", loadingMs:600,
+                errorText:"Even with better quorum math, nothing stops a stale node from accepting writes if it doesn't first prove it still holds leadership."
+              },
+              { id:"h-verify", type:"action",
+                label:"Run a simulated partition to confirm split-brain can no longer happen",
+                actionLabel:"Simulate partition", loadingLabel:"Simulating…", doneLabel:"Simulated partition handled correctly — exactly one side retained quorum and accepted writes.", loadingMs:700,
+                errorText:"Nobody's actually verified the fix under a simulated partition — it's still just a theory."
+              }
+            ]
+          }
+        },
+        sns:{
+          aws:{
+            title:"Fix the subscriber that's silently missing every message",
+            scenario:"This SQS queue is subscribed to the order-events SNS topic, but the team just realized it hasn't received a single message in days — meanwhile the topic shows plenty of publishes going out.",
+            consoleLabel:"AWS SNS Console (simulated)",
+            actionBtn:"Publish a test event",
+            successText:"The test event reached the queue — the subscriber is receiving messages again.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm why this subscriber is missing everything",
+                prompt:"What does the subscription's configuration show?",
+                options:[
+                  { key:"topicbroken", label:"The topic itself isn't actually publishing", correct:false, feedback:"The topic's publish count keeps climbing — messages are going out. The problem is on the receiving end." },
+                  { key:"filter", label:"The subscription's filter policy excludes every message this topic actually sends", correct:true, feedback:"That's it — the filter policy is scoped so narrowly that nothing published here ever matches it." }
+                ],
+                errorText:"You haven't confirmed why this subscriber is missing everything — worth checking before assuming the topic is broken."
+              },
+              { id:"e-filter", type:"action",
+                label:"Fix the subscription's filter policy so it actually matches this topic's real messages",
+                actionLabel:"Fix filter policy", loadingLabel:"Updating…", doneLabel:"Filter policy corrected — this queue now receives the messages it's supposed to.", loadingMs:600,
+                errorText:"The filter policy still excludes the messages this subscriber is supposed to receive."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm why this subscriber is missing everything",
+                prompt:"What does the subscription's configuration show?",
+                options:[
+                  { key:"topicbroken", label:"The topic itself isn't actually publishing", correct:false, feedback:"The topic's publish count keeps climbing — messages are going out. The problem is on the receiving end." },
+                  { key:"filter", label:"The subscription's filter policy excludes every message this topic actually sends", correct:true, feedback:"That's it — the filter policy is scoped so narrowly that nothing published here ever matches it." }
+                ],
+                errorText:"You haven't confirmed why this subscriber is missing everything — worth checking before assuming the topic is broken."
+              },
+              { id:"h-filter", type:"action",
+                label:"Fix the subscription's filter policy so it actually matches this topic's real messages",
+                actionLabel:"Fix filter policy", loadingLabel:"Updating…", doneLabel:"Filter policy corrected — this queue now receives the messages it's supposed to.", loadingMs:600,
+                errorText:"The filter policy still excludes the messages this subscriber is supposed to receive."
+              },
+              { id:"h-dlq", type:"choice",
+                label:"Decide what should happen to messages this subscriber fails to process",
+                prompt:"What happens to a message SNS can't deliver after retrying?",
+                options:[
+                  { key:"forever", label:"Nothing to worry about — SNS retries a failed delivery forever", correct:false, feedback:"It doesn't. SNS retries on a finite backoff schedule, and without a dead-letter queue configured, a message that still fails after that is just dropped." },
+                  { key:"dlq", label:"Configure a dead-letter queue for this subscription", correct:true, feedback:"Configured — a message that can't be delivered after retrying now lands somewhere visible instead of vanishing." }
+                ],
+                errorText:"There's still no dead-letter queue on this subscription — a message that fails delivery after retrying just disappears, exactly like the ones that already did."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Add a CloudWatch alarm on the dead-letter queue's depth so a future misconfiguration gets noticed fast",
+                actionLabel:"Add DLQ alarm", loadingLabel:"Configuring…", doneLabel:"Alarm configured — the team will hear about the next silent-subscriber problem in minutes, not days.", loadingMs:500,
+                errorText:"Nothing pages anyone when messages start piling up in the dead-letter queue — that's exactly how this one went unnoticed for days."
+              }
+            ]
+          },
+          azure:{
+            title:"Fix the subscriber that's silently missing every message",
+            scenario:"This Service Bus subscription is attached to the order-events topic, but the team just realized it hasn't received a single message in days — meanwhile the topic shows plenty of messages going out.",
+            consoleLabel:"Azure Portal — Service Bus (simulated)",
+            actionBtn:"Publish a test message",
+            successText:"The test message reached the subscription — it's receiving messages again.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm why this subscription is missing everything",
+                prompt:"What does the subscription's configuration show?",
+                options:[
+                  { key:"topicbroken", label:"The topic itself isn't actually receiving messages", correct:false, feedback:"The topic's incoming message count keeps climbing — messages are arriving. The problem is on the receiving end." },
+                  { key:"filter", label:"The subscription's SQL filter excludes every message this topic actually carries", correct:true, feedback:"That's it — the filter is scoped so narrowly that nothing sent here ever matches it." }
+                ],
+                errorText:"You haven't confirmed why this subscription is missing everything — worth checking before assuming the topic is broken."
+              },
+              { id:"e-filter", type:"action",
+                label:"Fix the subscription's filter so it actually matches this topic's real messages",
+                actionLabel:"Fix filter rule", loadingLabel:"Updating…", doneLabel:"Filter rule corrected — this subscription now receives the messages it's supposed to.", loadingMs:600,
+                errorText:"The filter still excludes the messages this subscription is supposed to receive."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm why this subscription is missing everything",
+                prompt:"What does the subscription's configuration show?",
+                options:[
+                  { key:"topicbroken", label:"The topic itself isn't actually receiving messages", correct:false, feedback:"The topic's incoming message count keeps climbing — messages are arriving. The problem is on the receiving end." },
+                  { key:"filter", label:"The subscription's SQL filter excludes every message this topic actually carries", correct:true, feedback:"That's it — the filter is scoped so narrowly that nothing sent here ever matches it." }
+                ],
+                errorText:"You haven't confirmed why this subscription is missing everything — worth checking before assuming the topic is broken."
+              },
+              { id:"h-filter", type:"action",
+                label:"Fix the subscription's filter so it actually matches this topic's real messages",
+                actionLabel:"Fix filter rule", loadingLabel:"Updating…", doneLabel:"Filter rule corrected — this subscription now receives the messages it's supposed to.", loadingMs:600,
+                errorText:"The filter still excludes the messages this subscription is supposed to receive."
+              },
+              { id:"h-dlq", type:"choice",
+                label:"Decide what should happen to messages this subscription fails to process",
+                prompt:"What happens to a message that keeps failing delivery?",
+                options:[
+                  { key:"forever", label:"Nothing to worry about — Service Bus retries a failed delivery forever", correct:false, feedback:"It doesn't. After the max delivery count is exceeded, the message is dead-lettered — and if nobody's watching the dead-letter sub-queue, it just sits there unnoticed." },
+                  { key:"monitor", label:"Add monitoring on this subscription's dead-letter sub-queue", correct:true, feedback:"Configured — a message that can't be delivered now lands somewhere visible instead of sitting unnoticed." }
+                ],
+                errorText:"There's still no visibility into this subscription's dead-letter sub-queue — a message that fails delivery just piles up unseen, exactly like the ones that already did."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Add an alert on the dead-letter queue's depth so a future misconfiguration gets noticed fast",
+                actionLabel:"Add DLQ alert", loadingLabel:"Configuring…", doneLabel:"Alert configured — the team will hear about the next silent-subscriber problem in minutes, not days.", loadingMs:500,
+                errorText:"Nothing pages anyone when messages start piling up in the dead-letter sub-queue — that's exactly how this one went unnoticed for days."
+              }
+            ]
+          },
+          gcp:{
+            title:"Fix the subscriber that's silently missing every message",
+            scenario:"This Pub/Sub subscription is attached to the order-events topic, but the team just realized it hasn't received a single message in days — meanwhile the topic shows plenty of messages going out.",
+            consoleLabel:"Google Cloud Console — Pub/Sub (simulated)",
+            actionBtn:"Publish a test message",
+            successText:"The test message reached the subscription — it's receiving messages again.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Confirm why this subscription is missing everything",
+                prompt:"What does the subscription's configuration show?",
+                options:[
+                  { key:"topicbroken", label:"The topic itself isn't actually receiving messages", correct:false, feedback:"The topic's incoming message count keeps climbing — messages are arriving. The problem is on the receiving end." },
+                  { key:"filter", label:"The subscription's filter expression excludes every message this topic actually carries", correct:true, feedback:"That's it — the filter is scoped so narrowly that nothing published here ever matches it." }
+                ],
+                errorText:"You haven't confirmed why this subscription is missing everything — worth checking before assuming the topic is broken."
+              },
+              { id:"e-filter", type:"action",
+                label:"Fix the subscription's filter so it actually matches this topic's real messages",
+                actionLabel:"Fix filter expression", loadingLabel:"Updating…", doneLabel:"Filter expression corrected — this subscription now receives the messages it's supposed to.", loadingMs:600,
+                errorText:"The filter still excludes the messages this subscription is supposed to receive."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm why this subscription is missing everything",
+                prompt:"What does the subscription's configuration show?",
+                options:[
+                  { key:"topicbroken", label:"The topic itself isn't actually receiving messages", correct:false, feedback:"The topic's incoming message count keeps climbing — messages are arriving. The problem is on the receiving end." },
+                  { key:"filter", label:"The subscription's filter expression excludes every message this topic actually carries", correct:true, feedback:"That's it — the filter is scoped so narrowly that nothing published here ever matches it." }
+                ],
+                errorText:"You haven't confirmed why this subscription is missing everything — worth checking before assuming the topic is broken."
+              },
+              { id:"h-filter", type:"action",
+                label:"Fix the subscription's filter so it actually matches this topic's real messages",
+                actionLabel:"Fix filter expression", loadingLabel:"Updating…", doneLabel:"Filter expression corrected — this subscription now receives the messages it's supposed to.", loadingMs:600,
+                errorText:"The filter still excludes the messages this subscription is supposed to receive."
+              },
+              { id:"h-dlq", type:"choice",
+                label:"Decide what should happen to messages this subscription fails to process",
+                prompt:"What happens to a message that keeps failing delivery?",
+                options:[
+                  { key:"forever", label:"Nothing to worry about — Pub/Sub retries a failed delivery forever", correct:false, feedback:"It doesn't. Past the subscription's retry limit, a message without a dead-letter topic configured is just dropped." },
+                  { key:"dlt", label:"Configure a dead-letter topic for this subscription", correct:true, feedback:"Configured — a message that can't be delivered after retrying now lands somewhere visible instead of vanishing." }
+                ],
+                errorText:"There's still no dead-letter topic on this subscription — a message that fails delivery after retrying just disappears, exactly like the ones that already did."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Add a Cloud Monitoring alert on the dead-letter topic's depth so a future misconfiguration gets noticed fast",
+                actionLabel:"Add DLT alert", loadingLabel:"Configuring…", doneLabel:"Alert configured — the team will hear about the next silent-subscriber problem in minutes, not days.", loadingMs:500,
+                errorText:"Nothing pages anyone when messages start piling up in the dead-letter topic — that's exactly how this one went unnoticed for days."
+              }
+            ]
+          }
+        },
+        snowball:{
+          aws:{
+            title:"Migrate 250TB before the deadline without eating all the bandwidth",
+            scenario:"250TB needs to move from an on-prem data center to the cloud in 2 weeks. The site's uplink is 100 Mbps and shared with other traffic — at that speed the transfer alone would take months.",
+            consoleLabel:"AWS Snowball Console (simulated)",
+            actionBtn:"Verify the migration completed on time",
+            successText:"All 250TB landed in S3 well within the deadline, without touching the site's internet connection.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Pick the right transfer method for this",
+                prompt:"How should this data actually move?",
+                options:[
+                  { key:"network", label:"Transfer it over the existing internet connection", correct:false, feedback:"At 100 Mbps, 250TB would take roughly 230+ days — nowhere close to the 2-week deadline." },
+                  { key:"snowball", label:"Order physical Snowball Edge devices", correct:true, feedback:"A device can move this in days, not months — completely independent of the site's internet bandwidth." }
+                ],
+                errorText:"At this bandwidth, the transfer alone blows past the deadline before it's even a third done."
+              },
+              { id:"e-ship", type:"action",
+                label:"Copy the data onto the device and ship it back",
+                actionLabel:"Ship device back", loadingLabel:"Shipping…", doneLabel:"Device shipped back and imported — the data has landed in S3.", loadingMs:700,
+                errorText:"The device is still sitting on-site with the data on it — nothing has reached S3 yet."
+              }
+            ],
+            hardSteps:[
+              { id:"h-method", type:"choice",
+                label:"Pick the right transfer method for this",
+                prompt:"How should this data actually move?",
+                options:[
+                  { key:"network", label:"Transfer it over the existing internet connection", correct:false, feedback:"At 100 Mbps, 250TB would take roughly 230+ days — nowhere close to the 2-week deadline." },
+                  { key:"snowball", label:"Order physical Snowball Edge devices", correct:true, feedback:"A device can move this in days, not months — completely independent of the site's internet bandwidth." }
+                ],
+                errorText:"At this bandwidth, the transfer alone blows past the deadline before it's even a third done."
+              },
+              { id:"h-capacity", type:"choice",
+                label:"Work out how many devices this actually needs",
+                prompt:"Each Snowball Edge Storage Optimized device holds about 80TB usable. How many does 250TB need?",
+                options:[
+                  { key:"one", label:"1 device — just refill it between trips", correct:false, feedback:"One device holds roughly a third of this dataset — refilling and reshipping it three times would blow well past the 2-week deadline." },
+                  { key:"four", label:"4 devices, run in parallel", correct:true, feedback:"Four devices covers the full 250TB with room to spare, and running them in parallel keeps the whole migration inside the deadline." }
+                ],
+                errorText:"The device count on order doesn't actually cover 250TB — some of this data has nowhere to go yet."
+              },
+              { id:"h-ship", type:"action",
+                label:"Copy the data onto the devices and ship them back",
+                actionLabel:"Ship devices back", loadingLabel:"Shipping…", doneLabel:"Devices shipped back and imported — all the data has landed in S3.", loadingMs:700,
+                errorText:"The devices are still sitting on-site with the data on them — nothing has reached S3 yet."
+              },
+              { id:"h-ongoing", type:"action",
+                label:"Set up an ongoing incremental sync for data created after the cutover, instead of repeating a physical shipment every time",
+                actionLabel:"Configure ongoing sync", loadingLabel:"Configuring…", doneLabel:"Ongoing incremental sync configured — new data now flows in continuously without another Snowball order.", loadingMs:600,
+                errorText:"There's no plan for data created after this one-time migration — the next batch would need another multi-week physical shipment."
+              }
+            ]
+          },
+          azure:{
+            title:"Migrate 250TB before the deadline without eating all the bandwidth",
+            scenario:"250TB needs to move from an on-prem data center to the cloud in 2 weeks. The site's uplink is 100 Mbps and shared with other traffic — at that speed the transfer alone would take months.",
+            consoleLabel:"Azure Portal — Data Box orders (simulated)",
+            actionBtn:"Verify the migration completed on time",
+            successText:"All 250TB landed in Azure Storage well within the deadline, without touching the site's internet connection.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Pick the right transfer method for this",
+                prompt:"How should this data actually move?",
+                options:[
+                  { key:"network", label:"Transfer it over the existing internet connection", correct:false, feedback:"At 100 Mbps, 250TB would take roughly 230+ days — nowhere close to the 2-week deadline." },
+                  { key:"databox", label:"Order physical Data Box devices", correct:true, feedback:"A device can move this in days, not months — completely independent of the site's internet bandwidth." }
+                ],
+                errorText:"At this bandwidth, the transfer alone blows past the deadline before it's even a third done."
+              },
+              { id:"e-ship", type:"action",
+                label:"Copy the data onto the device and ship it back",
+                actionLabel:"Ship device back", loadingLabel:"Shipping…", doneLabel:"Device shipped back and imported — the data has landed in Azure Storage.", loadingMs:700,
+                errorText:"The device is still sitting on-site with the data on it — nothing has reached Azure Storage yet."
+              }
+            ],
+            hardSteps:[
+              { id:"h-method", type:"choice",
+                label:"Pick the right transfer method for this",
+                prompt:"How should this data actually move?",
+                options:[
+                  { key:"network", label:"Transfer it over the existing internet connection", correct:false, feedback:"At 100 Mbps, 250TB would take roughly 230+ days — nowhere close to the 2-week deadline." },
+                  { key:"databox", label:"Order physical Data Box devices", correct:true, feedback:"A device can move this in days, not months — completely independent of the site's internet bandwidth." }
+                ],
+                errorText:"At this bandwidth, the transfer alone blows past the deadline before it's even a third done."
+              },
+              { id:"h-capacity", type:"choice",
+                label:"Work out how many devices this actually needs",
+                prompt:"Each Data Box device holds about 80TB usable. How many does 250TB need?",
+                options:[
+                  { key:"one", label:"1 device — just refill it between trips", correct:false, feedback:"One device holds roughly a third of this dataset — refilling and reshipping it three times would blow well past the 2-week deadline." },
+                  { key:"four", label:"4 devices, run in parallel", correct:true, feedback:"Four devices covers the full 250TB with room to spare, and running them in parallel keeps the whole migration inside the deadline." }
+                ],
+                errorText:"The device count on order doesn't actually cover 250TB — some of this data has nowhere to go yet."
+              },
+              { id:"h-ship", type:"action",
+                label:"Copy the data onto the devices and ship them back",
+                actionLabel:"Ship devices back", loadingLabel:"Shipping…", doneLabel:"Devices shipped back and imported — all the data has landed in Azure Storage.", loadingMs:700,
+                errorText:"The devices are still sitting on-site with the data on them — nothing has reached Azure Storage yet."
+              },
+              { id:"h-ongoing", type:"action",
+                label:"Set up an ongoing incremental sync for data created after the cutover, instead of repeating a physical shipment every time",
+                actionLabel:"Configure ongoing sync", loadingLabel:"Configuring…", doneLabel:"Ongoing incremental sync configured — new data now flows in continuously without another Data Box order.", loadingMs:600,
+                errorText:"There's no plan for data created after this one-time migration — the next batch would need another multi-week physical shipment."
+              }
+            ]
+          },
+          gcp:{
+            title:"Migrate 250TB before the deadline without eating all the bandwidth",
+            scenario:"250TB needs to move from an on-prem data center to the cloud in 2 weeks. The site's uplink is 100 Mbps and shared with other traffic — at that speed the transfer alone would take months.",
+            consoleLabel:"Google Cloud Console — Transfer Appliance orders (simulated)",
+            actionBtn:"Verify the migration completed on time",
+            successText:"All 250TB landed in Cloud Storage well within the deadline, without touching the site's internet connection.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Pick the right transfer method for this",
+                prompt:"How should this data actually move?",
+                options:[
+                  { key:"network", label:"Transfer it over the existing internet connection", correct:false, feedback:"At 100 Mbps, 250TB would take roughly 230+ days — nowhere close to the 2-week deadline." },
+                  { key:"appliance", label:"Order physical Transfer Appliance devices", correct:true, feedback:"A device can move this in days, not months — completely independent of the site's internet bandwidth." }
+                ],
+                errorText:"At this bandwidth, the transfer alone blows past the deadline before it's even a third done."
+              },
+              { id:"e-ship", type:"action",
+                label:"Copy the data onto the device and ship it back",
+                actionLabel:"Ship device back", loadingLabel:"Shipping…", doneLabel:"Device shipped back and imported — the data has landed in Cloud Storage.", loadingMs:700,
+                errorText:"The device is still sitting on-site with the data on it — nothing has reached Cloud Storage yet."
+              }
+            ],
+            hardSteps:[
+              { id:"h-method", type:"choice",
+                label:"Pick the right transfer method for this",
+                prompt:"How should this data actually move?",
+                options:[
+                  { key:"network", label:"Transfer it over the existing internet connection", correct:false, feedback:"At 100 Mbps, 250TB would take roughly 230+ days — nowhere close to the 2-week deadline." },
+                  { key:"appliance", label:"Order physical Transfer Appliance devices", correct:true, feedback:"A device can move this in days, not months — completely independent of the site's internet bandwidth." }
+                ],
+                errorText:"At this bandwidth, the transfer alone blows past the deadline before it's even a third done."
+              },
+              { id:"h-capacity", type:"choice",
+                label:"Work out how many devices this actually needs",
+                prompt:"Each Transfer Appliance holds about 100TB usable. How many does 250TB need?",
+                options:[
+                  { key:"one", label:"1 device — just refill it between trips", correct:false, feedback:"One device holds well under half of this dataset — refilling and reshipping it multiple times would blow well past the 2-week deadline." },
+                  { key:"three", label:"3 devices, run in parallel", correct:true, feedback:"Three devices covers the full 250TB with room to spare, and running them in parallel keeps the whole migration inside the deadline." }
+                ],
+                errorText:"The device count on order doesn't actually cover 250TB — some of this data has nowhere to go yet."
+              },
+              { id:"h-ship", type:"action",
+                label:"Copy the data onto the devices and ship them back",
+                actionLabel:"Ship devices back", loadingLabel:"Shipping…", doneLabel:"Devices shipped back and imported — all the data has landed in Cloud Storage.", loadingMs:700,
+                errorText:"The devices are still sitting on-site with the data on them — nothing has reached Cloud Storage yet."
+              },
+              { id:"h-ongoing", type:"action",
+                label:"Set up an ongoing incremental sync for data created after the cutover, instead of repeating a physical shipment every time",
+                actionLabel:"Configure ongoing sync", loadingLabel:"Configuring…", doneLabel:"Ongoing incremental sync configured — new data now flows in continuously without another Transfer Appliance order.", loadingMs:600,
+                errorText:"There's no plan for data created after this one-time migration — the next batch would need another multi-week physical shipment."
+              }
+            ]
+          }
+        },
+        cicd:{
+          aws:{
+            title:"Get an urgent fix through a stuck pipeline safely",
+            scenario:"A critical security patch is stuck behind an integration test that's been failing intermittently for a week. The on-call engineer is tempted to just disable the test suite to get the patch out.",
+            consoleLabel:"AWS CodePipeline Console (simulated)",
+            actionBtn:"Verify the patch shipped safely",
+            successText:"The patch went out through the same gate everything else does — and the test suite is still watching the next build.",
+            easySteps:[
+              { id:"e-choice", type:"choice",
+                label:"Decide how to get this patch through right now",
+                prompt:"What's actually the safe move?",
+                options:[
+                  { key:"disable", label:"Disable the test stage entirely", correct:false, feedback:"That gets this patch through, but it also lets the next actually-broken build through with nothing to catch it." },
+                  { key:"retry", label:"Retry the failing stage — if it's genuinely flaky, a retry should pass, and the patch still goes through the real gate", correct:true, feedback:"Retried and passed — the patch went through the same gate everything else does, and the test suite is still watching the next build." }
+                ],
+                errorText:"The patch still hasn't gone through a real, intact test gate — either it's stuck, or it skipped the check entirely."
+              },
+              { id:"e-ticket", type:"action",
+                label:"File a ticket to fix the flaky test itself",
+                actionLabel:"File ticket", loadingLabel:"Filing…", doneLabel:"Ticket filed — the flaky test is now tracked instead of silently tolerated.", loadingMs:500,
+                errorText:"The flaky test is still just sitting there, ready to block or falsely gate the next urgent fix too."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm this is actually flaky, not a real regression",
+                prompt:"What does the failure pattern look like?",
+                options:[
+                  { key:"consistent", label:"It fails the same way, every single run, on this exact change", correct:false, feedback:"A failure that's 100% reproducible on this change isn't flaky — that's a real regression, and retrying won't fix it." },
+                  { key:"intermittent", label:"It fails maybe 1 in 5 runs, on unrelated changes too, with a timing-related error", correct:true, feedback:"That pattern — intermittent, unrelated to the actual change, timing-related — is the signature of real flakiness, not a regression." }
+                ],
+                errorText:"Nobody's confirmed this is actually flaky rather than a real regression — retrying past a real regression would ship the bug."
+              },
+              { id:"h-choice", type:"choice",
+                label:"Decide how to get this patch through right now",
+                prompt:"What's actually the safe move?",
+                options:[
+                  { key:"disable", label:"Disable the test stage entirely", correct:false, feedback:"That gets this patch through, but it also lets the next actually-broken build through with nothing to catch it." },
+                  { key:"retry", label:"Retry the failing stage — if it's genuinely flaky, a retry should pass, and the patch still goes through the real gate", correct:true, feedback:"Retried and passed — the patch went through the same gate everything else does, and the test suite is still watching the next build." }
+                ],
+                errorText:"The patch still hasn't gone through a real, intact test gate — either it's stuck, or it skipped the check entirely."
+              },
+              { id:"h-approval", type:"action",
+                label:"Add a manual approval gate specifically for emergency patches, instead of disabling automated checks next time",
+                actionLabel:"Add approval gate", loadingLabel:"Configuring…", doneLabel:"Manual approval gate added for emergency patches — urgent fixes get a deliberate human override, not a disabled safety net.", loadingMs:600,
+                errorText:"The only bypass anyone has for an urgent fix right now is disabling the tests — that's the wrong lever, and someone will pull it again."
+              },
+              { id:"h-ticket", type:"action",
+                label:"File a ticket to fix the flaky test itself",
+                actionLabel:"File ticket", loadingLabel:"Filing…", doneLabel:"Ticket filed — the flaky test is now tracked instead of silently tolerated.", loadingMs:500,
+                errorText:"The flaky test is still just sitting there, ready to block or falsely gate the next urgent fix too."
+              }
+            ]
+          },
+          azure:{
+            title:"Get an urgent fix through a stuck pipeline safely",
+            scenario:"A critical security patch is stuck behind an integration test that's been failing intermittently for a week. The on-call engineer is tempted to just disable the test stage to get the patch out.",
+            consoleLabel:"Azure DevOps Pipelines (simulated)",
+            actionBtn:"Verify the patch shipped safely",
+            successText:"The patch went out through the same gate everything else does — and the test suite is still watching the next build.",
+            easySteps:[
+              { id:"e-choice", type:"choice",
+                label:"Decide how to get this patch through right now",
+                prompt:"What's actually the safe move?",
+                options:[
+                  { key:"disable", label:"Disable the test stage entirely", correct:false, feedback:"That gets this patch through, but it also lets the next actually-broken build through with nothing to catch it." },
+                  { key:"retry", label:"Retry the failing stage — if it's genuinely flaky, a retry should pass, and the patch still goes through the real gate", correct:true, feedback:"Retried and passed — the patch went through the same gate everything else does, and the test suite is still watching the next build." }
+                ],
+                errorText:"The patch still hasn't gone through a real, intact test gate — either it's stuck, or it skipped the check entirely."
+              },
+              { id:"e-ticket", type:"action",
+                label:"File a work item to fix the flaky test itself",
+                actionLabel:"File work item", loadingLabel:"Filing…", doneLabel:"Work item filed — the flaky test is now tracked instead of silently tolerated.", loadingMs:500,
+                errorText:"The flaky test is still just sitting there, ready to block or falsely gate the next urgent fix too."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm this is actually flaky, not a real regression",
+                prompt:"What does the failure pattern look like?",
+                options:[
+                  { key:"consistent", label:"It fails the same way, every single run, on this exact change", correct:false, feedback:"A failure that's 100% reproducible on this change isn't flaky — that's a real regression, and retrying won't fix it." },
+                  { key:"intermittent", label:"It fails maybe 1 in 5 runs, on unrelated changes too, with a timing-related error", correct:true, feedback:"That pattern — intermittent, unrelated to the actual change, timing-related — is the signature of real flakiness, not a regression." }
+                ],
+                errorText:"Nobody's confirmed this is actually flaky rather than a real regression — retrying past a real regression would ship the bug."
+              },
+              { id:"h-choice", type:"choice",
+                label:"Decide how to get this patch through right now",
+                prompt:"What's actually the safe move?",
+                options:[
+                  { key:"disable", label:"Disable the test stage entirely", correct:false, feedback:"That gets this patch through, but it also lets the next actually-broken build through with nothing to catch it." },
+                  { key:"retry", label:"Retry the failing stage — if it's genuinely flaky, a retry should pass, and the patch still goes through the real gate", correct:true, feedback:"Retried and passed — the patch went through the same gate everything else does, and the test suite is still watching the next build." }
+                ],
+                errorText:"The patch still hasn't gone through a real, intact test gate — either it's stuck, or it skipped the check entirely."
+              },
+              { id:"h-approval", type:"action",
+                label:"Add a manual approval gate specifically for emergency patches, instead of disabling automated checks next time",
+                actionLabel:"Add approval gate", loadingLabel:"Configuring…", doneLabel:"Manual approval gate added for emergency patches — urgent fixes get a deliberate human override, not a disabled safety net.", loadingMs:600,
+                errorText:"The only bypass anyone has for an urgent fix right now is disabling the tests — that's the wrong lever, and someone will pull it again."
+              },
+              { id:"h-ticket", type:"action",
+                label:"File a work item to fix the flaky test itself",
+                actionLabel:"File work item", loadingLabel:"Filing…", doneLabel:"Work item filed — the flaky test is now tracked instead of silently tolerated.", loadingMs:500,
+                errorText:"The flaky test is still just sitting there, ready to block or falsely gate the next urgent fix too."
+              }
+            ]
+          },
+          gcp:{
+            title:"Get an urgent fix through a stuck pipeline safely",
+            scenario:"A critical security patch is stuck behind an integration test that's been failing intermittently for a week. The on-call engineer is tempted to just disable the test step to get the patch out.",
+            consoleLabel:"Google Cloud Console — Cloud Build (simulated)",
+            actionBtn:"Verify the patch shipped safely",
+            successText:"The patch went out through the same gate everything else does — and the test suite is still watching the next build.",
+            easySteps:[
+              { id:"e-choice", type:"choice",
+                label:"Decide how to get this patch through right now",
+                prompt:"What's actually the safe move?",
+                options:[
+                  { key:"disable", label:"Disable the test step entirely", correct:false, feedback:"That gets this patch through, but it also lets the next actually-broken build through with nothing to catch it." },
+                  { key:"retry", label:"Retry the failing build — if it's genuinely flaky, a retry should pass, and the patch still goes through the real gate", correct:true, feedback:"Retried and passed — the patch went through the same gate everything else does, and the test suite is still watching the next build." }
+                ],
+                errorText:"The patch still hasn't gone through a real, intact test gate — either it's stuck, or it skipped the check entirely."
+              },
+              { id:"e-ticket", type:"action",
+                label:"File a ticket to fix the flaky test itself",
+                actionLabel:"File ticket", loadingLabel:"Filing…", doneLabel:"Ticket filed — the flaky test is now tracked instead of silently tolerated.", loadingMs:500,
+                errorText:"The flaky test is still just sitting there, ready to block or falsely gate the next urgent fix too."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm this is actually flaky, not a real regression",
+                prompt:"What does the failure pattern look like?",
+                options:[
+                  { key:"consistent", label:"It fails the same way, every single run, on this exact change", correct:false, feedback:"A failure that's 100% reproducible on this change isn't flaky — that's a real regression, and retrying won't fix it." },
+                  { key:"intermittent", label:"It fails maybe 1 in 5 runs, on unrelated changes too, with a timing-related error", correct:true, feedback:"That pattern — intermittent, unrelated to the actual change, timing-related — is the signature of real flakiness, not a regression." }
+                ],
+                errorText:"Nobody's confirmed this is actually flaky rather than a real regression — retrying past a real regression would ship the bug."
+              },
+              { id:"h-choice", type:"choice",
+                label:"Decide how to get this patch through right now",
+                prompt:"What's actually the safe move?",
+                options:[
+                  { key:"disable", label:"Disable the test step entirely", correct:false, feedback:"That gets this patch through, but it also lets the next actually-broken build through with nothing to catch it." },
+                  { key:"retry", label:"Retry the failing build — if it's genuinely flaky, a retry should pass, and the patch still goes through the real gate", correct:true, feedback:"Retried and passed — the patch went through the same gate everything else does, and the test suite is still watching the next build." }
+                ],
+                errorText:"The patch still hasn't gone through a real, intact test gate — either it's stuck, or it skipped the check entirely."
+              },
+              { id:"h-approval", type:"action",
+                label:"Add a required approval specifically for emergency patches, instead of disabling automated checks next time",
+                actionLabel:"Require approval", loadingLabel:"Configuring…", doneLabel:"Required approval added for emergency patches — urgent fixes get a deliberate human override, not a disabled safety net.", loadingMs:600,
+                errorText:"The only bypass anyone has for an urgent fix right now is disabling the tests — that's the wrong lever, and someone will pull it again."
+              },
+              { id:"h-ticket", type:"action",
+                label:"File a ticket to fix the flaky test itself",
+                actionLabel:"File ticket", loadingLabel:"Filing…", doneLabel:"Ticket filed — the flaky test is now tracked instead of silently tolerated.", loadingMs:500,
+                errorText:"The flaky test is still just sitting there, ready to block or falsely gate the next urgent fix too."
+              }
+            ]
+          }
+        },
+        secrets:{
+          aws:{
+            title:"Respond to a credential committed to a public repo",
+            scenario:"A developer accidentally committed an AWS access key to a public GitHub repository. AWS's automated key-leak detection already opened a support case and attached a restrictive quarantine policy — but the key itself is still technically valid.",
+            consoleLabel:"AWS IAM Console (simulated)",
+            actionBtn:"Verify the exposure is fully closed",
+            successText:"The key is dead, the exposure is scrubbed from history, and the next leak like it gets caught before a human has to notice.",
+            easySteps:[
+              { id:"e-deactivate", type:"action",
+                label:"Deactivate the leaked access key immediately",
+                actionLabel:"Deactivate key", loadingLabel:"Deactivating…", doneLabel:"Access key deactivated — it can no longer authenticate at all.", loadingMs:600,
+                errorText:"AWS's automatic quarantine narrows what the key can do, but it doesn't deactivate it — the key is still valid until someone does that explicitly."
+              },
+              { id:"e-purge", type:"choice",
+                label:"Decide what to do about the exposed commit itself",
+                prompt:"What about the leaked key sitting in the repo's history?",
+                options:[
+                  { key:"leave", label:"Leave the commit — the key is already deactivated, so it doesn't matter", correct:false, feedback:"The key being dead doesn't erase the exposure — the commit history (and anyone who already cloned or scraped it) still has it, and scanners will keep flagging this repo." },
+                  { key:"purgehistory", label:"Purge the key from the repo's git history and force-push the cleaned history", correct:true, feedback:"Cleaned — the key is gone from history, not just from the latest commit." }
+                ],
+                errorText:"The dead key is still sitting in plain sight in the repo's history — this repo will keep getting flagged by every scanner that finds it."
+              }
+            ],
+            hardSteps:[
+              { id:"h-usage", type:"choice",
+                label:"Check whether the key was actually used by anyone else before you deactivated it",
+                prompt:"What does CloudTrail show for this key in the window before deactivation?",
+                options:[
+                  { key:"onlydev", label:"Only API calls from the developer's known IP address", correct:false, feedback:"That's just the developer's own normal usage — not what you're checking for." },
+                  { key:"unfamiliar", label:"A burst of ListBuckets and GetObject calls from an IP that's never used this key before", correct:true, feedback:"That's evidence the key was actually found and used by someone else before you deactivated it — this is no longer just a close call." }
+                ],
+                errorText:"Nobody's actually confirmed whether this key was used by anyone besides the developer — that changes how big a deal this is."
+              },
+              { id:"h-deactivate", type:"action",
+                label:"Deactivate the leaked access key immediately",
+                actionLabel:"Deactivate key", loadingLabel:"Deactivating…", doneLabel:"Access key deactivated — it can no longer authenticate at all.", loadingMs:600,
+                errorText:"AWS's automatic quarantine narrows what the key can do, but it doesn't deactivate it — the key is still valid until someone does that explicitly."
+              },
+              { id:"h-purge", type:"choice",
+                label:"Decide what to do about the exposed commit itself",
+                prompt:"What about the leaked key sitting in the repo's history?",
+                options:[
+                  { key:"leave", label:"Leave the commit — the key is already deactivated, so it doesn't matter", correct:false, feedback:"The key being dead doesn't erase the exposure — the commit history (and anyone who already cloned or scraped it) still has it, and scanners will keep flagging this repo." },
+                  { key:"purgehistory", label:"Purge the key from the repo's git history and force-push the cleaned history", correct:true, feedback:"Cleaned — the key is gone from history, not just from the latest commit." }
+                ],
+                errorText:"The dead key is still sitting in plain sight in the repo's history — this repo will keep getting flagged by every scanner that finds it."
+              },
+              { id:"h-scan", type:"action",
+                label:"Turn on automated secret scanning for this repo so the next leak is caught before a human has to notice",
+                actionLabel:"Enable secret scanning", loadingLabel:"Enabling…", doneLabel:"Secret scanning enabled — the next committed credential gets flagged automatically, before it's even merged.", loadingMs:600,
+                errorText:"Nothing is scanning new commits for credentials — the next leak depends entirely on someone noticing by chance again."
+              }
+            ]
+          },
+          azure:{
+            title:"Respond to a credential committed to a public repo",
+            scenario:"A developer accidentally committed an Entra ID service principal's client secret to a public GitHub repository. There's no automatic quarantine here — the secret is fully valid until someone acts on it, and every minute matters.",
+            consoleLabel:"Azure Portal — App registrations (simulated)",
+            actionBtn:"Verify the exposure is fully closed",
+            successText:"The secret is dead, the exposure is scrubbed from history, and the next leak like it gets caught before a human has to notice.",
+            easySteps:[
+              { id:"e-deactivate", type:"action",
+                label:"Delete the leaked client secret immediately",
+                actionLabel:"Delete secret", loadingLabel:"Deleting…", doneLabel:"Client secret deleted — it can no longer authenticate at all.", loadingMs:600,
+                errorText:"Nothing narrows what this secret can do automatically here — it stays fully valid until someone explicitly deletes it, and it's been sitting exposed this whole time."
+              },
+              { id:"e-purge", type:"choice",
+                label:"Decide what to do about the exposed commit itself",
+                prompt:"What about the leaked secret sitting in the repo's history?",
+                options:[
+                  { key:"leave", label:"Leave the commit — the secret is already deleted, so it doesn't matter", correct:false, feedback:"The secret being dead doesn't erase the exposure — the commit history (and anyone who already cloned or scraped it) still has it, and scanners will keep flagging this repo." },
+                  { key:"purgehistory", label:"Purge the secret from the repo's git history and force-push the cleaned history", correct:true, feedback:"Cleaned — the secret is gone from history, not just from the latest commit." }
+                ],
+                errorText:"The dead secret is still sitting in plain sight in the repo's history — this repo will keep getting flagged by every scanner that finds it."
+              }
+            ],
+            hardSteps:[
+              { id:"h-usage", type:"choice",
+                label:"Check whether the secret was actually used by anyone else before you deleted it",
+                prompt:"What does the sign-in log show for this service principal in the window before deletion?",
+                options:[
+                  { key:"onlydev", label:"Only token requests from the developer's known IP address", correct:false, feedback:"That's just the developer's own normal usage — not what you're checking for." },
+                  { key:"unfamiliar", label:"A burst of token requests and resource access from an IP that's never used this identity before", correct:true, feedback:"That's evidence the secret was actually found and used by someone else before you deleted it — this is no longer just a close call." }
+                ],
+                errorText:"Nobody's actually confirmed whether this secret was used by anyone besides the developer — that changes how big a deal this is."
+              },
+              { id:"h-deactivate", type:"action",
+                label:"Delete the leaked client secret immediately",
+                actionLabel:"Delete secret", loadingLabel:"Deleting…", doneLabel:"Client secret deleted — it can no longer authenticate at all.", loadingMs:600,
+                errorText:"Nothing narrows what this secret can do automatically here — it stays fully valid until someone explicitly deletes it, and it's been sitting exposed this whole time."
+              },
+              { id:"h-purge", type:"choice",
+                label:"Decide what to do about the exposed commit itself",
+                prompt:"What about the leaked secret sitting in the repo's history?",
+                options:[
+                  { key:"leave", label:"Leave the commit — the secret is already deleted, so it doesn't matter", correct:false, feedback:"The secret being dead doesn't erase the exposure — the commit history (and anyone who already cloned or scraped it) still has it, and scanners will keep flagging this repo." },
+                  { key:"purgehistory", label:"Purge the secret from the repo's git history and force-push the cleaned history", correct:true, feedback:"Cleaned — the secret is gone from history, not just from the latest commit." }
+                ],
+                errorText:"The dead secret is still sitting in plain sight in the repo's history — this repo will keep getting flagged by every scanner that finds it."
+              },
+              { id:"h-scan", type:"action",
+                label:"Turn on secret scanning for this repo so the next leak is caught before a human has to notice",
+                actionLabel:"Enable secret scanning", loadingLabel:"Enabling…", doneLabel:"Secret scanning enabled — the next committed credential gets flagged automatically, before it's even merged.", loadingMs:600,
+                errorText:"Nothing is scanning new commits for credentials — the next leak depends entirely on someone noticing by chance again."
+              }
+            ]
+          },
+          gcp:{
+            title:"Respond to a credential committed to a public repo",
+            scenario:"A developer accidentally committed a service account's JSON key file to a public GitHub repository. There's no automatic quarantine here — the key is fully valid until someone acts on it, and every minute matters.",
+            consoleLabel:"Google Cloud Console — Service accounts (simulated)",
+            actionBtn:"Verify the exposure is fully closed",
+            successText:"The key is dead, the exposure is scrubbed from history, and this app no longer depends on long-lived keys at all.",
+            easySteps:[
+              { id:"e-deactivate", type:"action",
+                label:"Delete the leaked service account key immediately",
+                actionLabel:"Delete key", loadingLabel:"Deleting…", doneLabel:"Service account key deleted — it can no longer authenticate at all.", loadingMs:600,
+                errorText:"Nothing narrows what this key can do automatically here — it stays fully valid until someone explicitly deletes it, and it's been sitting exposed this whole time."
+              },
+              { id:"e-purge", type:"choice",
+                label:"Decide what to do about the exposed commit itself",
+                prompt:"What about the leaked key sitting in the repo's history?",
+                options:[
+                  { key:"leave", label:"Leave the commit — the key is already deleted, so it doesn't matter", correct:false, feedback:"The key being dead doesn't erase the exposure — the commit history (and anyone who already cloned or scraped it) still has it, and scanners will keep flagging this repo." },
+                  { key:"purgehistory", label:"Purge the key from the repo's git history and force-push the cleaned history", correct:true, feedback:"Cleaned — the key is gone from history, not just from the latest commit." }
+                ],
+                errorText:"The dead key is still sitting in plain sight in the repo's history — this repo will keep getting flagged by every scanner that finds it."
+              }
+            ],
+            hardSteps:[
+              { id:"h-usage", type:"choice",
+                label:"Check whether the key was actually used by anyone else before you deleted it",
+                prompt:"What do the Cloud Audit Logs show for this key in the window before deletion?",
+                options:[
+                  { key:"onlydev", label:"Only API calls from the developer's known IP address", correct:false, feedback:"That's just the developer's own normal usage — not what you're checking for." },
+                  { key:"unfamiliar", label:"A burst of API calls from an IP that's never used this key before", correct:true, feedback:"That's evidence the key was actually found and used by someone else before you deleted it — this is no longer just a close call." }
+                ],
+                errorText:"Nobody's actually confirmed whether this key was used by anyone besides the developer — that changes how big a deal this is."
+              },
+              { id:"h-deactivate", type:"action",
+                label:"Delete the leaked service account key immediately",
+                actionLabel:"Delete key", loadingLabel:"Deleting…", doneLabel:"Service account key deleted — it can no longer authenticate at all.", loadingMs:600,
+                errorText:"Nothing narrows what this key can do automatically here — it stays fully valid until someone explicitly deletes it, and it's been sitting exposed this whole time."
+              },
+              { id:"h-purge", type:"choice",
+                label:"Decide what to do about the exposed commit itself",
+                prompt:"What about the leaked key sitting in the repo's history?",
+                options:[
+                  { key:"leave", label:"Leave the commit — the key is already deleted, so it doesn't matter", correct:false, feedback:"The key being dead doesn't erase the exposure — the commit history (and anyone who already cloned or scraped it) still has it, and scanners will keep flagging this repo." },
+                  { key:"purgehistory", label:"Purge the key from the repo's git history and force-push the cleaned history", correct:true, feedback:"Cleaned — the key is gone from history, not just from the latest commit." }
+                ],
+                errorText:"The dead key is still sitting in plain sight in the repo's history — this repo will keep getting flagged by every scanner that finds it."
+              },
+              { id:"h-wif", type:"action",
+                label:"Migrate this app off long-lived JSON keys entirely, onto Workload Identity Federation",
+                actionLabel:"Migrate to Workload Identity Federation", loadingLabel:"Migrating…", doneLabel:"Migrated — this app now authenticates without any long-lived key that could ever end up in a repo again.", loadingMs:700,
+                errorText:"This app still depends on a long-lived downloadable key file — the exact category of credential that just leaked can leak again."
+              }
+            ]
+          }
+        },
+        capstone1:{
+          aws:{
+            title:"Trace the outage across three systems",
+            scenario:"It's Friday night. Traffic just spiked. The Auto Scaling group launched new instances right on cue — but the app is throwing connection errors, health checks are failing, and the alarm that's supposed to page someone has stayed silent the whole time.",
+            consoleLabel:"AWS Console — CloudWatch / RDS / EC2 Auto Scaling (simulated)",
+            actionBtn:"Verify the outage is resolved",
+            successText:"Connections are stable, the alarm is watching the right signal, and the scaling policy won't make the next spike worse.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Find the metric that actually shows what's wrong",
+                prompt:"Which one tells the real story?",
+                options:[
+                  { key:"cpu", label:"EC2 CPUUtilization", correct:false, feedback:"CPU across the fleet has stayed completely normal this whole time. Not this." },
+                  { key:"dbconn", label:"RDS DatabaseConnections", correct:true, feedback:"That's it — it's pinned at the connection limit. Every new instance the Auto Scaling group launches opens more connections, and the database can't accept any more." }
+                ],
+                errorText:"Nobody's found the metric that actually explains this outage yet."
+              },
+              { id:"e-pool", type:"action",
+                label:"Put a connection pooler in front of the database so new instances share a small pool of real connections instead of each opening their own",
+                actionLabel:"Add RDS Proxy", loadingLabel:"Configuring…", doneLabel:"RDS Proxy added — connections are now pooled and reused.", loadingMs:700,
+                errorText:"Every new instance is still opening its own direct connection to the database — the limit gets hit just as fast as before."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Find the metric that actually shows what's wrong",
+                prompt:"Which one tells the real story?",
+                options:[
+                  { key:"cpu", label:"EC2 CPUUtilization", correct:false, feedback:"CPU across the fleet has stayed completely normal this whole time. Not this." },
+                  { key:"dbconn", label:"RDS DatabaseConnections", correct:true, feedback:"That's it — it's pinned at the connection limit. Every new instance the Auto Scaling group launches opens more connections, and the database can't accept any more." }
+                ],
+                errorText:"Nobody's found the metric that actually explains this outage yet."
+              },
+              { id:"h-pool", type:"action",
+                label:"Put a connection pooler in front of the database so new instances share a small pool of real connections instead of each opening their own",
+                actionLabel:"Add RDS Proxy", loadingLabel:"Configuring…", doneLabel:"RDS Proxy added — connections are now pooled and reused.", loadingMs:700,
+                errorText:"Every new instance is still opening its own direct connection to the database — the limit gets hit just as fast as before."
+              },
+              { id:"h-trigger", type:"choice",
+                label:"Fix what the Auto Scaling group is actually reacting to",
+                prompt:"What's really wrong with how the group decides to scale?",
+                options:[
+                  { key:"maxcap", label:"Its maximum capacity is set too low — just raise the cap", correct:false, feedback:"Raising the cap just means more instances opening more doomed connections, faster. The cap was never the problem." },
+                  { key:"metric", label:"It's scaling on CPU utilization, which never moved — it should scale on request latency or count instead", correct:true, feedback:"That's the real problem — the group has been blind this whole time. A metric that actually reflects load lets it react to what's really happening instead of a flat CPU graph." }
+                ],
+                errorText:"The scaling policy is still watching a metric that never once reflected this incident."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Add a CloudWatch alarm on RDS DatabaseConnections so the next time this happens, someone actually gets paged",
+                actionLabel:"Add DB connections alarm", loadingLabel:"Configuring…", doneLabel:"Alarm configured — the team will hear about the next connection spike in minutes.", loadingMs:600,
+                errorText:"The only alarm configured still watches CPU — the exact metric that stayed quiet through this entire outage."
+              }
+            ]
+          },
+          azure:{
+            title:"Trace the outage across three systems",
+            scenario:"It's Friday night. Traffic just spiked. The virtual machine scale set launched new instances right on cue — but the app is throwing connection errors, health probes are failing, and the alert that's supposed to page someone has stayed silent the whole time.",
+            consoleLabel:"Azure Portal — Monitor / Azure Database / Scale set (simulated)",
+            actionBtn:"Verify the outage is resolved",
+            successText:"Connections are stable, the alert is watching the right signal, and the scaling policy won't make the next spike worse.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Find the metric that actually shows what's wrong",
+                prompt:"Which one tells the real story?",
+                options:[
+                  { key:"cpu", label:"VM scale set CPU percentage", correct:false, feedback:"CPU across the fleet has stayed completely normal this whole time. Not this." },
+                  { key:"dbconn", label:"Azure Database active connections", correct:true, feedback:"That's it — it's pinned at the connection limit. Every new instance the scale set launches opens more connections, and the database can't accept any more." }
+                ],
+                errorText:"Nobody's found the metric that actually explains this outage yet."
+              },
+              { id:"e-pool", type:"action",
+                label:"Turn on the database's built-in connection pooling so new instances share a small pool of real connections instead of each opening their own",
+                actionLabel:"Enable connection pooling", loadingLabel:"Configuring…", doneLabel:"Connection pooling enabled — connections are now pooled and reused.", loadingMs:700,
+                errorText:"Every new instance is still opening its own direct connection to the database — the limit gets hit just as fast as before."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Find the metric that actually shows what's wrong",
+                prompt:"Which one tells the real story?",
+                options:[
+                  { key:"cpu", label:"VM scale set CPU percentage", correct:false, feedback:"CPU across the fleet has stayed completely normal this whole time. Not this." },
+                  { key:"dbconn", label:"Azure Database active connections", correct:true, feedback:"That's it — it's pinned at the connection limit. Every new instance the scale set launches opens more connections, and the database can't accept any more." }
+                ],
+                errorText:"Nobody's found the metric that actually explains this outage yet."
+              },
+              { id:"h-pool", type:"action",
+                label:"Turn on the database's built-in connection pooling so new instances share a small pool of real connections instead of each opening their own",
+                actionLabel:"Enable connection pooling", loadingLabel:"Configuring…", doneLabel:"Connection pooling enabled — connections are now pooled and reused.", loadingMs:700,
+                errorText:"Every new instance is still opening its own direct connection to the database — the limit gets hit just as fast as before."
+              },
+              { id:"h-trigger", type:"choice",
+                label:"Fix what the scale set is actually reacting to",
+                prompt:"What's really wrong with how the scale set decides to scale?",
+                options:[
+                  { key:"maxcap", label:"Its maximum instance count is set too low — just raise the cap", correct:false, feedback:"Raising the cap just means more instances opening more doomed connections, faster. The cap was never the problem." },
+                  { key:"metric", label:"It's scaling on CPU percentage, which never moved — it should scale on request latency or count instead", correct:true, feedback:"That's the real problem — the scale set has been blind this whole time. A metric that actually reflects load lets it react to what's really happening instead of a flat CPU graph." }
+                ],
+                errorText:"The scaling rule is still watching a metric that never once reflected this incident."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Add an alert on Azure Database active connections so the next time this happens, someone actually gets paged",
+                actionLabel:"Add connections alert", loadingLabel:"Configuring…", doneLabel:"Alert configured — the team will hear about the next connection spike in minutes.", loadingMs:600,
+                errorText:"The only alert configured still watches CPU — the exact metric that stayed quiet through this entire outage."
+              }
+            ]
+          },
+          gcp:{
+            title:"Trace the outage across three systems",
+            scenario:"It's Friday night. Traffic just spiked. The managed instance group launched new instances right on cue — but the app is throwing connection errors, health checks are failing, and the alert that's supposed to page someone has stayed silent the whole time.",
+            consoleLabel:"Google Cloud Console — Monitoring / Cloud SQL / Instance groups (simulated)",
+            actionBtn:"Verify the outage is resolved",
+            successText:"Connections are stable, the alert is watching the right signal, and the scaling policy won't make the next spike worse.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Find the metric that actually shows what's wrong",
+                prompt:"Which one tells the real story?",
+                options:[
+                  { key:"cpu", label:"Instance group CPU utilization", correct:false, feedback:"CPU across the fleet has stayed completely normal this whole time. Not this." },
+                  { key:"dbconn", label:"Cloud SQL active connections", correct:true, feedback:"That's it — it's pinned at the connection limit. Every new instance the group launches opens more connections, and the database can't accept any more." }
+                ],
+                errorText:"Nobody's found the metric that actually explains this outage yet."
+              },
+              { id:"e-pool", type:"action",
+                label:"Deploy a connection pooler in front of Cloud SQL so new instances share a small pool of real connections instead of each opening their own",
+                actionLabel:"Deploy PgBouncer", loadingLabel:"Deploying…", doneLabel:"Connection pooler deployed — connections are now pooled and reused.", loadingMs:700,
+                errorText:"Every new instance is still opening its own direct connection to the database — the limit gets hit just as fast as before."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Find the metric that actually shows what's wrong",
+                prompt:"Which one tells the real story?",
+                options:[
+                  { key:"cpu", label:"Instance group CPU utilization", correct:false, feedback:"CPU across the fleet has stayed completely normal this whole time. Not this." },
+                  { key:"dbconn", label:"Cloud SQL active connections", correct:true, feedback:"That's it — it's pinned at the connection limit. Every new instance the group launches opens more connections, and the database can't accept any more." }
+                ],
+                errorText:"Nobody's found the metric that actually explains this outage yet."
+              },
+              { id:"h-pool", type:"action",
+                label:"Deploy a connection pooler in front of Cloud SQL so new instances share a small pool of real connections instead of each opening their own",
+                actionLabel:"Deploy PgBouncer", loadingLabel:"Deploying…", doneLabel:"Connection pooler deployed — connections are now pooled and reused.", loadingMs:700,
+                errorText:"Every new instance is still opening its own direct connection to the database — the limit gets hit just as fast as before."
+              },
+              { id:"h-trigger", type:"choice",
+                label:"Fix what the instance group is actually reacting to",
+                prompt:"What's really wrong with how the group decides to scale?",
+                options:[
+                  { key:"maxcap", label:"Its maximum size is set too low — just raise the cap", correct:false, feedback:"Raising the cap just means more instances opening more doomed connections, faster. The cap was never the problem." },
+                  { key:"metric", label:"It's scaling on CPU utilization, which never moved — it should scale on a load-balancer-reported request metric instead", correct:true, feedback:"That's the real problem — the group has been blind this whole time. A metric that actually reflects load lets it react to what's really happening instead of a flat CPU graph." }
+                ],
+                errorText:"The autoscaling policy is still watching a metric that never once reflected this incident."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Add a Cloud Monitoring alert on Cloud SQL active connections so the next time this happens, someone actually gets paged",
+                actionLabel:"Add connections alert", loadingLabel:"Configuring…", doneLabel:"Alert configured — the team will hear about the next connection spike in minutes.", loadingMs:600,
+                errorText:"The only alert configured still watches CPU — the exact metric that stayed quiet through this entire outage."
+              }
+            ]
+          }
+        },
+        capstone2:{
+          aws:{
+            title:"Close every path in the exposure chain",
+            scenario:"A pentest just found a path from a low-privilege laptop to every object in a production S3 bucket — and it doesn't even need to go through the compromised EC2 instance that made headlines internally. Three separate controls were each set a little too loose, and together they add up to a wide-open bucket.",
+            consoleLabel:"AWS Console — S3 / IAM / VPC (simulated)",
+            actionBtn:"Verify the exposure chain is closed",
+            successText:"The bucket is private, the instance's role is scoped down, and the network path that started this is closed too — no single leftover control can reopen this.",
+            easySteps:[
+              { id:"e-bucket", type:"action",
+                label:"Remove the public-read statement from the S3 bucket policy",
+                actionLabel:"Fix bucket policy", loadingLabel:"Updating…", doneLabel:"Bucket policy fixed — the bucket is no longer directly public.", loadingMs:600,
+                errorText:"The bucket policy still has a Principal: * statement granting read access to literally anyone on the internet."
+              },
+              { id:"e-iam", type:"choice",
+                label:"Decide what to do about the EC2 instance's IAM role",
+                prompt:"The instance's role currently has full S3 access account-wide. What now?",
+                options:[
+                  { key:"leave", label:"Leave it — the bucket itself is private now, so it doesn't matter", correct:false, feedback:"Relying on just one control is exactly how chains like this happen. If any other bucket or policy ever slips, this role can still reach everything." },
+                  { key:"scope", label:"Scope the role down to only the one bucket and prefix this instance actually needs", correct:true, feedback:"Scoped — even if something else goes wrong later, this role can no longer reach data it has no business touching." }
+                ],
+                errorText:"This role can still read and write every bucket in the account — the bucket policy fix only closed one of the paths here."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Find the exact bucket policy statement causing the exposure",
+                prompt:"Which statement is the actual problem?",
+                options:[
+                  { key:"decoy", label:"A statement granting read access to the security team's IAM role", correct:false, feedback:"That's a normal, scoped grant to actual employees. Not this." },
+                  { key:"public", label:"A statement granting s3:GetObject to Principal: *", correct:true, feedback:"That's it — Principal: * means anyone on the internet, authenticated or not." }
+                ],
+                errorText:"You haven't actually identified which bucket policy statement is causing the exposure yet."
+              },
+              { id:"h-bucket", type:"action",
+                label:"Remove the public-read statement from the S3 bucket policy",
+                actionLabel:"Fix bucket policy", loadingLabel:"Updating…", doneLabel:"Bucket policy fixed — the bucket is no longer directly public.", loadingMs:600,
+                errorText:"The bucket policy still has a Principal: * statement granting read access to literally anyone on the internet."
+              },
+              { id:"h-iam", type:"choice",
+                label:"Decide what to do about the EC2 instance's IAM role",
+                prompt:"The instance's role currently has full S3 access account-wide. What now?",
+                options:[
+                  { key:"leave", label:"Leave it — the bucket itself is private now, so it doesn't matter", correct:false, feedback:"Relying on just one control is exactly how chains like this happen. If any other bucket or policy ever slips, this role can still reach everything." },
+                  { key:"scope", label:"Scope the role down to only the one bucket and prefix this instance actually needs", correct:true, feedback:"Scoped — even if something else goes wrong later, this role can no longer reach data it has no business touching." }
+                ],
+                errorText:"This role can still read and write every bucket in the account — the bucket policy fix only closed one of the paths here."
+              },
+              { id:"h-sg", type:"action",
+                label:"Restrict the EC2 instance's security group so the vulnerable port isn't reachable from the open internet anymore",
+                actionLabel:"Restrict security group", loadingLabel:"Updating…", doneLabel:"Security group restricted — the entry point that started this chain is closed.", loadingMs:600,
+                errorText:"The instance is still reachable on this port from anywhere on the internet — the entry point to this whole chain is still wide open."
+              }
+            ]
+          },
+          azure:{
+            title:"Close every path in the exposure chain",
+            scenario:"A pentest just found a path from a low-privilege laptop to every blob in a production Storage container — and it doesn't even need to go through the compromised VM that made headlines internally. Three separate controls were each set a little too loose, and together they add up to a wide-open container.",
+            consoleLabel:"Azure Portal — Storage account / Entra ID / Network security group (simulated)",
+            actionBtn:"Verify the exposure chain is closed",
+            successText:"The container is private, the VM's identity is scoped down, and the network path that started this is closed too — no single leftover control can reopen this.",
+            easySteps:[
+              { id:"e-bucket", type:"action",
+                label:"Turn off Blob anonymous access on the storage account",
+                actionLabel:"Fix storage access", loadingLabel:"Updating…", doneLabel:"Blob anonymous access disabled — the container is no longer directly public.", loadingMs:600,
+                errorText:"The storage account still allows anonymous read access to blobs — literally anyone on the internet can read this container."
+              },
+              { id:"e-iam", type:"choice",
+                label:"Decide what to do about the VM's managed identity",
+                prompt:"The VM's identity currently has Storage Blob Data Contributor at the subscription level. What now?",
+                options:[
+                  { key:"leave", label:"Leave it — the container itself is private now, so it doesn't matter", correct:false, feedback:"Relying on just one control is exactly how chains like this happen. If any other container or setting ever slips, this identity can still reach everything." },
+                  { key:"scope", label:"Scope the role assignment down to only the one storage account this VM actually needs", correct:true, feedback:"Scoped — even if something else goes wrong later, this identity can no longer reach data it has no business touching." }
+                ],
+                errorText:"This identity can still read and write every storage account in the subscription — the storage access fix only closed one of the paths here."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Find the exact setting causing the exposure",
+                prompt:"Which setting is the actual problem?",
+                options:[
+                  { key:"decoy", label:"A private container storing internal build artifacts", correct:false, feedback:"That container is already private and unrelated. Not this." },
+                  { key:"public", label:"A container with its public access level set to \"Container\"", correct:true, feedback:"That's it — \"Container\" access level means anyone with the URL can list and read every blob inside, authenticated or not." }
+                ],
+                errorText:"You haven't actually identified which container's access level is causing the exposure yet."
+              },
+              { id:"h-bucket", type:"action",
+                label:"Turn off Blob anonymous access on the storage account",
+                actionLabel:"Fix storage access", loadingLabel:"Updating…", doneLabel:"Blob anonymous access disabled — the container is no longer directly public.", loadingMs:600,
+                errorText:"The storage account still allows anonymous read access to blobs — literally anyone on the internet can read this container."
+              },
+              { id:"h-iam", type:"choice",
+                label:"Decide what to do about the VM's managed identity",
+                prompt:"The VM's identity currently has Storage Blob Data Contributor at the subscription level. What now?",
+                options:[
+                  { key:"leave", label:"Leave it — the container itself is private now, so it doesn't matter", correct:false, feedback:"Relying on just one control is exactly how chains like this happen. If any other container or setting ever slips, this identity can still reach everything." },
+                  { key:"scope", label:"Scope the role assignment down to only the one storage account this VM actually needs", correct:true, feedback:"Scoped — even if something else goes wrong later, this identity can no longer reach data it has no business touching." }
+                ],
+                errorText:"This identity can still read and write every storage account in the subscription — the storage access fix only closed one of the paths here."
+              },
+              { id:"h-nsg", type:"action",
+                label:"Restrict the VM's network security group so the vulnerable port isn't reachable from the open internet anymore",
+                actionLabel:"Restrict NSG", loadingLabel:"Updating…", doneLabel:"NSG restricted — the entry point that started this chain is closed.", loadingMs:600,
+                errorText:"The VM is still reachable on this port from anywhere on the internet — the entry point to this whole chain is still wide open."
+              }
+            ]
+          },
+          gcp:{
+            title:"Close every path in the exposure chain",
+            scenario:"A pentest just found a path from a low-privilege laptop to every object in a production Cloud Storage bucket — and it doesn't even need to go through the compromised Compute Engine instance that made headlines internally. Three separate controls were each set a little too loose, and together they add up to a wide-open bucket.",
+            consoleLabel:"Google Cloud Console — Cloud Storage / IAM / VPC firewall (simulated)",
+            actionBtn:"Verify the exposure chain is closed",
+            successText:"The bucket is private, the instance's service account is scoped down, and the network path that started this is closed too — no single leftover control can reopen this.",
+            easySteps:[
+              { id:"e-bucket", type:"action",
+                label:"Remove the allUsers IAM binding from the bucket",
+                actionLabel:"Fix bucket IAM", loadingLabel:"Updating…", doneLabel:"allUsers binding removed — the bucket is no longer directly public.", loadingMs:600,
+                errorText:"The bucket's IAM policy still grants allUsers read access — literally anyone on the internet can read this bucket."
+              },
+              { id:"e-iam", type:"choice",
+                label:"Decide what to do about the instance's service account",
+                prompt:"The instance's service account currently has roles/storage.admin at the project level. What now?",
+                options:[
+                  { key:"leave", label:"Leave it — the bucket itself is private now, so it doesn't matter", correct:false, feedback:"Relying on just one control is exactly how chains like this happen. If any other bucket or binding ever slips, this service account can still reach everything." },
+                  { key:"scope", label:"Scope it down to roles/storage.objectViewer on just the one bucket this instance actually needs", correct:true, feedback:"Scoped — even if something else goes wrong later, this service account can no longer reach data it has no business touching." }
+                ],
+                errorText:"This service account can still read and write every bucket in the project — the bucket IAM fix only closed one of the paths here."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Find the exact IAM binding causing the exposure",
+                prompt:"Which binding is the actual problem?",
+                options:[
+                  { key:"decoy", label:"A binding granting roles/storage.objectViewer to the project-owners group", correct:false, feedback:"That's a normal, scoped grant to actual employees. Not this." },
+                  { key:"public", label:"A binding granting roles/storage.objectViewer to allUsers", correct:true, feedback:"That's it — allUsers means anyone on the internet, authenticated or not." }
+                ],
+                errorText:"You haven't actually identified which IAM binding is causing the exposure yet."
+              },
+              { id:"h-bucket", type:"action",
+                label:"Remove the allUsers IAM binding from the bucket",
+                actionLabel:"Fix bucket IAM", loadingLabel:"Updating…", doneLabel:"allUsers binding removed — the bucket is no longer directly public.", loadingMs:600,
+                errorText:"The bucket's IAM policy still grants allUsers read access — literally anyone on the internet can read this bucket."
+              },
+              { id:"h-iam", type:"choice",
+                label:"Decide what to do about the instance's service account",
+                prompt:"The instance's service account currently has roles/storage.admin at the project level. What now?",
+                options:[
+                  { key:"leave", label:"Leave it — the bucket itself is private now, so it doesn't matter", correct:false, feedback:"Relying on just one control is exactly how chains like this happen. If any other bucket or binding ever slips, this service account can still reach everything." },
+                  { key:"scope", label:"Scope it down to roles/storage.objectViewer on just the one bucket this instance actually needs", correct:true, feedback:"Scoped — even if something else goes wrong later, this service account can no longer reach data it has no business touching." }
+                ],
+                errorText:"This service account can still read and write every bucket in the project — the bucket IAM fix only closed one of the paths here."
+              },
+              { id:"h-fw", type:"action",
+                label:"Restrict the VPC firewall rule so the vulnerable port isn't reachable from the open internet anymore",
+                actionLabel:"Restrict firewall rule", loadingLabel:"Updating…", doneLabel:"Firewall rule restricted — the entry point that started this chain is closed.", loadingMs:600,
+                errorText:"The instance is still reachable on this port from anywhere on the internet — the entry point to this whole chain is still wide open."
+              }
+            ]
+          }
+        },
       },
       chat:{
         title:"Ask the Console", fabAria:"Ask a question", closeAria:"Close",
@@ -2131,7 +4037,7 @@
     tr: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS" },
+        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS", capstone1:"20 Final Görev: Kesinti", capstone2:"21 Final Görev: Sızıntı" },
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"CloudLab",
         statusChanged:"durum → {status}",
@@ -2162,8 +4068,8 @@
       },
       intro:{
         title:"Bulut sistemleri, parçalarına ayrıldı",
-        p:"Büyük sistemleri ayakta tutan mekanizmaların yirmi küçük, canlı simülasyonu — arkasında gerçek sunucu yok, sadece mantık. Kadranları çevirin ve yük altında, bir ağ bölünmesinde, bir önbellek ıskalamasında, bir arızada gerçekte ne olduğunu izleyin.",
-        meta:"20 modül · tamamen tarayıcınızda çalışır · gerçek altyapı yok"
+        p:"Büyük sistemleri ayakta tutan mekanizmaların yirmi küçük, canlı simülasyonu, ve bunlardan birkaçını bir araya getiren iki final görev olayı — arkasında gerçek sunucu yok, sadece mantık. Kadranları çevirin ve yük altında, bir ağ bölünmesinde, bir önbellek ıskalamasında, bir arızada gerçekte ne olduğunu izleyin.",
+        meta:"20 modül · 19 olay müdahale görevi · tamamen tarayıcınızda çalışır"
       },
       lb:{
         modId:"MODÜL 07", title:"Yük Dengeleme ve Otomatik Ölçekleme",
@@ -2728,6 +4634,16 @@
           daysPassed:"döndürme olmadan {n} gün geçti — sızan bir sürüm tüm süre boyunca canlı kalır",
           stale:"döndürme gecikti — bu sürüm {n} gündür yayında"
         }
+      },
+      capstone1:{
+        modId:"MODÜL 20", title:"Final Görev: Bir Cuma Gecesi Kesintisi",
+        dek:"Burada tek bir servis bozuk değil. Bir trafik sıçraması, bir ölçeklendirme politikası, ve bir veritabanının bağlantı sınırı, hepsi tam olarak yapılandırıldıkları gibi davrandı — ve birlikte, kesinti bu oldu.",
+        analogy:"Her biri kendi talimatını mükemmel şekilde takip eden üç kişi gibi — ve bu üç doğru talimatın birleşimi kazaya sebep olan şey."
+      },
+      capstone2:{
+        modId:"MODÜL 21", title:"Final Görev: Bir Veri Sızıntısı Zinciri",
+        dek:"Bir sızma testi az önce düşük yetkili bir dizüstü bilgisayardan üretim kovasındaki her nesneye giden bir yol buldu — ve bu yol, her biri sadece biraz fazla gevşek bırakılmış gerçek bir kontrol olan, daha önce gördüğünüz üç ayrı modülden geçiyor.",
+        analogy:"Bu tek bir kilitlenmemiş kapı değil. Kilitli bir ön kapı, arkada açık bir pencere, ve paspasın altında bir yedek anahtar — herhangi biri tek başına sorun olmazdı."
       },
       quests:{
         eyebrow:"GÖREV",
@@ -4233,6 +6149,1902 @@
             ]
           }
         },
+        lambda:{
+          aws:{
+            title:"Olayları sessizce kaybetmeyi durdur",
+            scenario:"Bu Lambda fonksiyonu yükleme olaylarını asenkron olarak işliyor. Bir trafik sıçraması altında kısıtlanmaya (throttle) başladı, ve otomatik tekrar denemelerinden sonra başarısız olan her olay basitçe kayboluyor — bir müşteri siparişinin hiç işlenmediğini söyleyene kadar kimse fark etmedi.",
+            consoleLabel:"AWS Lambda Console (simüle edilmiş)",
+            actionBtn:"Başarısız olayı yeniden oynat",
+            successText:"Başarısız olay kurtarıldı ve yeniden işlendi — artık hiçbir şey sessizce kaybolmuyor.",
+            easySteps:[
+              { id:"e-dlq", type:"action",
+                label:"Asenkron çağrılar için bir hata durumu hedefi (on-failure destination) yapılandır",
+                actionLabel:"Hedef ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Hata durumu hedefi yapılandırıldı — başarısız olaylar artık bir SQS kuyruğuna düşüyor.", loadingMs:600,
+                errorText:"Başarısız asenkron çağrıların yeniden denemeleri tükendikten sonra gidecek hiçbir yeri yok — sadece kayboluyorlar."
+              },
+              { id:"e-concurrency", type:"choice",
+                label:"Kısıtlamanın kendisini durdur",
+                prompt:"Kısıtlamayı gerçekte ne durdurur?",
+                options:[
+                  { key:"nothing", label:"Hiçbir şey — kısıtlama geçicidir ve kendiliğinden çözülür", correct:false, feedback:"Hiçbir şeyi çözmez — trafik yüksek kaldığı sürece eşzamanlılık sınırının üzerindeki çağrıları reddetmeye devam eder." },
+                  { key:"concurrency", label:"Fonksiyonun ayrılmış eşzamanlılık sınırını yükselt", correct:true, feedback:"Yükseltildi — fonksiyon artık bu trafik seviyesine yetecek kadar eşzamanlı örnek çalıştırabiliyor." }
+                ],
+                errorText:"Hata: TooManyRequestsException — fonksiyon hâlâ bu trafik seviyesinin gerektirdiğinin altında sınırlı."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bunun gerçekten bir eşzamanlılık sorunu olduğunu doğrula",
+                prompt:"Hangi CloudWatch metriği bunu gerçekten doğruluyor?",
+                options:[
+                  { key:"duration", label:"Duration", correct:false, feedback:"Duration çağrıların ne kadar sürdüğünü söyler, bazılarının neden doğrudan reddedildiğini değil." },
+                  { key:"throttles", label:"Throttles", correct:true, feedback:"İşte bu — sıfırdan farklı bir Throttles sayısı, çağrıların hiç çalışmadan reddedildiği anlamına gelir." }
+                ],
+                errorText:"Bunun gerçekten bir eşzamanlılık/kısıtlama sorunu olduğunu doğrulamadan tepki verdiniz."
+              },
+              { id:"h-dlq", type:"action",
+                label:"Asenkron çağrılar için bir hata durumu hedefi (on-failure destination) yapılandır",
+                actionLabel:"Hedef ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Hata durumu hedefi yapılandırıldı — başarısız olaylar artık bir SQS kuyruğuna düşüyor.", loadingMs:600,
+                errorText:"Başarısız asenkron çağrıların yeniden denemeleri tükendikten sonra gidecek hiçbir yeri yok — sadece kayboluyorlar."
+              },
+              { id:"h-concurrency", type:"choice",
+                label:"Kısıtlamanın kendisini durdur",
+                prompt:"Kısıtlamayı gerçekte ne durdurur?",
+                options:[
+                  { key:"nothing", label:"Hiçbir şey — kısıtlama geçicidir ve kendiliğinden çözülür", correct:false, feedback:"Hiçbir şeyi çözmez — trafik yüksek kaldığı sürece eşzamanlılık sınırının üzerindeki çağrıları reddetmeye devam eder." },
+                  { key:"concurrency", label:"Fonksiyonun ayrılmış eşzamanlılık sınırını yükselt", correct:true, feedback:"Yükseltildi — fonksiyon artık bu trafik seviyesine yetecek kadar eşzamanlı örnek çalıştırabiliyor." }
+                ],
+                errorText:"Hata: TooManyRequestsException — fonksiyon hâlâ bu trafik seviyesinin gerektirdiğinin altında sınırlı."
+              },
+              { id:"h-idempotent", type:"action",
+                label:"Tekrar denenen bir olayın iki kez işlenememesi için bir idempotans kontrolü ekle",
+                actionLabel:"İdempotans kontrolü ekle", loadingLabel:"Ekleniyor…", doneLabel:"İdempotans kontrolü eklendi — aynı id'ye sahip tekrar denenen bir olay yeniden işlenmek yerine atlanıyor.", loadingMs:600,
+                errorText:"Tekrar denenen bir olayın iki kez çalışmasını engelleyen hiçbir şey yok — bir kez ücretlendirilen bir müşteri tekrar ücretlendirilebilir."
+              }
+            ]
+          },
+          azure:{
+            title:"Olayları sessizce kaybetmeyi durdur",
+            scenario:"Bu Azure Function bir Storage Queue tetikleyicisinden yükleme olaylarını işliyor. Bir trafik sıçraması altında geride kalmaya başladı, ve tekrar tekrar başarısız olan mesajlar sessizce yerleşik zehir kuyruğuna (poison queue) taşınıyor — o kuyruğu kimse izlemiyor, bu yüzden hatalar gözden kayboluyor.",
+            consoleLabel:"Azure Portal — Function App (simüle edilmiş)",
+            actionBtn:"Başarısız mesajı yeniden oynat",
+            successText:"Başarısız mesaj zehir kuyruğundan kurtarıldı ve yeniden işlendi — artık hiçbir şey sessizce kaybolmuyor.",
+            easySteps:[
+              { id:"e-dlq", type:"action",
+                label:"Zehir kuyruğu üzerinde izleme ve uyarı ekle",
+                actionLabel:"Zehir kuyruğunu izle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Zehir kuyruğunda uyarı yapılandırıldı — başarısız mesajlar artık fark ediliyor.", loadingMs:600,
+                errorText:"Zehir kuyruğu doluyor ve kimse izlemiyor — hatalar görünmez durumda."
+              },
+              { id:"e-concurrency", type:"choice",
+                label:"Fonksiyonun geride kalmasını durdur",
+                prompt:"Onu gerçekte ne yetişik tutar?",
+                options:[
+                  { key:"nothing", label:"Hiçbir şey — Consumption planı kendiliğinden sonsuz ölçeklenir", correct:false, feedback:"Ölçeklenir, ama sonsuz değil — her uygulama başına gerçek bir azami örnek tavanı vardır, ve bu iş yükü ona çarpıyor." },
+                  { key:"maxinstances", label:"Uygulamanın azami örnek sayısını yükselt", correct:true, feedback:"Yükseltildi — uygulama artık bu trafik seviyesine yetecek kadar dışa doğru ölçeklenebiliyor." }
+                ],
+                errorText:"Uygulama hâlâ bu trafik seviyesinin gerektirdiğinin altında sınırlı — mesajlar işlenenden daha hızlı birikmeye devam ediyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bunun gerçekten bir verimlilik sorunu olduğunu doğrula",
+                prompt:"Hangi metrik bunu gerçekten doğruluyor?",
+                options:[
+                  { key:"duration", label:"Ortalama çalışma süresi", correct:false, feedback:"Çalışma süresi her çalışmanın ne kadar sürdüğünü söyler, birikimin neden büyüdüğünü değil." },
+                  { key:"queuelength", label:"Storage kuyruğu mesaj sayısı", correct:true, feedback:"İşte bu — istikrarlı biçimde büyüyen bir kuyruk uzunluğu, fonksiyonun geliş hızına yetişemediği anlamına gelir." }
+                ],
+                errorText:"Bunun gerçekten bir verimlilik sorunu olduğunu doğrulamadan tepki verdiniz."
+              },
+              { id:"h-dlq", type:"action",
+                label:"Zehir kuyruğu üzerinde izleme ve uyarı ekle",
+                actionLabel:"Zehir kuyruğunu izle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Zehir kuyruğunda uyarı yapılandırıldı — başarısız mesajlar artık fark ediliyor.", loadingMs:600,
+                errorText:"Zehir kuyruğu doluyor ve kimse izlemiyor — hatalar görünmez durumda."
+              },
+              { id:"h-concurrency", type:"choice",
+                label:"Fonksiyonun geride kalmasını durdur",
+                prompt:"Onu gerçekte ne yetişik tutar?",
+                options:[
+                  { key:"nothing", label:"Hiçbir şey — Consumption planı kendiliğinden sonsuz ölçeklenir", correct:false, feedback:"Ölçeklenir, ama sonsuz değil — her uygulama başına gerçek bir azami örnek tavanı vardır, ve bu iş yükü ona çarpıyor." },
+                  { key:"maxinstances", label:"Uygulamanın azami örnek sayısını yükselt", correct:true, feedback:"Yükseltildi — uygulama artık bu trafik seviyesine yetecek kadar dışa doğru ölçeklenebiliyor." }
+                ],
+                errorText:"Uygulama hâlâ bu trafik seviyesinin gerektirdiğinin altında sınırlı — mesajlar işlenenden daha hızlı birikmeye devam ediyor."
+              },
+              { id:"h-idempotent", type:"action",
+                label:"Tekrar denenen bir mesajın iki kez işlenememesi için bir idempotans kontrolü ekle",
+                actionLabel:"İdempotans kontrolü ekle", loadingLabel:"Ekleniyor…", doneLabel:"İdempotans kontrolü eklendi — aynı id'ye sahip tekrar denenen bir mesaj yeniden işlenmek yerine atlanıyor.", loadingMs:600,
+                errorText:"Tekrar denenen bir mesajın iki kez çalışmasını engelleyen hiçbir şey yok — bir kez ücretlendirilen bir müşteri tekrar ücretlendirilebilir."
+              }
+            ]
+          },
+          gcp:{
+            title:"Olayları sessizce kaybetmeyi durdur",
+            scenario:"Bu Cloud Function bir Pub/Sub aboneliğinden yükleme olaylarını işliyor. Bir trafik sıçraması altında geride kalmaya başladı, ve aboneliğin tekrar deneme sınırını aşan mesajlar hiçbir ölü mektup konusu yapılandırılmadığı için kalıcı olarak siliniyor.",
+            consoleLabel:"Google Cloud Console — Cloud Functions (simüle edilmiş)",
+            actionBtn:"Başarısız mesajı yeniden oynat",
+            successText:"Başarısız mesaj ölü mektup konusundan kurtarıldı ve yeniden işlendi — artık hiçbir şey sessizce kaybolmuyor.",
+            easySteps:[
+              { id:"e-dlq", type:"action",
+                label:"Abonelik üzerinde bir ölü mektup konusu yapılandır",
+                actionLabel:"Ölü mektup konusu ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Ölü mektup konusu yapılandırıldı — yeniden denemeleri tükenen mesajlar artık yok olmak yerine oraya düşüyor.", loadingMs:600,
+                errorText:"Aboneliğin tekrar deneme sınırını aşan mesajların hâlâ gidecek hiçbir yeri yok — sadece kayboluyorlar."
+              },
+              { id:"e-concurrency", type:"choice",
+                label:"Fonksiyonun geride kalmasını durdur",
+                prompt:"Onu gerçekte ne yetişik tutar?",
+                options:[
+                  { key:"nothing", label:"Hiçbir şey — Cloud Functions kendiliğinden sonsuz ölçeklenir", correct:false, feedback:"Ölçeklenir, ama sonsuz değil — gerçek bir azami örnek ayarı vardır, ve bu iş yükü ona çarpıyor." },
+                  { key:"maxinstances", label:"Fonksiyonun azami örnek ayarını yükselt", correct:true, feedback:"Yükseltildi — fonksiyon artık bu trafik seviyesine yetecek kadar dışa doğru ölçeklenebiliyor." }
+                ],
+                errorText:"Fonksiyon hâlâ bu trafik seviyesinin gerektirdiğinin altında sınırlı — mesajlar işlenenden daha hızlı birikmeye devam ediyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bunun gerçekten bir verimlilik sorunu olduğunu doğrula",
+                prompt:"Hangi metrik bunu gerçekten doğruluyor?",
+                options:[
+                  { key:"duration", label:"Çalışma süresi", correct:false, feedback:"Çalışma süresi her çalışmanın ne kadar sürdüğünü söyler, birikimin neden büyüdüğünü değil." },
+                  { key:"oldest", label:"En eski onaylanmamış mesajın yaşı", correct:true, feedback:"İşte bu — istikrarlı biçimde büyüyen bir en-eski-onaylanmamış yaşı, mesajların fonksiyonun işleyebildiğinden daha hızlı geldiği anlamına gelir." }
+                ],
+                errorText:"Bunun gerçekten bir verimlilik sorunu olduğunu doğrulamadan tepki verdiniz."
+              },
+              { id:"h-dlq", type:"action",
+                label:"Abonelik üzerinde bir ölü mektup konusu yapılandır",
+                actionLabel:"Ölü mektup konusu ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Ölü mektup konusu yapılandırıldı — yeniden denemeleri tükenen mesajlar artık yok olmak yerine oraya düşüyor.", loadingMs:600,
+                errorText:"Aboneliğin tekrar deneme sınırını aşan mesajların hâlâ gidecek hiçbir yeri yok — sadece kayboluyorlar."
+              },
+              { id:"h-concurrency", type:"choice",
+                label:"Fonksiyonun geride kalmasını durdur",
+                prompt:"Onu gerçekte ne yetişik tutar?",
+                options:[
+                  { key:"nothing", label:"Hiçbir şey — Cloud Functions kendiliğinden sonsuz ölçeklenir", correct:false, feedback:"Ölçeklenir, ama sonsuz değil — gerçek bir azami örnek ayarı vardır, ve bu iş yükü ona çarpıyor." },
+                  { key:"maxinstances", label:"Fonksiyonun azami örnek ayarını yükselt", correct:true, feedback:"Yükseltildi — fonksiyon artık bu trafik seviyesine yetecek kadar dışa doğru ölçeklenebiliyor." }
+                ],
+                errorText:"Fonksiyon hâlâ bu trafik seviyesinin gerektirdiğinin altında sınırlı — mesajlar işlenenden daha hızlı birikmeye devam ediyor."
+              },
+              { id:"h-idempotent", type:"action",
+                label:"Tekrar denenen bir mesajın iki kez işlenememesi için bir idempotans kontrolü ekle",
+                actionLabel:"İdempotans kontrolü ekle", loadingLabel:"Ekleniyor…", doneLabel:"İdempotans kontrolü eklendi — aynı id'ye sahip tekrar denenen bir mesaj yeniden işlenmek yerine atlanıyor.", loadingMs:600,
+                errorText:"Tekrar denenen bir mesajın iki kez çalışmasını engelleyen hiçbir şey yok — bir kez ücretlendirilen bir müşteri tekrar ücretlendirilebilir."
+              }
+            ]
+          }
+        },
+        lb:{
+          aws:{
+            title:"Ölçeği-daraltma ölüm sarmalını kır",
+            scenario:"Yeni örnekler daha başlamayı bile bitirmeden sağlıksız işaretlenip sonlandırılıyor — Otomatik Ölçeklendirme grubu, hiçbirinin çevrimiçi olamayacağı kadar hızlı örnek değiştirmekte takılı kaldı, ve kapasite düşmeye devam ediyor.",
+            consoleLabel:"AWS EC2 Auto Scaling Console (simüle edilmiş)",
+            actionBtn:"Grubun kararlı olduğunu doğrula",
+            successText:"Yeni örnekler sağlık kontrollerini geçiyor ve ayakta kalıyor — grup tam kapasitede kararlı.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Yeni örnekleri gerçekte neyin öldürdüğünü doğrula",
+                prompt:"Örneğin sağlık kontrolü geçmişi ne gösteriyor?",
+                options:[
+                  { key:"appcrash", label:"Uygulama başlangıçta çöküyor", correct:false, feedback:"Uygulama günlükleri düzgün başladığını gösteriyor — sadece yavaş. Bu değil." },
+                  { key:"tooearly", label:"Sağlık kontrolü, uygulama başlamayı bitirmeden önce çalışıyor", correct:true, feedback:"İşte bu — sağlık kontrolünün uygulamanın daha fazla zamana ihtiyacı olduğundan haberi yok." }
+                ],
+                errorText:"Yeni örneklerin gerçekte neden sağlık kontrollerini geçemediğini doğrulamadan tepki verdiniz."
+              },
+              { id:"e-grace", type:"action",
+                label:"Uygulamanın gerçekten başlamayı bitirmesine yetecek kadar uzun bir sağlık kontrolü tolerans süresi ayarla",
+                actionLabel:"Tolerans süresi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Sağlık kontrolü tolerans süresi uzatıldı — yeni örnekler değerlendirilmeden önce başlamak için zaman kazanıyor.", loadingMs:600,
+                errorText:"Yeni örnekler hâlâ başlamayı bitirme şansı bulamadan sağlık kontrolünden geçiriliyor — ve öldürülüyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Yeni örnekleri gerçekte neyin öldürdüğünü doğrula",
+                prompt:"Örneğin sağlık kontrolü geçmişi ne gösteriyor?",
+                options:[
+                  { key:"appcrash", label:"Uygulama başlangıçta çöküyor", correct:false, feedback:"Uygulama günlükleri düzgün başladığını gösteriyor — sadece yavaş. Bu değil." },
+                  { key:"tooearly", label:"Sağlık kontrolü, uygulama başlamayı bitirmeden önce çalışıyor", correct:true, feedback:"İşte bu — sağlık kontrolünün uygulamanın daha fazla zamana ihtiyacı olduğundan haberi yok." }
+                ],
+                errorText:"Yeni örneklerin gerçekte neden sağlık kontrollerini geçemediğini doğrulamadan tepki verdiniz."
+              },
+              { id:"h-grace", type:"action",
+                label:"Uygulamanın gerçekten başlamayı bitirmesine yetecek kadar uzun bir sağlık kontrolü tolerans süresi ayarla",
+                actionLabel:"Tolerans süresi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Sağlık kontrolü tolerans süresi uzatıldı — yeni örnekler değerlendirilmeden önce başlamak için zaman kazanıyor.", loadingMs:600,
+                errorText:"Yeni örnekler hâlâ başlamayı bitirme şansı bulamadan sağlık kontrolünden geçiriliyor — ve öldürülüyor."
+              },
+              { id:"h-threshold", type:"choice",
+                label:"Sadece zamanlamayı değil, eşiklerin kendisini de düzelt",
+                prompt:"Sağlık kontrolünde başka ne çok agresif?",
+                options:[
+                  { key:"tighten", label:"Sağlıksız eşiğini düşürerek kötü örnekleri daha da hızlı yakala", correct:false, feedback:"Bu sarmalı daha da kötüleştirir — örnekler daha da az kanıtla öldürülür." },
+                  { key:"raise", label:"Bir örneği mahkum etmek için daha fazla ardışık başarısızlık gerekecek şekilde sağlıksız eşiğini yükselt", correct:true, feedback:"Yükseltildi — tek bir yavaş yanıt artık aksi halde sorunsuz bir örneği mahkum etmiyor." }
+                ],
+                errorText:"Sağlıksız eşiği hâlâ o kadar sıkı ki sıradan başlangıç titremesi bile sağlıklı bir örneği mahkum edebiliyor."
+              },
+              { id:"h-cooldown", type:"action",
+                label:"Grubun aynı arıza döngüsüne hemen başka bir yedek fırlatmaması için bir ölçeklendirme soğuma süresi ayarla",
+                actionLabel:"Soğuma süresi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Ölçeklendirme soğuma süresi ayarlandı — grup her yeni örneğe tekrar tepki vermeden önce sakinleşmesi için alan tanıyor.", loadingMs:600,
+                errorText:"Soğuma süresi olmadan, grup her tek örnek değişimine yeniden fırlatma ya da sonlandırma için taze bir sinyal olarak tepki vermeye devam ediyor."
+              }
+            ]
+          },
+          azure:{
+            title:"Ölçeği-daraltma ölüm sarmalını kır",
+            scenario:"Yeni VM örnekleri daha başlamayı bile bitirmeden sağlıksız işaretlenip kaldırılıyor — ölçek kümesi, hiçbirinin çevrimiçi olamayacağı kadar hızlı örnek değiştirmekte takılı kaldı, ve kapasite düşmeye devam ediyor.",
+            consoleLabel:"Azure Portal — Sanal makine ölçek kümesi (simüle edilmiş)",
+            actionBtn:"Ölçek kümesinin kararlı olduğunu doğrula",
+            successText:"Yeni örnekler sağlık kontrollerini geçiyor ve ayakta kalıyor — ölçek kümesi tam kapasitede kararlı.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Yeni örnekleri gerçekte neyin kaldırdığını doğrula",
+                prompt:"Örneğin sağlık geçmişi ne gösteriyor?",
+                options:[
+                  { key:"appcrash", label:"Uygulama başlangıçta çöküyor", correct:false, feedback:"Uygulama günlükleri düzgün başladığını gösteriyor — sadece yavaş. Bu değil." },
+                  { key:"tooearly", label:"Sağlık probu, uygulama başlamayı bitirmeden önce çalışıyor", correct:true, feedback:"İşte bu — probun uygulamanın daha fazla zamana ihtiyacı olduğundan haberi yok." }
+                ],
+                errorText:"Yeni örneklerin gerçekte neden sağlık probunu geçemediğini doğrulamadan tepki verdiniz."
+              },
+              { id:"e-grace", type:"action",
+                label:"Application Health uzantısının tolerans süresini, uygulamanın gerçekten başlamayı bitirmesine yetecek kadar uzun ayarla",
+                actionLabel:"Tolerans süresi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Tolerans süresi uzatıldı — yeni örnekler değerlendirilmeden önce başlamak için zaman kazanıyor.", loadingMs:600,
+                errorText:"Yeni örnekler hâlâ başlamayı bitirme şansı bulamadan sağlık probundan geçiriliyor — ve kaldırılıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Yeni örnekleri gerçekte neyin kaldırdığını doğrula",
+                prompt:"Örneğin sağlık geçmişi ne gösteriyor?",
+                options:[
+                  { key:"appcrash", label:"Uygulama başlangıçta çöküyor", correct:false, feedback:"Uygulama günlükleri düzgün başladığını gösteriyor — sadece yavaş. Bu değil." },
+                  { key:"tooearly", label:"Sağlık probu, uygulama başlamayı bitirmeden önce çalışıyor", correct:true, feedback:"İşte bu — probun uygulamanın daha fazla zamana ihtiyacı olduğundan haberi yok." }
+                ],
+                errorText:"Yeni örneklerin gerçekte neden sağlık probunu geçemediğini doğrulamadan tepki verdiniz."
+              },
+              { id:"h-grace", type:"action",
+                label:"Application Health uzantısının tolerans süresini, uygulamanın gerçekten başlamayı bitirmesine yetecek kadar uzun ayarla",
+                actionLabel:"Tolerans süresi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Tolerans süresi uzatıldı — yeni örnekler değerlendirilmeden önce başlamak için zaman kazanıyor.", loadingMs:600,
+                errorText:"Yeni örnekler hâlâ başlamayı bitirme şansı bulamadan sağlık probundan geçiriliyor — ve kaldırılıyor."
+              },
+              { id:"h-threshold", type:"choice",
+                label:"Sadece zamanlamayı değil, eşiklerin kendisini de düzelt",
+                prompt:"Sağlık probunda başka ne çok agresif?",
+                options:[
+                  { key:"tighten", label:"Sağlıksız eşiğini düşürerek kötü örnekleri daha da hızlı yakala", correct:false, feedback:"Bu sarmalı daha da kötüleştirir — örnekler daha da az kanıtla kaldırılır." },
+                  { key:"raise", label:"Bir örneği mahkum etmek için daha fazla ardışık başarısızlık gerekecek şekilde sağlıksız eşiğini yükselt", correct:true, feedback:"Yükseltildi — tek bir yavaş yanıt artık aksi halde sorunsuz bir örneği mahkum etmiyor." }
+                ],
+                errorText:"Sağlıksız eşiği hâlâ o kadar sıkı ki sıradan başlangıç titremesi bile sağlıklı bir örneği mahkum edebiliyor."
+              },
+              { id:"h-cooldown", type:"action",
+                label:"Kümenin aynı arıza döngüsüne hemen başka bir örnek değiştirmemesi için bir ölçek-daraltma soğuma süresi ayarla",
+                actionLabel:"Soğuma süresi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Soğuma süresi ayarlandı — ölçek kümesi her yeni örneğe tekrar tepki vermeden önce sakinleşmesi için alan tanıyor.", loadingMs:600,
+                errorText:"Soğuma süresi olmadan, ölçek kümesi her tek örnek değişimine yeniden ölçeklendirmek için taze bir sinyal olarak tepki vermeye devam ediyor."
+              }
+            ]
+          },
+          gcp:{
+            title:"Ölçeği-daraltma ölüm sarmalını kır",
+            scenario:"Yeni örnekler daha başlamayı bile bitirmeden sağlıksız işaretlenip yeniden oluşturuluyor — yönetilen örnek grubu, hiçbirinin çevrimiçi olamayacağı kadar hızlı örnek değiştirmekte takılı kaldı, ve kapasite düşmeye devam ediyor.",
+            consoleLabel:"Google Cloud Console — Örnek grupları (simüle edilmiş)",
+            actionBtn:"Grubun kararlı olduğunu doğrula",
+            successText:"Yeni örnekler sağlık kontrollerini geçiyor ve ayakta kalıyor — grup tam kapasitede kararlı.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Yeni örnekleri gerçekte neyin öldürdüğünü doğrula",
+                prompt:"Örneğin sağlık kontrolü geçmişi ne gösteriyor?",
+                options:[
+                  { key:"appcrash", label:"Uygulama başlangıçta çöküyor", correct:false, feedback:"Uygulama günlükleri düzgün başladığını gösteriyor — sadece yavaş. Bu değil." },
+                  { key:"tooearly", label:"Sağlık kontrolü, uygulama başlamayı bitirmeden önce çalışıyor", correct:true, feedback:"İşte bu — sağlık kontrolünün uygulamanın daha fazla zamana ihtiyacı olduğundan haberi yok." }
+                ],
+                errorText:"Yeni örneklerin gerçekte neden sağlık kontrollerini geçemediğini doğrulamadan tepki verdiniz."
+              },
+              { id:"e-grace", type:"action",
+                label:"Sağlık kontrolünün başlangıç gecikmesini, uygulamanın gerçekten başlamayı bitirmesine yetecek kadar uzun ayarla",
+                actionLabel:"Başlangıç gecikmesi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Başlangıç gecikmesi uzatıldı — yeni örnekler değerlendirilmeden önce başlamak için zaman kazanıyor.", loadingMs:600,
+                errorText:"Yeni örnekler hâlâ başlamayı bitirme şansı bulamadan sağlık kontrolünden geçiriliyor — ve yeniden oluşturuluyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Yeni örnekleri gerçekte neyin öldürdüğünü doğrula",
+                prompt:"Örneğin sağlık kontrolü geçmişi ne gösteriyor?",
+                options:[
+                  { key:"appcrash", label:"Uygulama başlangıçta çöküyor", correct:false, feedback:"Uygulama günlükleri düzgün başladığını gösteriyor — sadece yavaş. Bu değil." },
+                  { key:"tooearly", label:"Sağlık kontrolü, uygulama başlamayı bitirmeden önce çalışıyor", correct:true, feedback:"İşte bu — sağlık kontrolünün uygulamanın daha fazla zamana ihtiyacı olduğundan haberi yok." }
+                ],
+                errorText:"Yeni örneklerin gerçekte neden sağlık kontrollerini geçemediğini doğrulamadan tepki verdiniz."
+              },
+              { id:"h-grace", type:"action",
+                label:"Sağlık kontrolünün başlangıç gecikmesini, uygulamanın gerçekten başlamayı bitirmesine yetecek kadar uzun ayarla",
+                actionLabel:"Başlangıç gecikmesi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Başlangıç gecikmesi uzatıldı — yeni örnekler değerlendirilmeden önce başlamak için zaman kazanıyor.", loadingMs:600,
+                errorText:"Yeni örnekler hâlâ başlamayı bitirme şansı bulamadan sağlık kontrolünden geçiriliyor — ve yeniden oluşturuluyor."
+              },
+              { id:"h-threshold", type:"choice",
+                label:"Sadece zamanlamayı değil, eşiklerin kendisini de düzelt",
+                prompt:"Sağlık kontrolünde başka ne çok agresif?",
+                options:[
+                  { key:"tighten", label:"Sağlıksız eşiğini düşürerek kötü örnekleri daha da hızlı yakala", correct:false, feedback:"Bu sarmalı daha da kötüleştirir — örnekler daha da az kanıtla yeniden oluşturulur." },
+                  { key:"raise", label:"Bir örneği mahkum etmek için daha fazla ardışık başarısızlık gerekecek şekilde sağlıksız eşiğini yükselt", correct:true, feedback:"Yükseltildi — tek bir yavaş yanıt artık aksi halde sorunsuz bir örneği mahkum etmiyor." }
+                ],
+                errorText:"Sağlıksız eşiği hâlâ o kadar sıkı ki sıradan başlangıç titremesi bile sağlıklı bir örneği mahkum edebiliyor."
+              },
+              { id:"h-cooldown", type:"action",
+                label:"Grubun aynı arıza döngüsüne hemen başka bir örnek yeniden oluşturmaması için bir soğuma süresi ayarla",
+                actionLabel:"Soğuma süresi ayarla", loadingLabel:"Uygulanıyor…", doneLabel:"Soğuma süresi ayarlandı — grup her yeni örneğe tekrar tepki vermeden önce sakinleşmesi için alan tanıyor.", loadingMs:600,
+                errorText:"Soğuma süresi olmadan, grup her tek örnek değişimine yeniden tepki vermek için taze bir sinyal olarak tepki vermeye devam ediyor."
+              }
+            ]
+          }
+        },
+        beanstalk:{
+          aws:{
+            title:"Bunu önleyecek dağıtım politikasını seç",
+            scenario:"Son dağıtım kötü bir ortam değişkenini doğrudan tüm örneklere birden gönderdi — dağıtım politikası \"Hepsi bir anda\" olarak ayarlandığı için tüm ortam saniyeler içinde sağlıksız hale geldi.",
+            consoleLabel:"AWS Elastic Beanstalk Console (simüle edilmiş)",
+            actionBtn:"Ortamın sağlıklı olduğunu doğrula",
+            successText:"Ortam tekrar sağlıklı, ve bir sonraki kötü dağıtım onu hepsini bir anda çökertemeyecek.",
+            easySteps:[
+              { id:"e-rollback", type:"action",
+                label:"Önceki uygulama sürümüne geri dön",
+                actionLabel:"Geri al", loadingLabel:"Geri alınıyor…", doneLabel:"Geri alındı — ortam tekrar son bilinen iyi sürümü çalıştırıyor.", loadingMs:600,
+                errorText:"Ortam hâlâ onu bozan sürümü çalıştırıyor."
+              },
+              { id:"e-policy", type:"choice",
+                label:"Bunun olmasına izin vermeyecek bir dağıtım politikası seç",
+                prompt:"Hangi politika kötü bir dağıtımın etki alanını gerçekten sınırlar?",
+                options:[
+                  { key:"allatonce", label:"\"Hepsi bir anda\"yı koru", correct:false, feedback:"Tam olarak tek bir kötü ortam değişkenini saniyeler içinde tam bir kesintiye dönüştüren politika bu." },
+                  { key:"immutable", label:"\"Değişmez (Immutable)\"e geç", correct:true, feedback:"Değişmez, eskilerin yanına tam yeni bir örnek seti dağıtır ve sadece sağlık kontrollerini geçtikten sonra trafiği devreder — kötü bir sürüm asla canlı trafiğe dokunmaz." }
+                ],
+                errorText:"Dağıtım politikası hâlâ \"Hepsi bir anda\" — bir sonraki kötü dağıtım yine tüm örnekleri birlikte çökertecek."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Tam nedeni doğrulamak için ortam olay günlüğünü kontrol et",
+                actionLabel:"Olay günlüğünü kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı: yeni ortam değişkeni, uygulamanın başlangıcını tüm örneklerde eşzamanlı olarak bozdu.", loadingMs:500,
+                errorText:"Kimse gerçekte neyin bozulduğunu doğrulamadı — körlemesine geri almadan önce bir bakışa değer."
+              },
+              { id:"h-rollback", type:"action",
+                label:"Önceki uygulama sürümüne geri dön",
+                actionLabel:"Geri al", loadingLabel:"Geri alınıyor…", doneLabel:"Geri alındı — ortam tekrar son bilinen iyi sürümü çalıştırıyor.", loadingMs:600,
+                errorText:"Ortam hâlâ onu bozan sürümü çalıştırıyor."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Bunun olmasına izin vermeyecek bir dağıtım politikası seç",
+                prompt:"Hangi politika kötü bir dağıtımın etki alanını gerçekten sınırlar?",
+                options:[
+                  { key:"allatonce", label:"\"Hepsi bir anda\"yı koru", correct:false, feedback:"Tam olarak tek bir kötü ortam değişkenini saniyeler içinde tam bir kesintiye dönüştüren politika bu." },
+                  { key:"immutable", label:"\"Değişmez (Immutable)\"e geç", correct:true, feedback:"Değişmez, eskilerin yanına tam yeni bir örnek seti dağıtır ve sadece sağlık kontrollerini geçtikten sonra trafiği devreder — kötü bir sürüm asla canlı trafiğe dokunmaz." }
+                ],
+                errorText:"Dağıtım politikası hâlâ \"Hepsi bir anda\" — bir sonraki kötü dağıtım yine tüm örnekleri birlikte çökertecek."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Bir müşterinin fark etmesini beklemek yerine kötü bir dağıtımın birini çağırması için bir ortam sağlığı alarmı ekle",
+                actionLabel:"Sağlık alarmı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Ortam sağlığı alarmı yapılandırıldı.", loadingMs:500,
+                errorText:"Ortam sağlığı bozulduğunda kimseyi çağıran hiçbir şey yok — ekip bunu izlemeden değil müşterilerden öğreniyor."
+              }
+            ]
+          },
+          azure:{
+            title:"Bunu önleyecek dağıtım politikasını seç",
+            scenario:"Son dağıtım doğrudan üretim yuvasına gitti — hiç aşama (staging) yuvası yok, hiç takas (swap) yok — bu yüzden kötü yapılandırma iner inmez tüm uygulama çöktü.",
+            consoleLabel:"Azure Portal — App Service (simüle edilmiş)",
+            actionBtn:"Uygulamanın sağlıklı olduğunu doğrula",
+            successText:"Uygulama tekrar sağlıklı, ve bir sonraki kötü dağıtım üretime ulaşmadan önce aşama yuvasında doğrulanabilir.",
+            easySteps:[
+              { id:"e-rollback", type:"action",
+                label:"Önceki üretim sürümüne geri takas et",
+                actionLabel:"Geri takas et", loadingLabel:"Takas ediliyor…", doneLabel:"Geri takas edildi — üretim tekrar son bilinen iyi sürümü çalıştırıyor.", loadingMs:600,
+                errorText:"Üretim hâlâ onu bozan sürümü çalıştırıyor."
+              },
+              { id:"e-policy", type:"choice",
+                label:"Bunun olmasına izin vermeyecek bir dağıtım yaklaşımı seç",
+                prompt:"Hangi yaklaşım kötü bir dağıtımın etki alanını gerçekten sınırlar?",
+                options:[
+                  { key:"direct", label:"Doğrudan üretim yuvasına dağıtmaya devam et", correct:false, feedback:"Tam olarak tek bir kötü yapılandırma değişikliğini saniyeler içinde tam bir kesintiye dönüştüren yaklaşım bu." },
+                  { key:"slot", label:"Önce bir aşama yuvasına dağıt, doğrula, sonra takas et", correct:true, feedback:"Bir aşama yuvası, sahne arkasında yeni sürümü doğrulamanıza izin verir — kötü bir sürüm, biri gerçekten sağlıklı olduğunu onaylayana kadar asla canlı trafiğe dokunmaz." }
+                ],
+                errorText:"Dağıtımlar hâlâ doğrudan üretime gidiyor — bir sonraki kötü yapılandırma değişikliği yine tüm uygulamayı çökertecek."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Tam nedeni doğrulamak için dağıtım günlüğünü kontrol et",
+                actionLabel:"Dağıtım günlüğünü kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı: yeni uygulama ayarı, uygulamanın başlangıcını tüm örneklerde eşzamanlı olarak bozdu.", loadingMs:500,
+                errorText:"Kimse gerçekte neyin bozulduğunu doğrulamadı — körlemesine geri almadan önce bir bakışa değer."
+              },
+              { id:"h-rollback", type:"action",
+                label:"Önceki üretim sürümüne geri takas et",
+                actionLabel:"Geri takas et", loadingLabel:"Takas ediliyor…", doneLabel:"Geri takas edildi — üretim tekrar son bilinen iyi sürümü çalıştırıyor.", loadingMs:600,
+                errorText:"Üretim hâlâ onu bozan sürümü çalıştırıyor."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Bunun olmasına izin vermeyecek bir dağıtım yaklaşımı seç",
+                prompt:"Hangi yaklaşım kötü bir dağıtımın etki alanını gerçekten sınırlar?",
+                options:[
+                  { key:"direct", label:"Doğrudan üretim yuvasına dağıtmaya devam et", correct:false, feedback:"Tam olarak tek bir kötü yapılandırma değişikliğini saniyeler içinde tam bir kesintiye dönüştüren yaklaşım bu." },
+                  { key:"slot", label:"Önce bir aşama yuvasına dağıt, doğrula, sonra takas et", correct:true, feedback:"Bir aşama yuvası, sahne arkasında yeni sürümü doğrulamanıza izin verir — kötü bir sürüm, biri gerçekten sağlıklı olduğunu onaylayana kadar asla canlı trafiğe dokunmaz." }
+                ],
+                errorText:"Dağıtımlar hâlâ doğrudan üretime gidiyor — bir sonraki kötü yapılandırma değişikliği yine tüm uygulamayı çökertecek."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Bir müşterinin fark etmesini beklemek yerine kötü bir dağıtımın birini çağırması için bir Application Insights kullanılabilirlik uyarısı ekle",
+                actionLabel:"Kullanılabilirlik uyarısı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Kullanılabilirlik uyarısı yapılandırıldı.", loadingMs:500,
+                errorText:"Uygulama yanıt vermeyi kestiğinde kimseyi çağıran hiçbir şey yok — ekip bunu izlemeden değil müşterilerden öğreniyor."
+              }
+            ]
+          },
+          gcp:{
+            title:"Bunu önleyecek dağıtım politikasını seç",
+            scenario:"Son dağıtım, dağıtımı bitirir bitirmez trafiğin %100'ünü yeni sürüme kaydırdı — kademeli bir bölme yok, doğrulama yok — bu yüzden kötü yapılandırma iner inmez tüm uygulama çöktü.",
+            consoleLabel:"Google Cloud Console — App Engine sürümleri (simüle edilmiş)",
+            actionBtn:"Uygulamanın sağlıklı olduğunu doğrula",
+            successText:"Uygulama tekrar sağlıklı, ve bir sonraki kötü dağıtım herkese ulaşmadan önce trafiğin küçük bir diliminde doğrulanabilir.",
+            easySteps:[
+              { id:"e-rollback", type:"action",
+                label:"Trafiği önceki sürüme geri kaydır",
+                actionLabel:"Trafiği geri kaydır", loadingLabel:"Kaydırılıyor…", doneLabel:"Trafik geri kaydırıldı — uygulama tekrar son bilinen iyi sürümü çalıştırıyor.", loadingMs:600,
+                errorText:"Trafik hâlâ onu bozan sürüme gidiyor."
+              },
+              { id:"e-policy", type:"choice",
+                label:"Bunun olmasına izin vermeyecek bir yayılım yaklaşımı seç",
+                prompt:"Hangi yaklaşım kötü bir dağıtımın etki alanını gerçekten sınırlar?",
+                options:[
+                  { key:"allatonce", label:"Trafiğin %100'ünü hemen yeni bir sürüme kaydırmaya devam et", correct:false, feedback:"Tam olarak tek bir kötü yapılandırma değişikliğini saniyeler içinde tam bir kesintiye dönüştüren yaklaşım bu." },
+                  { key:"split", label:"Trafiği eski ve yeni sürüm arasında kademeli olarak böl, ve %100'e gitmeden önce izle", correct:true, feedback:"Kademeli bir trafik bölmesi, kötü bir sürümün biri tamamen taahhüt etmeden önce gerçek trafiğin sadece küçük bir dilimini görmesi anlamına gelir." }
+                ],
+                errorText:"Dağıtımlar hâlâ trafiğin %100'ünü bir anda kaydırıyor — bir sonraki kötü yapılandırma değişikliği yine tüm uygulamayı çökertecek."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Tam nedeni doğrulamak için sürümün günlüklerini kontrol et",
+                actionLabel:"Günlükleri kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı: yeni ortam değişkeni, uygulamanın başlangıcını tüm örneklerde eşzamanlı olarak bozdu.", loadingMs:500,
+                errorText:"Kimse gerçekte neyin bozulduğunu doğrulamadı — körlemesine geri almadan önce bir bakışa değer."
+              },
+              { id:"h-rollback", type:"action",
+                label:"Trafiği önceki sürüme geri kaydır",
+                actionLabel:"Trafiği geri kaydır", loadingLabel:"Kaydırılıyor…", doneLabel:"Trafik geri kaydırıldı — uygulama tekrar son bilinen iyi sürümü çalıştırıyor.", loadingMs:600,
+                errorText:"Trafik hâlâ onu bozan sürüme gidiyor."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Bunun olmasına izin vermeyecek bir yayılım yaklaşımı seç",
+                prompt:"Hangi yaklaşım kötü bir dağıtımın etki alanını gerçekten sınırlar?",
+                options:[
+                  { key:"allatonce", label:"Trafiğin %100'ünü hemen yeni bir sürüme kaydırmaya devam et", correct:false, feedback:"Tam olarak tek bir kötü yapılandırma değişikliğini saniyeler içinde tam bir kesintiye dönüştüren yaklaşım bu." },
+                  { key:"split", label:"Trafiği eski ve yeni sürüm arasında kademeli olarak böl, ve %100'e gitmeden önce izle", correct:true, feedback:"Kademeli bir trafik bölmesi, kötü bir sürümün biri tamamen taahhüt etmeden önce gerçek trafiğin sadece küçük bir dilimini görmesi anlamına gelir." }
+                ],
+                errorText:"Dağıtımlar hâlâ trafiğin %100'ünü bir anda kaydırıyor — bir sonraki kötü yapılandırma değişikliği yine tüm uygulamayı çökertecek."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Bir müşterinin fark etmesini beklemek yerine kötü bir dağıtımın birini çağırması için bir çalışma süresi kontrolü uyarısı ekle",
+                actionLabel:"Çalışma süresi uyarısı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Çalışma süresi kontrolü uyarısı yapılandırıldı.", loadingMs:500,
+                errorText:"Uygulama yanıt vermeyi kestiğinde kimseyi çağıran hiçbir şey yok — ekip bunu izlemeden değil müşterilerden öğreniyor."
+              }
+            ]
+          }
+        },
+        cache:{
+          aws:{
+            title:"Önbelleğin başka bir kullanıcının yanıtını sızdırmasını durdur",
+            scenario:"Bir destek talebi, bir müşterinin kişisel olması gereken bir sayfada başka birinin hesap verilerini gördüğünü söylüyor. Sayfa CloudFront üzerinden sunuluyor, ve önbelleklenebilir.",
+            consoleLabel:"AWS CloudFront Console (simüle edilmiş)",
+            actionBtn:"Sızıntının düzeltildiğini doğrula",
+            successText:"Kişiselleştirilmiş yanıtlar artık önbelleğe alınmıyor ve kullanıcılar arasında paylaşılmıyor — sızıntı kapandı.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Bunun gerçekte neden olduğunu doğrula",
+                prompt:"Gerçekte ne oluyor?",
+                options:[
+                  { key:"dbbug", label:"Uygulamanın veritabanında hesapları karıştıran bir hata var", correct:false, feedback:"Veritabanı doğru istek için doğru veriyi döndürüyor — sorun bundan sonra oluyor." },
+                  { key:"cachekey", label:"CloudFront'un önbellek anahtarı kullanıcıya göre değişmiyor — bu URL'ye gelen her isteği aynı kabul ediyor", correct:true, feedback:"İşte bu — ilk kullanıcının kişiselleştirilmiş yanıtı önbelleğe alındı, ve CloudFront o zamandan beri aynı URL'ye gelen herkese onu sunuyor." }
+                ],
+                errorText:"Önbellek yapılandırmasına dokunmadan önce bunun gerçekte neden olduğunu doğrulamadınız."
+              },
+              { id:"e-headers", type:"action",
+                label:"Bu yanıtı özel ve önbelleklenemez olarak işaretlemesi için origin'i güncelle",
+                actionLabel:"Yanıt başlıklarını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Origin artık bu yanıtta Cache-Control: private, no-store gönderiyor — her kullanıcı kendi canlı yanıtını alıyor.", loadingMs:600,
+                errorText:"Bu yanıt hâlâ önbelleğe alınıyor ve o URL'yi sıradaki isteyen kullanıcıya sunuluyor, onun olsun olmasın."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bunun gerçekte neden olduğunu doğrula",
+                prompt:"Gerçekte ne oluyor?",
+                options:[
+                  { key:"dbbug", label:"Uygulamanın veritabanında hesapları karıştıran bir hata var", correct:false, feedback:"Veritabanı doğru istek için doğru veriyi döndürüyor — sorun bundan sonra oluyor." },
+                  { key:"cachekey", label:"CloudFront'un önbellek anahtarı kullanıcıya göre değişmiyor — bu URL'ye gelen her isteği aynı kabul ediyor", correct:true, feedback:"İşte bu — ilk kullanıcının kişiselleştirilmiş yanıtı önbelleğe alındı, ve CloudFront o zamandan beri aynı URL'ye gelen herkese onu sunuyor." }
+                ],
+                errorText:"Önbellek yapılandırmasına dokunmadan önce bunun gerçekte neden olduğunu doğrulamadınız."
+              },
+              { id:"h-headers", type:"action",
+                label:"Bu yanıtı özel ve önbelleklenemez olarak işaretlemesi için origin'i güncelle",
+                actionLabel:"Yanıt başlıklarını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Origin artık bu yanıtta Cache-Control: private, no-store gönderiyor — her kullanıcı kendi canlı yanıtını alıyor.", loadingMs:600,
+                errorText:"Bu yanıt hâlâ önbelleğe alınıyor ve o URL'yi sıradaki isteyen kullanıcıya sunuluyor, onun olsun olmasın."
+              },
+              { id:"h-invalidate", type:"choice",
+                label:"Şu anda zaten önbellekte olan kopyalar için ne yapılacağına karar ver",
+                prompt:"Zaten canlı olan sızıntı hakkında ne yapılmalı?",
+                options:[
+                  { key:"wait", label:"Önbelleğe alınmış kopyaların kendiliğinden süresinin dolmasını bekle", correct:false, feedback:"Bu girdilerin önbellekte oturduğu her dakika, yanlış kişinin başka birinin verisini yükleyebileceği bir dakika daha demek." },
+                  { key:"invalidate", label:"Bu yol için önbelleğe alınmış girdileri hemen geçersiz kıl", correct:true, feedback:"Geçersiz kılındı — sızıntı, kalan TTL süresince azalarak devam etmek yerine hemen duruyor." }
+                ],
+                errorText:"Düzeltmeden önceki önbelleğe alınmış kopyalar hâlâ canlı ve hâlâ sunulabilir."
+              },
+              { id:"h-monitor", type:"action",
+                label:"Gelecekteki bir yanlış yapılandırmanın hızlıca yakalanması için bu davranış yolunda önbellek isabet günlüğünü aç",
+                actionLabel:"Günlüğü etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Günlük etkinleştirildi — gelecekteki bir kişiselleştirilmiş-yanıt-önbellekleme hatası bir destek talebi beklemek yerine hızlıca ortaya çıkacak.", loadingMs:500,
+                errorText:"Bu yolun olmaması gerektiği şekilde önbelleğe alınıp alınmadığına dair hâlâ hiçbir görünürlük yok — şu anki tek sinyal bir müşteri şikayeti."
+              }
+            ]
+          },
+          azure:{
+            title:"Önbelleğin başka bir kullanıcının yanıtını sızdırmasını durdur",
+            scenario:"Bir destek talebi, bir müşterinin kişisel olması gereken bir sayfada başka birinin hesap verilerini gördüğünü söylüyor. Sayfa Azure Front Door üzerinden sunuluyor, ve önbelleklenebilir.",
+            consoleLabel:"Azure Portal — Front Door (simüle edilmiş)",
+            actionBtn:"Sızıntının düzeltildiğini doğrula",
+            successText:"Kişiselleştirilmiş yanıtlar artık önbelleğe alınmıyor ve kullanıcılar arasında paylaşılmıyor — sızıntı kapandı.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Bunun gerçekte neden olduğunu doğrula",
+                prompt:"Gerçekte ne oluyor?",
+                options:[
+                  { key:"dbbug", label:"Uygulamanın veritabanında hesapları karıştıran bir hata var", correct:false, feedback:"Veritabanı doğru istek için doğru veriyi döndürüyor — sorun bundan sonra oluyor." },
+                  { key:"cachekey", label:"Front Door'un önbellek anahtarı kullanıcıya göre değişmiyor — bu URL'ye gelen her isteği aynı kabul ediyor", correct:true, feedback:"İşte bu — ilk kullanıcının kişiselleştirilmiş yanıtı önbelleğe alındı, ve Front Door o zamandan beri aynı URL'ye gelen herkese onu sunuyor." }
+                ],
+                errorText:"Önbellek yapılandırmasına dokunmadan önce bunun gerçekte neden olduğunu doğrulamadınız."
+              },
+              { id:"e-headers", type:"action",
+                label:"Bu yanıtı özel ve önbelleklenemez olarak işaretlemesi için origin'i güncelle",
+                actionLabel:"Yanıt başlıklarını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Origin artık bu yanıtta Cache-Control: private, no-store gönderiyor — her kullanıcı kendi canlı yanıtını alıyor.", loadingMs:600,
+                errorText:"Bu yanıt hâlâ önbelleğe alınıyor ve o URL'yi sıradaki isteyen kullanıcıya sunuluyor, onun olsun olmasın."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bunun gerçekte neden olduğunu doğrula",
+                prompt:"Gerçekte ne oluyor?",
+                options:[
+                  { key:"dbbug", label:"Uygulamanın veritabanında hesapları karıştıran bir hata var", correct:false, feedback:"Veritabanı doğru istek için doğru veriyi döndürüyor — sorun bundan sonra oluyor." },
+                  { key:"cachekey", label:"Front Door'un önbellek anahtarı kullanıcıya göre değişmiyor — bu URL'ye gelen her isteği aynı kabul ediyor", correct:true, feedback:"İşte bu — ilk kullanıcının kişiselleştirilmiş yanıtı önbelleğe alındı, ve Front Door o zamandan beri aynı URL'ye gelen herkese onu sunuyor." }
+                ],
+                errorText:"Önbellek yapılandırmasına dokunmadan önce bunun gerçekte neden olduğunu doğrulamadınız."
+              },
+              { id:"h-headers", type:"action",
+                label:"Bu yanıtı özel ve önbelleklenemez olarak işaretlemesi için origin'i güncelle",
+                actionLabel:"Yanıt başlıklarını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Origin artık bu yanıtta Cache-Control: private, no-store gönderiyor — her kullanıcı kendi canlı yanıtını alıyor.", loadingMs:600,
+                errorText:"Bu yanıt hâlâ önbelleğe alınıyor ve o URL'yi sıradaki isteyen kullanıcıya sunuluyor, onun olsun olmasın."
+              },
+              { id:"h-invalidate", type:"choice",
+                label:"Şu anda zaten önbellekte olan kopyalar için ne yapılacağına karar ver",
+                prompt:"Zaten canlı olan sızıntı hakkında ne yapılmalı?",
+                options:[
+                  { key:"wait", label:"Önbelleğe alınmış kopyaların kendiliğinden süresinin dolmasını bekle", correct:false, feedback:"Bu girdilerin önbellekte oturduğu her dakika, yanlış kişinin başka birinin verisini yükleyebileceği bir dakika daha demek." },
+                  { key:"purge", label:"Bu yol için önbelleğe alınmış içeriği hemen temizle (purge)", correct:true, feedback:"Temizlendi — sızıntı, kalan TTL süresince azalarak devam etmek yerine hemen duruyor." }
+                ],
+                errorText:"Düzeltmeden önceki önbelleğe alınmış kopyalar hâlâ canlı ve hâlâ sunulabilir."
+              },
+              { id:"h-monitor", type:"action",
+                label:"Gelecekteki bir yanlış yapılandırmanın hızlıca yakalanması için bu rotada önbellekleme tanılamasını aç",
+                actionLabel:"Tanılamayı etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Tanılama etkinleştirildi — gelecekteki bir kişiselleştirilmiş-yanıt-önbellekleme hatası bir destek talebi beklemek yerine hızlıca ortaya çıkacak.", loadingMs:500,
+                errorText:"Bu rotanın olmaması gerektiği şekilde önbelleğe alınıp alınmadığına dair hâlâ hiçbir görünürlük yok — şu anki tek sinyal bir müşteri şikayeti."
+              }
+            ]
+          },
+          gcp:{
+            title:"Önbelleğin başka bir kullanıcının yanıtını sızdırmasını durdur",
+            scenario:"Bir destek talebi, bir müşterinin kişisel olması gereken bir sayfada başka birinin hesap verilerini gördüğünü söylüyor. Sayfa Cloud CDN üzerinden sunuluyor, ve önbelleklenebilir.",
+            consoleLabel:"Google Cloud Console — Cloud CDN (simüle edilmiş)",
+            actionBtn:"Sızıntının düzeltildiğini doğrula",
+            successText:"Kişiselleştirilmiş yanıtlar artık önbelleğe alınmıyor ve kullanıcılar arasında paylaşılmıyor — sızıntı kapandı.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Bunun gerçekte neden olduğunu doğrula",
+                prompt:"Gerçekte ne oluyor?",
+                options:[
+                  { key:"dbbug", label:"Uygulamanın veritabanında hesapları karıştıran bir hata var", correct:false, feedback:"Veritabanı doğru istek için doğru veriyi döndürüyor — sorun bundan sonra oluyor." },
+                  { key:"cachekey", label:"Cloud CDN'in varsayılan önbellek anahtarı sadece şema, host, yol ve sorgudur — hiç çerez ya da kullanıcıya göre değişmez", correct:true, feedback:"İşte bu — ve bazı diğer CDN'lerin aksine, Cloud CDN'in bir başlık ya da çerezle anahtarlama için yerleşik bir yolu yok, bu yüzden ilk kullanıcının kişiselleştirilmiş yanıtı önbelleğe alındı ve o zamandan beri aynı URL'ye gelen herkese sunuldu." }
+                ],
+                errorText:"Önbellek yapılandırmasına dokunmadan önce bunun gerçekte neden olduğunu doğrulamadınız."
+              },
+              { id:"e-headers", type:"action",
+                label:"Bu yanıtı özel ve önbelleklenemez olarak işaretlemesi için origin'i güncelle",
+                actionLabel:"Yanıt başlıklarını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Origin artık bu yanıtta Cache-Control: private, no-store gönderiyor — Cloud CDN buna uyuyor ve bu yanıtı önbelleğe almayı durduruyor.", loadingMs:600,
+                errorText:"Bu yanıt hâlâ önbelleğe alınıyor ve o URL'yi sıradaki isteyen kullanıcıya sunuluyor, onun olsun olmasın."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bunun gerçekte neden olduğunu doğrula",
+                prompt:"Gerçekte ne oluyor?",
+                options:[
+                  { key:"dbbug", label:"Uygulamanın veritabanında hesapları karıştıran bir hata var", correct:false, feedback:"Veritabanı doğru istek için doğru veriyi döndürüyor — sorun bundan sonra oluyor." },
+                  { key:"cachekey", label:"Cloud CDN'in varsayılan önbellek anahtarı sadece şema, host, yol ve sorgudur — hiç çerez ya da kullanıcıya göre değişmez", correct:true, feedback:"İşte bu — ve bazı diğer CDN'lerin aksine, Cloud CDN'in bir başlık ya da çerezle anahtarlama için yerleşik bir yolu yok, bu yüzden ilk kullanıcının kişiselleştirilmiş yanıtı önbelleğe alındı ve o zamandan beri aynı URL'ye gelen herkese sunuldu." }
+                ],
+                errorText:"Önbellek yapılandırmasına dokunmadan önce bunun gerçekte neden olduğunu doğrulamadınız."
+              },
+              { id:"h-headers", type:"action",
+                label:"Bu yanıtı özel ve önbelleklenemez olarak işaretlemesi için origin'i güncelle",
+                actionLabel:"Yanıt başlıklarını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Origin artık bu yanıtta Cache-Control: private, no-store gönderiyor — Cloud CDN buna uyuyor ve bu yanıtı önbelleğe almayı durduruyor.", loadingMs:600,
+                errorText:"Bu yanıt hâlâ önbelleğe alınıyor ve o URL'yi sıradaki isteyen kullanıcıya sunuluyor, onun olsun olmasın."
+              },
+              { id:"h-invalidate", type:"choice",
+                label:"Şu anda zaten önbellekte olan kopyalar için ne yapılacağına karar ver",
+                prompt:"Zaten canlı olan sızıntı hakkında ne yapılmalı?",
+                options:[
+                  { key:"wait", label:"Önbelleğe alınmış kopyaların kendiliğinden süresinin dolmasını bekle", correct:false, feedback:"Bu girdilerin önbellekte oturduğu her dakika, yanlış kişinin başka birinin verisini yükleyebileceği bir dakika daha demek." },
+                  { key:"invalidate", label:"Bu yol için önbelleğe alınmış içeriği hemen geçersiz kıl", correct:true, feedback:"Geçersiz kılındı — sızıntı, kalan TTL süresince azalarak devam etmek yerine hemen duruyor." }
+                ],
+                errorText:"Düzeltmeden önceki önbelleğe alınmış kopyalar hâlâ canlı ve hâlâ sunulabilir."
+              },
+              { id:"h-monitor", type:"action",
+                label:"Gelecekteki bir yanlış yapılandırmanın hızlıca yakalanması için bu yolda önbellek günlüğünü aç",
+                actionLabel:"Günlüğü etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Günlük etkinleştirildi — gelecekteki bir kişiselleştirilmiş-yanıt-önbellekleme hatası bir destek talebi beklemek yerine hızlıca ortaya çıkacak.", loadingMs:500,
+                errorText:"Bu yolun olmaması gerektiği şekilde önbelleğe alınıp alınmadığına dair hâlâ hiçbir görünürlük yok — şu anki tek sinyal bir müşteri şikayeti."
+              }
+            ]
+          }
+        },
+        consistency:{
+          aws:{
+            title:"Bölünme iyileştikten sonra çakışan bir yazmayı uzlaştır",
+            scenario:"İki bölge bir ağ bölünmesiyle ayrıldı. İkisi de bölünme sırasında aynı öğeye bir yazma kabul etti. Bölünme iyileştiğine göre, veritabanı son-yazan-kazanır (last-writer-wins) kullanarak zaten bir kazanan seçti — ve diğer yazmayı sessizce çöpe attı.",
+            consoleLabel:"AWS DynamoDB Console (simüle edilmiş)",
+            actionBtn:"Çakışmanın çözüldüğünü doğrula",
+            successText:"Çöpe atılan yazma kurtarıldı, ve gelecekteki çakışmalar sessizce düşürülmek yerine yakalanacak.",
+            easySteps:[
+              { id:"e-diagnose", type:"action",
+                label:"Öğenin sürüm geçmişini çöpe atılan bir yazma için kontrol et",
+                actionLabel:"Geçmişi kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti.", loadingMs:600,
+                errorText:"Kimse gerçekten bir yazmanın kaybolduğunu doğrulamadı — mevcut değerin doğru olduğunu varsaymadan önce kontrol etmeye değer."
+              },
+              { id:"e-recover", type:"action",
+                label:"Süresi dolmadan önce çöpe atılan yazmayı tablonun değişiklik akışından kurtar",
+                actionLabel:"Akıştan kurtar", loadingLabel:"Kurtarılıyor…", doneLabel:"Kurtarıldı — kaybeden yazma, saklama penceresi kapanmadan akıştan çekildi.", loadingMs:600,
+                errorText:"Kaybeden yazma sadece sınırlı bir saklama penceresi boyunca akışta var — ondan sonra kalıcı olarak kayboldu."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Öğenin sürüm geçmişini çöpe atılan bir yazma için kontrol et",
+                actionLabel:"Geçmişi kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti.", loadingMs:600,
+                errorText:"Kimse gerçekten bir yazmanın kaybolduğunu doğrulamadı — mevcut değerin doğru olduğunu varsaymadan önce kontrol etmeye değer."
+              },
+              { id:"h-recover", type:"action",
+                label:"Süresi dolmadan önce çöpe atılan yazmayı tablonun değişiklik akışından kurtar",
+                actionLabel:"Akıştan kurtar", loadingLabel:"Kurtarılıyor…", doneLabel:"Kurtarıldı — kaybeden yazma, saklama penceresi kapanmadan akıştan çekildi.", loadingMs:600,
+                errorText:"Kaybeden yazma sadece sınırlı bir saklama penceresi boyunca akışta var — ondan sonra kalıcı olarak kayboldu."
+              },
+              { id:"h-strategy", type:"choice",
+                label:"Bir sonraki çakışmanın nasıl ele alınacağına karar ver",
+                prompt:"Bunun sessizce tekrar olmasını gerçekte ne durdurur?",
+                options:[
+                  { key:"lww", label:"Hiçbir şey — son-yazan-kazanır'a güvenmeye devam et", correct:false, feedback:"Bu yazmayı ilk etapta sessizce kaybettiren şey tam olarak bu. Bir sonrakine de aynısını yapacak." },
+                  { key:"conditional", label:"Çakışan bir güncellemenin sessizce üzerine yazılmak yerine reddedilmesi için uygulamada koşullu bir yazma / sürüm kontrolü ekle", correct:true, feedback:"Eklendi — bir sonraki çakışan yazma iz bırakmadan kaybolmak yerine yakalanıp uygulamaya bildiriliyor." }
+                ],
+                errorText:"Bu iki bölge arasındaki bir sonraki çakışan yazma, tıpkı bunun gibi yine sessizce zaman damgasına göre çözülecek."
+              },
+              { id:"h-notify", type:"action",
+                label:"Bu yazmanın çakışmadan etkilendiğini bilmesi gerekenleri sürece dahil et",
+                actionLabel:"Paydaşları bilgilendir", loadingLabel:"Bilgilendiriliyor…", doneLabel:"Paydaşlar kurtarılan yazma ve kayıtları için ne anlama geldiği konusunda bilgilendirildi.", loadingMs:500,
+                errorText:"Kurtarılan veri bir akış dışa aktarımında oturuyor — gerçekten uzlaştırması gerekenlerden kimseye henüz söylenmedi."
+              }
+            ]
+          },
+          azure:{
+            title:"Bölünme iyileştikten sonra çakışan bir yazmayı uzlaştır",
+            scenario:"İki bölge bir ağ bölünmesiyle ayrıldı. İkisi de bölünme sırasında aynı öğeye bir yazma kabul etti. Bölünme iyileştiğine göre, veritabanının varsayılan çakışma politikası son-yazan-kazanır kullanarak zaten bir kazanan seçti — ve diğer yazmayı sessizce çöpe attı.",
+            consoleLabel:"Azure Portal — Cosmos DB (simüle edilmiş)",
+            actionBtn:"Çakışmanın çözüldüğünü doğrula",
+            successText:"Çöpe atılan yazma kurtarıldı, ve gelecekteki çakışmalar sessizce düşürülmek yerine gerçek bir birleştirmeden geçecek.",
+            easySteps:[
+              { id:"e-diagnose", type:"action",
+                label:"Konteynerin çakışmalar akışını çöpe atılan bir yazma için kontrol et",
+                actionLabel:"Çakışmalar akışını kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti.", loadingMs:600,
+                errorText:"Kimse gerçekten bir yazmanın kaybolduğunu doğrulamadı — mevcut değerin doğru olduğunu varsaymadan önce kontrol etmeye değer."
+              },
+              { id:"e-recover", type:"action",
+                label:"Süresi dolmadan önce çöpe atılan yazmayı çakışmalar akışından kurtar",
+                actionLabel:"Çakışmalar akışından kurtar", loadingLabel:"Kurtarılıyor…", doneLabel:"Kurtarıldı — kaybeden yazma, süresi dolmadan çakışmalar akışından çekildi.", loadingMs:600,
+                errorText:"Kaybeden yazma sadece sınırlı bir pencere boyunca çakışmalar akışında kalır — ondan sonra kalıcı olarak kayboldu."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Konteynerin çakışmalar akışını çöpe atılan bir yazma için kontrol et",
+                actionLabel:"Çakışmalar akışını kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti.", loadingMs:600,
+                errorText:"Kimse gerçekten bir yazmanın kaybolduğunu doğrulamadı — mevcut değerin doğru olduğunu varsaymadan önce kontrol etmeye değer."
+              },
+              { id:"h-recover", type:"action",
+                label:"Süresi dolmadan önce çöpe atılan yazmayı çakışmalar akışından kurtar",
+                actionLabel:"Çakışmalar akışından kurtar", loadingLabel:"Kurtarılıyor…", doneLabel:"Kurtarıldı — kaybeden yazma, süresi dolmadan çakışmalar akışından çekildi.", loadingMs:600,
+                errorText:"Kaybeden yazma sadece sınırlı bir pencere boyunca çakışmalar akışında kalır — ondan sonra kalıcı olarak kayboldu."
+              },
+              { id:"h-strategy", type:"choice",
+                label:"Bir sonraki çakışmanın nasıl ele alınacağına karar ver",
+                prompt:"Bunun sessizce tekrar olmasını gerçekte ne durdurur?",
+                options:[
+                  { key:"lww", label:"Hiçbir şey — varsayılan son-yazan-kazanır politikasını koru", correct:false, feedback:"Bu yazmayı ilk etapta sessizce kaybettiren şey tam olarak bu. Bir sonrakine de aynısını yapacak." },
+                  { key:"custom", label:"Bu konteyner için özel bir çakışma çözümü yordamı kaydet", correct:true, feedback:"Kaydedildi — bir sonraki çakışma zaman damgasına dayalı bir yazı tura yerine gerçek bir birleştirme mantığından geçiyor." }
+                ],
+                errorText:"Bu iki bölge arasındaki bir sonraki çakışan yazma, tıpkı bunun gibi yine sessizce zaman damgasına göre çözülecek."
+              },
+              { id:"h-notify", type:"action",
+                label:"Bu yazmanın çakışmadan etkilendiğini bilmesi gerekenleri sürece dahil et",
+                actionLabel:"Paydaşları bilgilendir", loadingLabel:"Bilgilendiriliyor…", doneLabel:"Paydaşlar kurtarılan yazma ve kayıtları için ne anlama geldiği konusunda bilgilendirildi.", loadingMs:500,
+                errorText:"Kurtarılan veri bir dışa aktarımda oturuyor — gerçekten uzlaştırması gerekenlerden kimseye henüz söylenmedi."
+              }
+            ]
+          },
+          gcp:{
+            title:"Bölünme iyileştikten sonra çakışan bir yazmayı uzlaştır",
+            scenario:"İki bölge bir ağ bölünmesiyle ayrıldı. İkisi de bölünme sırasında aynı belgeye bir yazma kabul etti. Bölünme iyileştiğine göre, veritabanı son-yazan-kazanır kullanarak zaten bir kazanan seçti — ve diğer yazmayı sessizce çöpe attı.",
+            consoleLabel:"Google Cloud Console — Firestore (simüle edilmiş)",
+            actionBtn:"Çakışmanın çözüldüğünü doğrula",
+            successText:"Çöpe atılan yazma kurtarıldı, ve gelecekteki çakışmalar sessizce düşürülmek yerine uygulama tarafından yakalanacak.",
+            easySteps:[
+              { id:"e-diagnose", type:"action",
+                label:"Belgenin denetim geçmişini çöpe atılan bir yazma için kontrol et",
+                actionLabel:"Denetim geçmişini kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti.", loadingMs:600,
+                errorText:"Kimse gerçekten bir yazmanın kaybolduğunu doğrulamadı — mevcut değerin doğru olduğunu varsaymadan önce kontrol etmeye değer."
+              },
+              { id:"e-recover", type:"action",
+                label:"Kaybolmadan önce çöpe atılan yazmayı dışa aktarımdan kurtar",
+                actionLabel:"Yazmayı kurtar", loadingLabel:"Kurtarılıyor…", doneLabel:"Kurtarıldı — kaybeden yazma çekildi ve uzlaştırıldı.", loadingMs:600,
+                errorText:"Kaybeden yazma sadece sınırlı bir pencere boyunca kurtarılabilir — ondan sonra kalıcı olarak kayboldu."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"action",
+                label:"Belgenin denetim geçmişini çöpe atılan bir yazma için kontrol et",
+                actionLabel:"Denetim geçmişini kontrol et", loadingLabel:"Kontrol ediliyor…", doneLabel:"Doğrulandı — bir bölgenin yazması sadece zaman damgasına dayanarak diğerine sessizce kaybetti.", loadingMs:600,
+                errorText:"Kimse gerçekten bir yazmanın kaybolduğunu doğrulamadı — mevcut değerin doğru olduğunu varsaymadan önce kontrol etmeye değer."
+              },
+              { id:"h-recover", type:"action",
+                label:"Kaybolmadan önce çöpe atılan yazmayı dışa aktarımdan kurtar",
+                actionLabel:"Yazmayı kurtar", loadingLabel:"Kurtarılıyor…", doneLabel:"Kurtarıldı — kaybeden yazma çekildi ve uzlaştırıldı.", loadingMs:600,
+                errorText:"Kaybeden yazma sadece sınırlı bir pencere boyunca kurtarılabilir — ondan sonra kalıcı olarak kayboldu."
+              },
+              { id:"h-strategy", type:"choice",
+                label:"Bir sonraki çakışmanın nasıl ele alınacağına karar ver",
+                prompt:"Bunun sessizce tekrar olmasını gerçekte ne durdurur?",
+                options:[
+                  { key:"lww", label:"Hiçbir şey — son-yazan-kazanır'a güvenmeye devam et", correct:false, feedback:"Bu yazmayı ilk etapta sessizce kaybettiren şey tam olarak bu. Bir sonrakine de aynısını yapacak." },
+                  { key:"precondition", label:"Çakışan bir güncellemenin sessizce üzerine yazılmak yerine reddedilmesi için uygulamanın işleminde bir ön koşul kontrolü ekle", correct:true, feedback:"Eklendi — bir sonraki çakışan yazma iz bırakmadan kaybolmak yerine yakalanıp uygulamaya bildiriliyor." }
+                ],
+                errorText:"Bu iki bölge arasındaki bir sonraki çakışan yazma, tıpkı bunun gibi yine sessizce zaman damgasına göre çözülecek."
+              },
+              { id:"h-notify", type:"action",
+                label:"Bu yazmanın çakışmadan etkilendiğini bilmesi gerekenleri sürece dahil et",
+                actionLabel:"Paydaşları bilgilendir", loadingLabel:"Bilgilendiriliyor…", doneLabel:"Paydaşlar kurtarılan yazma ve kayıtları için ne anlama geldiği konusunda bilgilendirildi.", loadingMs:500,
+                errorText:"Kurtarılan veri bir dışa aktarımda oturuyor — gerçekten uzlaştırması gerekenlerden kimseye henüz söylenmedi."
+              }
+            ]
+          }
+        },
+        failover:{
+          aws:{
+            title:"Bir sonraki bölünme sırasında split-brain'i önle",
+            scenario:"Son ağ aksaklığı sırasında, bu kümedeki iki düğüm aynı anda kendisinin birincil olduğuna inandı — yaklaşık 40 saniye boyunca yazmalar ikisi tarafından da kabul edildi. Kümenin iki Kullanılabilirlik Bölgesine eşit şekilde bölünmüş çift sayıda düğümü var, bu yüzden bir bölünmenin hangi tarafın çoğunluğa (quorum) sahip olduğunu anlamasının bir yolu yok.",
+            consoleLabel:"AWS küme konsolu (simüle edilmiş)",
+            actionBtn:"Çoğunluğun belirsiz olmadığını doğrula",
+            successText:"Küme artık her zaman hangi tarafın çoğunluğa sahip olduğunu söyleyebiliyor — bir bölünme artık aynı anda iki birincil üretemez.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Split-brain'in burada neden mümkün olduğunu doğrula",
+                prompt:"İki düğümün ikisinin de kendini birincil sanmasına gerçekte ne izin verdi?",
+                options:[
+                  { key:"slow", label:"Düğümler sadece yanıt vermekte yavaştı", correct:false, feedback:"Yavaşlığın tek başına iki birincil yaratmaz — bir şey her iki tarafın da bağımsız olarak çoğunluğa sahip olduğuna karar vermesine izin verdi." },
+                  { key:"tie", label:"İki bölgeye eşit bölünmüş çift sayıda düğüm, bir bölünmenin 50/50 berabere kalabileceği anlamına gelir, ve hiçbir taraf çoğunluktan yoksun olduğunu anlayamaz", correct:true, feedback:"İşte bu — eşit bir bölünmeyle, bölünmenin her iki yarısı da kendini çoğunluk sanabilir." }
+                ],
+                errorText:"Kümenin şeklini değiştirmeden önce split-brain'in burada neden mümkün olduğunu doğrulamadınız."
+              },
+              { id:"e-thirdaz", type:"action",
+                label:"Çoğunluğun her zaman belirlenebilir olması için üçüncü bir Kullanılabilirlik Bölgesine bir düğüm ekle",
+                actionLabel:"Çoğunluk düğümü ekle", loadingLabel:"Ekleniyor…", doneLabel:"Üçüncü bir Kullanılabilirlik Bölgesine düğüm eklendi — 2-1'lik bir bölünme asla berabere kalamaz.", loadingMs:600,
+                errorText:"Küme hâlâ iki bölgeye eşit şekilde bölünmüş — aralarındaki bir bölünme hâlâ çoğunluk için bir yazı tura."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Split-brain'in burada neden mümkün olduğunu doğrula",
+                prompt:"İki düğümün ikisinin de kendini birincil sanmasına gerçekte ne izin verdi?",
+                options:[
+                  { key:"slow", label:"Düğümler sadece yanıt vermekte yavaştı", correct:false, feedback:"Yavaşlığın tek başına iki birincil yaratmaz — bir şey her iki tarafın da bağımsız olarak çoğunluğa sahip olduğuna karar vermesine izin verdi." },
+                  { key:"tie", label:"İki bölgeye eşit bölünmüş çift sayıda düğüm, bir bölünmenin 50/50 berabere kalabileceği anlamına gelir, ve hiçbir taraf çoğunluktan yoksun olduğunu anlayamaz", correct:true, feedback:"İşte bu — eşit bir bölünmeyle, bölünmenin her iki yarısı da kendini çoğunluk sanabilir." }
+                ],
+                errorText:"Kümenin şeklini değiştirmeden önce split-brain'in burada neden mümkün olduğunu doğrulamadınız."
+              },
+              { id:"h-thirdaz", type:"choice",
+                label:"Sadece boyutunu değil, kümenin şeklini de düzelt",
+                prompt:"Çoğunluğun her zaman belirlenebilir olmasını gerçekte ne garanti eder?",
+                options:[
+                  { key:"morenodes2az", label:"Daha fazla düğüm ekle, ama onları aynı iki Kullanılabilirlik Bölgesine bölünmüş tut", correct:false, feedback:"Sadece iki bölgeye yayılmış daha fazla düğüm hâlâ tam ortadan berabere kalabilir — sorun bölge sayısı, tek başına düğüm sayısı değil." },
+                  { key:"threeaz", label:"Tek sayıda düğümü üç Kullanılabilirlik Bölgesine yay", correct:true, feedback:"Üç bölgeyle, herhangi bir tek bölgenin izole olması her zaman diğer iki bölgeyi net bir çoğunlukla bırakır — bir berabere imkansız hale gelir." }
+                ],
+                errorText:"Küme hâlâ tek bir bölgenin izolasyonundan net bir çoğunluğun hayatta kalacağını garanti edemiyor."
+              },
+              { id:"h-fencing", type:"action",
+                label:"Herhangi bir düğümün birincil olarak yazma kabul edebilmesi için bir fencing token gerektir",
+                actionLabel:"Fencing'i etkinleştir", loadingLabel:"Yapılandırılıyor…", doneLabel:"Fencing etkinleştirildi — bir düğüm artık mevcut çoğunluk kirasını elinde tuttuğunu kanıtlamadan birincil olarak yazma kabul edemiyor.", loadingMs:600,
+                errorText:"Daha iyi çoğunluk matematiğiyle bile, önce hâlâ liderliği elinde tuttuğunu kanıtlamayan bayat bir düğümün yazma kabul etmesini engelleyen hiçbir şey yok."
+              },
+              { id:"h-verify", type:"action",
+                label:"Split-brain'in artık olamayacağını doğrulamak için simüle edilmiş bir bölünme çalıştır",
+                actionLabel:"Bölünmeyi simüle et", loadingLabel:"Simüle ediliyor…", doneLabel:"Simüle edilmiş bölünme doğru şekilde ele alındı — tam olarak bir taraf çoğunluğu korudu ve yazmaları kabul etti.", loadingMs:700,
+                errorText:"Kimse düzeltmeyi simüle edilmiş bir bölünme altında gerçekten doğrulamadı — hâlâ sadece bir teori."
+              }
+            ]
+          },
+          azure:{
+            title:"Bir sonraki bölünme sırasında split-brain'i önle",
+            scenario:"Son ağ aksaklığı sırasında, bu kümedeki iki düğüm aynı anda kendisinin birincil olduğuna inandı — yaklaşık 40 saniye boyunca yazmalar ikisi tarafından da kabul edildi. Kümenin iki Kullanılabilirlik Bölgesine eşit şekilde bölünmüş çift sayıda düğümü var, bu yüzden bir bölünmenin hangi tarafın çoğunluğa sahip olduğunu anlamasının bir yolu yok.",
+            consoleLabel:"Azure Portal — Kullanılabilirlik bölgeleri (simüle edilmiş)",
+            actionBtn:"Çoğunluğun belirsiz olmadığını doğrula",
+            successText:"Küme artık her zaman hangi tarafın çoğunluğa sahip olduğunu söyleyebiliyor — bir bölünme artık aynı anda iki birincil üretemez.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Split-brain'in burada neden mümkün olduğunu doğrula",
+                prompt:"İki düğümün ikisinin de kendini birincil sanmasına gerçekte ne izin verdi?",
+                options:[
+                  { key:"slow", label:"Düğümler sadece yanıt vermekte yavaştı", correct:false, feedback:"Yavaşlığın tek başına iki birincil yaratmaz — bir şey her iki tarafın da bağımsız olarak çoğunluğa sahip olduğuna karar vermesine izin verdi." },
+                  { key:"tie", label:"İki bölgeye eşit bölünmüş çift sayıda düğüm, bir bölünmenin 50/50 berabere kalabileceği anlamına gelir, ve hiçbir taraf çoğunluktan yoksun olduğunu anlayamaz", correct:true, feedback:"İşte bu — eşit bir bölünmeyle, bölünmenin her iki yarısı da kendini çoğunluk sanabilir." }
+                ],
+                errorText:"Kümenin şeklini değiştirmeden önce split-brain'in burada neden mümkün olduğunu doğrulamadınız."
+              },
+              { id:"e-thirdaz", type:"action",
+                label:"Çoğunluğun her zaman belirlenebilir olması için üçüncü bir Kullanılabilirlik Bölgesine bir düğüm ekle",
+                actionLabel:"Çoğunluk düğümü ekle", loadingLabel:"Ekleniyor…", doneLabel:"Üçüncü bir Kullanılabilirlik Bölgesine düğüm eklendi — 2-1'lik bir bölünme asla berabere kalamaz.", loadingMs:600,
+                errorText:"Küme hâlâ iki bölgeye eşit şekilde bölünmüş — aralarındaki bir bölünme hâlâ çoğunluk için bir yazı tura."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Split-brain'in burada neden mümkün olduğunu doğrula",
+                prompt:"İki düğümün ikisinin de kendini birincil sanmasına gerçekte ne izin verdi?",
+                options:[
+                  { key:"slow", label:"Düğümler sadece yanıt vermekte yavaştı", correct:false, feedback:"Yavaşlığın tek başına iki birincil yaratmaz — bir şey her iki tarafın da bağımsız olarak çoğunluğa sahip olduğuna karar vermesine izin verdi." },
+                  { key:"tie", label:"İki bölgeye eşit bölünmüş çift sayıda düğüm, bir bölünmenin 50/50 berabere kalabileceği anlamına gelir, ve hiçbir taraf çoğunluktan yoksun olduğunu anlayamaz", correct:true, feedback:"İşte bu — eşit bir bölünmeyle, bölünmenin her iki yarısı da kendini çoğunluk sanabilir." }
+                ],
+                errorText:"Kümenin şeklini değiştirmeden önce split-brain'in burada neden mümkün olduğunu doğrulamadınız."
+              },
+              { id:"h-thirdaz", type:"choice",
+                label:"Sadece boyutunu değil, kümenin şeklini de düzelt",
+                prompt:"Çoğunluğun her zaman belirlenebilir olmasını gerçekte ne garanti eder?",
+                options:[
+                  { key:"morenodes2az", label:"Daha fazla düğüm ekle, ama onları aynı iki Kullanılabilirlik Bölgesine bölünmüş tut", correct:false, feedback:"Sadece iki bölgeye yayılmış daha fazla düğüm hâlâ tam ortadan berabere kalabilir — sorun bölge sayısı, tek başına düğüm sayısı değil." },
+                  { key:"threeaz", label:"Tek sayıda düğümü üç Kullanılabilirlik Bölgesine yay", correct:true, feedback:"Üç bölgeyle, herhangi bir tek bölgenin izole olması her zaman diğer iki bölgeyi net bir çoğunlukla bırakır — bir berabere imkansız hale gelir." }
+                ],
+                errorText:"Küme hâlâ tek bir bölgenin izolasyonundan net bir çoğunluğun hayatta kalacağını garanti edemiyor."
+              },
+              { id:"h-fencing", type:"action",
+                label:"Herhangi bir düğümün birincil olarak yazma kabul edebilmesi için bir fencing token gerektir",
+                actionLabel:"Fencing'i etkinleştir", loadingLabel:"Yapılandırılıyor…", doneLabel:"Fencing etkinleştirildi — bir düğüm artık mevcut çoğunluk kirasını elinde tuttuğunu kanıtlamadan birincil olarak yazma kabul edemiyor.", loadingMs:600,
+                errorText:"Daha iyi çoğunluk matematiğiyle bile, önce hâlâ liderliği elinde tuttuğunu kanıtlamayan bayat bir düğümün yazma kabul etmesini engelleyen hiçbir şey yok."
+              },
+              { id:"h-verify", type:"action",
+                label:"Split-brain'in artık olamayacağını doğrulamak için simüle edilmiş bir bölünme çalıştır",
+                actionLabel:"Bölünmeyi simüle et", loadingLabel:"Simüle ediliyor…", doneLabel:"Simüle edilmiş bölünme doğru şekilde ele alındı — tam olarak bir taraf çoğunluğu korudu ve yazmaları kabul etti.", loadingMs:700,
+                errorText:"Kimse düzeltmeyi simüle edilmiş bir bölünme altında gerçekten doğrulamadı — hâlâ sadece bir teori."
+              }
+            ]
+          },
+          gcp:{
+            title:"Bir sonraki bölünme sırasında split-brain'i önle",
+            scenario:"Son ağ aksaklığı sırasında, bu kümedeki iki düğüm aynı anda kendisinin birincil olduğuna inandı — yaklaşık 40 saniye boyunca yazmalar ikisi tarafından da kabul edildi. Kümenin iki bölgeye eşit şekilde bölünmüş çift sayıda düğümü var, bu yüzden bir bölünmenin hangi tarafın çoğunluğa sahip olduğunu anlamasının bir yolu yok.",
+            consoleLabel:"Google Cloud Console — Bölgeler (simüle edilmiş)",
+            actionBtn:"Çoğunluğun belirsiz olmadığını doğrula",
+            successText:"Küme artık her zaman hangi tarafın çoğunluğa sahip olduğunu söyleyebiliyor — bir bölünme artık aynı anda iki birincil üretemez.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Split-brain'in burada neden mümkün olduğunu doğrula",
+                prompt:"İki düğümün ikisinin de kendini birincil sanmasına gerçekte ne izin verdi?",
+                options:[
+                  { key:"slow", label:"Düğümler sadece yanıt vermekte yavaştı", correct:false, feedback:"Yavaşlığın tek başına iki birincil yaratmaz — bir şey her iki tarafın da bağımsız olarak çoğunluğa sahip olduğuna karar vermesine izin verdi." },
+                  { key:"tie", label:"İki bölgeye eşit bölünmüş çift sayıda düğüm, bir bölünmenin 50/50 berabere kalabileceği anlamına gelir, ve hiçbir taraf çoğunluktan yoksun olduğunu anlayamaz", correct:true, feedback:"İşte bu — eşit bir bölünmeyle, bölünmenin her iki yarısı da kendini çoğunluk sanabilir." }
+                ],
+                errorText:"Kümenin şeklini değiştirmeden önce split-brain'in burada neden mümkün olduğunu doğrulamadınız."
+              },
+              { id:"e-thirdaz", type:"action",
+                label:"Çoğunluğun her zaman belirlenebilir olması için üçüncü bir bölgeye bir düğüm ekle",
+                actionLabel:"Çoğunluk düğümü ekle", loadingLabel:"Ekleniyor…", doneLabel:"Üçüncü bir bölgeye düğüm eklendi — 2-1'lik bir bölünme asla berabere kalamaz.", loadingMs:600,
+                errorText:"Küme hâlâ iki bölgeye eşit şekilde bölünmüş — aralarındaki bir bölünme hâlâ çoğunluk için bir yazı tura."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Split-brain'in burada neden mümkün olduğunu doğrula",
+                prompt:"İki düğümün ikisinin de kendini birincil sanmasına gerçekte ne izin verdi?",
+                options:[
+                  { key:"slow", label:"Düğümler sadece yanıt vermekte yavaştı", correct:false, feedback:"Yavaşlığın tek başına iki birincil yaratmaz — bir şey her iki tarafın da bağımsız olarak çoğunluğa sahip olduğuna karar vermesine izin verdi." },
+                  { key:"tie", label:"İki bölgeye eşit bölünmüş çift sayıda düğüm, bir bölünmenin 50/50 berabere kalabileceği anlamına gelir, ve hiçbir taraf çoğunluktan yoksun olduğunu anlayamaz", correct:true, feedback:"İşte bu — eşit bir bölünmeyle, bölünmenin her iki yarısı da kendini çoğunluk sanabilir." }
+                ],
+                errorText:"Kümenin şeklini değiştirmeden önce split-brain'in burada neden mümkün olduğunu doğrulamadınız."
+              },
+              { id:"h-thirdaz", type:"choice",
+                label:"Sadece boyutunu değil, kümenin şeklini de düzelt",
+                prompt:"Çoğunluğun her zaman belirlenebilir olmasını gerçekte ne garanti eder?",
+                options:[
+                  { key:"morenodes2az", label:"Daha fazla düğüm ekle, ama onları aynı iki bölgeye bölünmüş tut", correct:false, feedback:"Sadece iki bölgeye yayılmış daha fazla düğüm hâlâ tam ortadan berabere kalabilir — sorun bölge sayısı, tek başına düğüm sayısı değil." },
+                  { key:"threeaz", label:"Tek sayıda düğümü üç bölgeye yay", correct:true, feedback:"Üç bölgeyle, herhangi bir tek bölgenin izole olması her zaman diğer iki bölgeyi net bir çoğunlukla bırakır — bir berabere imkansız hale gelir." }
+                ],
+                errorText:"Küme hâlâ tek bir bölgenin izolasyonundan net bir çoğunluğun hayatta kalacağını garanti edemiyor."
+              },
+              { id:"h-fencing", type:"action",
+                label:"Herhangi bir düğümün birincil olarak yazma kabul edebilmesi için bir fencing token gerektir",
+                actionLabel:"Fencing'i etkinleştir", loadingLabel:"Yapılandırılıyor…", doneLabel:"Fencing etkinleştirildi — bir düğüm artık mevcut çoğunluk kirasını elinde tuttuğunu kanıtlamadan birincil olarak yazma kabul edemiyor.", loadingMs:600,
+                errorText:"Daha iyi çoğunluk matematiğiyle bile, önce hâlâ liderliği elinde tuttuğunu kanıtlamayan bayat bir düğümün yazma kabul etmesini engelleyen hiçbir şey yok."
+              },
+              { id:"h-verify", type:"action",
+                label:"Split-brain'in artık olamayacağını doğrulamak için simüle edilmiş bir bölünme çalıştır",
+                actionLabel:"Bölünmeyi simüle et", loadingLabel:"Simüle ediliyor…", doneLabel:"Simüle edilmiş bölünme doğru şekilde ele alındı — tam olarak bir taraf çoğunluğu korudu ve yazmaları kabul etti.", loadingMs:700,
+                errorText:"Kimse düzeltmeyi simüle edilmiş bir bölünme altında gerçekten doğrulamadı — hâlâ sadece bir teori."
+              }
+            ]
+          }
+        },
+        sns:{
+          aws:{
+            title:"Her mesajı sessizce kaçıran aboneyi düzelt",
+            scenario:"Bu SQS kuyruğu order-events SNS konusuna abone, ama ekip az önce günlerdir tek bir mesaj bile almadığını fark etti — bu arada konu bir sürü yayın gönderdiğini gösteriyor.",
+            consoleLabel:"AWS SNS Console (simüle edilmiş)",
+            actionBtn:"Bir test olayı yayınla",
+            successText:"Test olayı kuyruğa ulaştı — abone tekrar mesaj alıyor.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Bu abonenin neden her şeyi kaçırdığını doğrula",
+                prompt:"Aboneliğin yapılandırması ne gösteriyor?",
+                options:[
+                  { key:"topicbroken", label:"Konunun kendisi aslında yayın yapmıyor", correct:false, feedback:"Konunun yayın sayısı artmaya devam ediyor — mesajlar gidiyor. Sorun alım tarafında." },
+                  { key:"filter", label:"Aboneliğin filtre politikası bu konunun gerçekte gönderdiği her mesajı dışlıyor", correct:true, feedback:"İşte bu — filtre politikası o kadar dar kapsamlı ki burada yayınlanan hiçbir şey ona uymuyor." }
+                ],
+                errorText:"Konunun bozuk olduğunu varsaymadan önce bu abonenin neden her şeyi kaçırdığını doğrulamadınız."
+              },
+              { id:"e-filter", type:"action",
+                label:"Aboneliğin filtre politikasını bu konunun gerçek mesajlarıyla eşleşecek şekilde düzelt",
+                actionLabel:"Filtre politikasını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Filtre politikası düzeltildi — bu kuyruk artık alması gereken mesajları alıyor.", loadingMs:600,
+                errorText:"Filtre politikası hâlâ bu abonenin alması gereken mesajları dışlıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bu abonenin neden her şeyi kaçırdığını doğrula",
+                prompt:"Aboneliğin yapılandırması ne gösteriyor?",
+                options:[
+                  { key:"topicbroken", label:"Konunun kendisi aslında yayın yapmıyor", correct:false, feedback:"Konunun yayın sayısı artmaya devam ediyor — mesajlar gidiyor. Sorun alım tarafında." },
+                  { key:"filter", label:"Aboneliğin filtre politikası bu konunun gerçekte gönderdiği her mesajı dışlıyor", correct:true, feedback:"İşte bu — filtre politikası o kadar dar kapsamlı ki burada yayınlanan hiçbir şey ona uymuyor." }
+                ],
+                errorText:"Konunun bozuk olduğunu varsaymadan önce bu abonenin neden her şeyi kaçırdığını doğrulamadınız."
+              },
+              { id:"h-filter", type:"action",
+                label:"Aboneliğin filtre politikasını bu konunun gerçek mesajlarıyla eşleşecek şekilde düzelt",
+                actionLabel:"Filtre politikasını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Filtre politikası düzeltildi — bu kuyruk artık alması gereken mesajları alıyor.", loadingMs:600,
+                errorText:"Filtre politikası hâlâ bu abonenin alması gereken mesajları dışlıyor."
+              },
+              { id:"h-dlq", type:"choice",
+                label:"Bu abonenin işleyemediği mesajlara ne olması gerektiğine karar ver",
+                prompt:"SNS'in tekrar denedikten sonra hâlâ teslim edemediği bir mesaja ne olur?",
+                options:[
+                  { key:"forever", label:"Endişelenecek bir şey yok — SNS başarısız bir teslimi sonsuza kadar tekrar dener", correct:false, feedback:"Denemez. SNS sınırlı bir geri çekilme (backoff) programında tekrar dener, ve bir ölü mektup kuyruğu yapılandırılmadıysa, bundan sonra hâlâ başarısız olan bir mesaj sadece düşürülür." },
+                  { key:"dlq", label:"Bu abonelik için bir ölü mektup kuyruğu yapılandır", correct:true, feedback:"Yapılandırıldı — tekrar denemeden sonra teslim edilemeyen bir mesaj artık yok olmak yerine görünür bir yere düşüyor." }
+                ],
+                errorText:"Bu abonelikte hâlâ bir ölü mektup kuyruğu yok — tekrar denemeden sonra teslim başarısız olan bir mesaj, zaten olanlar gibi sadece kayboluyor."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Gelecekteki bir yanlış yapılandırmanın hızlıca fark edilmesi için ölü mektup kuyruğunun derinliğinde bir CloudWatch alarmı ekle",
+                actionLabel:"DLQ alarmı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Alarm yapılandırıldı — ekip bir sonraki sessiz-abone sorununu günler değil dakikalar içinde duyacak.", loadingMs:500,
+                errorText:"Mesajlar ölü mektup kuyruğunda birikmeye başladığında kimseyi çağıran hiçbir şey yok — bu tam olarak bunun günlerce fark edilmeden kalmasının nedeni."
+              }
+            ]
+          },
+          azure:{
+            title:"Her mesajı sessizce kaçıran aboneyi düzelt",
+            scenario:"Bu Service Bus aboneliği order-events konusuna bağlı, ama ekip az önce günlerdir tek bir mesaj bile almadığını fark etti — bu arada konu bir sürü mesaj gönderdiğini gösteriyor.",
+            consoleLabel:"Azure Portal — Service Bus (simüle edilmiş)",
+            actionBtn:"Bir test mesajı yayınla",
+            successText:"Test mesajı aboneliğe ulaştı — tekrar mesaj alıyor.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Bu aboneliğin neden her şeyi kaçırdığını doğrula",
+                prompt:"Aboneliğin yapılandırması ne gösteriyor?",
+                options:[
+                  { key:"topicbroken", label:"Konunun kendisi aslında mesaj almıyor", correct:false, feedback:"Konunun gelen mesaj sayısı artmaya devam ediyor — mesajlar geliyor. Sorun alım tarafında." },
+                  { key:"filter", label:"Aboneliğin SQL filtresi bu konunun gerçekte taşıdığı her mesajı dışlıyor", correct:true, feedback:"İşte bu — filtre o kadar dar kapsamlı ki buraya gönderilen hiçbir şey ona uymuyor." }
+                ],
+                errorText:"Konunun bozuk olduğunu varsaymadan önce bu aboneliğin neden her şeyi kaçırdığını doğrulamadınız."
+              },
+              { id:"e-filter", type:"action",
+                label:"Aboneliğin filtresini bu konunun gerçek mesajlarıyla eşleşecek şekilde düzelt",
+                actionLabel:"Filtre kuralını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Filtre kuralı düzeltildi — bu abonelik artık alması gereken mesajları alıyor.", loadingMs:600,
+                errorText:"Filtre hâlâ bu aboneliğin alması gereken mesajları dışlıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bu aboneliğin neden her şeyi kaçırdığını doğrula",
+                prompt:"Aboneliğin yapılandırması ne gösteriyor?",
+                options:[
+                  { key:"topicbroken", label:"Konunun kendisi aslında mesaj almıyor", correct:false, feedback:"Konunun gelen mesaj sayısı artmaya devam ediyor — mesajlar geliyor. Sorun alım tarafında." },
+                  { key:"filter", label:"Aboneliğin SQL filtresi bu konunun gerçekte taşıdığı her mesajı dışlıyor", correct:true, feedback:"İşte bu — filtre o kadar dar kapsamlı ki buraya gönderilen hiçbir şey ona uymuyor." }
+                ],
+                errorText:"Konunun bozuk olduğunu varsaymadan önce bu aboneliğin neden her şeyi kaçırdığını doğrulamadınız."
+              },
+              { id:"h-filter", type:"action",
+                label:"Aboneliğin filtresini bu konunun gerçek mesajlarıyla eşleşecek şekilde düzelt",
+                actionLabel:"Filtre kuralını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Filtre kuralı düzeltildi — bu abonelik artık alması gereken mesajları alıyor.", loadingMs:600,
+                errorText:"Filtre hâlâ bu aboneliğin alması gereken mesajları dışlıyor."
+              },
+              { id:"h-dlq", type:"choice",
+                label:"Bu aboneliğin işleyemediği mesajlara ne olması gerektiğine karar ver",
+                prompt:"Sürekli teslim başarısız olan bir mesaja ne olur?",
+                options:[
+                  { key:"forever", label:"Endişelenecek bir şey yok — Service Bus başarısız bir teslimi sonsuza kadar tekrar dener", correct:false, feedback:"Denemez. Azami teslim sayısı aşıldıktan sonra mesaj ölü mektuplanır — ve kimse ölü mektup alt kuyruğunu izlemiyorsa, orada fark edilmeden oturur." },
+                  { key:"monitor", label:"Bu aboneliğin ölü mektup alt kuyruğu üzerinde izleme ekle", correct:true, feedback:"Yapılandırıldı — teslim edilemeyen bir mesaj artık fark edilmeden oturmak yerine görünür bir yere düşüyor." }
+                ],
+                errorText:"Bu aboneliğin ölü mektup alt kuyruğuna hâlâ hiçbir görünürlük yok — teslim başarısız olan bir mesaj, zaten olanlar gibi sadece görünmeden birikiyor."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Gelecekteki bir yanlış yapılandırmanın hızlıca fark edilmesi için ölü mektup kuyruğunun derinliğinde bir uyarı ekle",
+                actionLabel:"DLQ uyarısı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Uyarı yapılandırıldı — ekip bir sonraki sessiz-abone sorununu günler değil dakikalar içinde duyacak.", loadingMs:500,
+                errorText:"Mesajlar ölü mektup alt kuyruğunda birikmeye başladığında kimseyi çağıran hiçbir şey yok — bu tam olarak bunun günlerce fark edilmeden kalmasının nedeni."
+              }
+            ]
+          },
+          gcp:{
+            title:"Her mesajı sessizce kaçıran aboneyi düzelt",
+            scenario:"Bu Pub/Sub aboneliği order-events konusuna bağlı, ama ekip az önce günlerdir tek bir mesaj bile almadığını fark etti — bu arada konu bir sürü mesaj gönderdiğini gösteriyor.",
+            consoleLabel:"Google Cloud Console — Pub/Sub (simüle edilmiş)",
+            actionBtn:"Bir test mesajı yayınla",
+            successText:"Test mesajı aboneliğe ulaştı — tekrar mesaj alıyor.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Bu aboneliğin neden her şeyi kaçırdığını doğrula",
+                prompt:"Aboneliğin yapılandırması ne gösteriyor?",
+                options:[
+                  { key:"topicbroken", label:"Konunun kendisi aslında mesaj almıyor", correct:false, feedback:"Konunun gelen mesaj sayısı artmaya devam ediyor — mesajlar geliyor. Sorun alım tarafında." },
+                  { key:"filter", label:"Aboneliğin filtre ifadesi bu konunun gerçekte taşıdığı her mesajı dışlıyor", correct:true, feedback:"İşte bu — filtre o kadar dar kapsamlı ki burada yayınlanan hiçbir şey ona uymuyor." }
+                ],
+                errorText:"Konunun bozuk olduğunu varsaymadan önce bu aboneliğin neden her şeyi kaçırdığını doğrulamadınız."
+              },
+              { id:"e-filter", type:"action",
+                label:"Aboneliğin filtresini bu konunun gerçek mesajlarıyla eşleşecek şekilde düzelt",
+                actionLabel:"Filtre ifadesini düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Filtre ifadesi düzeltildi — bu abonelik artık alması gereken mesajları alıyor.", loadingMs:600,
+                errorText:"Filtre hâlâ bu aboneliğin alması gereken mesajları dışlıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bu aboneliğin neden her şeyi kaçırdığını doğrula",
+                prompt:"Aboneliğin yapılandırması ne gösteriyor?",
+                options:[
+                  { key:"topicbroken", label:"Konunun kendisi aslında mesaj almıyor", correct:false, feedback:"Konunun gelen mesaj sayısı artmaya devam ediyor — mesajlar geliyor. Sorun alım tarafında." },
+                  { key:"filter", label:"Aboneliğin filtre ifadesi bu konunun gerçekte taşıdığı her mesajı dışlıyor", correct:true, feedback:"İşte bu — filtre o kadar dar kapsamlı ki burada yayınlanan hiçbir şey ona uymuyor." }
+                ],
+                errorText:"Konunun bozuk olduğunu varsaymadan önce bu aboneliğin neden her şeyi kaçırdığını doğrulamadınız."
+              },
+              { id:"h-filter", type:"action",
+                label:"Aboneliğin filtresini bu konunun gerçek mesajlarıyla eşleşecek şekilde düzelt",
+                actionLabel:"Filtre ifadesini düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Filtre ifadesi düzeltildi — bu abonelik artık alması gereken mesajları alıyor.", loadingMs:600,
+                errorText:"Filtre hâlâ bu aboneliğin alması gereken mesajları dışlıyor."
+              },
+              { id:"h-dlq", type:"choice",
+                label:"Bu aboneliğin işleyemediği mesajlara ne olması gerektiğine karar ver",
+                prompt:"Sürekli teslim başarısız olan bir mesaja ne olur?",
+                options:[
+                  { key:"forever", label:"Endişelenecek bir şey yok — Pub/Sub başarısız bir teslimi sonsuza kadar tekrar dener", correct:false, feedback:"Denemez. Aboneliğin tekrar deneme sınırının ötesinde, bir ölü mektup konusu yapılandırılmamış bir mesaj sadece düşürülür." },
+                  { key:"dlt", label:"Bu abonelik için bir ölü mektup konusu yapılandır", correct:true, feedback:"Yapılandırıldı — tekrar denemeden sonra teslim edilemeyen bir mesaj artık yok olmak yerine görünür bir yere düşüyor." }
+                ],
+                errorText:"Bu abonelikte hâlâ bir ölü mektup konusu yok — tekrar denemeden sonra teslim başarısız olan bir mesaj, zaten olanlar gibi sadece kayboluyor."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Gelecekteki bir yanlış yapılandırmanın hızlıca fark edilmesi için ölü mektup konusunun derinliğinde bir Cloud Monitoring uyarısı ekle",
+                actionLabel:"DLT uyarısı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Uyarı yapılandırıldı — ekip bir sonraki sessiz-abone sorununu günler değil dakikalar içinde duyacak.", loadingMs:500,
+                errorText:"Mesajlar ölü mektup konusunda birikmeye başladığında kimseyi çağıran hiçbir şey yok — bu tam olarak bunun günlerce fark edilmeden kalmasının nedeni."
+              }
+            ]
+          }
+        },
+        snowball:{
+          aws:{
+            title:"Bant genişliğini tüketmeden 250TB'ı son tarihten önce taşı",
+            scenario:"250TB'ın yerinde bir veri merkezinden buluta 2 hafta içinde taşınması gerekiyor. Sitenin uplink'i 100 Mbps ve diğer trafikle paylaşılıyor — bu hızda transferin kendisi aylar sürerdi.",
+            consoleLabel:"AWS Snowball Console (simüle edilmiş)",
+            actionBtn:"Göçün zamanında tamamlandığını doğrula",
+            successText:"250TB'ın tamamı son tarihin oldukça içinde S3'e ulaştı, sitenin internet bağlantısına hiç dokunmadan.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Bunun için doğru transfer yöntemini seç",
+                prompt:"Bu veri gerçekte nasıl taşınmalı?",
+                options:[
+                  { key:"network", label:"Mevcut internet bağlantısı üzerinden transfer et", correct:false, feedback:"100 Mbps'te, 250TB kabaca 230+ gün sürerdi — 2 haftalık son tarihe hiç yaklaşamaz." },
+                  { key:"snowball", label:"Fiziksel Snowball Edge cihazları sipariş et", correct:true, feedback:"Bir cihaz bunu aylar değil günler içinde taşıyabilir — sitenin internet bant genişliğinden tamamen bağımsız." }
+                ],
+                errorText:"Bu bant genişliğinde, transferin kendisi daha üçte biri bile bitmeden son tarihi geçiyor."
+              },
+              { id:"e-ship", type:"action",
+                label:"Veriyi cihaza kopyala ve geri gönder",
+                actionLabel:"Cihazı geri gönder", loadingLabel:"Gönderiliyor…", doneLabel:"Cihaz geri gönderildi ve içe aktarıldı — veri S3'e ulaştı.", loadingMs:700,
+                errorText:"Cihaz hâlâ veriyle birlikte yerinde duruyor — henüz hiçbir şey S3'e ulaşmadı."
+              }
+            ],
+            hardSteps:[
+              { id:"h-method", type:"choice",
+                label:"Bunun için doğru transfer yöntemini seç",
+                prompt:"Bu veri gerçekte nasıl taşınmalı?",
+                options:[
+                  { key:"network", label:"Mevcut internet bağlantısı üzerinden transfer et", correct:false, feedback:"100 Mbps'te, 250TB kabaca 230+ gün sürerdi — 2 haftalık son tarihe hiç yaklaşamaz." },
+                  { key:"snowball", label:"Fiziksel Snowball Edge cihazları sipariş et", correct:true, feedback:"Bir cihaz bunu aylar değil günler içinde taşıyabilir — sitenin internet bant genişliğinden tamamen bağımsız." }
+                ],
+                errorText:"Bu bant genişliğinde, transferin kendisi daha üçte biri bile bitmeden son tarihi geçiyor."
+              },
+              { id:"h-capacity", type:"choice",
+                label:"Bunun gerçekte kaç cihaz gerektirdiğini hesapla",
+                prompt:"Her Snowball Edge Storage Optimized cihazı kullanılabilir yaklaşık 80TB tutuyor. 250TB kaç tane gerektirir?",
+                options:[
+                  { key:"one", label:"1 cihaz — seferler arasında sadece yeniden doldur", correct:false, feedback:"Bir cihaz bu veri setinin kabaca üçte birini tutuyor — üç kez doldurup yeniden göndermek 2 haftalık son tarihi fazlasıyla geçerdi." },
+                  { key:"four", label:"4 cihaz, paralel çalıştır", correct:true, feedback:"Dört cihaz tam 250TB'ı fazlasıyla karşılıyor, ve paralel çalıştırmak tüm göçü son tarih içinde tutuyor." }
+                ],
+                errorText:"Sipariş edilen cihaz sayısı 250TB'ın tamamını gerçekten karşılamıyor — bu verinin bir kısmının gidecek yeri yok."
+              },
+              { id:"h-ship", type:"action",
+                label:"Veriyi cihazlara kopyala ve geri gönder",
+                actionLabel:"Cihazları geri gönder", loadingLabel:"Gönderiliyor…", doneLabel:"Cihazlar geri gönderildi ve içe aktarıldı — verinin tamamı S3'e ulaştı.", loadingMs:700,
+                errorText:"Cihazlar hâlâ veriyle birlikte yerinde duruyor — henüz hiçbir şey S3'e ulaşmadı."
+              },
+              { id:"h-ongoing", type:"action",
+                label:"Her seferinde fiziksel bir sevkiyat tekrarlamak yerine, geçiş sonrası oluşturulan veriler için sürekli artımlı bir senkronizasyon kur",
+                actionLabel:"Sürekli senkronizasyonu yapılandır", loadingLabel:"Yapılandırılıyor…", doneLabel:"Sürekli artımlı senkronizasyon yapılandırıldı — yeni veri artık başka bir Snowball siparişi olmadan sürekli akıyor.", loadingMs:600,
+                errorText:"Bu tek seferlik göçten sonra oluşturulan veri için bir plan yok — bir sonraki grup yine haftalar süren fiziksel bir sevkiyat gerektirirdi."
+              }
+            ]
+          },
+          azure:{
+            title:"Bant genişliğini tüketmeden 250TB'ı son tarihten önce taşı",
+            scenario:"250TB'ın yerinde bir veri merkezinden buluta 2 hafta içinde taşınması gerekiyor. Sitenin uplink'i 100 Mbps ve diğer trafikle paylaşılıyor — bu hızda transferin kendisi aylar sürerdi.",
+            consoleLabel:"Azure Portal — Data Box siparişleri (simüle edilmiş)",
+            actionBtn:"Göçün zamanında tamamlandığını doğrula",
+            successText:"250TB'ın tamamı son tarihin oldukça içinde Azure Storage'a ulaştı, sitenin internet bağlantısına hiç dokunmadan.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Bunun için doğru transfer yöntemini seç",
+                prompt:"Bu veri gerçekte nasıl taşınmalı?",
+                options:[
+                  { key:"network", label:"Mevcut internet bağlantısı üzerinden transfer et", correct:false, feedback:"100 Mbps'te, 250TB kabaca 230+ gün sürerdi — 2 haftalık son tarihe hiç yaklaşamaz." },
+                  { key:"databox", label:"Fiziksel Data Box cihazları sipariş et", correct:true, feedback:"Bir cihaz bunu aylar değil günler içinde taşıyabilir — sitenin internet bant genişliğinden tamamen bağımsız." }
+                ],
+                errorText:"Bu bant genişliğinde, transferin kendisi daha üçte biri bile bitmeden son tarihi geçiyor."
+              },
+              { id:"e-ship", type:"action",
+                label:"Veriyi cihaza kopyala ve geri gönder",
+                actionLabel:"Cihazı geri gönder", loadingLabel:"Gönderiliyor…", doneLabel:"Cihaz geri gönderildi ve içe aktarıldı — veri Azure Storage'a ulaştı.", loadingMs:700,
+                errorText:"Cihaz hâlâ veriyle birlikte yerinde duruyor — henüz hiçbir şey Azure Storage'a ulaşmadı."
+              }
+            ],
+            hardSteps:[
+              { id:"h-method", type:"choice",
+                label:"Bunun için doğru transfer yöntemini seç",
+                prompt:"Bu veri gerçekte nasıl taşınmalı?",
+                options:[
+                  { key:"network", label:"Mevcut internet bağlantısı üzerinden transfer et", correct:false, feedback:"100 Mbps'te, 250TB kabaca 230+ gün sürerdi — 2 haftalık son tarihe hiç yaklaşamaz." },
+                  { key:"databox", label:"Fiziksel Data Box cihazları sipariş et", correct:true, feedback:"Bir cihaz bunu aylar değil günler içinde taşıyabilir — sitenin internet bant genişliğinden tamamen bağımsız." }
+                ],
+                errorText:"Bu bant genişliğinde, transferin kendisi daha üçte biri bile bitmeden son tarihi geçiyor."
+              },
+              { id:"h-capacity", type:"choice",
+                label:"Bunun gerçekte kaç cihaz gerektirdiğini hesapla",
+                prompt:"Her Data Box cihazı kullanılabilir yaklaşık 80TB tutuyor. 250TB kaç tane gerektirir?",
+                options:[
+                  { key:"one", label:"1 cihaz — seferler arasında sadece yeniden doldur", correct:false, feedback:"Bir cihaz bu veri setinin kabaca üçte birini tutuyor — üç kez doldurup yeniden göndermek 2 haftalık son tarihi fazlasıyla geçerdi." },
+                  { key:"four", label:"4 cihaz, paralel çalıştır", correct:true, feedback:"Dört cihaz tam 250TB'ı fazlasıyla karşılıyor, ve paralel çalıştırmak tüm göçü son tarih içinde tutuyor." }
+                ],
+                errorText:"Sipariş edilen cihaz sayısı 250TB'ın tamamını gerçekten karşılamıyor — bu verinin bir kısmının gidecek yeri yok."
+              },
+              { id:"h-ship", type:"action",
+                label:"Veriyi cihazlara kopyala ve geri gönder",
+                actionLabel:"Cihazları geri gönder", loadingLabel:"Gönderiliyor…", doneLabel:"Cihazlar geri gönderildi ve içe aktarıldı — verinin tamamı Azure Storage'a ulaştı.", loadingMs:700,
+                errorText:"Cihazlar hâlâ veriyle birlikte yerinde duruyor — henüz hiçbir şey Azure Storage'a ulaşmadı."
+              },
+              { id:"h-ongoing", type:"action",
+                label:"Her seferinde fiziksel bir sevkiyat tekrarlamak yerine, geçiş sonrası oluşturulan veriler için sürekli artımlı bir senkronizasyon kur",
+                actionLabel:"Sürekli senkronizasyonu yapılandır", loadingLabel:"Yapılandırılıyor…", doneLabel:"Sürekli artımlı senkronizasyon yapılandırıldı — yeni veri artık başka bir Data Box siparişi olmadan sürekli akıyor.", loadingMs:600,
+                errorText:"Bu tek seferlik göçten sonra oluşturulan veri için bir plan yok — bir sonraki grup yine haftalar süren fiziksel bir sevkiyat gerektirirdi."
+              }
+            ]
+          },
+          gcp:{
+            title:"Bant genişliğini tüketmeden 250TB'ı son tarihten önce taşı",
+            scenario:"250TB'ın yerinde bir veri merkezinden buluta 2 hafta içinde taşınması gerekiyor. Sitenin uplink'i 100 Mbps ve diğer trafikle paylaşılıyor — bu hızda transferin kendisi aylar sürerdi.",
+            consoleLabel:"Google Cloud Console — Transfer Appliance siparişleri (simüle edilmiş)",
+            actionBtn:"Göçün zamanında tamamlandığını doğrula",
+            successText:"250TB'ın tamamı son tarihin oldukça içinde Cloud Storage'a ulaştı, sitenin internet bağlantısına hiç dokunmadan.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Bunun için doğru transfer yöntemini seç",
+                prompt:"Bu veri gerçekte nasıl taşınmalı?",
+                options:[
+                  { key:"network", label:"Mevcut internet bağlantısı üzerinden transfer et", correct:false, feedback:"100 Mbps'te, 250TB kabaca 230+ gün sürerdi — 2 haftalık son tarihe hiç yaklaşamaz." },
+                  { key:"appliance", label:"Fiziksel Transfer Appliance cihazları sipariş et", correct:true, feedback:"Bir cihaz bunu aylar değil günler içinde taşıyabilir — sitenin internet bant genişliğinden tamamen bağımsız." }
+                ],
+                errorText:"Bu bant genişliğinde, transferin kendisi daha üçte biri bile bitmeden son tarihi geçiyor."
+              },
+              { id:"e-ship", type:"action",
+                label:"Veriyi cihaza kopyala ve geri gönder",
+                actionLabel:"Cihazı geri gönder", loadingLabel:"Gönderiliyor…", doneLabel:"Cihaz geri gönderildi ve içe aktarıldı — veri Cloud Storage'a ulaştı.", loadingMs:700,
+                errorText:"Cihaz hâlâ veriyle birlikte yerinde duruyor — henüz hiçbir şey Cloud Storage'a ulaşmadı."
+              }
+            ],
+            hardSteps:[
+              { id:"h-method", type:"choice",
+                label:"Bunun için doğru transfer yöntemini seç",
+                prompt:"Bu veri gerçekte nasıl taşınmalı?",
+                options:[
+                  { key:"network", label:"Mevcut internet bağlantısı üzerinden transfer et", correct:false, feedback:"100 Mbps'te, 250TB kabaca 230+ gün sürerdi — 2 haftalık son tarihe hiç yaklaşamaz." },
+                  { key:"appliance", label:"Fiziksel Transfer Appliance cihazları sipariş et", correct:true, feedback:"Bir cihaz bunu aylar değil günler içinde taşıyabilir — sitenin internet bant genişliğinden tamamen bağımsız." }
+                ],
+                errorText:"Bu bant genişliğinde, transferin kendisi daha üçte biri bile bitmeden son tarihi geçiyor."
+              },
+              { id:"h-capacity", type:"choice",
+                label:"Bunun gerçekte kaç cihaz gerektirdiğini hesapla",
+                prompt:"Her Transfer Appliance kullanılabilir yaklaşık 100TB tutuyor. 250TB kaç tane gerektirir?",
+                options:[
+                  { key:"one", label:"1 cihaz — seferler arasında sadece yeniden doldur", correct:false, feedback:"Bir cihaz bu veri setinin yarısından az bir kısmını tutuyor — birden çok kez doldurup yeniden göndermek 2 haftalık son tarihi fazlasıyla geçerdi." },
+                  { key:"three", label:"3 cihaz, paralel çalıştır", correct:true, feedback:"Üç cihaz tam 250TB'ı fazlasıyla karşılıyor, ve paralel çalıştırmak tüm göçü son tarih içinde tutuyor." }
+                ],
+                errorText:"Sipariş edilen cihaz sayısı 250TB'ın tamamını gerçekten karşılamıyor — bu verinin bir kısmının gidecek yeri yok."
+              },
+              { id:"h-ship", type:"action",
+                label:"Veriyi cihazlara kopyala ve geri gönder",
+                actionLabel:"Cihazları geri gönder", loadingLabel:"Gönderiliyor…", doneLabel:"Cihazlar geri gönderildi ve içe aktarıldı — verinin tamamı Cloud Storage'a ulaştı.", loadingMs:700,
+                errorText:"Cihazlar hâlâ veriyle birlikte yerinde duruyor — henüz hiçbir şey Cloud Storage'a ulaşmadı."
+              },
+              { id:"h-ongoing", type:"action",
+                label:"Her seferinde fiziksel bir sevkiyat tekrarlamak yerine, geçiş sonrası oluşturulan veriler için sürekli artımlı bir senkronizasyon kur",
+                actionLabel:"Sürekli senkronizasyonu yapılandır", loadingLabel:"Yapılandırılıyor…", doneLabel:"Sürekli artımlı senkronizasyon yapılandırıldı — yeni veri artık başka bir Transfer Appliance siparişi olmadan sürekli akıyor.", loadingMs:600,
+                errorText:"Bu tek seferlik göçten sonra oluşturulan veri için bir plan yok — bir sonraki grup yine haftalar süren fiziksel bir sevkiyat gerektirirdi."
+              }
+            ]
+          }
+        },
+        cicd:{
+          aws:{
+            title:"Acil bir düzeltmeyi takılı kalmış bir pipeline'dan güvenle geçir",
+            scenario:"Kritik bir güvenlik yaması, bir haftadır aralıklı olarak başarısız olan bir entegrasyon testinin arkasında takılı kaldı. Nöbetçi mühendis, yamayı çıkarmak için test paketini basitçe devre dışı bırakmaya yeltendi.",
+            consoleLabel:"AWS CodePipeline Console (simüle edilmiş)",
+            actionBtn:"Yamanın güvenle gönderildiğini doğrula",
+            successText:"Yama, her şeyin geçtiği aynı kapıdan geçti — ve test paketi bir sonraki build'i hâlâ izliyor.",
+            easySteps:[
+              { id:"e-choice", type:"choice",
+                label:"Bu yamayı şu anda nasıl geçireceğine karar ver",
+                prompt:"Gerçekte güvenli hamle ne?",
+                options:[
+                  { key:"disable", label:"Test aşamasını tamamen devre dışı bırak", correct:false, feedback:"Bu yamayı geçirir, ama bir sonraki gerçekten bozuk build'in de hiçbir şey onu yakalamadan geçmesine izin verir." },
+                  { key:"retry", label:"Başarısız aşamayı yeniden dene — gerçekten kararsızsa, bir yeniden deneme geçmeli, ve yama yine de gerçek kapıdan geçer", correct:true, feedback:"Yeniden denendi ve geçti — yama, her şeyin geçtiği aynı kapıdan geçti, ve test paketi bir sonraki build'i hâlâ izliyor." }
+                ],
+                errorText:"Yama hâlâ gerçek, bozulmamış bir test kapısından geçmedi — ya takılı kaldı, ya da kontrolü tamamen atladı."
+              },
+              { id:"e-ticket", type:"action",
+                label:"Kararsız testin kendisini düzeltmek için bir bilet aç",
+                actionLabel:"Bilet aç", loadingLabel:"Açılıyor…", doneLabel:"Bilet açıldı — kararsız test artık sessizce tolere edilmek yerine takip ediliyor.", loadingMs:500,
+                errorText:"Kararsız test hâlâ orada duruyor, bir sonraki acil düzeltmeyi de engellemeye ya da yanlış kapılamaya hazır."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bunun gerçekten kararsızlık olduğunu, gerçek bir gerileme olmadığını doğrula",
+                prompt:"Başarısızlık deseni neye benziyor?",
+                options:[
+                  { key:"consistent", label:"Her tek çalıştırmada, bu değişiklikte, tam olarak aynı şekilde başarısız oluyor", correct:false, feedback:"Bu değişiklikte %100 tekrarlanabilir bir başarısızlık kararsız değildir — bu gerçek bir gerilemedir, ve yeniden denemek onu düzeltmez." },
+                  { key:"intermittent", label:"5 çalıştırmadan yaklaşık 1'inde, ilgisiz değişikliklerde de, zamanlamayla ilgili bir hatayla başarısız oluyor", correct:true, feedback:"Bu desen — aralıklı, gerçek değişiklikle ilgisiz, zamanlamayla ilgili — gerçek bir gerilemenin değil, gerçek kararsızlığın imzasıdır." }
+                ],
+                errorText:"Kimse bunun gerçekten kararsız olduğunu, gerçek bir gerileme olmadığını doğrulamadı — gerçek bir gerilemenin ötesinde yeniden denemek hatayı gönderirdi."
+              },
+              { id:"h-choice", type:"choice",
+                label:"Bu yamayı şu anda nasıl geçireceğine karar ver",
+                prompt:"Gerçekte güvenli hamle ne?",
+                options:[
+                  { key:"disable", label:"Test aşamasını tamamen devre dışı bırak", correct:false, feedback:"Bu yamayı geçirir, ama bir sonraki gerçekten bozuk build'in de hiçbir şey onu yakalamadan geçmesine izin verir." },
+                  { key:"retry", label:"Başarısız aşamayı yeniden dene — gerçekten kararsızsa, bir yeniden deneme geçmeli, ve yama yine de gerçek kapıdan geçer", correct:true, feedback:"Yeniden denendi ve geçti — yama, her şeyin geçtiği aynı kapıdan geçti, ve test paketi bir sonraki build'i hâlâ izliyor." }
+                ],
+                errorText:"Yama hâlâ gerçek, bozulmamış bir test kapısından geçmedi — ya takılı kaldı, ya da kontrolü tamamen atladı."
+              },
+              { id:"h-approval", type:"action",
+                label:"Otomatik kontrolleri devre dışı bırakmak yerine, özellikle acil yamalar için bir sonraki sefer bir manuel onay kapısı ekle",
+                actionLabel:"Onay kapısı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Acil yamalar için manuel onay kapısı eklendi — acil düzeltmeler devre dışı bırakılmış bir güvenlik ağı değil, bilinçli bir insan geçersiz kılması alıyor.", loadingMs:600,
+                errorText:"Şu anda acil bir düzeltme için kimsenin sahip olduğu tek atlatma yolu testleri devre dışı bırakmak — bu yanlış kaldıraç, ve biri onu tekrar çekecek."
+              },
+              { id:"h-ticket", type:"action",
+                label:"Kararsız testin kendisini düzeltmek için bir bilet aç",
+                actionLabel:"Bilet aç", loadingLabel:"Açılıyor…", doneLabel:"Bilet açıldı — kararsız test artık sessizce tolere edilmek yerine takip ediliyor.", loadingMs:500,
+                errorText:"Kararsız test hâlâ orada duruyor, bir sonraki acil düzeltmeyi de engellemeye ya da yanlış kapılamaya hazır."
+              }
+            ]
+          },
+          azure:{
+            title:"Acil bir düzeltmeyi takılı kalmış bir pipeline'dan güvenle geçir",
+            scenario:"Kritik bir güvenlik yaması, bir haftadır aralıklı olarak başarısız olan bir entegrasyon testinin arkasında takılı kaldı. Nöbetçi mühendis, yamayı çıkarmak için test aşamasını basitçe devre dışı bırakmaya yeltendi.",
+            consoleLabel:"Azure DevOps Pipelines (simüle edilmiş)",
+            actionBtn:"Yamanın güvenle gönderildiğini doğrula",
+            successText:"Yama, her şeyin geçtiği aynı kapıdan geçti — ve test paketi bir sonraki build'i hâlâ izliyor.",
+            easySteps:[
+              { id:"e-choice", type:"choice",
+                label:"Bu yamayı şu anda nasıl geçireceğine karar ver",
+                prompt:"Gerçekte güvenli hamle ne?",
+                options:[
+                  { key:"disable", label:"Test aşamasını tamamen devre dışı bırak", correct:false, feedback:"Bu yamayı geçirir, ama bir sonraki gerçekten bozuk build'in de hiçbir şey onu yakalamadan geçmesine izin verir." },
+                  { key:"retry", label:"Başarısız aşamayı yeniden dene — gerçekten kararsızsa, bir yeniden deneme geçmeli, ve yama yine de gerçek kapıdan geçer", correct:true, feedback:"Yeniden denendi ve geçti — yama, her şeyin geçtiği aynı kapıdan geçti, ve test paketi bir sonraki build'i hâlâ izliyor." }
+                ],
+                errorText:"Yama hâlâ gerçek, bozulmamış bir test kapısından geçmedi — ya takılı kaldı, ya da kontrolü tamamen atladı."
+              },
+              { id:"e-ticket", type:"action",
+                label:"Kararsız testin kendisini düzeltmek için bir iş öğesi aç",
+                actionLabel:"İş öğesi aç", loadingLabel:"Açılıyor…", doneLabel:"İş öğesi açıldı — kararsız test artık sessizce tolere edilmek yerine takip ediliyor.", loadingMs:500,
+                errorText:"Kararsız test hâlâ orada duruyor, bir sonraki acil düzeltmeyi de engellemeye ya da yanlış kapılamaya hazır."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bunun gerçekten kararsızlık olduğunu, gerçek bir gerileme olmadığını doğrula",
+                prompt:"Başarısızlık deseni neye benziyor?",
+                options:[
+                  { key:"consistent", label:"Her tek çalıştırmada, bu değişiklikte, tam olarak aynı şekilde başarısız oluyor", correct:false, feedback:"Bu değişiklikte %100 tekrarlanabilir bir başarısızlık kararsız değildir — bu gerçek bir gerilemedir, ve yeniden denemek onu düzeltmez." },
+                  { key:"intermittent", label:"5 çalıştırmadan yaklaşık 1'inde, ilgisiz değişikliklerde de, zamanlamayla ilgili bir hatayla başarısız oluyor", correct:true, feedback:"Bu desen — aralıklı, gerçek değişiklikle ilgisiz, zamanlamayla ilgili — gerçek bir gerilemenin değil, gerçek kararsızlığın imzasıdır." }
+                ],
+                errorText:"Kimse bunun gerçekten kararsız olduğunu, gerçek bir gerileme olmadığını doğrulamadı — gerçek bir gerilemenin ötesinde yeniden denemek hatayı gönderirdi."
+              },
+              { id:"h-choice", type:"choice",
+                label:"Bu yamayı şu anda nasıl geçireceğine karar ver",
+                prompt:"Gerçekte güvenli hamle ne?",
+                options:[
+                  { key:"disable", label:"Test aşamasını tamamen devre dışı bırak", correct:false, feedback:"Bu yamayı geçirir, ama bir sonraki gerçekten bozuk build'in de hiçbir şey onu yakalamadan geçmesine izin verir." },
+                  { key:"retry", label:"Başarısız aşamayı yeniden dene — gerçekten kararsızsa, bir yeniden deneme geçmeli, ve yama yine de gerçek kapıdan geçer", correct:true, feedback:"Yeniden denendi ve geçti — yama, her şeyin geçtiği aynı kapıdan geçti, ve test paketi bir sonraki build'i hâlâ izliyor." }
+                ],
+                errorText:"Yama hâlâ gerçek, bozulmamış bir test kapısından geçmedi — ya takılı kaldı, ya da kontrolü tamamen atladı."
+              },
+              { id:"h-approval", type:"action",
+                label:"Otomatik kontrolleri devre dışı bırakmak yerine, özellikle acil yamalar için bir sonraki sefer bir manuel onay kapısı ekle",
+                actionLabel:"Onay kapısı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Acil yamalar için manuel onay kapısı eklendi — acil düzeltmeler devre dışı bırakılmış bir güvenlik ağı değil, bilinçli bir insan geçersiz kılması alıyor.", loadingMs:600,
+                errorText:"Şu anda acil bir düzeltme için kimsenin sahip olduğu tek atlatma yolu testleri devre dışı bırakmak — bu yanlış kaldıraç, ve biri onu tekrar çekecek."
+              },
+              { id:"h-ticket", type:"action",
+                label:"Kararsız testin kendisini düzeltmek için bir iş öğesi aç",
+                actionLabel:"İş öğesi aç", loadingLabel:"Açılıyor…", doneLabel:"İş öğesi açıldı — kararsız test artık sessizce tolere edilmek yerine takip ediliyor.", loadingMs:500,
+                errorText:"Kararsız test hâlâ orada duruyor, bir sonraki acil düzeltmeyi de engellemeye ya da yanlış kapılamaya hazır."
+              }
+            ]
+          },
+          gcp:{
+            title:"Acil bir düzeltmeyi takılı kalmış bir pipeline'dan güvenle geçir",
+            scenario:"Kritik bir güvenlik yaması, bir haftadır aralıklı olarak başarısız olan bir entegrasyon testinin arkasında takılı kaldı. Nöbetçi mühendis, yamayı çıkarmak için test adımını basitçe devre dışı bırakmaya yeltendi.",
+            consoleLabel:"Google Cloud Console — Cloud Build (simüle edilmiş)",
+            actionBtn:"Yamanın güvenle gönderildiğini doğrula",
+            successText:"Yama, her şeyin geçtiği aynı kapıdan geçti — ve test paketi bir sonraki build'i hâlâ izliyor.",
+            easySteps:[
+              { id:"e-choice", type:"choice",
+                label:"Bu yamayı şu anda nasıl geçireceğine karar ver",
+                prompt:"Gerçekte güvenli hamle ne?",
+                options:[
+                  { key:"disable", label:"Test adımını tamamen devre dışı bırak", correct:false, feedback:"Bu yamayı geçirir, ama bir sonraki gerçekten bozuk build'in de hiçbir şey onu yakalamadan geçmesine izin verir." },
+                  { key:"retry", label:"Başarısız build'i yeniden dene — gerçekten kararsızsa, bir yeniden deneme geçmeli, ve yama yine de gerçek kapıdan geçer", correct:true, feedback:"Yeniden denendi ve geçti — yama, her şeyin geçtiği aynı kapıdan geçti, ve test paketi bir sonraki build'i hâlâ izliyor." }
+                ],
+                errorText:"Yama hâlâ gerçek, bozulmamış bir test kapısından geçmedi — ya takılı kaldı, ya da kontrolü tamamen atladı."
+              },
+              { id:"e-ticket", type:"action",
+                label:"Kararsız testin kendisini düzeltmek için bir bilet aç",
+                actionLabel:"Bilet aç", loadingLabel:"Açılıyor…", doneLabel:"Bilet açıldı — kararsız test artık sessizce tolere edilmek yerine takip ediliyor.", loadingMs:500,
+                errorText:"Kararsız test hâlâ orada duruyor, bir sonraki acil düzeltmeyi de engellemeye ya da yanlış kapılamaya hazır."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Bunun gerçekten kararsızlık olduğunu, gerçek bir gerileme olmadığını doğrula",
+                prompt:"Başarısızlık deseni neye benziyor?",
+                options:[
+                  { key:"consistent", label:"Her tek çalıştırmada, bu değişiklikte, tam olarak aynı şekilde başarısız oluyor", correct:false, feedback:"Bu değişiklikte %100 tekrarlanabilir bir başarısızlık kararsız değildir — bu gerçek bir gerilemedir, ve yeniden denemek onu düzeltmez." },
+                  { key:"intermittent", label:"5 çalıştırmadan yaklaşık 1'inde, ilgisiz değişikliklerde de, zamanlamayla ilgili bir hatayla başarısız oluyor", correct:true, feedback:"Bu desen — aralıklı, gerçek değişiklikle ilgisiz, zamanlamayla ilgili — gerçek bir gerilemenin değil, gerçek kararsızlığın imzasıdır." }
+                ],
+                errorText:"Kimse bunun gerçekten kararsız olduğunu, gerçek bir gerileme olmadığını doğrulamadı — gerçek bir gerilemenin ötesinde yeniden denemek hatayı gönderirdi."
+              },
+              { id:"h-choice", type:"choice",
+                label:"Bu yamayı şu anda nasıl geçireceğine karar ver",
+                prompt:"Gerçekte güvenli hamle ne?",
+                options:[
+                  { key:"disable", label:"Test adımını tamamen devre dışı bırak", correct:false, feedback:"Bu yamayı geçirir, ama bir sonraki gerçekten bozuk build'in de hiçbir şey onu yakalamadan geçmesine izin verir." },
+                  { key:"retry", label:"Başarısız build'i yeniden dene — gerçekten kararsızsa, bir yeniden deneme geçmeli, ve yama yine de gerçek kapıdan geçer", correct:true, feedback:"Yeniden denendi ve geçti — yama, her şeyin geçtiği aynı kapıdan geçti, ve test paketi bir sonraki build'i hâlâ izliyor." }
+                ],
+                errorText:"Yama hâlâ gerçek, bozulmamış bir test kapısından geçmedi — ya takılı kaldı, ya da kontrolü tamamen atladı."
+              },
+              { id:"h-approval", type:"action",
+                label:"Otomatik kontrolleri devre dışı bırakmak yerine, özellikle acil yamalar için bir sonraki sefer zorunlu bir onay ekle",
+                actionLabel:"Onay zorunlu kıl", loadingLabel:"Yapılandırılıyor…", doneLabel:"Acil yamalar için zorunlu onay eklendi — acil düzeltmeler devre dışı bırakılmış bir güvenlik ağı değil, bilinçli bir insan geçersiz kılması alıyor.", loadingMs:600,
+                errorText:"Şu anda acil bir düzeltme için kimsenin sahip olduğu tek atlatma yolu testleri devre dışı bırakmak — bu yanlış kaldıraç, ve biri onu tekrar çekecek."
+              },
+              { id:"h-ticket", type:"action",
+                label:"Kararsız testin kendisini düzeltmek için bir bilet aç",
+                actionLabel:"Bilet aç", loadingLabel:"Açılıyor…", doneLabel:"Bilet açıldı — kararsız test artık sessizce tolere edilmek yerine takip ediliyor.", loadingMs:500,
+                errorText:"Kararsız test hâlâ orada duruyor, bir sonraki acil düzeltmeyi de engellemeye ya da yanlış kapılamaya hazır."
+              }
+            ]
+          }
+        },
+        secrets:{
+          aws:{
+            title:"Herkese açık bir depoya işlenmiş bir kimlik bilgisine yanıt ver",
+            scenario:"Bir geliştirici yanlışlıkla bir AWS erişim anahtarını herkese açık bir GitHub deposuna işledi (commit). AWS'nin otomatik anahtar sızıntısı tespiti zaten bir destek kaydı açtı ve kısıtlayıcı bir karantina politikası ekledi — ama anahtarın kendisi hâlâ teknik olarak geçerli.",
+            consoleLabel:"AWS IAM Console (simüle edilmiş)",
+            actionBtn:"Sızıntının tamamen kapandığını doğrula",
+            successText:"Anahtar ölü, sızıntı geçmişten temizlendi, ve bir sonraki benzer sızıntı bir insan fark etmeden yakalanıyor.",
+            easySteps:[
+              { id:"e-deactivate", type:"action",
+                label:"Sızan erişim anahtarını hemen devre dışı bırak",
+                actionLabel:"Anahtarı devre dışı bırak", loadingLabel:"Devre dışı bırakılıyor…", doneLabel:"Erişim anahtarı devre dışı bırakıldı — artık hiç kimlik doğrulayamıyor.", loadingMs:600,
+                errorText:"AWS'nin otomatik karantinası anahtarın yapabileceklerini daraltıyor, ama devre dışı bırakmıyor — biri açıkça bunu yapana kadar anahtar hâlâ geçerli."
+              },
+              { id:"e-purge", type:"choice",
+                label:"Açığa çıkan commit'in kendisi hakkında ne yapılacağına karar ver",
+                prompt:"Depo geçmişinde oturan sızan anahtar hakkında ne yapılmalı?",
+                options:[
+                  { key:"leave", label:"Commit'i bırak — anahtar zaten devre dışı, o yüzden önemli değil", correct:false, feedback:"Anahtarın ölü olması sızıntıyı silmiyor — commit geçmişi (ve onu zaten klonlayan ya da kazıyan herkes) hâlâ ona sahip, ve tarayıcılar bu depoyu işaretlemeye devam edecek." },
+                  { key:"purgehistory", label:"Anahtarı deponun git geçmişinden temizle ve temizlenmiş geçmişi force-push et", correct:true, feedback:"Temizlendi — anahtar sadece son commit'ten değil, geçmişten de gitti." }
+                ],
+                errorText:"Ölü anahtar hâlâ deponun geçmişinde açıkça duruyor — bu depo onu bulan her tarayıcı tarafından işaretlenmeye devam edecek."
+              }
+            ],
+            hardSteps:[
+              { id:"h-usage", type:"choice",
+                label:"Sen devre dışı bırakmadan önce anahtarın gerçekten başkası tarafından kullanılıp kullanılmadığını kontrol et",
+                prompt:"CloudTrail, devre dışı bırakmadan önceki pencerede bu anahtar için ne gösteriyor?",
+                options:[
+                  { key:"onlydev", label:"Sadece geliştiricinin bilinen IP adresinden API çağrıları", correct:false, feedback:"Bu sadece geliştiricinin kendi normal kullanımı — aradığınız şey bu değil." },
+                  { key:"unfamiliar", label:"Bu anahtarı daha önce hiç kullanmamış bir IP'den bir dizi ListBuckets ve GetObject çağrısı", correct:true, feedback:"Bu, anahtarın siz devre dışı bırakmadan önce gerçekten başkası tarafından bulunup kullanıldığının kanıtı — bu artık sadece ucu ucuna bir durum değil." }
+                ],
+                errorText:"Kimse bu anahtarın geliştirici dışında biri tarafından kullanılıp kullanılmadığını gerçekten doğrulamadı — bu, bunun ne kadar büyük bir sorun olduğunu değiştirir."
+              },
+              { id:"h-deactivate", type:"action",
+                label:"Sızan erişim anahtarını hemen devre dışı bırak",
+                actionLabel:"Anahtarı devre dışı bırak", loadingLabel:"Devre dışı bırakılıyor…", doneLabel:"Erişim anahtarı devre dışı bırakıldı — artık hiç kimlik doğrulayamıyor.", loadingMs:600,
+                errorText:"AWS'nin otomatik karantinası anahtarın yapabileceklerini daraltıyor, ama devre dışı bırakmıyor — biri açıkça bunu yapana kadar anahtar hâlâ geçerli."
+              },
+              { id:"h-purge", type:"choice",
+                label:"Açığa çıkan commit'in kendisi hakkında ne yapılacağına karar ver",
+                prompt:"Depo geçmişinde oturan sızan anahtar hakkında ne yapılmalı?",
+                options:[
+                  { key:"leave", label:"Commit'i bırak — anahtar zaten devre dışı, o yüzden önemli değil", correct:false, feedback:"Anahtarın ölü olması sızıntıyı silmiyor — commit geçmişi (ve onu zaten klonlayan ya da kazıyan herkes) hâlâ ona sahip, ve tarayıcılar bu depoyu işaretlemeye devam edecek." },
+                  { key:"purgehistory", label:"Anahtarı deponun git geçmişinden temizle ve temizlenmiş geçmişi force-push et", correct:true, feedback:"Temizlendi — anahtar sadece son commit'ten değil, geçmişten de gitti." }
+                ],
+                errorText:"Ölü anahtar hâlâ deponun geçmişinde açıkça duruyor — bu depo onu bulan her tarayıcı tarafından işaretlenmeye devam edecek."
+              },
+              { id:"h-scan", type:"action",
+                label:"Bir sonraki sızıntının bir insan fark etmeden yakalanması için bu depoda otomatik sır taramasını aç",
+                actionLabel:"Sır taramasını etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Sır taraması etkinleştirildi — bir sonraki işlenen kimlik bilgisi, birleştirilmeden önce bile otomatik olarak işaretleniyor.", loadingMs:600,
+                errorText:"Yeni commit'leri kimlik bilgisi için tarayan hiçbir şey yok — bir sonraki sızıntı tamamen birinin tesadüfen fark etmesine bağlı."
+              }
+            ]
+          },
+          azure:{
+            title:"Herkese açık bir depoya işlenmiş bir kimlik bilgisine yanıt ver",
+            scenario:"Bir geliştirici yanlışlıkla bir Entra ID hizmet sorumlusunun istemci sırrını herkese açık bir GitHub deposuna işledi (commit). Burada otomatik bir karantina yok — sır, biri harekete geçene kadar tamamen geçerli, ve her dakika önemli.",
+            consoleLabel:"Azure Portal — Uygulama kayıtları (simüle edilmiş)",
+            actionBtn:"Sızıntının tamamen kapandığını doğrula",
+            successText:"Sır ölü, sızıntı geçmişten temizlendi, ve bir sonraki benzer sızıntı bir insan fark etmeden yakalanıyor.",
+            easySteps:[
+              { id:"e-deactivate", type:"action",
+                label:"Sızan istemci sırrını hemen sil",
+                actionLabel:"Sırrı sil", loadingLabel:"Siliniyor…", doneLabel:"İstemci sırrı silindi — artık hiç kimlik doğrulayamıyor.", loadingMs:600,
+                errorText:"Burada hiçbir şey bu sırrın yapabileceklerini otomatik olarak daraltmıyor — biri açıkça silene kadar tamamen geçerli kalıyor, ve bu süre boyunca açıkta duruyordu."
+              },
+              { id:"e-purge", type:"choice",
+                label:"Açığa çıkan commit'in kendisi hakkında ne yapılacağına karar ver",
+                prompt:"Depo geçmişinde oturan sızan sır hakkında ne yapılmalı?",
+                options:[
+                  { key:"leave", label:"Commit'i bırak — sır zaten silindi, o yüzden önemli değil", correct:false, feedback:"Sırrın ölü olması sızıntıyı silmiyor — commit geçmişi (ve onu zaten klonlayan ya da kazıyan herkes) hâlâ ona sahip, ve tarayıcılar bu depoyu işaretlemeye devam edecek." },
+                  { key:"purgehistory", label:"Sırrı deponun git geçmişinden temizle ve temizlenmiş geçmişi force-push et", correct:true, feedback:"Temizlendi — sır sadece son commit'ten değil, geçmişten de gitti." }
+                ],
+                errorText:"Ölü sır hâlâ deponun geçmişinde açıkça duruyor — bu depo onu bulan her tarayıcı tarafından işaretlenmeye devam edecek."
+              }
+            ],
+            hardSteps:[
+              { id:"h-usage", type:"choice",
+                label:"Sen silmeden önce sırrın gerçekten başkası tarafından kullanılıp kullanılmadığını kontrol et",
+                prompt:"Oturum açma günlüğü, silmeden önceki pencerede bu hizmet sorumlusu için ne gösteriyor?",
+                options:[
+                  { key:"onlydev", label:"Sadece geliştiricinin bilinen IP adresinden jeton istekleri", correct:false, feedback:"Bu sadece geliştiricinin kendi normal kullanımı — aradığınız şey bu değil." },
+                  { key:"unfamiliar", label:"Bu kimliği daha önce hiç kullanmamış bir IP'den bir dizi jeton isteği ve kaynak erişimi", correct:true, feedback:"Bu, sırrın siz silmeden önce gerçekten başkası tarafından bulunup kullanıldığının kanıtı — bu artık sadece ucu ucuna bir durum değil." }
+                ],
+                errorText:"Kimse bu sırrın geliştirici dışında biri tarafından kullanılıp kullanılmadığını gerçekten doğrulamadı — bu, bunun ne kadar büyük bir sorun olduğunu değiştirir."
+              },
+              { id:"h-deactivate", type:"action",
+                label:"Sızan istemci sırrını hemen sil",
+                actionLabel:"Sırrı sil", loadingLabel:"Siliniyor…", doneLabel:"İstemci sırrı silindi — artık hiç kimlik doğrulayamıyor.", loadingMs:600,
+                errorText:"Burada hiçbir şey bu sırrın yapabileceklerini otomatik olarak daraltmıyor — biri açıkça silene kadar tamamen geçerli kalıyor, ve bu süre boyunca açıkta duruyordu."
+              },
+              { id:"h-purge", type:"choice",
+                label:"Açığa çıkan commit'in kendisi hakkında ne yapılacağına karar ver",
+                prompt:"Depo geçmişinde oturan sızan sır hakkında ne yapılmalı?",
+                options:[
+                  { key:"leave", label:"Commit'i bırak — sır zaten silindi, o yüzden önemli değil", correct:false, feedback:"Sırrın ölü olması sızıntıyı silmiyor — commit geçmişi (ve onu zaten klonlayan ya da kazıyan herkes) hâlâ ona sahip, ve tarayıcılar bu depoyu işaretlemeye devam edecek." },
+                  { key:"purgehistory", label:"Sırrı deponun git geçmişinden temizle ve temizlenmiş geçmişi force-push et", correct:true, feedback:"Temizlendi — sır sadece son commit'ten değil, geçmişten de gitti." }
+                ],
+                errorText:"Ölü sır hâlâ deponun geçmişinde açıkça duruyor — bu depo onu bulan her tarayıcı tarafından işaretlenmeye devam edecek."
+              },
+              { id:"h-scan", type:"action",
+                label:"Bir sonraki sızıntının bir insan fark etmeden yakalanması için bu depoda sır taramasını aç",
+                actionLabel:"Sır taramasını etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Sır taraması etkinleştirildi — bir sonraki işlenen kimlik bilgisi, birleştirilmeden önce bile otomatik olarak işaretleniyor.", loadingMs:600,
+                errorText:"Yeni commit'leri kimlik bilgisi için tarayan hiçbir şey yok — bir sonraki sızıntı tamamen birinin tesadüfen fark etmesine bağlı."
+              }
+            ]
+          },
+          gcp:{
+            title:"Herkese açık bir depoya işlenmiş bir kimlik bilgisine yanıt ver",
+            scenario:"Bir geliştirici yanlışlıkla bir hizmet hesabının JSON anahtar dosyasını herkese açık bir GitHub deposuna işledi (commit). Burada otomatik bir karantina yok — anahtar, biri harekete geçene kadar tamamen geçerli, ve her dakika önemli.",
+            consoleLabel:"Google Cloud Console — Hizmet hesapları (simüle edilmiş)",
+            actionBtn:"Sızıntının tamamen kapandığını doğrula",
+            successText:"Anahtar ölü, sızıntı geçmişten temizlendi, ve bu uygulama artık hiç uzun ömürlü anahtara bağımlı değil.",
+            easySteps:[
+              { id:"e-deactivate", type:"action",
+                label:"Sızan hizmet hesabı anahtarını hemen sil",
+                actionLabel:"Anahtarı sil", loadingLabel:"Siliniyor…", doneLabel:"Hizmet hesabı anahtarı silindi — artık hiç kimlik doğrulayamıyor.", loadingMs:600,
+                errorText:"Burada hiçbir şey bu anahtarın yapabileceklerini otomatik olarak daraltmıyor — biri açıkça silene kadar tamamen geçerli kalıyor, ve bu süre boyunca açıkta duruyordu."
+              },
+              { id:"e-purge", type:"choice",
+                label:"Açığa çıkan commit'in kendisi hakkında ne yapılacağına karar ver",
+                prompt:"Depo geçmişinde oturan sızan anahtar hakkında ne yapılmalı?",
+                options:[
+                  { key:"leave", label:"Commit'i bırak — anahtar zaten silindi, o yüzden önemli değil", correct:false, feedback:"Anahtarın ölü olması sızıntıyı silmiyor — commit geçmişi (ve onu zaten klonlayan ya da kazıyan herkes) hâlâ ona sahip, ve tarayıcılar bu depoyu işaretlemeye devam edecek." },
+                  { key:"purgehistory", label:"Anahtarı deponun git geçmişinden temizle ve temizlenmiş geçmişi force-push et", correct:true, feedback:"Temizlendi — anahtar sadece son commit'ten değil, geçmişten de gitti." }
+                ],
+                errorText:"Ölü anahtar hâlâ deponun geçmişinde açıkça duruyor — bu depo onu bulan her tarayıcı tarafından işaretlenmeye devam edecek."
+              }
+            ],
+            hardSteps:[
+              { id:"h-usage", type:"choice",
+                label:"Sen silmeden önce anahtarın gerçekten başkası tarafından kullanılıp kullanılmadığını kontrol et",
+                prompt:"Cloud Denetim Günlükleri, silmeden önceki pencerede bu anahtar için ne gösteriyor?",
+                options:[
+                  { key:"onlydev", label:"Sadece geliştiricinin bilinen IP adresinden API çağrıları", correct:false, feedback:"Bu sadece geliştiricinin kendi normal kullanımı — aradığınız şey bu değil." },
+                  { key:"unfamiliar", label:"Bu anahtarı daha önce hiç kullanmamış bir IP'den bir dizi API çağrısı", correct:true, feedback:"Bu, anahtarın siz silmeden önce gerçekten başkası tarafından bulunup kullanıldığının kanıtı — bu artık sadece ucu ucuna bir durum değil." }
+                ],
+                errorText:"Kimse bu anahtarın geliştirici dışında biri tarafından kullanılıp kullanılmadığını gerçekten doğrulamadı — bu, bunun ne kadar büyük bir sorun olduğunu değiştirir."
+              },
+              { id:"h-deactivate", type:"action",
+                label:"Sızan hizmet hesabı anahtarını hemen sil",
+                actionLabel:"Anahtarı sil", loadingLabel:"Siliniyor…", doneLabel:"Hizmet hesabı anahtarı silindi — artık hiç kimlik doğrulayamıyor.", loadingMs:600,
+                errorText:"Burada hiçbir şey bu anahtarın yapabileceklerini otomatik olarak daraltmıyor — biri açıkça silene kadar tamamen geçerli kalıyor, ve bu süre boyunca açıkta duruyordu."
+              },
+              { id:"h-purge", type:"choice",
+                label:"Açığa çıkan commit'in kendisi hakkında ne yapılacağına karar ver",
+                prompt:"Depo geçmişinde oturan sızan anahtar hakkında ne yapılmalı?",
+                options:[
+                  { key:"leave", label:"Commit'i bırak — anahtar zaten silindi, o yüzden önemli değil", correct:false, feedback:"Anahtarın ölü olması sızıntıyı silmiyor — commit geçmişi (ve onu zaten klonlayan ya da kazıyan herkes) hâlâ ona sahip, ve tarayıcılar bu depoyu işaretlemeye devam edecek." },
+                  { key:"purgehistory", label:"Anahtarı deponun git geçmişinden temizle ve temizlenmiş geçmişi force-push et", correct:true, feedback:"Temizlendi — anahtar sadece son commit'ten değil, geçmişten de gitti." }
+                ],
+                errorText:"Ölü anahtar hâlâ deponun geçmişinde açıkça duruyor — bu depo onu bulan her tarayıcı tarafından işaretlenmeye devam edecek."
+              },
+              { id:"h-wif", type:"action",
+                label:"Bu uygulamayı uzun ömürlü JSON anahtarlarından tamamen çıkarıp Workload Identity Federation'a geçir",
+                actionLabel:"Workload Identity Federation'a geçir", loadingLabel:"Geçiriliyor…", doneLabel:"Geçirildi — bu uygulama artık bir depoda tekrar sona erebilecek uzun ömürlü hiçbir anahtar olmadan kimlik doğruluyor.", loadingMs:700,
+                errorText:"Bu uygulama hâlâ indirilebilir, uzun ömürlü bir anahtar dosyasına bağımlı — az önce sızan tam da bu kategori kimlik bilgisi yine sızabilir."
+              }
+            ]
+          }
+        },
+        capstone1:{
+          aws:{
+            title:"Kesintiyi üç sistem boyunca izle",
+            scenario:"Cuma gecesi. Trafik az önce sıçradı. Otomatik Ölçeklendirme grubu tam zamanında yeni örnekler başlattı — ama uygulama bağlantı hataları fırlatıyor, sağlık kontrolleri başarısız oluyor, ve birini çağırması gereken alarm tüm bu süre boyunca sessiz kaldı.",
+            consoleLabel:"AWS Console — CloudWatch / RDS / EC2 Auto Scaling (simüle edilmiş)",
+            actionBtn:"Kesintinin çözüldüğünü doğrula",
+            successText:"Bağlantılar kararlı, alarm doğru sinyali izliyor, ve ölçeklendirme politikası bir sonraki sıçramayı daha kötü yapmayacak.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Gerçekte neyin yanlış olduğunu gösteren metriği bul",
+                prompt:"Hangisi gerçek hikayeyi anlatıyor?",
+                options:[
+                  { key:"cpu", label:"EC2 CPUUtilization", correct:false, feedback:"Filodaki CPU tüm bu süre boyunca tamamen normal kaldı. Bu değil." },
+                  { key:"dbconn", label:"RDS DatabaseConnections", correct:true, feedback:"İşte bu — bağlantı sınırına sabitlenmiş durumda. Otomatik Ölçeklendirme grubunun başlattığı her yeni örnek daha fazla bağlantı açıyor, ve veritabanı artık daha fazlasını kabul edemiyor." }
+                ],
+                errorText:"Kimse bu kesintiyi gerçekten açıklayan metriği henüz bulmadı."
+              },
+              { id:"e-pool", type:"action",
+                label:"Yeni örneklerin her biri kendi bağlantısını açmak yerine gerçek bağlantılardan küçük bir havuzu paylaşması için veritabanının önüne bir bağlantı havuzlayıcı koy",
+                actionLabel:"RDS Proxy ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"RDS Proxy eklendi — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor.", loadingMs:700,
+                errorText:"Her yeni örnek hâlâ veritabanına kendi doğrudan bağlantısını açıyor — sınıra öncekiyle aynı hızda ulaşılıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Gerçekte neyin yanlış olduğunu gösteren metriği bul",
+                prompt:"Hangisi gerçek hikayeyi anlatıyor?",
+                options:[
+                  { key:"cpu", label:"EC2 CPUUtilization", correct:false, feedback:"Filodaki CPU tüm bu süre boyunca tamamen normal kaldı. Bu değil." },
+                  { key:"dbconn", label:"RDS DatabaseConnections", correct:true, feedback:"İşte bu — bağlantı sınırına sabitlenmiş durumda. Otomatik Ölçeklendirme grubunun başlattığı her yeni örnek daha fazla bağlantı açıyor, ve veritabanı artık daha fazlasını kabul edemiyor." }
+                ],
+                errorText:"Kimse bu kesintiyi gerçekten açıklayan metriği henüz bulmadı."
+              },
+              { id:"h-pool", type:"action",
+                label:"Yeni örneklerin her biri kendi bağlantısını açmak yerine gerçek bağlantılardan küçük bir havuzu paylaşması için veritabanının önüne bir bağlantı havuzlayıcı koy",
+                actionLabel:"RDS Proxy ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"RDS Proxy eklendi — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor.", loadingMs:700,
+                errorText:"Her yeni örnek hâlâ veritabanına kendi doğrudan bağlantısını açıyor — sınıra öncekiyle aynı hızda ulaşılıyor."
+              },
+              { id:"h-trigger", type:"choice",
+                label:"Grubun gerçekte neye tepki verdiğini düzelt",
+                prompt:"Grubun ölçeklendirme kararında gerçekten yanlış olan ne?",
+                options:[
+                  { key:"maxcap", label:"Azami kapasitesi çok düşük ayarlanmış — sadece tavanı yükselt", correct:false, feedback:"Tavanı yükseltmek, daha fazla örneğin daha fazla mahkum bağlantı açması, sadece daha hızlı demek. Tavan hiçbir zaman sorun değildi." },
+                  { key:"metric", label:"CPU kullanımına göre ölçekleniyor, ki bu hiç hareket etmedi — bunun yerine istek gecikmesine ya da sayısına göre ölçeklenmeli", correct:true, feedback:"Gerçek sorun bu — grup bu süre boyunca kördü. Yükü gerçekten yansıtan bir metrik, düz bir CPU grafiği yerine gerçekte olana tepki vermesini sağlar." }
+                ],
+                errorText:"Ölçeklendirme politikası hâlâ bu olayı hiç yansıtmamış bir metriği izliyor."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Bir dahaki sefere birinin gerçekten çağrılması için RDS DatabaseConnections üzerinde bir CloudWatch alarmı ekle",
+                actionLabel:"DB bağlantı alarmı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Alarm yapılandırıldı — ekip bir sonraki bağlantı sıçramasını dakikalar içinde duyacak.", loadingMs:600,
+                errorText:"Yapılandırılmış tek alarm hâlâ CPU'yu izliyor — bu kesinti boyunca sessiz kalan tam da o metrik."
+              }
+            ]
+          },
+          azure:{
+            title:"Kesintiyi üç sistem boyunca izle",
+            scenario:"Cuma gecesi. Trafik az önce sıçradı. Sanal makine ölçek kümesi tam zamanında yeni örnekler başlattı — ama uygulama bağlantı hataları fırlatıyor, sağlık probları başarısız oluyor, ve birini çağırması gereken uyarı tüm bu süre boyunca sessiz kaldı.",
+            consoleLabel:"Azure Portal — Monitor / Azure Database / Ölçek kümesi (simüle edilmiş)",
+            actionBtn:"Kesintinin çözüldüğünü doğrula",
+            successText:"Bağlantılar kararlı, uyarı doğru sinyali izliyor, ve ölçeklendirme politikası bir sonraki sıçramayı daha kötü yapmayacak.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Gerçekte neyin yanlış olduğunu gösteren metriği bul",
+                prompt:"Hangisi gerçek hikayeyi anlatıyor?",
+                options:[
+                  { key:"cpu", label:"VM ölçek kümesi CPU yüzdesi", correct:false, feedback:"Filodaki CPU tüm bu süre boyunca tamamen normal kaldı. Bu değil." },
+                  { key:"dbconn", label:"Azure Database aktif bağlantıları", correct:true, feedback:"İşte bu — bağlantı sınırına sabitlenmiş durumda. Ölçek kümesinin başlattığı her yeni örnek daha fazla bağlantı açıyor, ve veritabanı artık daha fazlasını kabul edemiyor." }
+                ],
+                errorText:"Kimse bu kesintiyi gerçekten açıklayan metriği henüz bulmadı."
+              },
+              { id:"e-pool", type:"action",
+                label:"Yeni örneklerin her biri kendi bağlantısını açmak yerine gerçek bağlantılardan küçük bir havuzu paylaşması için veritabanının yerleşik bağlantı havuzlamasını aç",
+                actionLabel:"Bağlantı havuzlamayı etkinleştir", loadingLabel:"Yapılandırılıyor…", doneLabel:"Bağlantı havuzlama etkinleştirildi — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor.", loadingMs:700,
+                errorText:"Her yeni örnek hâlâ veritabanına kendi doğrudan bağlantısını açıyor — sınıra öncekiyle aynı hızda ulaşılıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Gerçekte neyin yanlış olduğunu gösteren metriği bul",
+                prompt:"Hangisi gerçek hikayeyi anlatıyor?",
+                options:[
+                  { key:"cpu", label:"VM ölçek kümesi CPU yüzdesi", correct:false, feedback:"Filodaki CPU tüm bu süre boyunca tamamen normal kaldı. Bu değil." },
+                  { key:"dbconn", label:"Azure Database aktif bağlantıları", correct:true, feedback:"İşte bu — bağlantı sınırına sabitlenmiş durumda. Ölçek kümesinin başlattığı her yeni örnek daha fazla bağlantı açıyor, ve veritabanı artık daha fazlasını kabul edemiyor." }
+                ],
+                errorText:"Kimse bu kesintiyi gerçekten açıklayan metriği henüz bulmadı."
+              },
+              { id:"h-pool", type:"action",
+                label:"Yeni örneklerin her biri kendi bağlantısını açmak yerine gerçek bağlantılardan küçük bir havuzu paylaşması için veritabanının yerleşik bağlantı havuzlamasını aç",
+                actionLabel:"Bağlantı havuzlamayı etkinleştir", loadingLabel:"Yapılandırılıyor…", doneLabel:"Bağlantı havuzlama etkinleştirildi — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor.", loadingMs:700,
+                errorText:"Her yeni örnek hâlâ veritabanına kendi doğrudan bağlantısını açıyor — sınıra öncekiyle aynı hızda ulaşılıyor."
+              },
+              { id:"h-trigger", type:"choice",
+                label:"Ölçek kümesinin gerçekte neye tepki verdiğini düzelt",
+                prompt:"Ölçek kümesinin ölçeklendirme kararında gerçekten yanlış olan ne?",
+                options:[
+                  { key:"maxcap", label:"Azami örnek sayısı çok düşük ayarlanmış — sadece tavanı yükselt", correct:false, feedback:"Tavanı yükseltmek, daha fazla örneğin daha fazla mahkum bağlantı açması, sadece daha hızlı demek. Tavan hiçbir zaman sorun değildi." },
+                  { key:"metric", label:"CPU yüzdesine göre ölçekleniyor, ki bu hiç hareket etmedi — bunun yerine istek gecikmesine ya da sayısına göre ölçeklenmeli", correct:true, feedback:"Gerçek sorun bu — ölçek kümesi bu süre boyunca kördü. Yükü gerçekten yansıtan bir metrik, düz bir CPU grafiği yerine gerçekte olana tepki vermesini sağlar." }
+                ],
+                errorText:"Ölçeklendirme kuralı hâlâ bu olayı hiç yansıtmamış bir metriği izliyor."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Bir dahaki sefere birinin gerçekten çağrılması için Azure Database aktif bağlantıları üzerinde bir uyarı ekle",
+                actionLabel:"Bağlantı uyarısı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Uyarı yapılandırıldı — ekip bir sonraki bağlantı sıçramasını dakikalar içinde duyacak.", loadingMs:600,
+                errorText:"Yapılandırılmış tek uyarı hâlâ CPU'yu izliyor — bu kesinti boyunca sessiz kalan tam da o metrik."
+              }
+            ]
+          },
+          gcp:{
+            title:"Kesintiyi üç sistem boyunca izle",
+            scenario:"Cuma gecesi. Trafik az önce sıçradı. Yönetilen örnek grubu tam zamanında yeni örnekler başlattı — ama uygulama bağlantı hataları fırlatıyor, sağlık kontrolleri başarısız oluyor, ve birini çağırması gereken uyarı tüm bu süre boyunca sessiz kaldı.",
+            consoleLabel:"Google Cloud Console — Monitoring / Cloud SQL / Örnek grupları (simüle edilmiş)",
+            actionBtn:"Kesintinin çözüldüğünü doğrula",
+            successText:"Bağlantılar kararlı, uyarı doğru sinyali izliyor, ve ölçeklendirme politikası bir sonraki sıçramayı daha kötü yapmayacak.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Gerçekte neyin yanlış olduğunu gösteren metriği bul",
+                prompt:"Hangisi gerçek hikayeyi anlatıyor?",
+                options:[
+                  { key:"cpu", label:"Örnek grubu CPU kullanımı", correct:false, feedback:"Filodaki CPU tüm bu süre boyunca tamamen normal kaldı. Bu değil." },
+                  { key:"dbconn", label:"Cloud SQL aktif bağlantıları", correct:true, feedback:"İşte bu — bağlantı sınırına sabitlenmiş durumda. Grubun başlattığı her yeni örnek daha fazla bağlantı açıyor, ve veritabanı artık daha fazlasını kabul edemiyor." }
+                ],
+                errorText:"Kimse bu kesintiyi gerçekten açıklayan metriği henüz bulmadı."
+              },
+              { id:"e-pool", type:"action",
+                label:"Yeni örneklerin her biri kendi bağlantısını açmak yerine gerçek bağlantılardan küçük bir havuzu paylaşması için Cloud SQL'in önüne bir bağlantı havuzlayıcı dağıt",
+                actionLabel:"PgBouncer dağıt", loadingLabel:"Dağıtılıyor…", doneLabel:"Bağlantı havuzlayıcı dağıtıldı — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor.", loadingMs:700,
+                errorText:"Her yeni örnek hâlâ veritabanına kendi doğrudan bağlantısını açıyor — sınıra öncekiyle aynı hızda ulaşılıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Gerçekte neyin yanlış olduğunu gösteren metriği bul",
+                prompt:"Hangisi gerçek hikayeyi anlatıyor?",
+                options:[
+                  { key:"cpu", label:"Örnek grubu CPU kullanımı", correct:false, feedback:"Filodaki CPU tüm bu süre boyunca tamamen normal kaldı. Bu değil." },
+                  { key:"dbconn", label:"Cloud SQL aktif bağlantıları", correct:true, feedback:"İşte bu — bağlantı sınırına sabitlenmiş durumda. Grubun başlattığı her yeni örnek daha fazla bağlantı açıyor, ve veritabanı artık daha fazlasını kabul edemiyor." }
+                ],
+                errorText:"Kimse bu kesintiyi gerçekten açıklayan metriği henüz bulmadı."
+              },
+              { id:"h-pool", type:"action",
+                label:"Yeni örneklerin her biri kendi bağlantısını açmak yerine gerçek bağlantılardan küçük bir havuzu paylaşması için Cloud SQL'in önüne bir bağlantı havuzlayıcı dağıt",
+                actionLabel:"PgBouncer dağıt", loadingLabel:"Dağıtılıyor…", doneLabel:"Bağlantı havuzlayıcı dağıtıldı — bağlantılar artık havuzlanıyor ve yeniden kullanılıyor.", loadingMs:700,
+                errorText:"Her yeni örnek hâlâ veritabanına kendi doğrudan bağlantısını açıyor — sınıra öncekiyle aynı hızda ulaşılıyor."
+              },
+              { id:"h-trigger", type:"choice",
+                label:"Grubun gerçekte neye tepki verdiğini düzelt",
+                prompt:"Grubun ölçeklendirme kararında gerçekten yanlış olan ne?",
+                options:[
+                  { key:"maxcap", label:"Azami boyutu çok düşük ayarlanmış — sadece tavanı yükselt", correct:false, feedback:"Tavanı yükseltmek, daha fazla örneğin daha fazla mahkum bağlantı açması, sadece daha hızlı demek. Tavan hiçbir zaman sorun değildi." },
+                  { key:"metric", label:"CPU kullanımına göre ölçekleniyor, ki bu hiç hareket etmedi — bunun yerine bir yük dengeleyicinin bildirdiği istek metriğine göre ölçeklenmeli", correct:true, feedback:"Gerçek sorun bu — grup bu süre boyunca kördü. Yükü gerçekten yansıtan bir metrik, düz bir CPU grafiği yerine gerçekte olana tepki vermesini sağlar." }
+                ],
+                errorText:"Otomatik ölçeklendirme politikası hâlâ bu olayı hiç yansıtmamış bir metriği izliyor."
+              },
+              { id:"h-alarm", type:"action",
+                label:"Bir dahaki sefere birinin gerçekten çağrılması için Cloud SQL aktif bağlantıları üzerinde bir Cloud Monitoring uyarısı ekle",
+                actionLabel:"Bağlantı uyarısı ekle", loadingLabel:"Yapılandırılıyor…", doneLabel:"Uyarı yapılandırıldı — ekip bir sonraki bağlantı sıçramasını dakikalar içinde duyacak.", loadingMs:600,
+                errorText:"Yapılandırılmış tek uyarı hâlâ CPU'yu izliyor — bu kesinti boyunca sessiz kalan tam da o metrik."
+              }
+            ]
+          }
+        },
+        capstone2:{
+          aws:{
+            title:"Sızıntı zincirindeki her yolu kapat",
+            scenario:"Bir sızma testi az önce düşük yetkili bir dizüstü bilgisayardan üretim S3 kovasındaki her nesneye giden bir yol buldu — ve dahili olarak manşetlere çıkan ele geçirilmiş EC2 örneğinden geçmesine bile gerek yok. Üç ayrı kontrol, her biri sadece biraz fazla gevşek ayarlanmış, ve birlikte tamamen açık bir kova ortaya çıkarıyorlar.",
+            consoleLabel:"AWS Console — S3 / IAM / VPC (simüle edilmiş)",
+            actionBtn:"Sızıntı zincirinin kapandığını doğrula",
+            successText:"Kova özel, örneğin rolü daraltıldı, ve bunu başlatan ağ yolu da kapandı — geride kalan tek bir kontrol bile bunu tekrar açamaz.",
+            easySteps:[
+              { id:"e-bucket", type:"action",
+                label:"S3 kova politikasından herkese açık okuma ifadesini kaldır",
+                actionLabel:"Kova politikasını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Kova politikası düzeltildi — kova artık doğrudan herkese açık değil.", loadingMs:600,
+                errorText:"Kova politikasında hâlâ internetteki gerçekten herkese okuma erişimi veren bir Principal: * ifadesi var."
+              },
+              { id:"e-iam", type:"choice",
+                label:"EC2 örneğinin IAM rolü hakkında ne yapılacağına karar ver",
+                prompt:"Örneğin rolünün şu anda hesap genelinde tam S3 erişimi var. Şimdi ne olacak?",
+                options:[
+                  { key:"leave", label:"Bırak — kovanın kendisi artık özel, o yüzden önemli değil", correct:false, feedback:"Sadece tek bir kontrole güvenmek, bunun gibi zincirlerin tam olarak nasıl oluştuğu şey. Başka bir kova ya da politika bir gün gevşerse, bu rol hâlâ her şeye ulaşabilir." },
+                  { key:"scope", label:"Rolü sadece bu örneğin gerçekten ihtiyaç duyduğu tek kova ve önekle sınırla", correct:true, feedback:"Daraltıldı — daha sonra başka bir şey ters giderse bile, bu rol artık dokunma işi olmayan verilere ulaşamıyor." }
+                ],
+                errorText:"Bu rol hâlâ hesaptaki her kovayı okuyup yazabiliyor — kova politikası düzeltmesi buradaki yollardan sadece birini kapattı."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Sızıntıya sebep olan tam kova politikası ifadesini bul",
+                prompt:"Gerçek sorun hangi ifade?",
+                options:[
+                  { key:"decoy", label:"Güvenlik ekibinin IAM rolüne okuma erişimi veren bir ifade", correct:false, feedback:"Bu, gerçek çalışanlara verilmiş normal, kapsamlı bir izin. Bu değil." },
+                  { key:"public", label:"Principal: *'a s3:GetObject veren bir ifade", correct:true, feedback:"İşte bu — Principal: *, kimlik doğrulanmış olsun olmasın internetteki herkes demek." }
+                ],
+                errorText:"Hangi kova politikası ifadesinin sızıntıya sebep olduğunu henüz gerçekten belirlemediniz."
+              },
+              { id:"h-bucket", type:"action",
+                label:"S3 kova politikasından herkese açık okuma ifadesini kaldır",
+                actionLabel:"Kova politikasını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Kova politikası düzeltildi — kova artık doğrudan herkese açık değil.", loadingMs:600,
+                errorText:"Kova politikasında hâlâ internetteki gerçekten herkese okuma erişimi veren bir Principal: * ifadesi var."
+              },
+              { id:"h-iam", type:"choice",
+                label:"EC2 örneğinin IAM rolü hakkında ne yapılacağına karar ver",
+                prompt:"Örneğin rolünün şu anda hesap genelinde tam S3 erişimi var. Şimdi ne olacak?",
+                options:[
+                  { key:"leave", label:"Bırak — kovanın kendisi artık özel, o yüzden önemli değil", correct:false, feedback:"Sadece tek bir kontrole güvenmek, bunun gibi zincirlerin tam olarak nasıl oluştuğu şey. Başka bir kova ya da politika bir gün gevşerse, bu rol hâlâ her şeye ulaşabilir." },
+                  { key:"scope", label:"Rolü sadece bu örneğin gerçekten ihtiyaç duyduğu tek kova ve önekle sınırla", correct:true, feedback:"Daraltıldı — daha sonra başka bir şey ters giderse bile, bu rol artık dokunma işi olmayan verilere ulaşamıyor." }
+                ],
+                errorText:"Bu rol hâlâ hesaptaki her kovayı okuyup yazabiliyor — kova politikası düzeltmesi buradaki yollardan sadece birini kapattı."
+              },
+              { id:"h-sg", type:"action",
+                label:"EC2 örneğinin güvenlik grubunu, savunmasız portun artık açık internetten erişilebilir olmaması için sınırla",
+                actionLabel:"Güvenlik grubunu sınırla", loadingLabel:"Güncelleniyor…", doneLabel:"Güvenlik grubu sınırlandı — bu zinciri başlatan giriş noktası kapandı.", loadingMs:600,
+                errorText:"Örnek hâlâ bu portta internetteki her yerden erişilebilir — bu zincirin tamamına giriş noktası hâlâ ardına kadar açık."
+              }
+            ]
+          },
+          azure:{
+            title:"Sızıntı zincirindeki her yolu kapat",
+            scenario:"Bir sızma testi az önce düşük yetkili bir dizüstü bilgisayardan üretim Storage konteynerindeki her blob'a giden bir yol buldu — ve dahili olarak manşetlere çıkan ele geçirilmiş VM'den geçmesine bile gerek yok. Üç ayrı kontrol, her biri sadece biraz fazla gevşek ayarlanmış, ve birlikte tamamen açık bir konteyner ortaya çıkarıyorlar.",
+            consoleLabel:"Azure Portal — Depolama hesabı / Entra ID / Ağ güvenlik grubu (simüle edilmiş)",
+            actionBtn:"Sızıntı zincirinin kapandığını doğrula",
+            successText:"Konteyner özel, VM'in kimliği daraltıldı, ve bunu başlatan ağ yolu da kapandı — geride kalan tek bir kontrol bile bunu tekrar açamaz.",
+            easySteps:[
+              { id:"e-bucket", type:"action",
+                label:"Depolama hesabında Blob anonim erişimini kapat",
+                actionLabel:"Depolama erişimini düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Blob anonim erişimi devre dışı bırakıldı — konteyner artık doğrudan herkese açık değil.", loadingMs:600,
+                errorText:"Depolama hesabı hâlâ blob'lara anonim okuma erişimine izin veriyor — internetteki gerçekten herkes bu konteyneri okuyabilir."
+              },
+              { id:"e-iam", type:"choice",
+                label:"VM'in yönetilen kimliği hakkında ne yapılacağına karar ver",
+                prompt:"VM'in kimliğinin şu anda abonelik düzeyinde Storage Blob Data Contributor yetkisi var. Şimdi ne olacak?",
+                options:[
+                  { key:"leave", label:"Bırak — konteynerin kendisi artık özel, o yüzden önemli değil", correct:false, feedback:"Sadece tek bir kontrole güvenmek, bunun gibi zincirlerin tam olarak nasıl oluştuğu şey. Başka bir konteyner ya da ayar bir gün gevşerse, bu kimlik hâlâ her şeye ulaşabilir." },
+                  { key:"scope", label:"Rol atamasını sadece bu VM'in gerçekten ihtiyaç duyduğu tek depolama hesabıyla sınırla", correct:true, feedback:"Daraltıldı — daha sonra başka bir şey ters giderse bile, bu kimlik artık dokunma işi olmayan verilere ulaşamıyor." }
+                ],
+                errorText:"Bu kimlik hâlâ abonelikteki her depolama hesabını okuyup yazabiliyor — depolama erişimi düzeltmesi buradaki yollardan sadece birini kapattı."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Sızıntıya sebep olan tam ayarı bul",
+                prompt:"Gerçek sorun hangi ayar?",
+                options:[
+                  { key:"decoy", label:"Dahili derleme çıktılarını saklayan özel bir konteyner", correct:false, feedback:"O konteyner zaten özel ve ilgisiz. Bu değil." },
+                  { key:"public", label:"Herkese açık erişim düzeyi \"Konteyner\" olarak ayarlanmış bir konteyner", correct:true, feedback:"İşte bu — \"Konteyner\" erişim düzeyi, URL'yi bilen herkesin kimlik doğrulanmış olsun olmasın içindeki her blob'u listeleyip okuyabileceği anlamına gelir." }
+                ],
+                errorText:"Hangi konteynerin erişim düzeyinin sızıntıya sebep olduğunu henüz gerçekten belirlemediniz."
+              },
+              { id:"h-bucket", type:"action",
+                label:"Depolama hesabında Blob anonim erişimini kapat",
+                actionLabel:"Depolama erişimini düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Blob anonim erişimi devre dışı bırakıldı — konteyner artık doğrudan herkese açık değil.", loadingMs:600,
+                errorText:"Depolama hesabı hâlâ blob'lara anonim okuma erişimine izin veriyor — internetteki gerçekten herkes bu konteyneri okuyabilir."
+              },
+              { id:"h-iam", type:"choice",
+                label:"VM'in yönetilen kimliği hakkında ne yapılacağına karar ver",
+                prompt:"VM'in kimliğinin şu anda abonelik düzeyinde Storage Blob Data Contributor yetkisi var. Şimdi ne olacak?",
+                options:[
+                  { key:"leave", label:"Bırak — konteynerin kendisi artık özel, o yüzden önemli değil", correct:false, feedback:"Sadece tek bir kontrole güvenmek, bunun gibi zincirlerin tam olarak nasıl oluştuğu şey. Başka bir konteyner ya da ayar bir gün gevşerse, bu kimlik hâlâ her şeye ulaşabilir." },
+                  { key:"scope", label:"Rol atamasını sadece bu VM'in gerçekten ihtiyaç duyduğu tek depolama hesabıyla sınırla", correct:true, feedback:"Daraltıldı — daha sonra başka bir şey ters giderse bile, bu kimlik artık dokunma işi olmayan verilere ulaşamıyor." }
+                ],
+                errorText:"Bu kimlik hâlâ abonelikteki her depolama hesabını okuyup yazabiliyor — depolama erişimi düzeltmesi buradaki yollardan sadece birini kapattı."
+              },
+              { id:"h-nsg", type:"action",
+                label:"VM'in ağ güvenlik grubunu, savunmasız portun artık açık internetten erişilebilir olmaması için sınırla",
+                actionLabel:"NSG'yi sınırla", loadingLabel:"Güncelleniyor…", doneLabel:"NSG sınırlandı — bu zinciri başlatan giriş noktası kapandı.", loadingMs:600,
+                errorText:"VM hâlâ bu portta internetteki her yerden erişilebilir — bu zincirin tamamına giriş noktası hâlâ ardına kadar açık."
+              }
+            ]
+          },
+          gcp:{
+            title:"Sızıntı zincirindeki her yolu kapat",
+            scenario:"Bir sızma testi az önce düşük yetkili bir dizüstü bilgisayardan üretim Cloud Storage kovasındaki her nesneye giden bir yol buldu — ve dahili olarak manşetlere çıkan ele geçirilmiş Compute Engine örneğinden geçmesine bile gerek yok. Üç ayrı kontrol, her biri sadece biraz fazla gevşek ayarlanmış, ve birlikte tamamen açık bir kova ortaya çıkarıyorlar.",
+            consoleLabel:"Google Cloud Console — Cloud Storage / IAM / VPC güvenlik duvarı (simüle edilmiş)",
+            actionBtn:"Sızıntı zincirinin kapandığını doğrula",
+            successText:"Kova özel, örneğin hizmet hesabı daraltıldı, ve bunu başlatan ağ yolu da kapandı — geride kalan tek bir kontrol bile bunu tekrar açamaz.",
+            easySteps:[
+              { id:"e-bucket", type:"action",
+                label:"Kovadan allUsers IAM bağlamasını kaldır",
+                actionLabel:"Kova IAM'ını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"allUsers bağlaması kaldırıldı — kova artık doğrudan herkese açık değil.", loadingMs:600,
+                errorText:"Kovanın IAM politikası hâlâ allUsers'a okuma erişimi veriyor — internetteki gerçekten herkes bu kovayı okuyabilir."
+              },
+              { id:"e-iam", type:"choice",
+                label:"Örneğin hizmet hesabı hakkında ne yapılacağına karar ver",
+                prompt:"Örneğin hizmet hesabının şu anda proje düzeyinde roles/storage.admin yetkisi var. Şimdi ne olacak?",
+                options:[
+                  { key:"leave", label:"Bırak — kovanın kendisi artık özel, o yüzden önemli değil", correct:false, feedback:"Sadece tek bir kontrole güvenmek, bunun gibi zincirlerin tam olarak nasıl oluştuğu şey. Başka bir kova ya da bağlama bir gün gevşerse, bu hizmet hesabı hâlâ her şeye ulaşabilir." },
+                  { key:"scope", label:"Sadece bu örneğin gerçekten ihtiyaç duyduğu tek kovada roles/storage.objectViewer'a indir", correct:true, feedback:"Daraltıldı — daha sonra başka bir şey ters giderse bile, bu hizmet hesabı artık dokunma işi olmayan verilere ulaşamıyor." }
+                ],
+                errorText:"Bu hizmet hesabı hâlâ projedeki her kovayı okuyup yazabiliyor — kova IAM düzeltmesi buradaki yollardan sadece birini kapattı."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Sızıntıya sebep olan tam IAM bağlamasını bul",
+                prompt:"Gerçek sorun hangi bağlama?",
+                options:[
+                  { key:"decoy", label:"project-owners grubuna roles/storage.objectViewer veren bir bağlama", correct:false, feedback:"Bu, gerçek çalışanlara verilmiş normal, kapsamlı bir izin. Bu değil." },
+                  { key:"public", label:"allUsers'a roles/storage.objectViewer veren bir bağlama", correct:true, feedback:"İşte bu — allUsers, kimlik doğrulanmış olsun olmasın internetteki herkes demek." }
+                ],
+                errorText:"Hangi IAM bağlamasının sızıntıya sebep olduğunu henüz gerçekten belirlemediniz."
+              },
+              { id:"h-bucket", type:"action",
+                label:"Kovadan allUsers IAM bağlamasını kaldır",
+                actionLabel:"Kova IAM'ını düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"allUsers bağlaması kaldırıldı — kova artık doğrudan herkese açık değil.", loadingMs:600,
+                errorText:"Kovanın IAM politikası hâlâ allUsers'a okuma erişimi veriyor — internetteki gerçekten herkes bu kovayı okuyabilir."
+              },
+              { id:"h-iam", type:"choice",
+                label:"Örneğin hizmet hesabı hakkında ne yapılacağına karar ver",
+                prompt:"Örneğin hizmet hesabının şu anda proje düzeyinde roles/storage.admin yetkisi var. Şimdi ne olacak?",
+                options:[
+                  { key:"leave", label:"Bırak — kovanın kendisi artık özel, o yüzden önemli değil", correct:false, feedback:"Sadece tek bir kontrole güvenmek, bunun gibi zincirlerin tam olarak nasıl oluştuğu şey. Başka bir kova ya da bağlama bir gün gevşerse, bu hizmet hesabı hâlâ her şeye ulaşabilir." },
+                  { key:"scope", label:"Sadece bu örneğin gerçekten ihtiyaç duyduğu tek kovada roles/storage.objectViewer'a indir", correct:true, feedback:"Daraltıldı — daha sonra başka bir şey ters giderse bile, bu hizmet hesabı artık dokunma işi olmayan verilere ulaşamıyor." }
+                ],
+                errorText:"Bu hizmet hesabı hâlâ projedeki her kovayı okuyup yazabiliyor — kova IAM düzeltmesi buradaki yollardan sadece birini kapattı."
+              },
+              { id:"h-fw", type:"action",
+                label:"VPC güvenlik duvarı kuralını, savunmasız portun artık açık internetten erişilebilir olmaması için sınırla",
+                actionLabel:"Güvenlik duvarı kuralını sınırla", loadingLabel:"Güncelleniyor…", doneLabel:"Güvenlik duvarı kuralı sınırlandı — bu zinciri başlatan giriş noktası kapandı.", loadingMs:600,
+                errorText:"Örnek hâlâ bu portta internetteki her yerden erişilebilir — bu zincirin tamamına giriş noktası hâlâ ardına kadar açık."
+              }
+            ]
+          }
+        },
       },
       chat:{
         title:"Konsola Sor", fabAria:"Bir soru sor", closeAria:"Kapat",
@@ -5234,7 +9046,7 @@
   authUpdateStats();
 
   /* ============ QUESTS SECTION — generic engine ============ */
-  const QUEST_KEYS=["auth","iam","s3","vpc","route53","cloudwatch","database","containers","ec2"];
+  const QUEST_KEYS=["auth","iam","s3","vpc","route53","cloudwatch","database","containers","ec2","lambda","lb","beanstalk","cache","consistency","failover","sns","snowball","cicd","secrets","capstone1","capstone2"];
   let questState={};
   let questEls={};
 

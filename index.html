@@ -20,7 +20,7 @@
 
 <div class="topbar">
   <div class="topbar-inner">
-    <span class="wordmark"><span class="dot"></span><span data-i18n="common.wordmark">Systems Console</span><span class="version-tag" id="versionTag">v1.5.0</span></span>
+    <span class="wordmark"><span class="dot"></span><span data-i18n="common.wordmark">Systems Console</span><span class="version-tag" id="versionTag">v1.6.0</span></span>
     <nav class="jumpnav">
       <a href="#cloud101" data-i18n="common.nav.cloud101">00 What is the cloud?</a>
       <a href="#auth" data-i18n="common.nav.auth">01 Sign-in</a>
@@ -42,6 +42,8 @@
       <a href="#containers" data-i18n="common.nav.containers">17 Containers</a>
       <a href="#cicd" data-i18n="common.nav.cicd">18 CI/CD</a>
       <a href="#secrets" data-i18n="common.nav.secrets">19 Secrets &amp; KMS</a>
+      <a href="#capstone1" data-i18n="common.nav.capstone1">20 Capstone: Outage</a>
+      <a href="#capstone2" data-i18n="common.nav.capstone2">21 Capstone: Exposure</a>
     </nav>
     <div class="topbar-tools">
       <div class="lang-toggle" role="group" aria-label="Cloud provider">
@@ -63,7 +65,7 @@
   <div class="intro">
     <h1 data-i18n="intro.title">Cloud systems, taken apart</h1>
     <p data-i18n="intro.p">Twenty small, live simulations of the mechanisms that keep large systems running.</p>
-    <div class="meta" data-i18n="intro.meta">20 modules · runs entirely in your browser · no real infrastructure</div>
+    <div class="meta" data-i18n="intro.meta">20 modules · 19 incident-response quests · runs entirely in your browser</div>
   </div>
 
   <!-- MODULE 00 — WHAT IS THE CLOUD -->
@@ -402,6 +404,7 @@
       <p class="meta" data-i18n="lambda.incident.meta">AWS US-EAST-1 · December 7, 2021</p>
       <p class="body" data-i18n="lambda.incident.body">An internal network automation issue disrupted Lambda invocations for hours.</p>
     </div>
+    <div class="quest-mount" id="quest-mount-lambda"></div>
   </section>
 
   <!-- MODULE 07 — LOAD BALANCING -->
@@ -460,6 +463,7 @@
       <p class="meta" data-i18n="lb.incident.meta">HealthCare.gov · October 2013</p>
       <p class="body" data-i18n="lb.incident.body">When HealthCare.gov launched in 2013, it collapsed under real load.</p>
     </div>
+    <div class="quest-mount" id="quest-mount-lb"></div>
   </section>
 
   <!-- MODULE 08 — ELASTIC BEANSTALK -->
@@ -504,6 +508,7 @@
       <p class="meta" data-i18n="beanstalk.incident.meta">Knight Capital · August 2012</p>
       <p class="body" data-i18n="beanstalk.incident.body">One server out of eight kept old code, and it cost $440 million.</p>
     </div>
+    <div class="quest-mount" id="quest-mount-beanstalk"></div>
   </section>
 
   <!-- MODULE 09 — ROUTE 53 -->
@@ -646,6 +651,7 @@
       <p class="meta" data-i18n="cache.incident.meta">Fastly · June 2021</p>
       <p class="body" data-i18n="cache.incident.body">A single config change triggered a dormant bug that broke 85% of Fastly's network.</p>
     </div>
+    <div class="quest-mount" id="quest-mount-cache"></div>
   </section>
 
   <!-- MODULE 11 — CONSISTENCY -->
@@ -700,6 +706,7 @@
       <p class="meta" data-i18n="consistency.incident.meta">GitHub · October 2018</p>
       <p class="body" data-i18n="consistency.incident.body">A 43-second network blip split GitHub's database cluster in two.</p>
     </div>
+    <div class="quest-mount" id="quest-mount-consistency"></div>
   </section>
 
   <!-- MODULE 12 — FAULT TOLERANCE & FAILOVER -->
@@ -746,6 +753,7 @@
       <p class="meta" data-i18n="failover.incident.meta">GitLab · January 2017</p>
       <p class="body" data-i18n="failover.incident.body">An engineer deleted the primary database, and every backup mechanism had been failing silently.</p>
     </div>
+    <div class="quest-mount" id="quest-mount-failover"></div>
   </section>
 
   <!-- MODULE 13 — SNS -->
@@ -794,6 +802,7 @@
       <p class="meta" data-i18n="sns.incident.meta">AWS Kinesis · November 2020</p>
       <p class="body" data-i18n="sns.incident.body">A shared streaming backbone hit a thread limit and cascaded.</p>
     </div>
+    <div class="quest-mount" id="quest-mount-sns"></div>
   </section>
 
   <!-- MODULE 14 — CLOUDWATCH -->
@@ -899,6 +908,7 @@
       <p class="meta" data-i18n="snowball.incident.meta">Real world, not an outage</p>
       <p class="body" data-i18n="snowball.incident.body">AWS built a literal truck to move exabytes of data.</p>
     </div>
+    <div class="quest-mount" id="quest-mount-snowball"></div>
   </section>
 
   <!-- MODULE 16 — DATABASES -->
@@ -1051,6 +1061,7 @@
       <p class="meta" data-i18n="cicd.incident.meta">Cloudflare · July 2019</p>
       <p class="body" data-i18n="cicd.incident.body">A WAF rule shipped to every edge server at once, with no staged rollout.</p>
     </div>
+    <div class="quest-mount" id="quest-mount-cicd"></div>
   </section>
 
   <!-- MODULE 19 — SECRETS & ENCRYPTION -->
@@ -1109,6 +1120,29 @@
       <p class="meta" data-i18n="secrets.incident.meta">Codecov · April 2021</p>
       <p class="body" data-i18n="secrets.incident.body">A compromised script exfiltrated CI secrets for over two months undetected.</p>
     </div>
+    <div class="quest-mount" id="quest-mount-secrets"></div>
+  </section>
+
+  <!-- MODULE 20 — CAPSTONE 1 -->
+  <section class="panel" id="capstone1">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="capstone1.modId">MODULE 20</span>
+      <h2 data-i18n="capstone1.title">Capstone: A Friday-Night Outage</h2>
+    </header>
+    <p class="dek" data-i18n="capstone1.dek">No single service is broken here.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="capstone1.analogy">It's three people who each followed their own instructions perfectly.</p></div>
+    <div class="quest-mount" id="quest-mount-capstone1"></div>
+  </section>
+
+  <!-- MODULE 21 — CAPSTONE 2 -->
+  <section class="panel" id="capstone2">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="capstone2.modId">MODULE 21</span>
+      <h2 data-i18n="capstone2.title">Capstone: A Data Exposure Chain</h2>
+    </header>
+    <p class="dek" data-i18n="capstone2.dek">A pentest just found a path from a low-privilege laptop to every object in a production bucket.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="capstone2.analogy">It's not one unlocked door.</p></div>
+    <div class="quest-mount" id="quest-mount-capstone2"></div>
   </section>
 
   <div class="footer">

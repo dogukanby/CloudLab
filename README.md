@@ -34,11 +34,13 @@ Every module pairs an "In plain terms" everyday analogy with a "Try this" checkl
 
 ## Quests
 
-Nine of the modules above (Sign-in, IAM, S3, VPC, Route 53, CloudWatch, Databases, Containers, EC2) end with a quest: instead of just reading how the concept works, you're put in the seat of someone who actually has to fix something — a realistic scenario, a broken state, and a mocked provider console with real decisions to make. Wrong answers get a real-sounding rejection reason, not just a red X. Several of the newer quests (database failover recovery, IAM/Secrets scenarios) are grounded in real AWS Certified Solutions Architect – Associate exam scenarios, adapted and re-verified across all three providers rather than copied.
+All twenty modules above end with a quest: instead of just reading how the concept works, you're put in the seat of someone who actually has to fix something — a realistic scenario, a broken state, and a mocked provider console with real decisions to make. Wrong answers get a real-sounding rejection reason, not just a red X. A number of the quests (database failover recovery, IAM/Secrets scenarios, Lambda/SNS decoupling, Load Balancing health checks) are grounded in real AWS Certified Solutions Architect – Associate exam scenarios, adapted and re-verified across all three providers rather than copied.
 
 Each quest has an independent Easy tier (the core fix, fewer and more obvious choices) and Hard tier (a longer, denser real-world response with its own decision points) — they're separate attempts, not one list where Hard is just Easy plus a few extra steps.
 
-Every quest also has its own AWS, Azure, and GCP version, switched with the same provider toggle in the topbar that relabels the modules. These aren't reskins of the same steps with different logos — each provider version uses that provider's real console terminology, error messages, and mechanics (e.g. the IAM quest is a leaked AWS access key vs. a leaked Entra service principal secret vs. a leaked GCP service account JSON key, each with its own audit-log trail and role model). Switching providers resets any in-progress quest, since the steps and their ids genuinely differ between providers.
+Every quest also has its own AWS, Azure, and GCP version, switched with the same provider toggle in the topbar that relabels the modules. These aren't reskins of the same steps with different logos — each provider version uses that provider's real console terminology, error messages, and mechanics (e.g. the IAM quest is a leaked AWS access key vs. a leaked Entra service principal secret vs. a leaked GCP service account JSON key, each with its own audit-log trail and role model; the "contain a compromised instance" quest hinges on the fact that AWS lets you revoke a role's active sessions while Azure/GCP tokens are bearer tokens that just have to expire naturally). Switching providers resets any in-progress quest, since the steps and their ids genuinely differ between providers.
+
+Two additional capstone quests (**Module 20: A Friday-Night Outage** and **Module 21: A Data Exposure Chain**) don't belong to any single module — each strings together concepts from three different modules into one incident, the way real production issues usually do. A traffic spike, a scaling policy blind to the real bottleneck, and a database connection limit; or a public bucket policy, an over-broad IAM role, and an open security group. Fixing only one of the three still leaves the incident open.
 
 ## Ask the Console
 
@@ -90,7 +92,7 @@ npx serve .
 
 Vanilla HTML, CSS, and JavaScript for the app itself — no framework, no build tooling. Electron wraps it for the desktop build.
 
-- `index.html` / `styles.css` / `app.js` — the app: twenty modules, nine quests, the chat widget, the EN/TR i18n layer, and the theme toggle
+- `index.html` / `styles.css` / `app.js` — the app: twenty modules, twenty-one quests (including two cross-module capstones), the chat widget, the EN/TR i18n layer, and the theme toggle
 - `main.js` / `package.json` — the Electron shell, `electron-builder` packaging config, and the `electron-updater`-based update check
 
 ---
@@ -103,6 +105,6 @@ Bulut mimarilerinde sürekli karşımıza çıkan fikirlerin küçük, istemci t
 
 Yirmi modül: bulut nedir, oturum açma, IAM ve izinler, VPC, EC2, S3, Lambda, yük dengeleme, Elastic Beanstalk, Route 53, önbellekleme/CDN, dağıtık tutarlılık, yük devretme, SNS, CloudWatch, Snowball Edge, veritabanları (replikalar/Multi-AZ/yük devretme), konteynerler ve orkestrasyon, CI/CD ve sırlar/şifreleme (KMS).
 
-Dokuz modül (Giriş, IAM, S3, VPC, Route 53, CloudWatch, Veritabanları, Konteynerler, EC2) kendi görevleriyle bitiyor: gerçekçi bir senaryo, bozuk bir durum, ve gerçek sonuçları olan kararlarla, bir şeyi düzeltmek zorunda olan kişinin yerine sizi koyuyor. Her görevin birbirinden bağımsız bir Kolay (temel düzeltme) ve bir Zor (kendi karar noktalarıyla daha uzun, gerçek dünya tepkisi) kademesi var. Her görevin ayrıca kendi AWS, Azure ve GCP sürümü var — üst çubuktaki aynı sağlayıcı seçiciyle değiştiriliyor; her sürüm o sağlayıcının gerçek konsol terimlerini, hata mesajlarını ve mekaniklerini kullanıyor, aynı adımların sadece logosu değişmiş hali değil.
+Yirmi modülün tamamı kendi görevleriyle bitiyor: gerçekçi bir senaryo, bozuk bir durum, ve gerçek sonuçları olan kararlarla, bir şeyi düzeltmek zorunda olan kişinin yerine sizi koyuyor. Her görevin birbirinden bağımsız bir Kolay (temel düzeltme) ve bir Zor (kendi karar noktalarıyla daha uzun, gerçek dünya tepkisi) kademesi var. Her görevin ayrıca kendi AWS, Azure ve GCP sürümü var — üst çubuktaki aynı sağlayıcı seçiciyle değiştiriliyor; her sürüm o sağlayıcının gerçek konsol terimlerini, hata mesajlarını ve mekaniklerini kullanıyor, aynı adımların sadece logosu değişmiş hali değil. Ayrıca, tek bir modüle ait olmayan iki final görev daha var (**Modül 20: Bir Cuma Gecesi Kesintisi** ve **Modül 21: Bir Veri Sızıntısı Zinciri**) — her biri üç farklı modülün kavramlarını tek bir olayda birleştiriyor, tıpkı gerçek üretim sorunlarının genelde olduğu gibi.
 
 Yukarıdaki rozet imzalı bir Windows kurulum dosyasına bağlanır. Kendinden imzalı bir sertifika kullanıldığından Windows SmartScreen ilk çalıştırmada "bilinmeyen yayımcı" uyarısı gösterebilir — **Diğer bilgiler → Yine de çalıştır** yeterli. Kurulumu yalnızca bir kez indirmeniz yeterli: uygulama her açılışta yeni bir sürüm olup olmadığını kontrol eder ve varsa, siz onaylamadan hiçbir şeyi indirip kurmaz.
