@@ -4,7 +4,7 @@
   // Keep in sync with package.json's "version" — there's no build step to
   // inject this automatically, so it's a manual mirror. Shown in the topbar
   // (and read as the desktop window title via app.getVersion() in main.js).
-  const APP_VERSION = "1.4.0";
+  const APP_VERSION = "1.5.0";
   $("#versionTag").textContent = "v"+APP_VERSION;
 
   /* ============ i18n dictionary ============ */
@@ -12,7 +12,7 @@
     en: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge" },
+        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS" },
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"CloudLab",
         statusChanged:"status → {status}",
@@ -43,8 +43,8 @@
       },
       intro:{
         title:"Cloud systems, taken apart",
-        p:"Sixteen small, live simulations of the mechanisms that keep large systems running — no real servers behind any of it, just the logic. Turn the dials and watch what actually happens under load, under a network partition, under a cache miss, under a failure.",
-        meta:"16 modules · runs entirely in your browser · no real infrastructure"
+        p:"Twenty small, live simulations of the mechanisms that keep large systems running — no real servers behind any of it, just the logic. Turn the dials and watch what actually happens under load, under a network partition, under a cache miss, under a failure.",
+        meta:"20 modules · runs entirely in your browser · no real infrastructure"
       },
       lb:{
         modId:"MODULE 07", title:"Load Balancing & Auto-Scaling",
@@ -485,6 +485,129 @@
           noData:"no datapoint received — {n}/3 missed periods",
           insufficientFired:"state → INSUFFICIENT DATA — agent has been silent too long",
           spiked:"metric spike triggered"
+        }
+      },
+      database:{
+        modId:"MODULE 16", title:"Databases: Replicas, Multi-AZ & Failover",
+        titleAzure:"Databases: Replicas, Zone Redundancy & Failover", titleGcp:"Databases: Replicas, Regional HA & Failover",
+        dek:"A read replica and a standby sound similar. One of them takes over automatically when the primary dies. The other one absolutely does not.",
+        analogy:"Multi-AZ is an understudy standing in the wings, already knowing every line, ready to walk on stage the instant the lead collapses. A read replica is a different actor entirely, in a different theater, who happens to be reciting the same script a beat behind — useful for splitting the audience across two shows, useless as a stand-in unless someone walks over and hands them the lead role.",
+        role:{ primary:"PRIMARY", standby:"STANDBY", replica:"REPLICA" },
+        multiAzLabel:"Multi-AZ standby (synchronous)", replicaLabel:"Read replicas —",
+        writeBtn:"Send a write", readBtn:"Send a read", killBtn:"Kill the primary", promoteBtn:"Manually promote",
+        statWritesOk:"Writes succeeded", statWritesFailed:"Writes failed", statReads:"Reads served", statFailovers:"Automatic failovers",
+        note:"This is the real distinction the exam (and production) cares about: a Multi-AZ standby is a synchronous, hidden replica that Amazon RDS itself monitors and automatically promotes — typically well under a minute, and even faster on a Multi-AZ DB cluster's dedicated reader endpoint. A read replica is asynchronous, visible, queryable, and never promoted for you: if the primary dies and there's no Multi-AZ standby, someone has to manually promote a replica, and whatever hadn't replicated yet is gone.",
+        tryStep1:"With no Multi-AZ and no replicas, kill the primary — writes just start failing.",
+        tryStep2:"Add a couple of read replicas and send some reads — watch them get served without touching the primary.",
+        tryStep3:"Turn on Multi-AZ, kill the primary again, and watch it fail over on its own this time.",
+        incident:{
+          meta:"Salesforce · May 2016",
+          body:"A circuit breaker failure cut power to a Salesforce data center hosting its NA14 instance. As the database restarted under load, a latent firmware bug in the storage array's disk controllers surfaced, corrupting file consistency and forcing engineers to restore from backup. Roughly five hours of writes — everything customers had saved during the restore window — couldn't be recovered. Marc Benioff personally apologized; the storage vendor later shipped a firmware fix that had existed but had never been applied to that array."
+        },
+        status:{ healthy:"HEALTHY", failingOver:"FAILING OVER", down:"WRITES DOWN" },
+        log:{
+          init:"cluster ready — primary healthy, {replicas} read replica(s), Multi-AZ {maz}",
+          writeOk:"write committed to primary",
+          writeFailNoPrimary:"write FAILED — no primary accepting writes",
+          readServed:"read served by {node}",
+          killedNoMaz:"primary killed — no Multi-AZ standby configured, writes will fail until someone promotes a replica by hand",
+          killedMaz:"primary killed — Multi-AZ standby detected the failure and is taking over",
+          failoverDone:"automatic failover complete — standby promoted to primary in {sec}s, new standby now syncing",
+          manualPromote:"{node} manually promoted to primary — anything unreplicated at the moment of failure is gone for good",
+          replicaCountChanged:"read replica count set to {n}",
+          multiAzOn:"Multi-AZ enabled — a synchronous standby is now being provisioned",
+          multiAzOff:"Multi-AZ disabled — the standby has been removed"
+        }
+      },
+      containers:{
+        modId:"MODULE 17", title:"Containers & Orchestration",
+        titleAzure:"Containers & Orchestration (AKS)", titleGcp:"Containers & Orchestration (GKE)",
+        dek:"A rolling deployment doesn't ask whether the new version is good. A health check does — and it decides one task at a time, not all at once.",
+        analogy:"It's a relay race where the incoming runner has to actually catch the baton — visibly, cleanly — before the outgoing runner is allowed to step off the track. If the new runner fumbles it, the old one keeps running instead of the whole team just... stopping.",
+        desiredLabel:"Desired task count —", loadLabel:"Simulated CPU load —",
+        buggyLabel:"Bake a bug into the new image", deployBtn:"Deploy new image version", scaleBtn:"Let target tracking react to load",
+        taskStatus:{ healthy:"HEALTHY", down:"UNHEALTHY", detecting:"STARTING…" },
+        statHealthy:"Healthy tasks", statDesired:"Desired count", statDeploys:"Deployments", statRollbacks:"Rollbacks stopped mid-way",
+        note:"This mirrors how Amazon ECS (and Kubernetes rolling updates on EKS/AKS/GKE) actually replace running tasks: one at a time, gated by a health check, with a deployment circuit breaker that halts and rolls back the whole rollout the moment new tasks start failing — instead of happily replacing every healthy old task with a broken new one. Scaling works the same decoupled way: a target-tracking policy watches a metric and adjusts the desired count itself, the same shape as module 07's Auto Scaling group, just one layer down at the task level.",
+        tryStep1:"Deploy a clean version and watch tasks replace each other one at a time, never all at once.",
+        tryStep2:"Check \"bake a bug in\" and deploy again — watch the rollout stop and roll back partway through instead of taking down every task.",
+        tryStep3:"Push simulated load up and let target tracking react — desired count climbs on its own.",
+        incident:{
+          meta:"Reddit · March 2023",
+          body:"During a routine Kubernetes 1.23-to-1.24 upgrade on Reddit's most critical cluster, the new version dropped legacy \"master\" node labels that Reddit's internal service discovery had been silently hardcoded to depend on. Services couldn't find each other, and — because the monitoring stack depended on those same labels — dashboards kept reporting healthy while nothing was. There was no tested downgrade path, so the team had to restore cluster state from backup. Total outage: 314 minutes, on Pi Day."
+        },
+        status:{ healthy:"ALL TASKS HEALTHY", deploying:"DEPLOYING", rolledback:"ROLLED BACK" },
+        log:{
+          init:"service stable — {n}/{n} tasks healthy",
+          deployStart:"deployment started — replacing tasks one at a time",
+          taskStarting:"{task} starting new version…",
+          taskHealthy:"{task} passed its health check — old task drained",
+          taskUnhealthy:"{task} FAILED its health check — deployment circuit breaker tripped",
+          rollbackDone:"rollout stopped and rolled back — {n} task(s) never got the bad version",
+          deployDone:"deployment complete — all tasks on the new version",
+          desiredChanged:"desired count set to {n}",
+          scaled:"target tracking adjusted desired count to {n} for {load}% load"
+        }
+      },
+      cicd:{
+        modId:"MODULE 18", title:"CI/CD: Pipelines & Deploy Gates",
+        titleAzure:"CI/CD: Pipelines & Deploy Gates", titleGcp:"CI/CD: Pipelines & Deploy Gates",
+        dek:"A test suite only catches the bugs it thought to check for. Everything else is why a rollout ships to 10% of traffic before it ships to all of it.",
+        analogy:"It's tasting the soup before it goes out to every table, and then still sending the first bowl to one table before the whole dining room gets served — two separate, independent checks, because a bad recipe and a bad batch are two different failure modes.",
+        strategyLabel:"Rollout strategy", strategyAll:"All at once", strategyCanary:"Staged canary (10% → 100%)",
+        testBugLabel:"Introduce a bug the test suite catches", prodBugLabel:"Introduce a bug that only shows up under real production traffic",
+        runBtn:"Run the pipeline",
+        statRuns:"Pipeline runs", statCaught:"Caught by tests", statIncidents:"Reached production", statBlast:"Worst blast radius",
+        note:"This is genuinely two separate defenses, not one: an automated test gate (AWS CodeBuild, GitHub Actions, etc.) stops a build before it's ever deployed, but it can only catch what it was written to check — it can't catch a bug that only appears under real concurrent traffic. A staged or canary rollout (AWS CodeDeploy canary, API Gateway canary stages) is the second, independent layer: it limits how much of production a bad build can reach before an automated rollback kicks in, regardless of whether the tests caught anything.",
+        tryStep1:"Run the pipeline clean — it sails through every stage.",
+        tryStep2:"Introduce a bug the tests catch — watch the pipeline stop at the test stage, before deploy even starts.",
+        tryStep3:"Introduce a bug tests can't catch, then compare \"all at once\" against \"staged canary\" for how much of production actually gets hit.",
+        incident:{
+          meta:"Cloudflare · July 2019",
+          body:"A routine update to Cloudflare's Web Application Firewall shipped a rule containing a regular expression with catastrophic backtracking. Unlike Cloudflare's other software releases, WAF rule updates went to every edge server worldwide simultaneously — no staged rollout, no canary, no subset of traffic first. CPU usage across the entire network spiked to near 100% within minutes, and global traffic dropped by 82% before engineers issued an emergency rule termination 27 minutes later. Cloudflare's own postmortem named the missing staged rollout as the change they made afterward."
+        },
+        status:{ idle:"IDLE", running:"RUNNING", passed:"SHIPPED CLEAN", caught:"CAUGHT BY TESTS", incident:"PRODUCTION INCIDENT" },
+        stageNames:{ source:"SOURCE", build:"BUILD", test:"TEST", canary:"DEPLOY — CANARY 10%", full:"DEPLOY — 100%" },
+        stageStatus:{ syncing:"QUEUED", detecting:"RUNNING…", healthy:"PASSED", down:"FAILED" },
+        log:{
+          init:"pipeline idle — last run shipped clean",
+          sourcePulled:"source pulled",
+          buildOk:"build succeeded",
+          testOk:"automated tests passed",
+          testFailed:"automated tests FAILED — pipeline stopped, nothing was deployed",
+          canaryOk:"canary at 10% healthy — promoting to 100%",
+          canaryFailed:"canary at 10% tripped its health alarm — rollout halted and rolled back automatically, 10% blast radius",
+          fullDeployOk:"deployed to 100% — pipeline complete",
+          fullDeployIncident:"deployed to 100% with no canary gate — the bug hit all production traffic at once, 100% blast radius"
+        }
+      },
+      secrets:{
+        modId:"MODULE 19", title:"Secrets & Encryption (KMS)",
+        titleAzure:"Secrets & Encryption (Key Vault)", titleGcp:"Secrets & Encryption (Cloud KMS)",
+        dek:"Encrypting a secret doesn't help if everyone who could ever ask for it can decrypt it, and it never changes.",
+        analogy:"It's a locked drawer where the key gets reissued on a schedule, old keys stop working the moment a new one is cut, and the locksmith keeps a log of every single person who ever asked to unlock it.",
+        rotateBtn:"Rotate the secret now", leakLabel:"Simulate this secret leaking to a compromised script", advanceBtn:"Let 30 days pass",
+        tryBtn:"Try decrypt", granted:"granted", revoked:"revoked",
+        statVersion:"Secret version", statAge:"Days since rotation", statGranted:"Principals granted", statDenied:"Access denied attempts",
+        note:"This mirrors AWS Secrets Manager / Azure Key Vault / GCP Secret Manager automatic rotation plus KMS-backed encryption at rest: a rotated secret gets a brand-new version, the old version stops being handed out, and every decrypt call is checked against a key policy — not just \"is this encrypted,\" but \"is this specific caller allowed to decrypt it, right now.\" Rotation is also the actual fix for a leaked secret: revoking the leaked version is what ends an attacker's access, not the encryption itself.",
+        tryStep1:"Try to decrypt as the intern laptop principal — denied, exactly as configured.",
+        tryStep2:"Simulate a leak, then let 30 days pass without rotating — watch the leaked version stay valid the whole time.",
+        tryStep3:"Rotate the secret — the leaked version stops working immediately, even though nothing about the leak itself changed.",
+        incident:{
+          meta:"Codecov · April 2021",
+          body:"Attackers exploited an error in Codecov's Docker image build process to steal a credential, then used it to silently alter their widely-used Bash Uploader script for over two months. The modified script exfiltrated environment variables — AWS keys, API tokens, and other secrets — from every CI pipeline that ran it, across roughly 23,000 customers. Nobody noticed until a customer manually compared a checksum. Because none of the exposed secrets were on a short rotation schedule, every one of them stayed valid for the entire two months the tampering went undetected."
+        },
+        status:{ current:"KEY CURRENT", stale:"ROTATION OVERDUE", leaked:"LEAK ACTIVE" },
+        principals:{ appServer:"App server role", ciPipeline:"CI pipeline", internLaptop:"Intern's laptop" },
+        log:{
+          init:"secret v{v} issued — {n} principal(s) authorized to decrypt",
+          decryptOk:"{principal} requested decrypt — ALLOWED (key policy grants access) — v{v} returned",
+          decryptDenied:"{principal} requested decrypt — DENIED (not in the key policy)",
+          grantChanged:"{principal} decrypt access {state}",
+          rotated:"rotated to v{v} — every older version is now invalid, including any leaked copy",
+          leaked:"secret v{v} leaked to a compromised script — still valid until it's rotated",
+          daysPassed:"{n} days passed with no rotation — a leaked version stays live the whole time",
+          stale:"rotation overdue — this version has been live for {n} days"
         }
       },
       quests:{
@@ -1507,7 +1630,490 @@
               }
             ]
           }
-        }
+        },
+        database:{
+          aws:{
+            title:"Recover from a failed failover",
+            scenario:"The primary instance behind this database just went down. Multi-AZ was never turned on for it — nothing is going to promote a standby automatically. Every second this takes is more writes lost for good.",
+            consoleLabel:"AWS RDS Console (simulated)",
+            actionBtn:"Reconnect the application",
+            successText:"The application is writing to the promoted replica again — recovery complete.",
+            easySteps:[
+              { id:"e-lag", type:"choice",
+                label:"Check the read replica's replication lag before touching anything",
+                prompt:"What do you check before promoting?",
+                options:[
+                  { key:"skip", label:"Skip it — promote immediately", correct:false, feedback:"Promoting a replica that's behind on replication throws away more data than necessary. A ten-second check first is cheap insurance." },
+                  { key:"check", label:"Check the ReplicaLag metric first", correct:true, feedback:"Lag is low — this replica is safe to promote with minimal data loss." }
+                ],
+                errorText:"Nobody checked how far behind this replica actually is — promoting blind risks losing more than the outage itself already did."
+              },
+              { id:"e-promote", type:"action",
+                label:"Promote the read replica to a standalone instance",
+                actionLabel:"Promote replica", loadingLabel:"Promoting…", doneLabel:"Replica promoted — it now accepts writes.", loadingMs:700,
+                errorText:"No instance in this cluster currently accepts writes — nothing has been promoted yet."
+              }
+            ],
+            hardSteps:[
+              { id:"h-lag", type:"choice",
+                label:"Check the read replica's replication lag before touching anything",
+                prompt:"What do you check before promoting?",
+                options:[
+                  { key:"skip", label:"Skip it — promote immediately", correct:false, feedback:"Promoting a replica that's behind on replication throws away more data than necessary. A ten-second check first is cheap insurance." },
+                  { key:"check", label:"Check the ReplicaLag metric first", correct:true, feedback:"Lag is low — this replica is safe to promote with minimal data loss." }
+                ],
+                errorText:"Nobody checked how far behind this replica actually is — promoting blind risks losing more than the outage itself already did."
+              },
+              { id:"h-promote", type:"action",
+                label:"Promote the read replica to a standalone instance",
+                actionLabel:"Promote replica", loadingLabel:"Promoting…", doneLabel:"Replica promoted — it now accepts writes.", loadingMs:700,
+                errorText:"No instance in this cluster currently accepts writes — nothing has been promoted yet."
+              },
+              { id:"h-endpoint", type:"choice",
+                label:"Point the application at the right place",
+                prompt:"Where should the app's connection string point now?",
+                options:[
+                  { key:"old", label:"Leave it — the old primary's endpoint will start working again", correct:false, feedback:"It won't. The old primary is gone, and its endpoint doesn't get reassigned to anything." },
+                  { key:"new", label:"Update it to the promoted instance's own endpoint", correct:true, feedback:"A promoted read replica gets its own new endpoint — it doesn't inherit the old primary's. Updated." }
+                ],
+                errorText:"Error: could not connect to server — the application is still pointed at an endpoint with nothing behind it."
+              },
+              { id:"h-backups", type:"action",
+                label:"Enable automated backups on the newly promoted instance",
+                actionLabel:"Enable backups", loadingLabel:"Enabling…", doneLabel:"Automated backups enabled on the new primary.", loadingMs:600,
+                errorText:"A promoted read replica doesn't inherit the original primary's backup schedule — right now, a second failure would be unrecoverable."
+              }
+            ]
+          },
+          azure:{
+            title:"Recover from a failed failover",
+            scenario:"The primary server behind this database just went down. Zone-redundant HA was never turned on for it — nothing is going to fail over automatically. Every second this takes is more writes lost for good.",
+            consoleLabel:"Azure Portal — Database servers (simulated)",
+            actionBtn:"Reconnect the application",
+            successText:"The application is writing to the promoted replica again — recovery complete.",
+            easySteps:[
+              { id:"e-lag", type:"choice",
+                label:"Check the read replica's replication lag before touching anything",
+                prompt:"What do you check before promoting?",
+                options:[
+                  { key:"skip", label:"Skip it — stop replication immediately", correct:false, feedback:"Promoting a replica that's behind on replication throws away more data than necessary. A ten-second check first is cheap insurance." },
+                  { key:"check", label:"Check the Replication Lag metric first", correct:true, feedback:"Lag is low — this replica is safe to promote with minimal data loss." }
+                ],
+                errorText:"Nobody checked how far behind this replica actually is — promoting blind risks losing more than the outage itself already did."
+              },
+              { id:"e-promote", type:"action",
+                label:"Stop replication to promote the read replica to a standalone server",
+                actionLabel:"Stop replication", loadingLabel:"Promoting…", doneLabel:"Replica promoted — it now accepts writes.", loadingMs:700,
+                errorText:"No server in this deployment currently accepts writes — nothing has been promoted yet."
+              }
+            ],
+            hardSteps:[
+              { id:"h-lag", type:"choice",
+                label:"Check the read replica's replication lag before touching anything",
+                prompt:"What do you check before promoting?",
+                options:[
+                  { key:"skip", label:"Skip it — stop replication immediately", correct:false, feedback:"Promoting a replica that's behind on replication throws away more data than necessary. A ten-second check first is cheap insurance." },
+                  { key:"check", label:"Check the Replication Lag metric first", correct:true, feedback:"Lag is low — this replica is safe to promote with minimal data loss." }
+                ],
+                errorText:"Nobody checked how far behind this replica actually is — promoting blind risks losing more than the outage itself already did."
+              },
+              { id:"h-promote", type:"action",
+                label:"Stop replication to promote the read replica to a standalone server",
+                actionLabel:"Stop replication", loadingLabel:"Promoting…", doneLabel:"Replica promoted — it now accepts writes.", loadingMs:700,
+                errorText:"No server in this deployment currently accepts writes — nothing has been promoted yet."
+              },
+              { id:"h-endpoint", type:"choice",
+                label:"Point the application at the right place",
+                prompt:"Where should the app's connection string point now?",
+                options:[
+                  { key:"old", label:"Leave it — the old server's name will start working again", correct:false, feedback:"It won't. The old server is gone, and its name doesn't get reassigned to anything." },
+                  { key:"new", label:"Update it to the promoted server's own server name", correct:true, feedback:"A promoted read replica gets its own unique server name — it doesn't inherit the old primary's. Updated." }
+                ],
+                errorText:"Error: could not connect to server — the application is still pointed at a server name with nothing behind it."
+              },
+              { id:"h-backups", type:"action",
+                label:"Configure backup retention on the newly promoted server",
+                actionLabel:"Configure backups", loadingLabel:"Configuring…", doneLabel:"Backup retention configured on the new primary.", loadingMs:600,
+                errorText:"A promoted read replica doesn't inherit the original server's backup retention policy — right now, a second failure would be unrecoverable."
+              }
+            ]
+          },
+          gcp:{
+            title:"Recover from a failed failover",
+            scenario:"The primary instance behind this database just went down. High availability was never turned on for it — nothing is going to fail over automatically. Every second this takes is more writes lost for good.",
+            consoleLabel:"Google Cloud Console — Cloud SQL (simulated)",
+            actionBtn:"Reconnect the application",
+            successText:"The application is writing to the promoted replica again — recovery complete.",
+            easySteps:[
+              { id:"e-lag", type:"choice",
+                label:"Check the read replica's replication delay before touching anything",
+                prompt:"What do you check before promoting?",
+                options:[
+                  { key:"skip", label:"Skip it — promote immediately", correct:false, feedback:"Promoting a replica that's behind on replication throws away more data than necessary. A ten-second check first is cheap insurance." },
+                  { key:"check", label:"Check the replication delay metric first", correct:true, feedback:"Delay is low — this replica is safe to promote with minimal data loss." }
+                ],
+                errorText:"Nobody checked how far behind this replica actually is — promoting blind risks losing more than the outage itself already did."
+              },
+              { id:"e-promote", type:"action",
+                label:"Promote the read replica",
+                actionLabel:"Promote read replica", loadingLabel:"Promoting…", doneLabel:"Replica promoted — it now accepts writes.", loadingMs:700,
+                errorText:"No instance in this cluster currently accepts writes — nothing has been promoted yet."
+              }
+            ],
+            hardSteps:[
+              { id:"h-lag", type:"choice",
+                label:"Check the read replica's replication delay before touching anything",
+                prompt:"What do you check before promoting?",
+                options:[
+                  { key:"skip", label:"Skip it — promote immediately", correct:false, feedback:"Promoting a replica that's behind on replication throws away more data than necessary. A ten-second check first is cheap insurance." },
+                  { key:"check", label:"Check the replication delay metric first", correct:true, feedback:"Delay is low — this replica is safe to promote with minimal data loss." }
+                ],
+                errorText:"Nobody checked how far behind this replica actually is — promoting blind risks losing more than the outage itself already did."
+              },
+              { id:"h-promote", type:"action",
+                label:"Promote the read replica",
+                actionLabel:"Promote read replica", loadingLabel:"Promoting…", doneLabel:"Replica promoted — it now accepts writes.", loadingMs:700,
+                errorText:"No instance in this cluster currently accepts writes — nothing has been promoted yet."
+              },
+              { id:"h-endpoint", type:"choice",
+                label:"Point the application at the right place",
+                prompt:"Where should the app's connection string point now?",
+                options:[
+                  { key:"old", label:"Leave it — the old primary's connection name will start working again", correct:false, feedback:"It won't. The old primary is gone, and its connection name doesn't get reassigned to anything." },
+                  { key:"new", label:"Update it to the promoted instance's own connection name", correct:true, feedback:"A promoted read replica gets its own new instance connection name — it doesn't inherit the old primary's. Updated." }
+                ],
+                errorText:"Error: could not connect to server — the application is still pointed at a connection name with nothing behind it."
+              },
+              { id:"h-backups", type:"action",
+                label:"Enable automated backups on the newly promoted instance",
+                actionLabel:"Enable backups", loadingLabel:"Enabling…", doneLabel:"Automated backups enabled on the new primary.", loadingMs:600,
+                errorText:"Cloud SQL read replicas have automated backups disabled by default, even after promotion — right now, a second failure would be unrecoverable."
+              }
+            ]
+          }
+        },
+        containers:{
+          aws:{
+            title:"Roll back a bad container deploy",
+            scenario:"A new image version just went out to this ECS service and tasks are failing their health checks one after another. If this keeps going, the whole service goes down with it.",
+            consoleLabel:"AWS ECS Console (simulated)",
+            actionBtn:"Verify the service is stable",
+            successText:"Service stable — every task is back on the last known-good revision.",
+            easySteps:[
+              { id:"e-stop", type:"action",
+                label:"Stop the in-progress deployment",
+                actionLabel:"Stop deployment", loadingLabel:"Stopping…", doneLabel:"Deployment stopped — no more tasks will be replaced with the bad revision.", loadingMs:600,
+                errorText:"The deployment is still running — it keeps replacing healthy tasks with ones that fail their health check."
+              },
+              { id:"e-rollback", type:"choice",
+                label:"Get the service back to a working state",
+                prompt:"What actually fixes this?",
+                options:[
+                  { key:"force", label:"Force a new deployment of the same task definition revision", correct:false, feedback:"Redeploying the same broken revision just fails the exact same way again." },
+                  { key:"rollback", label:"Roll the service back to the previous task definition revision", correct:true, feedback:"Rolled back — the service is running the last revision that was actually healthy." }
+                ],
+                errorText:"The service is still on the broken task definition revision — nothing has actually been rolled back."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm what's actually happening before you act",
+                prompt:"Which service event tells you this is the deploy, not something else?",
+                options:[
+                  { key:"scale", label:"\"service X has begun draining connections on 1 tasks\"", correct:false, feedback:"That's routine — a normal part of any deployment, healthy or not. Keep looking." },
+                  { key:"stopped", label:"\"task Y (essential container Z) stopped: HealthCheck failed\", repeated across the new revision's tasks", correct:true, feedback:"That's it — the new revision's tasks are the ones failing, over and over." }
+                ],
+                errorText:"You reacted without confirming the new revision is actually what's failing — worth ten seconds before touching a live deployment."
+              },
+              { id:"h-stop", type:"action",
+                label:"Stop the in-progress deployment",
+                actionLabel:"Stop deployment", loadingLabel:"Stopping…", doneLabel:"Deployment stopped — no more tasks will be replaced with the bad revision.", loadingMs:600,
+                errorText:"The deployment is still running — it keeps replacing healthy tasks with ones that fail their health check."
+              },
+              { id:"h-rollback", type:"choice",
+                label:"Get the service back to a working state",
+                prompt:"What actually fixes this?",
+                options:[
+                  { key:"force", label:"Force a new deployment of the same task definition revision", correct:false, feedback:"Redeploying the same broken revision just fails the exact same way again." },
+                  { key:"rollback", label:"Roll the service back to the previous task definition revision", correct:true, feedback:"Rolled back — the service is running the last revision that was actually healthy." }
+                ],
+                errorText:"The service is still on the broken task definition revision — nothing has actually been rolled back."
+              },
+              { id:"h-breaker", type:"action",
+                label:"Turn on the deployment circuit breaker with automatic rollback for next time",
+                actionLabel:"Enable circuit breaker", loadingLabel:"Enabling…", doneLabel:"Deployment circuit breaker enabled — a future bad rollout stops and rolls back on its own.", loadingMs:600,
+                errorText:"Without the deployment circuit breaker on, the next bad revision will replace every healthy task before anyone notices."
+              }
+            ]
+          },
+          azure:{
+            title:"Roll back a bad container deploy",
+            scenario:"A new image version just went out to this AKS deployment and pods are crash-looping one after another. If this keeps going, the whole deployment goes down with it.",
+            consoleLabel:"Azure Portal — AKS workloads (simulated)",
+            actionBtn:"Verify the deployment is stable",
+            successText:"Deployment stable — every pod is back on the last known-good revision.",
+            easySteps:[
+              { id:"e-stop", type:"action",
+                label:"Pause the rollout",
+                actionLabel:"Pause rollout", loadingLabel:"Pausing…", doneLabel:"Rollout paused — no more pods will be replaced with the bad revision.", loadingMs:600,
+                errorText:"The rollout is still running — it keeps replacing healthy pods with ones that crash-loop."
+              },
+              { id:"e-rollback", type:"choice",
+                label:"Get the deployment back to a working state",
+                prompt:"What actually fixes this?",
+                options:[
+                  { key:"scale", label:"Scale up the new (broken) ReplicaSet", correct:false, feedback:"More copies of a crash-looping revision is still a crash-looping revision — just with extra restarts." },
+                  { key:"rollback", label:"Roll back to the previous revision", correct:true, feedback:"Rolled back — the deployment is running the last revision that was actually healthy." }
+                ],
+                errorText:"The deployment is still on the broken revision — nothing has actually been rolled back."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm what's actually happening before you act",
+                prompt:"Which pod event tells you this is the deploy, not something else?",
+                options:[
+                  { key:"scheduled", label:"\"Successfully assigned pod to node\"", correct:false, feedback:"That's routine — a normal part of any deployment, healthy or not. Keep looking." },
+                  { key:"crashloop", label:"\"Back-off restarting failed container\", repeated across the new revision's pods", correct:true, feedback:"That's it — the new revision's pods are the ones failing, over and over." }
+                ],
+                errorText:"You reacted without confirming the new revision is actually what's failing — worth ten seconds before touching a live deployment."
+              },
+              { id:"h-stop", type:"action",
+                label:"Pause the rollout",
+                actionLabel:"Pause rollout", loadingLabel:"Pausing…", doneLabel:"Rollout paused — no more pods will be replaced with the bad revision.", loadingMs:600,
+                errorText:"The rollout is still running — it keeps replacing healthy pods with ones that crash-loop."
+              },
+              { id:"h-rollback", type:"choice",
+                label:"Get the deployment back to a working state",
+                prompt:"What actually fixes this?",
+                options:[
+                  { key:"scale", label:"Scale up the new (broken) ReplicaSet", correct:false, feedback:"More copies of a crash-looping revision is still a crash-looping revision — just with extra restarts." },
+                  { key:"rollback", label:"Roll back to the previous revision", correct:true, feedback:"Rolled back — the deployment is running the last revision that was actually healthy." }
+                ],
+                errorText:"The deployment is still on the broken revision — nothing has actually been rolled back."
+              },
+              { id:"h-breaker", type:"action",
+                label:"Configure a readiness probe so a future bad rollout is blocked automatically",
+                actionLabel:"Configure readiness probe", loadingLabel:"Configuring…", doneLabel:"Readiness probe configured — pods that fail it never receive traffic or count as available during a rollout.", loadingMs:600,
+                errorText:"Without a readiness probe gating the rollout, the next bad revision can take real traffic before anyone notices it's broken."
+              }
+            ]
+          },
+          gcp:{
+            title:"Roll back a bad container deploy",
+            scenario:"A new image version just went out to this GKE deployment and pods are crash-looping one after another. If this keeps going, the whole deployment goes down with it.",
+            consoleLabel:"Google Cloud Console — GKE workloads (simulated)",
+            actionBtn:"Verify the deployment is stable",
+            successText:"Deployment stable — every pod is back on the last known-good revision.",
+            easySteps:[
+              { id:"e-stop", type:"action",
+                label:"Pause the rollout",
+                actionLabel:"Pause rollout", loadingLabel:"Pausing…", doneLabel:"Rollout paused — no more pods will be replaced with the bad revision.", loadingMs:600,
+                errorText:"The rollout is still running — it keeps replacing healthy pods with ones that crash-loop."
+              },
+              { id:"e-rollback", type:"choice",
+                label:"Get the deployment back to a working state",
+                prompt:"What actually fixes this?",
+                options:[
+                  { key:"scale", label:"Scale up the new (broken) ReplicaSet", correct:false, feedback:"More copies of a crash-looping revision is still a crash-looping revision — just with extra restarts." },
+                  { key:"rollback", label:"Roll back to the previous revision", correct:true, feedback:"Rolled back — the deployment is running the last revision that was actually healthy." }
+                ],
+                errorText:"The deployment is still on the broken revision — nothing has actually been rolled back."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm what's actually happening before you act",
+                prompt:"Which pod event tells you this is the deploy, not something else?",
+                options:[
+                  { key:"scheduled", label:"\"Successfully assigned pod to node\"", correct:false, feedback:"That's routine — a normal part of any deployment, healthy or not. Keep looking." },
+                  { key:"crashloop", label:"\"CrashLoopBackOff\", repeated across the new revision's pods", correct:true, feedback:"That's it — the new revision's pods are the ones failing, over and over." }
+                ],
+                errorText:"You reacted without confirming the new revision is actually what's failing — worth ten seconds before touching a live deployment."
+              },
+              { id:"h-stop", type:"action",
+                label:"Pause the rollout",
+                actionLabel:"Pause rollout", loadingLabel:"Pausing…", doneLabel:"Rollout paused — no more pods will be replaced with the bad revision.", loadingMs:600,
+                errorText:"The rollout is still running — it keeps replacing healthy pods with ones that crash-loop."
+              },
+              { id:"h-rollback", type:"choice",
+                label:"Get the deployment back to a working state",
+                prompt:"What actually fixes this?",
+                options:[
+                  { key:"scale", label:"Scale up the new (broken) ReplicaSet", correct:false, feedback:"More copies of a crash-looping revision is still a crash-looping revision — just with extra restarts." },
+                  { key:"rollback", label:"Roll back to the previous revision", correct:true, feedback:"Rolled back — the deployment is running the last revision that was actually healthy." }
+                ],
+                errorText:"The deployment is still on the broken revision — nothing has actually been rolled back."
+              },
+              { id:"h-breaker", type:"action",
+                label:"Configure a readiness probe so a future bad rollout is blocked automatically",
+                actionLabel:"Configure readiness probe", loadingLabel:"Configuring…", doneLabel:"Readiness probe configured — pods that fail it never receive traffic or count as available during a rollout.", loadingMs:600,
+                errorText:"Without a readiness probe gating the rollout, the next bad revision can take real traffic before anyone notices it's broken."
+              }
+            ]
+          }
+        },
+        ec2:{
+          aws:{
+            title:"Contain a compromised instance",
+            scenario:"A public-facing app on this EC2 instance was tricked into querying its own instance metadata service and handing an attacker its IAM role's temporary credentials. Contain it before the attacker does anything else with them.",
+            consoleLabel:"AWS EC2 / IAM Console (simulated)",
+            actionBtn:"Verify containment",
+            successText:"Containment verified — the instance is isolated, its stolen credentials no longer work, and the metadata service is hardened against a repeat.",
+            easySteps:[
+              { id:"e-isolate", type:"action",
+                label:"Attach a quarantine security group that blocks all inbound and outbound traffic",
+                actionLabel:"Quarantine instance", loadingLabel:"Isolating…", doneLabel:"Instance isolated — no traffic in or out.", loadingMs:600,
+                errorText:"The instance is still fully connected — whatever else is running on it can keep talking to the internet."
+              },
+              { id:"e-revoke", type:"choice",
+                label:"Cut off the stolen credentials",
+                prompt:"What actually stops the attacker from using them?",
+                options:[
+                  { key:"terminate", label:"Terminate the instance", correct:false, feedback:"The credentials the attacker already grabbed are temporary session credentials — they keep working from anywhere until they expire or are explicitly revoked, whether or not this instance still exists." },
+                  { key:"revoke", label:"Revoke the role's active sessions", correct:true, feedback:"Revoked — every temporary credential issued before this moment is now rejected, no matter who's holding a copy." }
+                ],
+                errorText:"The stolen session credentials are still valid — the attacker can keep using them from anywhere until they're explicitly revoked."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm the attack path before you act",
+                prompt:"Which log pattern actually points to metadata credential theft?",
+                options:[
+                  { key:"login", label:"A successful SSH login from the office IP range", correct:false, feedback:"That's expected, routine access. Not this." },
+                  { key:"ssrf", label:"Repeated app requests to 169.254.169.254 followed by AssumeRole calls from an unfamiliar external IP", correct:true, feedback:"That's the pattern — the app fetched the role's credentials off the metadata service, and now they're being used from somewhere that isn't this instance." }
+                ],
+                errorText:"You haven't confirmed this is actually metadata credential theft — worth confirming before quarantining anything."
+              },
+              { id:"h-isolate", type:"action",
+                label:"Attach a quarantine security group that blocks all inbound and outbound traffic",
+                actionLabel:"Quarantine instance", loadingLabel:"Isolating…", doneLabel:"Instance isolated — no traffic in or out.", loadingMs:600,
+                errorText:"The instance is still fully connected — whatever else is running on it can keep talking to the internet."
+              },
+              { id:"h-revoke", type:"choice",
+                label:"Cut off the stolen credentials",
+                prompt:"What actually stops the attacker from using them?",
+                options:[
+                  { key:"terminate", label:"Terminate the instance", correct:false, feedback:"The credentials the attacker already grabbed are temporary session credentials — they keep working from anywhere until they expire or are explicitly revoked, whether or not this instance still exists." },
+                  { key:"revoke", label:"Revoke the role's active sessions", correct:true, feedback:"Revoked — every temporary credential issued before this moment is now rejected, no matter who's holding a copy." }
+                ],
+                errorText:"The stolen session credentials are still valid — the attacker can keep using them from anywhere until they're explicitly revoked."
+              },
+              { id:"h-imds", type:"action",
+                label:"Enforce IMDSv2 account-wide so this can't happen the same way again",
+                actionLabel:"Enforce IMDSv2", loadingLabel:"Applying…", doneLabel:"IMDSv2 required account-wide — a basic SSRF can no longer fetch a token this way.", loadingMs:600,
+                errorText:"Instances can still serve role credentials over the older metadata request format — the exact path this attack used is still open."
+              }
+            ]
+          },
+          azure:{
+            title:"Contain a compromised instance",
+            scenario:"A public-facing app on this VM was tricked into querying the Azure Instance Metadata Service and handing an attacker its managed identity's access token. Contain it before the attacker does anything else with it.",
+            consoleLabel:"Azure Portal — Virtual machine (simulated)",
+            actionBtn:"Verify containment",
+            successText:"Containment verified — the VM is isolated, and the identity's access to every downstream resource has been cut off.",
+            easySteps:[
+              { id:"e-isolate", type:"action",
+                label:"Attach a quarantine network security group that blocks all inbound and outbound traffic",
+                actionLabel:"Quarantine VM", loadingLabel:"Isolating…", doneLabel:"VM isolated — no traffic in or out.", loadingMs:600,
+                errorText:"The VM is still fully connected — whatever else is running on it can keep talking to the internet."
+              },
+              { id:"e-revoke", type:"choice",
+                label:"Cut off what the stolen token can reach",
+                prompt:"What actually stops the attacker from using it?",
+                options:[
+                  { key:"delete", label:"Delete the VM", correct:false, feedback:"Azure AD access tokens for a managed identity are bearer tokens — they stay valid until they naturally expire (commonly up to 24 hours), whether or not the VM or identity still exists." },
+                  { key:"unassign", label:"Remove the managed identity's role assignments on the resources it could reach", correct:true, feedback:"Removed — the token still exists, but it can no longer do anything, because the identity it belongs to no longer has permission to touch these resources." }
+                ],
+                errorText:"The identity behind the stolen token can still access every resource it was assigned to — the token itself can't be individually revoked."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm the attack path before you act",
+                prompt:"Which log pattern actually points to metadata token theft?",
+                options:[
+                  { key:"signin", label:"A routine interactive sign-in from a recognized device", correct:false, feedback:"That's expected, routine access. Not this." },
+                  { key:"ssrf", label:"Repeated app requests to 169.254.169.254 with a Metadata: true header, followed by resource access from an unfamiliar external IP", correct:true, feedback:"That's the pattern — the app fetched the identity's token off the metadata service, and now it's being used from somewhere that isn't this VM." }
+                ],
+                errorText:"You haven't confirmed this is actually metadata token theft — worth confirming before quarantining anything."
+              },
+              { id:"h-isolate", type:"action",
+                label:"Attach a quarantine network security group that blocks all inbound and outbound traffic",
+                actionLabel:"Quarantine VM", loadingLabel:"Isolating…", doneLabel:"VM isolated — no traffic in or out.", loadingMs:600,
+                errorText:"The VM is still fully connected — whatever else is running on it can keep talking to the internet."
+              },
+              { id:"h-revoke", type:"choice",
+                label:"Cut off what the stolen token can reach",
+                prompt:"What actually stops the attacker from using it?",
+                options:[
+                  { key:"delete", label:"Delete the VM", correct:false, feedback:"Azure AD access tokens for a managed identity are bearer tokens — they stay valid until they naturally expire (commonly up to 24 hours), whether or not the VM or identity still exists." },
+                  { key:"unassign", label:"Remove the managed identity's role assignments on the resources it could reach", correct:true, feedback:"Removed — the token still exists, but it can no longer do anything, because the identity it belongs to no longer has permission to touch these resources." }
+                ],
+                errorText:"The identity behind the stolen token can still access every resource it was assigned to — the token itself can't be individually revoked."
+              },
+              { id:"h-monitor", type:"action",
+                label:"Turn on diagnostic logging and alerts on the resources this identity could reach",
+                actionLabel:"Enable logging & alerts", loadingLabel:"Enabling…", doneLabel:"Diagnostic logging and alerts enabled — the next misuse attempt gets caught in minutes, not months.", loadingMs:600,
+                errorText:"Nothing is watching for this identity's access patterns — a quieter repeat of the same attack could run for a long time before anyone notices."
+              }
+            ]
+          },
+          gcp:{
+            title:"Contain a compromised instance",
+            scenario:"A public-facing app on this Compute Engine instance was tricked into querying the metadata server and handing an attacker its attached service account's access token. Contain it before the attacker does anything else with it.",
+            consoleLabel:"Google Cloud Console — Compute Engine (simulated)",
+            actionBtn:"Verify containment",
+            successText:"Containment verified — the instance is isolated, the identity's access has been cut off, and it's scoped to least privilege going forward.",
+            easySteps:[
+              { id:"e-isolate", type:"action",
+                label:"Apply a quarantine firewall rule that blocks all inbound and outbound traffic",
+                actionLabel:"Quarantine instance", loadingLabel:"Isolating…", doneLabel:"Instance isolated — no traffic in or out.", loadingMs:600,
+                errorText:"The instance is still fully connected — whatever else is running on it can keep talking to the internet."
+              },
+              { id:"e-revoke", type:"choice",
+                label:"Cut off what the stolen token can reach",
+                prompt:"What actually stops the attacker from using it?",
+                options:[
+                  { key:"delete", label:"Delete the instance", correct:false, feedback:"The access token the attacker already grabbed is a short-lived OAuth token — it keeps working from anywhere until it naturally expires, whether or not this instance still exists." },
+                  { key:"unbind", label:"Remove the service account's IAM role bindings", correct:true, feedback:"Removed — the token still exists until it expires, but it can no longer do anything, because the service account it belongs to no longer has permission to touch these resources." }
+                ],
+                errorText:"The service account behind the stolen token can still access every resource it's bound to — the token itself can't be individually revoked."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Confirm the attack path before you act",
+                prompt:"Which log pattern actually points to metadata token theft?",
+                options:[
+                  { key:"routine", label:"A routine instances.get call from the deployment pipeline", correct:false, feedback:"That's expected, routine access. Not this." },
+                  { key:"ssrf", label:"Repeated app requests to metadata.google.internal for service-accounts/default/token, followed by API calls from an unfamiliar external IP", correct:true, feedback:"That's the pattern — the app fetched the service account's token off the metadata server, and now it's being used from somewhere that isn't this instance." }
+                ],
+                errorText:"You haven't confirmed this is actually metadata token theft — worth confirming before quarantining anything."
+              },
+              { id:"h-isolate", type:"action",
+                label:"Apply a quarantine firewall rule that blocks all inbound and outbound traffic",
+                actionLabel:"Quarantine instance", loadingLabel:"Isolating…", doneLabel:"Instance isolated — no traffic in or out.", loadingMs:600,
+                errorText:"The instance is still fully connected — whatever else is running on it can keep talking to the internet."
+              },
+              { id:"h-revoke", type:"choice",
+                label:"Cut off what the stolen token can reach",
+                prompt:"What actually stops the attacker from using it?",
+                options:[
+                  { key:"delete", label:"Delete the instance", correct:false, feedback:"The access token the attacker already grabbed is a short-lived OAuth token — it keeps working from anywhere until it naturally expires, whether or not this instance still exists." },
+                  { key:"unbind", label:"Remove the service account's IAM role bindings", correct:true, feedback:"Removed — the token still exists until it expires, but it can no longer do anything, because the service account it belongs to no longer has permission to touch these resources." }
+                ],
+                errorText:"The service account behind the stolen token can still access every resource it's bound to — the token itself can't be individually revoked."
+              },
+              { id:"h-scope", type:"action",
+                label:"Reduce the service account to the minimum IAM roles it actually needs",
+                actionLabel:"Reduce to least privilege", loadingLabel:"Updating…", doneLabel:"Service account scoped down to only what this app actually needs.", loadingMs:600,
+                errorText:"This service account still has far broader access than the app requires — the next SSRF would hand over just as much."
+              }
+            ]
+          }
+        },
       },
       chat:{
         title:"Ask the Console", fabAria:"Ask a question", closeAria:"Close",
@@ -1525,7 +2131,7 @@
     tr: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge" },
+        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS" },
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"CloudLab",
         statusChanged:"durum → {status}",
@@ -1556,8 +2162,8 @@
       },
       intro:{
         title:"Bulut sistemleri, parçalarına ayrıldı",
-        p:"Büyük sistemleri ayakta tutan mekanizmaların on altı küçük, canlı simülasyonu — arkasında gerçek sunucu yok, sadece mantık. Kadranları çevirin ve yük altında, bir ağ bölünmesinde, bir önbellek ıskalamasında, bir arızada gerçekte ne olduğunu izleyin.",
-        meta:"16 modül · tamamen tarayıcınızda çalışır · gerçek altyapı yok"
+        p:"Büyük sistemleri ayakta tutan mekanizmaların yirmi küçük, canlı simülasyonu — arkasında gerçek sunucu yok, sadece mantık. Kadranları çevirin ve yük altında, bir ağ bölünmesinde, bir önbellek ıskalamasında, bir arızada gerçekte ne olduğunu izleyin.",
+        meta:"20 modül · tamamen tarayıcınızda çalışır · gerçek altyapı yok"
       },
       lb:{
         modId:"MODÜL 07", title:"Yük Dengeleme ve Otomatik Ölçekleme",
@@ -1998,6 +2604,129 @@
           noData:"veri noktası alınamadı — {n}/3 kaçırılan dönem",
           insufficientFired:"durum → YETERSİZ VERİ — ajan çok uzun süredir sessiz",
           spiked:"metrik sıçraması tetiklendi"
+        }
+      },
+      database:{
+        modId:"MODÜL 16", title:"Veritabanları: Replikalar, Multi-AZ ve Yük Devretme",
+        titleAzure:"Veritabanları: Replikalar, Bölge Yedekliliği ve Yük Devretme", titleGcp:"Veritabanları: Replikalar, Bölgesel YY ve Yük Devretme",
+        dek:"Bir okuma replikası ile bir yedek (standby) kulağa benzer geliyor. Biri, ana sunucu öldüğünde otomatik olarak devreye giriyor. Diğeri ise kesinlikle girmiyor.",
+        analogy:"Multi-AZ, kulisteki bir dublördür — her repliği zaten ezbere biliyordur ve başrol oyuncusu düştüğü an sahneye çıkmaya hazırdır. Okuma replikası ise tamamen farklı bir tiyatroda, aynı senaryoyu bir tık geriden okuyan başka bir oyuncudur — izleyiciyi iki gösteriye bölmek için kullanışlıdır, ama biri gidip ona başrolü elden teslim etmedikçe dublör olarak işe yaramaz.",
+        role:{ primary:"BİRİNCİL", standby:"YEDEK", replica:"REPLİKA" },
+        multiAzLabel:"Multi-AZ yedek (senkron)", replicaLabel:"Okuma replikaları —",
+        writeBtn:"Yazma gönder", readBtn:"Okuma gönder", killBtn:"Ana sunucuyu öldür", promoteBtn:"Elle terfi ettir",
+        statWritesOk:"Başarılı yazma", statWritesFailed:"Başarısız yazma", statReads:"Karşılanan okuma", statFailovers:"Otomatik yük devretme",
+        note:"Bu, sınavın (ve üretimin) gerçekten önemsediği ayrım: Multi-AZ yedek, Amazon RDS'in kendisinin izlediği ve otomatik olarak terfi ettirdiği senkron, gizli bir replikadır — genellikle bir dakikanın oldukça altında, bir Multi-AZ DB kümesinin kendine ait okuyucu uç noktasında ise daha da hızlı. Okuma replikası ise asenkrondur, görünürdür, sorgulanabilir, ve asla sizin yerinize terfi ettirilmez: ana sunucu ölürse ve bir Multi-AZ yedek yoksa, birinin elle bir replikayı terfi ettirmesi gerekir, ve henüz replike edilmemiş olan her şey kaybolur.",
+        tryStep1:"Multi-AZ ve replika yokken ana sunucuyu öldürün — yazmalar hemen başarısız olmaya başlar.",
+        tryStep2:"Birkaç okuma replikası ekleyin ve birkaç okuma gönderin — ana sunucuya hiç dokunmadan karşılandıklarını izleyin.",
+        tryStep3:"Multi-AZ'yi açın, ana sunucuyu tekrar öldürün, ve bu sefer kendiliğinden yük devrettiğini izleyin.",
+        incident:{
+          meta:"Salesforce · Mayıs 2016",
+          body:"Bir devre kesici arızası, Salesforce'un NA14 örneğini barındıran bir veri merkezinin elektriğini kesti. Veritabanı yük altında yeniden başlarken, depolama dizisinin disk denetleyicilerindeki gizli bir bellenim (firmware) hatası ortaya çıktı, dosya tutarlılığını bozdu ve mühendisleri yedekten geri yüklemeye zorladı. Kabaca beş saatlik yazma — müşterilerin geri yükleme penceresi boyunca kaydettiği her şey — kurtarılamadı. Marc Benioff bizzat özür diledi; depolama tedarikçisi daha sonra o diziye hiç uygulanmamış olan mevcut bir bellenim düzeltmesini yayımladı."
+        },
+        status:{ healthy:"SAĞLIKLI", failingOver:"YÜK DEVREDİYOR", down:"YAZMALAR DURDU" },
+        log:{
+          init:"küme hazır — ana sunucu sağlıklı, {replicas} okuma replikası, Multi-AZ {maz}",
+          writeOk:"yazma ana sunucuya işlendi",
+          writeFailNoPrimary:"yazma BAŞARISIZ — yazma kabul eden bir ana sunucu yok",
+          readServed:"okuma {node} tarafından karşılandı",
+          killedNoMaz:"ana sunucu öldürüldü — yapılandırılmış bir Multi-AZ yedek yok, biri elle bir replikayı terfi ettirene kadar yazmalar başarısız olmaya devam edecek",
+          killedMaz:"ana sunucu öldürüldü — Multi-AZ yedek arızayı tespit etti ve devralıyor",
+          failoverDone:"otomatik yük devretme tamamlandı — yedek {sec} saniyede ana sunucuya terfi etti, yeni yedek şimdi senkronize oluyor",
+          manualPromote:"{node} elle ana sunucuya terfi ettirildi — arıza anında henüz replike edilmemiş olan her şey kalıcı olarak kayboldu",
+          replicaCountChanged:"okuma replikası sayısı {n} olarak ayarlandı",
+          multiAzOn:"Multi-AZ etkinleştirildi — senkron bir yedek şimdi hazırlanıyor",
+          multiAzOff:"Multi-AZ devre dışı bırakıldı — yedek kaldırıldı"
+        }
+      },
+      containers:{
+        modId:"MODÜL 17", title:"Konteynerler ve Orkestrasyon",
+        titleAzure:"Konteynerler ve Orkestrasyon (AKS)", titleGcp:"Konteynerler ve Orkestrasyon (GKE)",
+        dek:"Yeni sürümün iyi olup olmadığını rolling deployment sormaz. Bunu bir sağlık kontrolü sorar — ve hepsi bir anda değil, birer birer karar verir.",
+        analogy:"Gelen koşucunun bayrağı gerçekten yakalaması gerektiği bir bayrak yarışı gibi — görünür şekilde, temiz bir şekilde — çıkan koşucu pisti terk etmeden önce. Yeni koşucu düşürürse, bütün takım öylece durmak yerine eskisi koşmaya devam eder.",
+        desiredLabel:"İstenen görev sayısı —", loadLabel:"Simüle edilen CPU yükü —",
+        buggyLabel:"Yeni imaja bir hata gizle", deployBtn:"Yeni imaj sürümü dağıt", scaleBtn:"Hedef izlemenin yüke tepki vermesine izin ver",
+        taskStatus:{ healthy:"SAĞLIKLI", down:"SAĞLIKSIZ", detecting:"BAŞLIYOR…" },
+        statHealthy:"Sağlıklı görev", statDesired:"İstenen sayı", statDeploys:"Dağıtım", statRollbacks:"Yarıda durdurulan geri alma",
+        note:"Bu, Amazon ECS'in (ve EKS/AKS/GKE üzerindeki Kubernetes rolling update'lerinin) çalışan görevleri gerçekte nasıl değiştirdiğini yansıtıyor: birer birer, bir sağlık kontrolüyle kapılanmış, ve yeni görevler başarısız olmaya başladığı an tüm rollout'u durdurup geri alan bir dağıtım devre kesiciyle — her sağlıklı eski görevi bozuk bir yenisiyle mutlu mutlu değiştirmek yerine. Ölçeklendirme de aynı ayrıştırılmış şekilde çalışır: bir hedef izleme (target tracking) politikası bir metriği izler ve istenen sayıyı kendisi ayarlar — modül 07'deki Otomatik Ölçeklendirme grubuyla aynı şekil, sadece bir katman aşağıda, görev düzeyinde.",
+        tryStep1:"Temiz bir sürüm dağıtın ve görevlerin birbirini birer birer değiştirdiğini, asla hepsinin bir anda değişmediğini izleyin.",
+        tryStep2:"\"Bir hata gizle\"yi işaretleyin ve tekrar dağıtın — rollout'un durup her görevi devre dışı bırakmak yerine yarıda geri alındığını izleyin.",
+        tryStep3:"Simüle edilen yükü yükseltin ve hedef izlemenin tepki vermesine izin verin — istenen sayı kendiliğinden artar.",
+        incident:{
+          meta:"Reddit · Mart 2023",
+          body:"Reddit'in en kritik kümesinde rutin bir Kubernetes 1.23'ten 1.24'e yükseltme sırasında, yeni sürüm Reddit'in dahili servis keşfinin sessizce bağımlı olduğu eski \"master\" düğüm etiketlerini kaldırdı. Servisler birbirini bulamaz oldu, ve — izleme yığını da aynı etiketlere bağımlı olduğu için — hiçbir şey sağlıklı değilken panolar sağlıklı raporlamaya devam etti. Test edilmiş bir düşürme (downgrade) yolu olmadığından ekip küme durumunu yedekten geri yüklemek zorunda kaldı. Toplam kesinti: Pi Günü'nde 314 dakika."
+        },
+        status:{ healthy:"TÜM GÖREVLER SAĞLIKLI", deploying:"DAĞITILIYOR", rolledback:"GERİ ALINDI" },
+        log:{
+          init:"servis kararlı — {n}/{n} görev sağlıklı",
+          deployStart:"dağıtım başladı — görevler birer birer değiştiriliyor",
+          taskStarting:"{task} yeni sürümle başlıyor…",
+          taskHealthy:"{task} sağlık kontrolünü geçti — eski görev boşaltıldı",
+          taskUnhealthy:"{task} sağlık kontrolünü GEÇEMEDİ — dağıtım devre kesici devreye girdi",
+          rollbackDone:"rollout durduruldu ve geri alındı — {n} görev hiç bozuk sürümü almadı",
+          deployDone:"dağıtım tamamlandı — tüm görevler yeni sürümde",
+          desiredChanged:"istenen sayı {n} olarak ayarlandı",
+          scaled:"hedef izleme, %{load} yük için istenen sayıyı {n} olarak ayarladı"
+        }
+      },
+      cicd:{
+        modId:"MODÜL 18", title:"CI/CD: Pipeline'lar ve Dağıtım Kapıları",
+        titleAzure:"CI/CD: Pipeline'lar ve Dağıtım Kapıları", titleGcp:"CI/CD: Pipeline'lar ve Dağıtım Kapıları",
+        dek:"Bir test paketi sadece kontrol etmeyi düşündüğü hataları yakalar. Gerisi, bir rollout'un neden önce trafiğin %10'una, sonra tamamına gönderilmesinin sebebidir.",
+        analogy:"Çorbayı her masaya göndermeden önce tatmak, ve yine de tüm yemek salonuna servis etmeden önce ilk kâseyi tek bir masaya göndermek gibi — iki ayrı, birbirinden bağımsız kontrol, çünkü kötü bir tarif ile kötü bir parti (batch) iki farklı arıza türüdür.",
+        strategyLabel:"Yayılım stratejisi", strategyAll:"Hepsi bir anda", strategyCanary:"Aşamalı canary (%10 → %100)",
+        testBugLabel:"Test paketinin yakalayacağı bir hata ekle", prodBugLabel:"Sadece gerçek üretim trafiğinde ortaya çıkan bir hata ekle",
+        runBtn:"Pipeline'ı çalıştır",
+        statRuns:"Pipeline çalıştırma", statCaught:"Testlerce yakalandı", statIncidents:"Üretime ulaştı", statBlast:"En kötü etki alanı",
+        note:"Bu gerçekten iki ayrı savunma, tek bir savunma değil: otomatik bir test kapısı (AWS CodeBuild, GitHub Actions vb.) bir build'i hiç dağıtılmadan durdurur, ama sadece kontrol etmek üzere yazıldığı şeyi yakalayabilir — sadece gerçek, eşzamanlı trafik altında ortaya çıkan bir hatayı yakalayamaz. Aşamalı ya da canary bir rollout (AWS CodeDeploy canary, API Gateway canary aşamaları) ikinci, bağımsız katmandır: testlerin bir şey yakalayıp yakalamadığından bağımsız olarak, kötü bir build'in üretimin ne kadarına ulaşabileceğini sınırlar.",
+        tryStep1:"Pipeline'ı temiz çalıştırın — her aşamadan sorunsuz geçer.",
+        tryStep2:"Testlerin yakalayacağı bir hata ekleyin — pipeline'ın dağıtım başlamadan test aşamasında durduğunu izleyin.",
+        tryStep3:"Testlerin yakalayamayacağı bir hata ekleyin, sonra \"hepsi bir anda\" ile \"aşamalı canary\"yi üretimin ne kadarının gerçekten etkilendiği açısından karşılaştırın.",
+        incident:{
+          meta:"Cloudflare · Temmuz 2019",
+          body:"Cloudflare'in Web Application Firewall'una yapılan rutin bir güncelleme, felaket düzeyinde geri izleme (backtracking) yapan bir düzenli ifade içeren bir kural yayımladı. Cloudflare'in diğer yazılım sürümlerinin aksine, WAF kural güncellemeleri dünya çapındaki her uç sunucuya aynı anda gidiyordu — aşamalı bir yayılım yok, canary yok, önce bir trafik alt kümesi yok. Tüm ağdaki CPU kullanımı dakikalar içinde neredeyse %100'e sıçradı, ve mühendisler 27 dakika sonra acil bir kural sonlandırması yayımlamadan önce küresel trafik %82 düştü. Cloudflare'in kendi olay sonrası raporu, eksik olan aşamalı yayılımı sonradan yaptıkları değişiklik olarak belirtti."
+        },
+        status:{ idle:"BOŞTA", running:"ÇALIŞIYOR", passed:"TEMİZ GÖNDERİLDİ", caught:"TESTLERCE YAKALANDI", incident:"ÜRETİM OLAYI" },
+        stageNames:{ source:"KAYNAK", build:"BUILD", test:"TEST", canary:"DAĞITIM — CANARY %10", full:"DAĞITIM — %100" },
+        stageStatus:{ syncing:"SIRADA", detecting:"ÇALIŞIYOR…", healthy:"GEÇTİ", down:"BAŞARISIZ" },
+        log:{
+          init:"pipeline boşta — son çalıştırma temiz gönderildi",
+          sourcePulled:"kaynak çekildi",
+          buildOk:"build başarılı",
+          testOk:"otomatik testler geçti",
+          testFailed:"otomatik testler BAŞARISIZ — pipeline durdu, hiçbir şey dağıtılmadı",
+          canaryOk:"%10 canary sağlıklı — %100'e terfi ediliyor",
+          canaryFailed:"%10 canary sağlık alarmını tetikledi — rollout durduruldu ve otomatik olarak geri alındı, %10 etki alanı",
+          fullDeployOk:"%100'e dağıtıldı — pipeline tamamlandı",
+          fullDeployIncident:"canary kapısı olmadan %100'e dağıtıldı — hata tüm üretim trafiğini bir anda vurdu, %100 etki alanı"
+        }
+      },
+      secrets:{
+        modId:"MODÜL 19", title:"Sırlar ve Şifreleme (KMS)",
+        titleAzure:"Sırlar ve Şifreleme (Key Vault)", titleGcp:"Sırlar ve Şifreleme (Cloud KMS)",
+        dek:"Bir sırrı şifrelemek, onu her isteyenin çözebildiği ve hiç değişmediği bir durumda işe yaramaz.",
+        analogy:"Anahtarının belirli bir programa göre yeniden kesildiği, yeni anahtar kesilir kesilmez eskilerinin çalışmayı bıraktığı, ve çilingirin kilidi açmak isteyen herkesin kaydını tuttuğu kilitli bir çekmece gibi.",
+        rotateBtn:"Sırrı şimdi döndür", leakLabel:"Bu sırrın ele geçirilmiş bir betiğe sızdığını simüle et", advanceBtn:"30 gün geçsin",
+        tryBtn:"Çözmeyi dene", granted:"verildi", revoked:"kaldırıldı",
+        statVersion:"Sır sürümü", statAge:"Döndürmeden bu yana geçen gün", statGranted:"Yetkili taraf", statDenied:"Reddedilen erişim denemesi",
+        note:"Bu, AWS Secrets Manager / Azure Key Vault / GCP Secret Manager otomatik döndürmesini ve KMS destekli bekleme-durumu şifrelemesini yansıtıyor: döndürülen bir sır tamamen yeni bir sürüm alır, eski sürüm artık verilmez, ve her çözme çağrısı bir anahtar politikasına göre kontrol edilir — sadece \"bu şifreli mi\" değil, \"bu belirli çağıran şu anda bunu çözmeye yetkili mi\". Döndürme aynı zamanda sızmış bir sır için gerçek çözümdür: bir saldırganın erişimini bitiren şey sızdırılan sürümü iptal etmektir, şifrelemenin kendisi değil.",
+        tryStep1:"Stajyerin dizüstü bilgisayarı yetkisi olarak çözmeyi deneyin — tam da yapılandırıldığı gibi reddedilir.",
+        tryStep2:"Bir sızıntı simüle edin, sonra döndürmeden 30 gün geçmesine izin verin — sızan sürümün tüm süre boyunca geçerli kaldığını izleyin.",
+        tryStep3:"Sırrı döndürün — sızıntının kendisiyle ilgili hiçbir şey değişmemiş olsa da, sızan sürüm anında çalışmayı bırakır.",
+        incident:{
+          meta:"Codecov · Nisan 2021",
+          body:"Saldırganlar, bir kimlik bilgisi çalmak için Codecov'un Docker imaj derleme sürecindeki bir hatadan yararlandı, sonra bunu iki aydan uzun süre boyunca yaygın olarak kullanılan Bash Uploader betiklerini sessizce değiştirmek için kullandı. Değiştirilmiş betik, onu çalıştıran her CI pipeline'ından — kabaca 23.000 müşteri genelinde — ortam değişkenlerini (AWS anahtarları, API jetonları ve diğer sırlar) dışarı sızdırıyordu. Bir müşteri elle bir sağlama toplamını (checksum) karşılaştırana kadar kimse fark etmedi. Açığa çıkan sırların hiçbiri kısa bir döndürme programında olmadığından, kurcalamanın fark edilmeden kaldığı iki ay boyunca her biri geçerliliğini korudu."
+        },
+        status:{ current:"ANAHTAR GÜNCEL", stale:"DÖNDÜRME GECİKMİŞ", leaked:"SIZINTI AKTİF" },
+        principals:{ appServer:"Uygulama sunucusu rolü", ciPipeline:"CI pipeline", internLaptop:"Stajyerin dizüstü bilgisayarı" },
+        log:{
+          init:"sır v{v} yayımlandı — {n} taraf çözmeye yetkili",
+          decryptOk:"{principal} çözme istedi — İZİN VERİLDİ (anahtar politikası erişim veriyor) — v{v} döndürüldü",
+          decryptDenied:"{principal} çözme istedi — REDDEDİLDİ (anahtar politikasında değil)",
+          grantChanged:"{principal} çözme erişimi {state}",
+          rotated:"v{v}'ye döndürüldü — sızan bir kopya dahil daha eski her sürüm artık geçersiz",
+          leaked:"sır v{v} ele geçirilmiş bir betiğe sızdı — döndürülene kadar geçerliliğini koruyor",
+          daysPassed:"döndürme olmadan {n} gün geçti — sızan bir sürüm tüm süre boyunca canlı kalır",
+          stale:"döndürme gecikti — bu sürüm {n} gündür yayında"
         }
       },
       quests:{
@@ -3020,7 +3749,490 @@
               }
             ]
           }
-        }
+        },
+        database:{
+          aws:{
+            title:"Başarısız bir yük devretmeden kurtul",
+            scenario:"Bu veritabanının arkasındaki ana örnek az önce çöktü. Multi-AZ hiç açılmamıştı — hiçbir şey kendiliğinden bir yedeği terfi ettirmeyecek. Bu ne kadar sürerse o kadar daha fazla yazma kalıcı olarak kaybolur.",
+            consoleLabel:"AWS RDS Console (simüle edilmiş)",
+            actionBtn:"Uygulamayı yeniden bağla",
+            successText:"Uygulama yeniden terfi ettirilen replikaya yazıyor — kurtarma tamamlandı.",
+            easySteps:[
+              { id:"e-lag", type:"choice",
+                label:"Herhangi bir şeye dokunmadan önce okuma replikasının replikasyon gecikmesini kontrol et",
+                prompt:"Terfi ettirmeden önce neyi kontrol edersiniz?",
+                options:[
+                  { key:"skip", label:"Atlayın — hemen terfi ettirin", correct:false, feedback:"Replikasyonda geride kalmış bir replikayı terfi ettirmek, gerekenden daha fazla veriyi çöpe atar. Önce on saniyelik bir kontrol ucuz bir sigorta." },
+                  { key:"check", label:"Önce ReplicaLag metriğini kontrol edin", correct:true, feedback:"Gecikme düşük — bu replika minimal veri kaybıyla terfi ettirilmeye güvenli." }
+                ],
+                errorText:"Kimse bu replikanın gerçekte ne kadar geride olduğunu kontrol etmedi — körlemesine terfi ettirmek kesintinin kendisinden daha fazlasını kaybetme riski taşır."
+              },
+              { id:"e-promote", type:"action",
+                label:"Okuma replikasını bağımsız bir örneğe terfi ettir",
+                actionLabel:"Replikayı terfi ettir", loadingLabel:"Terfi ettiriliyor…", doneLabel:"Replika terfi ettirildi — artık yazma kabul ediyor.", loadingMs:700,
+                errorText:"Bu kümede şu anda hiçbir örnek yazma kabul etmiyor — henüz hiçbir şey terfi ettirilmedi."
+              }
+            ],
+            hardSteps:[
+              { id:"h-lag", type:"choice",
+                label:"Herhangi bir şeye dokunmadan önce okuma replikasının replikasyon gecikmesini kontrol et",
+                prompt:"Terfi ettirmeden önce neyi kontrol edersiniz?",
+                options:[
+                  { key:"skip", label:"Atlayın — hemen terfi ettirin", correct:false, feedback:"Replikasyonda geride kalmış bir replikayı terfi ettirmek, gerekenden daha fazla veriyi çöpe atar. Önce on saniyelik bir kontrol ucuz bir sigorta." },
+                  { key:"check", label:"Önce ReplicaLag metriğini kontrol edin", correct:true, feedback:"Gecikme düşük — bu replika minimal veri kaybıyla terfi ettirilmeye güvenli." }
+                ],
+                errorText:"Kimse bu replikanın gerçekte ne kadar geride olduğunu kontrol etmedi — körlemesine terfi ettirmek kesintinin kendisinden daha fazlasını kaybetme riski taşır."
+              },
+              { id:"h-promote", type:"action",
+                label:"Okuma replikasını bağımsız bir örneğe terfi ettir",
+                actionLabel:"Replikayı terfi ettir", loadingLabel:"Terfi ettiriliyor…", doneLabel:"Replika terfi ettirildi — artık yazma kabul ediyor.", loadingMs:700,
+                errorText:"Bu kümede şu anda hiçbir örnek yazma kabul etmiyor — henüz hiçbir şey terfi ettirilmedi."
+              },
+              { id:"h-endpoint", type:"choice",
+                label:"Uygulamayı doğru yere işaret et",
+                prompt:"Uygulamanın bağlantı dizesi şimdi nereyi işaret etmeli?",
+                options:[
+                  { key:"old", label:"Bırakın — eski ana sunucunun uç noktası tekrar çalışmaya başlar", correct:false, feedback:"Başlamaz. Eski ana sunucu gitti, ve uç noktası hiçbir şeye yeniden atanmıyor." },
+                  { key:"new", label:"Terfi ettirilen örneğin kendi uç noktasına güncelleyin", correct:true, feedback:"Terfi ettirilen bir okuma replikası kendi yeni uç noktasını alır — eski ana sunucununkini devralmaz. Güncellendi." }
+                ],
+                errorText:"Hata: sunucuya bağlanılamadı — uygulama hâlâ arkasında hiçbir şey olmayan bir uç noktayı işaret ediyor."
+              },
+              { id:"h-backups", type:"action",
+                label:"Yeni terfi ettirilen örnekte otomatik yedeklemeleri etkinleştir",
+                actionLabel:"Yedeklemeleri etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Yeni ana sunucuda otomatik yedeklemeler etkinleştirildi.", loadingMs:600,
+                errorText:"Terfi ettirilen bir okuma replikası, orijinal ana sunucunun yedekleme programını devralmaz — şu anda ikinci bir arıza kurtarılamaz olurdu."
+              }
+            ]
+          },
+          azure:{
+            title:"Başarısız bir yük devretmeden kurtul",
+            scenario:"Bu veritabanının arkasındaki ana sunucu az önce çöktü. Bölge yedekli YY hiç açılmamıştı — hiçbir şey kendiliğinden yük devretmeyecek. Bu ne kadar sürerse o kadar daha fazla yazma kalıcı olarak kaybolur.",
+            consoleLabel:"Azure Portal — Veritabanı sunucuları (simüle edilmiş)",
+            actionBtn:"Uygulamayı yeniden bağla",
+            successText:"Uygulama yeniden terfi ettirilen replikaya yazıyor — kurtarma tamamlandı.",
+            easySteps:[
+              { id:"e-lag", type:"choice",
+                label:"Herhangi bir şeye dokunmadan önce okuma replikasının replikasyon gecikmesini kontrol et",
+                prompt:"Terfi ettirmeden önce neyi kontrol edersiniz?",
+                options:[
+                  { key:"skip", label:"Atlayın — hemen replikasyonu durdurun", correct:false, feedback:"Replikasyonda geride kalmış bir replikayı terfi ettirmek, gerekenden daha fazla veriyi çöpe atar. Önce on saniyelik bir kontrol ucuz bir sigorta." },
+                  { key:"check", label:"Önce Replikasyon Gecikmesi metriğini kontrol edin", correct:true, feedback:"Gecikme düşük — bu replika minimal veri kaybıyla terfi ettirilmeye güvenli." }
+                ],
+                errorText:"Kimse bu replikanın gerçekte ne kadar geride olduğunu kontrol etmedi — körlemesine terfi ettirmek kesintinin kendisinden daha fazlasını kaybetme riski taşır."
+              },
+              { id:"e-promote", type:"action",
+                label:"Okuma replikasını bağımsız bir sunucuya terfi ettirmek için replikasyonu durdur",
+                actionLabel:"Replikasyonu durdur", loadingLabel:"Terfi ettiriliyor…", doneLabel:"Replika terfi ettirildi — artık yazma kabul ediyor.", loadingMs:700,
+                errorText:"Bu dağıtımda şu anda hiçbir sunucu yazma kabul etmiyor — henüz hiçbir şey terfi ettirilmedi."
+              }
+            ],
+            hardSteps:[
+              { id:"h-lag", type:"choice",
+                label:"Herhangi bir şeye dokunmadan önce okuma replikasının replikasyon gecikmesini kontrol et",
+                prompt:"Terfi ettirmeden önce neyi kontrol edersiniz?",
+                options:[
+                  { key:"skip", label:"Atlayın — hemen replikasyonu durdurun", correct:false, feedback:"Replikasyonda geride kalmış bir replikayı terfi ettirmek, gerekenden daha fazla veriyi çöpe atar. Önce on saniyelik bir kontrol ucuz bir sigorta." },
+                  { key:"check", label:"Önce Replikasyon Gecikmesi metriğini kontrol edin", correct:true, feedback:"Gecikme düşük — bu replika minimal veri kaybıyla terfi ettirilmeye güvenli." }
+                ],
+                errorText:"Kimse bu replikanın gerçekte ne kadar geride olduğunu kontrol etmedi — körlemesine terfi ettirmek kesintinin kendisinden daha fazlasını kaybetme riski taşır."
+              },
+              { id:"h-promote", type:"action",
+                label:"Okuma replikasını bağımsız bir sunucuya terfi ettirmek için replikasyonu durdur",
+                actionLabel:"Replikasyonu durdur", loadingLabel:"Terfi ettiriliyor…", doneLabel:"Replika terfi ettirildi — artık yazma kabul ediyor.", loadingMs:700,
+                errorText:"Bu dağıtımda şu anda hiçbir sunucu yazma kabul etmiyor — henüz hiçbir şey terfi ettirilmedi."
+              },
+              { id:"h-endpoint", type:"choice",
+                label:"Uygulamayı doğru yere işaret et",
+                prompt:"Uygulamanın bağlantı dizesi şimdi nereyi işaret etmeli?",
+                options:[
+                  { key:"old", label:"Bırakın — eski sunucunun adı tekrar çalışmaya başlar", correct:false, feedback:"Başlamaz. Eski sunucu gitti, ve adı hiçbir şeye yeniden atanmıyor." },
+                  { key:"new", label:"Terfi ettirilen sunucunun kendi sunucu adına güncelleyin", correct:true, feedback:"Terfi ettirilen bir okuma replikası kendi benzersiz sunucu adını alır — eski ana sunucununkini devralmaz. Güncellendi." }
+                ],
+                errorText:"Hata: sunucuya bağlanılamadı — uygulama hâlâ arkasında hiçbir şey olmayan bir sunucu adını işaret ediyor."
+              },
+              { id:"h-backups", type:"action",
+                label:"Yeni terfi ettirilen sunucuda yedekleme saklama süresini yapılandır",
+                actionLabel:"Yedeklemeleri yapılandır", loadingLabel:"Yapılandırılıyor…", doneLabel:"Yeni ana sunucuda yedekleme saklama süresi yapılandırıldı.", loadingMs:600,
+                errorText:"Terfi ettirilen bir okuma replikası, orijinal sunucunun yedekleme saklama politikasını devralmaz — şu anda ikinci bir arıza kurtarılamaz olurdu."
+              }
+            ]
+          },
+          gcp:{
+            title:"Başarısız bir yük devretmeden kurtul",
+            scenario:"Bu veritabanının arkasındaki ana örnek az önce çöktü. Yüksek kullanılabilirlik hiç açılmamıştı — hiçbir şey kendiliğinden yük devretmeyecek. Bu ne kadar sürerse o kadar daha fazla yazma kalıcı olarak kaybolur.",
+            consoleLabel:"Google Cloud Console — Cloud SQL (simüle edilmiş)",
+            actionBtn:"Uygulamayı yeniden bağla",
+            successText:"Uygulama yeniden terfi ettirilen replikaya yazıyor — kurtarma tamamlandı.",
+            easySteps:[
+              { id:"e-lag", type:"choice",
+                label:"Herhangi bir şeye dokunmadan önce okuma replikasının replikasyon gecikmesini kontrol et",
+                prompt:"Terfi ettirmeden önce neyi kontrol edersiniz?",
+                options:[
+                  { key:"skip", label:"Atlayın — hemen terfi ettirin", correct:false, feedback:"Replikasyonda geride kalmış bir replikayı terfi ettirmek, gerekenden daha fazla veriyi çöpe atar. Önce on saniyelik bir kontrol ucuz bir sigorta." },
+                  { key:"check", label:"Önce replikasyon gecikmesi metriğini kontrol edin", correct:true, feedback:"Gecikme düşük — bu replika minimal veri kaybıyla terfi ettirilmeye güvenli." }
+                ],
+                errorText:"Kimse bu replikanın gerçekte ne kadar geride olduğunu kontrol etmedi — körlemesine terfi ettirmek kesintinin kendisinden daha fazlasını kaybetme riski taşır."
+              },
+              { id:"e-promote", type:"action",
+                label:"Okuma replikasını terfi ettir",
+                actionLabel:"Okuma replikasını terfi ettir", loadingLabel:"Terfi ettiriliyor…", doneLabel:"Replika terfi ettirildi — artık yazma kabul ediyor.", loadingMs:700,
+                errorText:"Bu kümede şu anda hiçbir örnek yazma kabul etmiyor — henüz hiçbir şey terfi ettirilmedi."
+              }
+            ],
+            hardSteps:[
+              { id:"h-lag", type:"choice",
+                label:"Herhangi bir şeye dokunmadan önce okuma replikasının replikasyon gecikmesini kontrol et",
+                prompt:"Terfi ettirmeden önce neyi kontrol edersiniz?",
+                options:[
+                  { key:"skip", label:"Atlayın — hemen terfi ettirin", correct:false, feedback:"Replikasyonda geride kalmış bir replikayı terfi ettirmek, gerekenden daha fazla veriyi çöpe atar. Önce on saniyelik bir kontrol ucuz bir sigorta." },
+                  { key:"check", label:"Önce replikasyon gecikmesi metriğini kontrol edin", correct:true, feedback:"Gecikme düşük — bu replika minimal veri kaybıyla terfi ettirilmeye güvenli." }
+                ],
+                errorText:"Kimse bu replikanın gerçekte ne kadar geride olduğunu kontrol etmedi — körlemesine terfi ettirmek kesintinin kendisinden daha fazlasını kaybetme riski taşır."
+              },
+              { id:"h-promote", type:"action",
+                label:"Okuma replikasını terfi ettir",
+                actionLabel:"Okuma replikasını terfi ettir", loadingLabel:"Terfi ettiriliyor…", doneLabel:"Replika terfi ettirildi — artık yazma kabul ediyor.", loadingMs:700,
+                errorText:"Bu kümede şu anda hiçbir örnek yazma kabul etmiyor — henüz hiçbir şey terfi ettirilmedi."
+              },
+              { id:"h-endpoint", type:"choice",
+                label:"Uygulamayı doğru yere işaret et",
+                prompt:"Uygulamanın bağlantı dizesi şimdi nereyi işaret etmeli?",
+                options:[
+                  { key:"old", label:"Bırakın — eski ana sunucunun bağlantı adı tekrar çalışmaya başlar", correct:false, feedback:"Başlamaz. Eski ana sunucu gitti, ve bağlantı adı hiçbir şeye yeniden atanmıyor." },
+                  { key:"new", label:"Terfi ettirilen örneğin kendi bağlantı adına güncelleyin", correct:true, feedback:"Terfi ettirilen bir okuma replikası kendi yeni örnek bağlantı adını alır — eski ana sunucununkini devralmaz. Güncellendi." }
+                ],
+                errorText:"Hata: sunucuya bağlanılamadı — uygulama hâlâ arkasında hiçbir şey olmayan bir bağlantı adını işaret ediyor."
+              },
+              { id:"h-backups", type:"action",
+                label:"Yeni terfi ettirilen örnekte otomatik yedeklemeleri etkinleştir",
+                actionLabel:"Yedeklemeleri etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Yeni ana sunucuda otomatik yedeklemeler etkinleştirildi.", loadingMs:600,
+                errorText:"Cloud SQL okuma replikalarında otomatik yedeklemeler, terfi sonrasında bile varsayılan olarak kapalıdır — şu anda ikinci bir arıza kurtarılamaz olurdu."
+              }
+            ]
+          }
+        },
+        containers:{
+          aws:{
+            title:"Kötü bir konteyner dağıtımını geri al",
+            scenario:"Bu ECS servisine az önce yeni bir imaj sürümü gönderildi ve görevler birbiri ardına sağlık kontrollerini geçemiyor. Bu böyle devam ederse tüm servis onunla birlikte çöker.",
+            consoleLabel:"AWS ECS Console (simüle edilmiş)",
+            actionBtn:"Servisin kararlı olduğunu doğrula",
+            successText:"Servis kararlı — her görev son bilinen iyi sürüme geri döndü.",
+            easySteps:[
+              { id:"e-stop", type:"action",
+                label:"Devam eden dağıtımı durdur",
+                actionLabel:"Dağıtımı durdur", loadingLabel:"Durduruluyor…", doneLabel:"Dağıtım durduruldu — artık hiçbir görev bozuk sürümle değiştirilmeyecek.", loadingMs:600,
+                errorText:"Dağıtım hâlâ çalışıyor — sağlıklı görevleri sağlık kontrolünü geçemeyenlerle değiştirmeye devam ediyor."
+              },
+              { id:"e-rollback", type:"choice",
+                label:"Servisi çalışır duruma geri getir",
+                prompt:"Bunu gerçekte ne düzeltir?",
+                options:[
+                  { key:"force", label:"Aynı görev tanımı sürümünü yeniden zorla dağıt", correct:false, feedback:"Aynı bozuk sürümü yeniden dağıtmak tam olarak aynı şekilde başarısız olur." },
+                  { key:"rollback", label:"Servisi önceki görev tanımı sürümüne geri al", correct:true, feedback:"Geri alındı — servis gerçekten sağlıklı olan son sürümü çalıştırıyor." }
+                ],
+                errorText:"Servis hâlâ bozuk görev tanımı sürümünde — henüz gerçekten hiçbir şey geri alınmadı."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Harekete geçmeden önce gerçekte ne olduğunu doğrula",
+                prompt:"Hangi servis olayı bunun başka bir şey değil, dağıtım olduğunu söylüyor?",
+                options:[
+                  { key:"scale", label:"\"service X has begun draining connections on 1 tasks\"", correct:false, feedback:"Bu rutin — sağlıklı olsun olmasın her dağıtımın normal bir parçası. Aramaya devam edin." },
+                  { key:"stopped", label:"Yeni sürümün görevleri genelinde tekrarlanan \"task Y (essential container Z) stopped: HealthCheck failed\"", correct:true, feedback:"İşte bu — başarısız olan yeni sürümün görevleri, tekrar tekrar." }
+                ],
+                errorText:"Yeni sürümün gerçekten başarısız olan şey olduğunu doğrulamadan tepki verdiniz — canlı bir dağıtıma dokunmadan önce on saniyeye değer."
+              },
+              { id:"h-stop", type:"action",
+                label:"Devam eden dağıtımı durdur",
+                actionLabel:"Dağıtımı durdur", loadingLabel:"Durduruluyor…", doneLabel:"Dağıtım durduruldu — artık hiçbir görev bozuk sürümle değiştirilmeyecek.", loadingMs:600,
+                errorText:"Dağıtım hâlâ çalışıyor — sağlıklı görevleri sağlık kontrolünü geçemeyenlerle değiştirmeye devam ediyor."
+              },
+              { id:"h-rollback", type:"choice",
+                label:"Servisi çalışır duruma geri getir",
+                prompt:"Bunu gerçekte ne düzeltir?",
+                options:[
+                  { key:"force", label:"Aynı görev tanımı sürümünü yeniden zorla dağıt", correct:false, feedback:"Aynı bozuk sürümü yeniden dağıtmak tam olarak aynı şekilde başarısız olur." },
+                  { key:"rollback", label:"Servisi önceki görev tanımı sürümüne geri al", correct:true, feedback:"Geri alındı — servis gerçekten sağlıklı olan son sürümü çalıştırıyor." }
+                ],
+                errorText:"Servis hâlâ bozuk görev tanımı sürümünde — henüz gerçekten hiçbir şey geri alınmadı."
+              },
+              { id:"h-breaker", type:"action",
+                label:"Bir sonraki sefer için otomatik geri almalı dağıtım devre kesiciyi aç",
+                actionLabel:"Devre kesiciyi etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Dağıtım devre kesici etkinleştirildi — gelecekteki kötü bir rollout kendiliğinden durup geri alınacak.", loadingMs:600,
+                errorText:"Dağıtım devre kesici açık olmadan, bir sonraki bozuk sürüm kimse fark etmeden her sağlıklı görevi değiştirir."
+              }
+            ]
+          },
+          azure:{
+            title:"Kötü bir konteyner dağıtımını geri al",
+            scenario:"Bu AKS dağıtımına az önce yeni bir imaj sürümü gönderildi ve pod'lar birbiri ardına çöküp yeniden başlıyor (crash-loop). Bu böyle devam ederse tüm dağıtım onunla birlikte çöker.",
+            consoleLabel:"Azure Portal — AKS iş yükleri (simüle edilmiş)",
+            actionBtn:"Dağıtımın kararlı olduğunu doğrula",
+            successText:"Dağıtım kararlı — her pod son bilinen iyi sürüme geri döndü.",
+            easySteps:[
+              { id:"e-stop", type:"action",
+                label:"Rollout'u duraklat",
+                actionLabel:"Rollout'u duraklat", loadingLabel:"Duraklatılıyor…", doneLabel:"Rollout duraklatıldı — artık hiçbir pod bozuk sürümle değiştirilmeyecek.", loadingMs:600,
+                errorText:"Rollout hâlâ çalışıyor — sağlıklı pod'ları çöküp yeniden başlayanlarla değiştirmeye devam ediyor."
+              },
+              { id:"e-rollback", type:"choice",
+                label:"Dağıtımı çalışır duruma geri getir",
+                prompt:"Bunu gerçekte ne düzeltir?",
+                options:[
+                  { key:"scale", label:"Yeni (bozuk) ReplicaSet'i ölçeklendir", correct:false, feedback:"Çöküp duran bir sürümün daha fazla kopyası, yine çöküp duran bir sürümdür — sadece fazladan yeniden başlatmalarla." },
+                  { key:"rollback", label:"Önceki sürüme geri al", correct:true, feedback:"Geri alındı — dağıtım gerçekten sağlıklı olan son sürümü çalıştırıyor." }
+                ],
+                errorText:"Dağıtım hâlâ bozuk sürümde — henüz gerçekten hiçbir şey geri alınmadı."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Harekete geçmeden önce gerçekte ne olduğunu doğrula",
+                prompt:"Hangi pod olayı bunun başka bir şey değil, dağıtım olduğunu söylüyor?",
+                options:[
+                  { key:"scheduled", label:"\"Successfully assigned pod to node\"", correct:false, feedback:"Bu rutin — sağlıklı olsun olmasın her dağıtımın normal bir parçası. Aramaya devam edin." },
+                  { key:"crashloop", label:"Yeni sürümün pod'ları genelinde tekrarlanan \"Back-off restarting failed container\"", correct:true, feedback:"İşte bu — başarısız olan yeni sürümün pod'ları, tekrar tekrar." }
+                ],
+                errorText:"Yeni sürümün gerçekten başarısız olan şey olduğunu doğrulamadan tepki verdiniz — canlı bir dağıtıma dokunmadan önce on saniyeye değer."
+              },
+              { id:"h-stop", type:"action",
+                label:"Rollout'u duraklat",
+                actionLabel:"Rollout'u duraklat", loadingLabel:"Duraklatılıyor…", doneLabel:"Rollout duraklatıldı — artık hiçbir pod bozuk sürümle değiştirilmeyecek.", loadingMs:600,
+                errorText:"Rollout hâlâ çalışıyor — sağlıklı pod'ları çöküp yeniden başlayanlarla değiştirmeye devam ediyor."
+              },
+              { id:"h-rollback", type:"choice",
+                label:"Dağıtımı çalışır duruma geri getir",
+                prompt:"Bunu gerçekte ne düzeltir?",
+                options:[
+                  { key:"scale", label:"Yeni (bozuk) ReplicaSet'i ölçeklendir", correct:false, feedback:"Çöküp duran bir sürümün daha fazla kopyası, yine çöküp duran bir sürümdür — sadece fazladan yeniden başlatmalarla." },
+                  { key:"rollback", label:"Önceki sürüme geri al", correct:true, feedback:"Geri alındı — dağıtım gerçekten sağlıklı olan son sürümü çalıştırıyor." }
+                ],
+                errorText:"Dağıtım hâlâ bozuk sürümde — henüz gerçekten hiçbir şey geri alınmadı."
+              },
+              { id:"h-breaker", type:"action",
+                label:"Gelecekteki kötü bir rollout'un otomatik engellenmesi için bir hazır olma (readiness) probu yapılandır",
+                actionLabel:"Readiness probu yapılandır", loadingLabel:"Yapılandırılıyor…", doneLabel:"Readiness probu yapılandırıldı — onu geçemeyen pod'lar bir rollout sırasında asla trafik almaz veya kullanılabilir sayılmaz.", loadingMs:600,
+                errorText:"Rollout'u kapılayan bir readiness probu olmadan, bir sonraki bozuk sürüm kimse fark etmeden gerçek trafik alabilir."
+              }
+            ]
+          },
+          gcp:{
+            title:"Kötü bir konteyner dağıtımını geri al",
+            scenario:"Bu GKE dağıtımına az önce yeni bir imaj sürümü gönderildi ve pod'lar birbiri ardına çöküp yeniden başlıyor (crash-loop). Bu böyle devam ederse tüm dağıtım onunla birlikte çöker.",
+            consoleLabel:"Google Cloud Console — GKE iş yükleri (simüle edilmiş)",
+            actionBtn:"Dağıtımın kararlı olduğunu doğrula",
+            successText:"Dağıtım kararlı — her pod son bilinen iyi sürüme geri döndü.",
+            easySteps:[
+              { id:"e-stop", type:"action",
+                label:"Rollout'u duraklat",
+                actionLabel:"Rollout'u duraklat", loadingLabel:"Duraklatılıyor…", doneLabel:"Rollout duraklatıldı — artık hiçbir pod bozuk sürümle değiştirilmeyecek.", loadingMs:600,
+                errorText:"Rollout hâlâ çalışıyor — sağlıklı pod'ları çöküp yeniden başlayanlarla değiştirmeye devam ediyor."
+              },
+              { id:"e-rollback", type:"choice",
+                label:"Dağıtımı çalışır duruma geri getir",
+                prompt:"Bunu gerçekte ne düzeltir?",
+                options:[
+                  { key:"scale", label:"Yeni (bozuk) ReplicaSet'i ölçeklendir", correct:false, feedback:"Çöküp duran bir sürümün daha fazla kopyası, yine çöküp duran bir sürümdür — sadece fazladan yeniden başlatmalarla." },
+                  { key:"rollback", label:"Önceki sürüme geri al", correct:true, feedback:"Geri alındı — dağıtım gerçekten sağlıklı olan son sürümü çalıştırıyor." }
+                ],
+                errorText:"Dağıtım hâlâ bozuk sürümde — henüz gerçekten hiçbir şey geri alınmadı."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Harekete geçmeden önce gerçekte ne olduğunu doğrula",
+                prompt:"Hangi pod olayı bunun başka bir şey değil, dağıtım olduğunu söylüyor?",
+                options:[
+                  { key:"scheduled", label:"\"Successfully assigned pod to node\"", correct:false, feedback:"Bu rutin — sağlıklı olsun olmasın her dağıtımın normal bir parçası. Aramaya devam edin." },
+                  { key:"crashloop", label:"Yeni sürümün pod'ları genelinde tekrarlanan \"CrashLoopBackOff\"", correct:true, feedback:"İşte bu — başarısız olan yeni sürümün pod'ları, tekrar tekrar." }
+                ],
+                errorText:"Yeni sürümün gerçekten başarısız olan şey olduğunu doğrulamadan tepki verdiniz — canlı bir dağıtıma dokunmadan önce on saniyeye değer."
+              },
+              { id:"h-stop", type:"action",
+                label:"Rollout'u duraklat",
+                actionLabel:"Rollout'u duraklat", loadingLabel:"Duraklatılıyor…", doneLabel:"Rollout duraklatıldı — artık hiçbir pod bozuk sürümle değiştirilmeyecek.", loadingMs:600,
+                errorText:"Rollout hâlâ çalışıyor — sağlıklı pod'ları çöküp yeniden başlayanlarla değiştirmeye devam ediyor."
+              },
+              { id:"h-rollback", type:"choice",
+                label:"Dağıtımı çalışır duruma geri getir",
+                prompt:"Bunu gerçekte ne düzeltir?",
+                options:[
+                  { key:"scale", label:"Yeni (bozuk) ReplicaSet'i ölçeklendir", correct:false, feedback:"Çöküp duran bir sürümün daha fazla kopyası, yine çöküp duran bir sürümdür — sadece fazladan yeniden başlatmalarla." },
+                  { key:"rollback", label:"Önceki sürüme geri al", correct:true, feedback:"Geri alındı — dağıtım gerçekten sağlıklı olan son sürümü çalıştırıyor." }
+                ],
+                errorText:"Dağıtım hâlâ bozuk sürümde — henüz gerçekten hiçbir şey geri alınmadı."
+              },
+              { id:"h-breaker", type:"action",
+                label:"Gelecekteki kötü bir rollout'un otomatik engellenmesi için bir hazır olma (readiness) probu yapılandır",
+                actionLabel:"Readiness probu yapılandır", loadingLabel:"Yapılandırılıyor…", doneLabel:"Readiness probu yapılandırıldı — onu geçemeyen pod'lar bir rollout sırasında asla trafik almaz veya kullanılabilir sayılmaz.", loadingMs:600,
+                errorText:"Rollout'u kapılayan bir readiness probu olmadan, bir sonraki bozuk sürüm kimse fark etmeden gerçek trafik alabilir."
+              }
+            ]
+          }
+        },
+        ec2:{
+          aws:{
+            title:"Ele geçirilmiş bir örneği kontrol altına al",
+            scenario:"Bu EC2 örneğindeki herkese açık bir uygulama, kendi örnek meta veri servisini sorgulaması için kandırıldı ve bir saldırgana IAM rolünün geçici kimlik bilgilerini verdi. Saldırgan onlarla başka bir şey yapmadan kontrol altına alın.",
+            consoleLabel:"AWS EC2 / IAM Console (simüle edilmiş)",
+            actionBtn:"Kontrol altına almayı doğrula",
+            successText:"Kontrol altına alma doğrulandı — örnek izole edildi, çalınan kimlik bilgileri artık çalışmıyor, ve meta veri servisi bir tekrara karşı sertleştirildi.",
+            easySteps:[
+              { id:"e-isolate", type:"action",
+                label:"Tüm gelen ve giden trafiği engelleyen bir karantina güvenlik grubu ekle",
+                actionLabel:"Örneği karantinaya al", loadingLabel:"İzole ediliyor…", doneLabel:"Örnek izole edildi — giren çıkan trafik yok.", loadingMs:600,
+                errorText:"Örnek hâlâ tamamen bağlı — üzerinde çalışan başka her ne varsa internetle konuşmaya devam edebilir."
+              },
+              { id:"e-revoke", type:"choice",
+                label:"Çalınan kimlik bilgilerini kes",
+                prompt:"Saldırganın onları kullanmasını gerçekte ne durdurur?",
+                options:[
+                  { key:"terminate", label:"Örneği sonlandır", correct:false, feedback:"Saldırganın zaten aldığı kimlik bilgileri geçici oturum kimlik bilgileridir — bu örnek var olsun ya da olmasın, süreleri dolana ya da açıkça iptal edilene kadar her yerden çalışmaya devam ederler." },
+                  { key:"revoke", label:"Rolün aktif oturumlarını iptal et", correct:true, feedback:"İptal edildi — bu andan önce yayımlanmış her geçici kimlik bilgisi artık kimde bir kopyası olursa olsun reddediliyor." }
+                ],
+                errorText:"Çalınan oturum kimlik bilgileri hâlâ geçerli — saldırgan açıkça iptal edilene kadar onları her yerden kullanmaya devam edebilir."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Harekete geçmeden önce saldırı yolunu doğrula",
+                prompt:"Hangi günlük deseni gerçekten meta veri kimlik bilgisi hırsızlığına işaret ediyor?",
+                options:[
+                  { key:"login", label:"Ofis IP aralığından başarılı bir SSH girişi", correct:false, feedback:"Bu beklenen, rutin bir erişim. Bu değil." },
+                  { key:"ssrf", label:"169.254.169.254'e tekrarlanan uygulama istekleri, ardından tanınmayan harici bir IP'den AssumeRole çağrıları", correct:true, feedback:"İşte bu desen — uygulama rolün kimlik bilgilerini meta veri servisinden çekti, ve şimdi bu örnek olmayan bir yerden kullanılıyorlar." }
+                ],
+                errorText:"Bunun gerçekten meta veri kimlik bilgisi hırsızlığı olduğunu doğrulamadınız — herhangi bir şeyi karantinaya almadan önce doğrulamaya değer."
+              },
+              { id:"h-isolate", type:"action",
+                label:"Tüm gelen ve giden trafiği engelleyen bir karantina güvenlik grubu ekle",
+                actionLabel:"Örneği karantinaya al", loadingLabel:"İzole ediliyor…", doneLabel:"Örnek izole edildi — giren çıkan trafik yok.", loadingMs:600,
+                errorText:"Örnek hâlâ tamamen bağlı — üzerinde çalışan başka her ne varsa internetle konuşmaya devam edebilir."
+              },
+              { id:"h-revoke", type:"choice",
+                label:"Çalınan kimlik bilgilerini kes",
+                prompt:"Saldırganın onları kullanmasını gerçekte ne durdurur?",
+                options:[
+                  { key:"terminate", label:"Örneği sonlandır", correct:false, feedback:"Saldırganın zaten aldığı kimlik bilgileri geçici oturum kimlik bilgileridir — bu örnek var olsun ya da olmasın, süreleri dolana ya da açıkça iptal edilene kadar her yerden çalışmaya devam ederler." },
+                  { key:"revoke", label:"Rolün aktif oturumlarını iptal et", correct:true, feedback:"İptal edildi — bu andan önce yayımlanmış her geçici kimlik bilgisi artık kimde bir kopyası olursa olsun reddediliyor." }
+                ],
+                errorText:"Çalınan oturum kimlik bilgileri hâlâ geçerli — saldırgan açıkça iptal edilene kadar onları her yerden kullanmaya devam edebilir."
+              },
+              { id:"h-imds", type:"action",
+                label:"Bunun aynı şekilde tekrar olmaması için hesap genelinde IMDSv2'yi zorunlu kıl",
+                actionLabel:"IMDSv2'yi zorunlu kıl", loadingLabel:"Uygulanıyor…", doneLabel:"IMDSv2 hesap genelinde zorunlu kılındı — basit bir SSRF artık bu şekilde bir jeton alamaz.", loadingMs:600,
+                errorText:"Örnekler hâlâ rol kimlik bilgilerini eski meta veri istek biçiminde sunabiliyor — bu saldırının kullandığı tam yol hâlâ açık."
+              }
+            ]
+          },
+          azure:{
+            title:"Ele geçirilmiş bir örneği kontrol altına al",
+            scenario:"Bu VM'deki herkese açık bir uygulama, Azure Örnek Meta Veri Servisini sorgulaması için kandırıldı ve bir saldırgana yönetilen kimliğinin erişim jetonunu verdi. Saldırgan onunla başka bir şey yapmadan kontrol altına alın.",
+            consoleLabel:"Azure Portal — Sanal makine (simüle edilmiş)",
+            actionBtn:"Kontrol altına almayı doğrula",
+            successText:"Kontrol altına alma doğrulandı — VM izole edildi, ve kimliğin ulaşabildiği her kaynağa erişimi kesildi.",
+            easySteps:[
+              { id:"e-isolate", type:"action",
+                label:"Tüm gelen ve giden trafiği engelleyen bir karantina ağ güvenlik grubu ekle",
+                actionLabel:"VM'yi karantinaya al", loadingLabel:"İzole ediliyor…", doneLabel:"VM izole edildi — giren çıkan trafik yok.", loadingMs:600,
+                errorText:"VM hâlâ tamamen bağlı — üzerinde çalışan başka her ne varsa internetle konuşmaya devam edebilir."
+              },
+              { id:"e-revoke", type:"choice",
+                label:"Çalınan jetonun ulaşabildiği yerleri kes",
+                prompt:"Saldırganın onu kullanmasını gerçekte ne durdurur?",
+                options:[
+                  { key:"delete", label:"VM'yi sil", correct:false, feedback:"Yönetilen bir kimlik için Azure AD erişim jetonları taşıyıcı (bearer) jetonlardır — VM ya da kimlik hâlâ var olsun olmasın, doğal olarak süresi dolana kadar (genellikle 24 saate kadar) geçerli kalırlar." },
+                  { key:"unassign", label:"Yönetilen kimliğin ulaşabildiği kaynaklardaki rol atamalarını kaldır", correct:true, feedback:"Kaldırıldı — jeton hâlâ var, ama artık hiçbir şey yapamaz, çünkü ait olduğu kimliğin bu kaynaklara dokunma izni artık yok." }
+                ],
+                errorText:"Çalınan jetonun arkasındaki kimlik hâlâ atandığı her kaynağa erişebiliyor — jetonun kendisi tek tek iptal edilemez."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Harekete geçmeden önce saldırı yolunu doğrula",
+                prompt:"Hangi günlük deseni gerçekten meta veri jetonu hırsızlığına işaret ediyor?",
+                options:[
+                  { key:"signin", label:"Tanınan bir cihazdan rutin bir etkileşimli giriş", correct:false, feedback:"Bu beklenen, rutin bir erişim. Bu değil." },
+                  { key:"ssrf", label:"Metadata: true başlığıyla 169.254.169.254'e tekrarlanan uygulama istekleri, ardından tanınmayan harici bir IP'den kaynak erişimi", correct:true, feedback:"İşte bu desen — uygulama kimliğin jetonunu meta veri servisinden çekti, ve şimdi bu VM olmayan bir yerden kullanılıyor." }
+                ],
+                errorText:"Bunun gerçekten meta veri jetonu hırsızlığı olduğunu doğrulamadınız — herhangi bir şeyi karantinaya almadan önce doğrulamaya değer."
+              },
+              { id:"h-isolate", type:"action",
+                label:"Tüm gelen ve giden trafiği engelleyen bir karantina ağ güvenlik grubu ekle",
+                actionLabel:"VM'yi karantinaya al", loadingLabel:"İzole ediliyor…", doneLabel:"VM izole edildi — giren çıkan trafik yok.", loadingMs:600,
+                errorText:"VM hâlâ tamamen bağlı — üzerinde çalışan başka her ne varsa internetle konuşmaya devam edebilir."
+              },
+              { id:"h-revoke", type:"choice",
+                label:"Çalınan jetonun ulaşabildiği yerleri kes",
+                prompt:"Saldırganın onu kullanmasını gerçekte ne durdurur?",
+                options:[
+                  { key:"delete", label:"VM'yi sil", correct:false, feedback:"Yönetilen bir kimlik için Azure AD erişim jetonları taşıyıcı (bearer) jetonlardır — VM ya da kimlik hâlâ var olsun olmasın, doğal olarak süresi dolana kadar (genellikle 24 saate kadar) geçerli kalırlar." },
+                  { key:"unassign", label:"Yönetilen kimliğin ulaşabildiği kaynaklardaki rol atamalarını kaldır", correct:true, feedback:"Kaldırıldı — jeton hâlâ var, ama artık hiçbir şey yapamaz, çünkü ait olduğu kimliğin bu kaynaklara dokunma izni artık yok." }
+                ],
+                errorText:"Çalınan jetonun arkasındaki kimlik hâlâ atandığı her kaynağa erişebiliyor — jetonun kendisi tek tek iptal edilemez."
+              },
+              { id:"h-monitor", type:"action",
+                label:"Bu kimliğin ulaşabildiği kaynaklarda tanılama günlüğünü ve uyarıları aç",
+                actionLabel:"Günlük ve uyarıları etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"Tanılama günlüğü ve uyarılar etkinleştirildi — bir sonraki kötüye kullanım ayları değil dakikaları içinde yakalanır.", loadingMs:600,
+                errorText:"Bu kimliğin erişim desenlerini hiçbir şey izlemiyor — aynı saldırının daha sessiz bir tekrarı kimse fark etmeden uzun süre çalışabilir."
+              }
+            ]
+          },
+          gcp:{
+            title:"Ele geçirilmiş bir örneği kontrol altına al",
+            scenario:"Bu Compute Engine örneğindeki herkese açık bir uygulama, meta veri sunucusunu sorgulaması için kandırıldı ve bir saldırgana bağlı hizmet hesabının erişim jetonunu verdi. Saldırgan onunla başka bir şey yapmadan kontrol altına alın.",
+            consoleLabel:"Google Cloud Console — Compute Engine (simüle edilmiş)",
+            actionBtn:"Kontrol altına almayı doğrula",
+            successText:"Kontrol altına alma doğrulandı — örnek izole edildi, kimliğin erişimi kesildi, ve ileriye dönük olarak en az yetki ile sınırlandırıldı.",
+            easySteps:[
+              { id:"e-isolate", type:"action",
+                label:"Tüm gelen ve giden trafiği engelleyen bir karantina güvenlik duvarı kuralı uygula",
+                actionLabel:"Örneği karantinaya al", loadingLabel:"İzole ediliyor…", doneLabel:"Örnek izole edildi — giren çıkan trafik yok.", loadingMs:600,
+                errorText:"Örnek hâlâ tamamen bağlı — üzerinde çalışan başka her ne varsa internetle konuşmaya devam edebilir."
+              },
+              { id:"e-revoke", type:"choice",
+                label:"Çalınan jetonun ulaşabildiği yerleri kes",
+                prompt:"Saldırganın onu kullanmasını gerçekte ne durdurur?",
+                options:[
+                  { key:"delete", label:"Örneği sil", correct:false, feedback:"Saldırganın zaten aldığı erişim jetonu kısa ömürlü bir OAuth jetonudur — bu örnek var olsun ya da olmasın, doğal olarak süresi dolana kadar her yerden çalışmaya devam eder." },
+                  { key:"unbind", label:"Hizmet hesabının IAM rol bağlamalarını kaldır", correct:true, feedback:"Kaldırıldı — jeton süresi dolana kadar hâlâ var, ama artık hiçbir şey yapamaz, çünkü ait olduğu hizmet hesabının bu kaynaklara dokunma izni artık yok." }
+                ],
+                errorText:"Çalınan jetonun arkasındaki hizmet hesabı hâlâ bağlı olduğu her kaynağa erişebiliyor — jetonun kendisi tek tek iptal edilemez."
+              }
+            ],
+            hardSteps:[
+              { id:"h-diagnose", type:"choice",
+                label:"Harekete geçmeden önce saldırı yolunu doğrula",
+                prompt:"Hangi günlük deseni gerçekten meta veri jetonu hırsızlığına işaret ediyor?",
+                options:[
+                  { key:"routine", label:"Dağıtım pipeline'ından rutin bir instances.get çağrısı", correct:false, feedback:"Bu beklenen, rutin bir erişim. Bu değil." },
+                  { key:"ssrf", label:"metadata.google.internal'a service-accounts/default/token için tekrarlanan uygulama istekleri, ardından tanınmayan harici bir IP'den API çağrıları", correct:true, feedback:"İşte bu desen — uygulama hizmet hesabının jetonunu meta veri sunucusundan çekti, ve şimdi bu örnek olmayan bir yerden kullanılıyor." }
+                ],
+                errorText:"Bunun gerçekten meta veri jetonu hırsızlığı olduğunu doğrulamadınız — herhangi bir şeyi karantinaya almadan önce doğrulamaya değer."
+              },
+              { id:"h-isolate", type:"action",
+                label:"Tüm gelen ve giden trafiği engelleyen bir karantina güvenlik duvarı kuralı uygula",
+                actionLabel:"Örneği karantinaya al", loadingLabel:"İzole ediliyor…", doneLabel:"Örnek izole edildi — giren çıkan trafik yok.", loadingMs:600,
+                errorText:"Örnek hâlâ tamamen bağlı — üzerinde çalışan başka her ne varsa internetle konuşmaya devam edebilir."
+              },
+              { id:"h-revoke", type:"choice",
+                label:"Çalınan jetonun ulaşabildiği yerleri kes",
+                prompt:"Saldırganın onu kullanmasını gerçekte ne durdurur?",
+                options:[
+                  { key:"delete", label:"Örneği sil", correct:false, feedback:"Saldırganın zaten aldığı erişim jetonu kısa ömürlü bir OAuth jetonudur — bu örnek var olsun ya da olmasın, doğal olarak süresi dolana kadar her yerden çalışmaya devam eder." },
+                  { key:"unbind", label:"Hizmet hesabının IAM rol bağlamalarını kaldır", correct:true, feedback:"Kaldırıldı — jeton süresi dolana kadar hâlâ var, ama artık hiçbir şey yapamaz, çünkü ait olduğu hizmet hesabının bu kaynaklara dokunma izni artık yok." }
+                ],
+                errorText:"Çalınan jetonun arkasındaki hizmet hesabı hâlâ bağlı olduğu her kaynağa erişebiliyor — jetonun kendisi tek tek iptal edilemez."
+              },
+              { id:"h-scope", type:"action",
+                label:"Hizmet hesabını gerçekte ihtiyaç duyduğu asgari IAM rollerine indir",
+                actionLabel:"En az yetkiye indir", loadingLabel:"Güncelleniyor…", doneLabel:"Hizmet hesabı bu uygulamanın gerçekten ihtiyaç duyduğu şeye indirildi.", loadingMs:600,
+                errorText:"Bu hizmet hesabının hâlâ uygulamanın gerektirdiğinden çok daha geniş erişimi var — bir sonraki SSRF de aynısını verirdi."
+              }
+            ]
+          }
+        },
       },
       chat:{
         title:"Konsola Sor", fabAria:"Bir soru sor", closeAria:"Kapat",
@@ -3041,7 +4253,7 @@
   let currentLang = localStorage.getItem(LANG_KEY) || (((navigator.language||"").toLowerCase().indexOf("tr")===0) ? "tr" : "en");
   let themeMode = localStorage.getItem(THEME_KEY) || "auto";
   let providerMode = localStorage.getItem(PROVIDER_KEY) || "aws";
-  const PROVIDER_MODULES=["auth","iam","vpc","ec2","s3","lambda","lb","beanstalk","route53","cache","consistency","failover","sns","cloudwatch","snowball"];
+  const PROVIDER_MODULES=["auth","iam","vpc","ec2","s3","lambda","lb","beanstalk","route53","cache","consistency","failover","sns","cloudwatch","snowball","database","containers","cicd","secrets"];
   let stateEpoch = 0; // bumped by resetAllModules() so in-flight setTimeouts from before a reset become no-ops
 
   function t(path, vars){
@@ -4022,7 +5234,7 @@
   authUpdateStats();
 
   /* ============ QUESTS SECTION — generic engine ============ */
-  const QUEST_KEYS=["auth","iam","s3","vpc","route53","cloudwatch"];
+  const QUEST_KEYS=["auth","iam","s3","vpc","route53","cloudwatch","database","containers","ec2"];
   let questState={};
   let questEls={};
 
@@ -4547,6 +5759,395 @@
   cwRenderSpark(); cwUpdateStats();
   setInterval(cwTick, 900);
 
+  /* ============ MODULE 16 — DATABASES ============ */
+  let dbMultiAZ=false, dbReplicaCount=0;
+  let dbPrimaryStatus="healthy", dbStandbyStatus="healthy";
+  let dbWritesOk=0, dbWritesFailed=0, dbReadsServed=0, dbFailoverCount=0, dbReadRR=0;
+  function dbNodeList(){
+    const list=[{id:"PRIMARY", role:"primary", status:dbPrimaryStatus}];
+    if(dbMultiAZ) list.push({id:"STANDBY", role:"standby", status:dbStandbyStatus});
+    for(let i=1;i<=dbReplicaCount;i++) list.push({id:"REPLICA-"+i, role:"replica", status:"healthy"});
+    return list;
+  }
+  function dbRenderNodes(){
+    const wrap=$("#dbNodes");
+    wrap.innerHTML="";
+    dbNodeList().forEach(function(n){
+      const box=document.createElement("div");
+      box.className="node-box "+n.status;
+      const ringColor = n.status==="healthy" ? "var(--good)" : n.status==="down" ? "var(--bad)" : "var(--warn)";
+      box.innerHTML =
+        '<div class="id"><span>'+n.id+'</span><span class="pulse-ring" style="background:'+ringColor+'"></span></div>'+
+        '<div class="role'+(n.role==="primary"?" primary":"")+'">'+t("database.role."+n.role)+'</div>'+
+        '<div class="health">'+t("failover.health."+n.status)+'</div>';
+      wrap.appendChild(box);
+    });
+  }
+  function dbUpdateStats(){
+    $("#dbStatWritesOk").textContent=dbWritesOk;
+    $("#dbStatWritesFailed").textContent=dbWritesFailed;
+    $("#dbStatReads").textContent=dbReadsServed;
+    $("#dbStatFailovers").textContent=dbFailoverCount;
+    $("#dbReplicaOut").textContent=dbReplicaCount;
+    $("#dbReadBtn").disabled = dbPrimaryStatus!=="healthy" && dbReplicaCount===0;
+    $("#dbPromoteBtn").disabled = !(!dbMultiAZ && dbPrimaryStatus==="down" && dbReplicaCount>0);
+    let key="healthy", cls="good";
+    if(dbPrimaryStatus==="detecting" || dbStandbyStatus==="syncing" || dbStandbyStatus==="detecting"){ key="failingOver"; cls="warn"; }
+    else if(dbPrimaryStatus==="down"){ key="down"; cls="bad"; }
+    setStatus($("#databaseStatus"), null, key, "database.status", cls);
+  }
+  function dbSendWrite(){
+    if(dbPrimaryStatus==="healthy"){ dbWritesOk++; addLog($("#dbLog"), t("database.log.writeOk"), "good"); }
+    else { dbWritesFailed++; addLog($("#dbLog"), t("database.log.writeFailNoPrimary"), "bad"); }
+    dbUpdateStats();
+  }
+  function dbSendRead(){
+    if(dbReplicaCount>0){
+      dbReadRR=(dbReadRR+1)%dbReplicaCount;
+      dbReadsServed++;
+      addLog($("#dbLog"), t("database.log.readServed",{node:"REPLICA-"+(dbReadRR+1)}));
+    } else if(dbPrimaryStatus==="healthy"){
+      dbReadsServed++;
+      addLog($("#dbLog"), t("database.log.readServed",{node:"PRIMARY"}));
+    }
+    dbUpdateStats();
+  }
+  function dbKillPrimary(){
+    const epoch=stateEpoch;
+    if(dbPrimaryStatus!=="healthy") return;
+    dbPrimaryStatus="detecting";
+    dbRenderNodes();
+    addLog($("#dbLog"), t(dbMultiAZ?"database.log.killedMaz":"database.log.killedNoMaz"), dbMultiAZ?"warn":"bad");
+    setTimeout(function(){
+      if(epoch!==stateEpoch) return;
+      dbPrimaryStatus="down";
+      dbRenderNodes(); dbUpdateStats();
+      if(dbMultiAZ){
+        dbStandbyStatus="syncing";
+        dbRenderNodes();
+        setTimeout(function(){
+          if(epoch!==stateEpoch) return;
+          dbPrimaryStatus="healthy";
+          dbStandbyStatus="detecting";
+          dbFailoverCount++;
+          addLog($("#dbLog"), t("database.log.failoverDone",{sec:(20+Math.round(Math.random()*15))}), "good");
+          dbRenderNodes(); dbUpdateStats();
+          setTimeout(function(){
+            if(epoch!==stateEpoch) return;
+            dbStandbyStatus="healthy";
+            dbRenderNodes(); dbUpdateStats();
+          }, 1500);
+        }, 1200);
+      }
+    }, 900);
+  }
+  function dbPromoteReplica(){
+    if(dbMultiAZ || dbPrimaryStatus!=="down" || dbReplicaCount===0) return;
+    dbPrimaryStatus="healthy";
+    dbReplicaCount--;
+    dbFailoverCount++;
+    addLog($("#dbLog"), t("database.log.manualPromote",{node:"REPLICA-1"}), "good");
+    dbRenderNodes(); dbUpdateStats();
+  }
+  function dbSetMultiAZ(checked){
+    const epoch=stateEpoch;
+    dbMultiAZ=checked;
+    if(checked){
+      dbStandbyStatus="detecting";
+      addLog($("#dbLog"), t("database.log.multiAzOn"));
+      dbRenderNodes();
+      setTimeout(function(){
+        if(epoch!==stateEpoch || !dbMultiAZ) return;
+        dbStandbyStatus="healthy";
+        dbRenderNodes(); dbUpdateStats();
+      }, 1000);
+    } else {
+      addLog($("#dbLog"), t("database.log.multiAzOff"));
+      dbRenderNodes();
+    }
+    dbUpdateStats();
+  }
+  function dbSetReplicaCount(n){
+    dbReplicaCount=n;
+    addLog($("#dbLog"), t("database.log.replicaCountChanged",{n:n}));
+    dbRenderNodes(); dbUpdateStats();
+  }
+  $("#dbMultiAz").addEventListener("change", function(){ dbSetMultiAZ($("#dbMultiAz").checked); });
+  $("#dbReplicas").addEventListener("input", function(){ dbSetReplicaCount(Number($("#dbReplicas").value)); });
+  $("#dbWriteBtn").addEventListener("click", dbSendWrite);
+  $("#dbReadBtn").addEventListener("click", dbSendRead);
+  $("#dbKillBtn").addEventListener("click", dbKillPrimary);
+  $("#dbPromoteBtn").addEventListener("click", dbPromoteReplica);
+  addLog($("#dbLog"), t("database.log.init",{replicas:0, maz:"off"}));
+  dbRenderNodes(); dbUpdateStats();
+
+  /* ============ MODULE 17 — CONTAINERS ============ */
+  let ctrTasks=[{id:"TASK-1",status:"healthy"},{id:"TASK-2",status:"healthy"},{id:"TASK-3",status:"healthy"}];
+  let ctrDeploys=0, ctrRollbacks=0, ctrLastResultKey="healthy";
+  function ctrRenderTasks(){
+    const wrap=$("#ctrTasks");
+    wrap.innerHTML="";
+    ctrTasks.forEach(function(n){
+      const box=document.createElement("div");
+      box.className="node-box "+n.status;
+      const ringColor = n.status==="healthy" ? "var(--good)" : n.status==="down" ? "var(--bad)" : "var(--warn)";
+      box.innerHTML =
+        '<div class="id"><span>'+n.id+'</span><span class="pulse-ring" style="background:'+ringColor+'"></span></div>'+
+        '<div class="health">'+t("containers.taskStatus."+n.status)+'</div>';
+      wrap.appendChild(box);
+    });
+  }
+  function ctrUpdateStats(overrideKey){
+    const healthy=ctrTasks.filter(function(n){ return n.status==="healthy"; }).length;
+    $("#ctrStatHealthy").textContent=healthy+"/"+ctrTasks.length;
+    $("#ctrStatDesired").textContent=ctrTasks.length;
+    $("#ctrStatDeploys").textContent=ctrDeploys;
+    $("#ctrStatRollbacks").textContent=ctrRollbacks;
+    $("#ctrDesiredOut").textContent=ctrTasks.length;
+    const key = overrideKey || (ctrTasks.some(function(n){ return n.status!=="healthy"; }) ? "deploying" : "healthy");
+    ctrLastResultKey=key;
+    const cls = key==="rolledback" ? "warn" : key==="deploying" ? "warn" : "good";
+    setStatus($("#containersStatus"), null, key, "containers.status", cls);
+  }
+  function ctrApplyDesired(n, viaScale, loadVal){
+    n=Math.max(1, Math.min(6, n));
+    while(ctrTasks.length<n) ctrTasks.push({id:"TASK-"+(ctrTasks.length+1), status:"healthy"});
+    while(ctrTasks.length>n) ctrTasks.pop();
+    ctrTasks.forEach(function(tk, idx){ tk.id="TASK-"+(idx+1); });
+    ctrRenderTasks(); ctrUpdateStats();
+    if(viaScale) addLog($("#ctrLog"), t("containers.log.scaled",{n:n, load:loadVal}));
+    else addLog($("#ctrLog"), t("containers.log.desiredChanged",{n:n}));
+  }
+  function ctrDeploy(){
+    const epoch=stateEpoch;
+    const buggy=$("#ctrBuggy").checked;
+    addLog($("#ctrLog"), t("containers.log.deployStart"));
+    let i=0;
+    function step(){
+      if(epoch!==stateEpoch) return;
+      if(i>=ctrTasks.length){
+        ctrDeploys++;
+        addLog($("#ctrLog"), t("containers.log.deployDone"), "good");
+        ctrUpdateStats("healthy");
+        return;
+      }
+      const task=ctrTasks[i];
+      task.status="detecting";
+      ctrRenderTasks();
+      addLog($("#ctrLog"), t("containers.log.taskStarting",{task:task.id}));
+      setTimeout(function(){
+        if(epoch!==stateEpoch) return;
+        if(buggy){
+          task.status="down";
+          ctrRenderTasks();
+          addLog($("#ctrLog"), t("containers.log.taskUnhealthy",{task:task.id}), "bad");
+          setTimeout(function(){
+            if(epoch!==stateEpoch) return;
+            task.status="healthy";
+            ctrRenderTasks();
+            const untouched=ctrTasks.length-i;
+            ctrRollbacks++;
+            addLog($("#ctrLog"), t("containers.log.rollbackDone",{n:untouched}), "warn");
+            ctrUpdateStats("rolledback");
+          }, 700);
+          return;
+        }
+        task.status="healthy";
+        ctrRenderTasks();
+        addLog($("#ctrLog"), t("containers.log.taskHealthy",{task:task.id}), "good");
+        i++;
+        step();
+      }, 700);
+    }
+    ctrUpdateStats("deploying");
+    step();
+  }
+  $("#ctrDesired").addEventListener("input", function(){ ctrApplyDesired(Number($("#ctrDesired").value), false); });
+  $("#ctrLoad").addEventListener("input", function(){ $("#ctrLoadOut").textContent=$("#ctrLoad").value; });
+  $("#ctrDeployBtn").addEventListener("click", ctrDeploy);
+  $("#ctrScaleBtn").addEventListener("click", function(){
+    const load=Number($("#ctrLoad").value);
+    const n=Math.max(1, Math.min(6, Math.ceil(ctrTasks.length*(load/40))));
+    ctrApplyDesired(n, true, load);
+  });
+  addLog($("#ctrLog"), t("containers.log.init",{n:ctrTasks.length}));
+  ctrRenderTasks(); ctrUpdateStats();
+
+  /* ============ MODULE 18 — CI/CD ============ */
+  let ciStrategy="all";
+  let ciStages={ source:"syncing", build:"syncing", test:"syncing", canary:"syncing", full:"syncing" };
+  let ciRuns=0, ciCaught=0, ciIncidents=0, ciWorstBlast=0;
+  const CI_STAGE_KEYS=["source","build","test","canary","full"];
+  function ciActiveStageKeys(){
+    return ciStrategy==="canary" ? ["source","build","test","canary","full"] : ["source","build","test","full"];
+  }
+  function ciRenderStages(){
+    const wrap=$("#ciStages");
+    wrap.innerHTML="";
+    ciActiveStageKeys().forEach(function(key){
+      const status=ciStages[key];
+      const box=document.createElement("div");
+      box.className="node-box "+status;
+      const ringColor = status==="healthy" ? "var(--good)" : status==="down" ? "var(--bad)" : "var(--warn)";
+      box.innerHTML =
+        '<div class="id"><span>'+t("cicd.stageNames."+key)+'</span><span class="pulse-ring" style="background:'+ringColor+'"></span></div>'+
+        '<div class="health">'+t("cicd.stageStatus."+status)+'</div>';
+      wrap.appendChild(box);
+    });
+  }
+  function ciUpdateStats(pillKey){
+    $("#ciStatRuns").textContent=ciRuns;
+    $("#ciStatCaught").textContent=ciCaught;
+    $("#ciStatIncidents").textContent=ciIncidents;
+    $("#ciStatBlast").textContent=ciWorstBlast+"%";
+    if(pillKey){
+      const cls = pillKey==="incident" ? "bad" : pillKey==="caught" ? "warn" : pillKey==="running" ? "warn" : "good";
+      setStatus($("#cicdStatus"), null, pillKey, "cicd.status", cls);
+    }
+  }
+  function ciSetStrategy(strategy){
+    ciStrategy=strategy;
+    ["ciStrategyAllBtn","ciStrategyCanaryBtn"].forEach(function(id){
+      $("#"+id).classList.toggle("active", $("#"+id).dataset.strategy===strategy);
+    });
+    CI_STAGE_KEYS.forEach(function(k){ ciStages[k]="syncing"; });
+    ciRenderStages();
+  }
+  function ciRunPipeline(){
+    const epoch=stateEpoch;
+    const testBug=$("#ciTestBug").checked, prodBug=$("#ciProdBug").checked;
+    ciRuns++;
+    const stages=ciActiveStageKeys();
+    CI_STAGE_KEYS.forEach(function(k){ ciStages[k]="syncing"; });
+    ciRenderStages();
+    ciUpdateStats("running");
+    let idx=0;
+    function run(){
+      if(epoch!==stateEpoch) return;
+      if(idx>=stages.length){ ciUpdateStats("passed"); return; }
+      const key=stages[idx];
+      ciStages[key]="detecting";
+      ciRenderStages();
+      setTimeout(function(){
+        if(epoch!==stateEpoch) return;
+        if(key==="source"){ ciStages.source="healthy"; addLog($("#ciLog"), t("cicd.log.sourcePulled")); ciRenderStages(); idx++; run(); return; }
+        if(key==="build"){ ciStages.build="healthy"; addLog($("#ciLog"), t("cicd.log.buildOk")); ciRenderStages(); idx++; run(); return; }
+        if(key==="test"){
+          if(testBug){
+            ciStages.test="down"; ciCaught++;
+            addLog($("#ciLog"), t("cicd.log.testFailed"), "warn");
+            ciRenderStages(); ciUpdateStats("caught");
+            return;
+          }
+          ciStages.test="healthy"; addLog($("#ciLog"), t("cicd.log.testOk"), "good");
+          ciRenderStages(); idx++; run(); return;
+        }
+        if(key==="canary"){
+          if(prodBug){
+            ciStages.canary="down"; ciIncidents++; ciWorstBlast=Math.max(ciWorstBlast,10);
+            addLog($("#ciLog"), t("cicd.log.canaryFailed"), "warn");
+            ciRenderStages(); ciUpdateStats("caught");
+            return;
+          }
+          ciStages.canary="healthy"; addLog($("#ciLog"), t("cicd.log.canaryOk"), "good");
+          ciRenderStages(); idx++; run(); return;
+        }
+        if(key==="full"){
+          if(prodBug){
+            ciStages.full="down"; ciIncidents++; ciWorstBlast=100;
+            addLog($("#ciLog"), t("cicd.log.fullDeployIncident"), "bad");
+            ciRenderStages(); ciUpdateStats("incident");
+            return;
+          }
+          ciStages.full="healthy"; addLog($("#ciLog"), t("cicd.log.fullDeployOk"), "good");
+          ciRenderStages(); idx++; run(); return;
+        }
+      }, 700);
+    }
+    run();
+  }
+  $("#ciStrategyAllBtn").addEventListener("click", function(){ ciSetStrategy("all"); });
+  $("#ciStrategyCanaryBtn").addEventListener("click", function(){ ciSetStrategy("canary"); });
+  $("#ciRunBtn").addEventListener("click", ciRunPipeline);
+  addLog($("#ciLog"), t("cicd.log.init"));
+  ciSetStrategy("all");
+  ciUpdateStats();
+
+  /* ============ MODULE 19 — SECRETS & ENCRYPTION ============ */
+  let secVersion=1, secDays=0, secLeaked=false, secDenied=0;
+  let secGrants={ appServer:true, ciPipeline:true, internLaptop:false };
+  let secLastResult={};
+  let secStaleLogged=false;
+  const SEC_PRINCIPALS=["appServer","ciPipeline","internLaptop"];
+  function secRenderGrants(){
+    SEC_PRINCIPALS.forEach(function(p){
+      const card=$("#secCard-"+p);
+      const box=$("#secGrant-"+p);
+      box.checked=secGrants[p];
+      card.classList.remove("hit","fail");
+      if(secLastResult[p]) card.classList.add(secLastResult[p]);
+    });
+  }
+  function secUpdateStats(){
+    $("#secStatVersion").textContent="v"+secVersion;
+    $("#secStatAge").textContent=secDays;
+    $("#secStatGranted").textContent=SEC_PRINCIPALS.filter(function(p){ return secGrants[p]; }).length;
+    $("#secStatDenied").textContent=secDenied;
+    let key="current", cls="good";
+    if(secLeaked){ key="leaked"; cls="bad"; }
+    else if(secDays>90){ key="stale"; cls="warn"; }
+    setStatus($("#secretsStatus"), null, key, "secrets.status", cls);
+  }
+  function secAttemptDecrypt(p){
+    const name=t("secrets.principals."+p);
+    if(secGrants[p]){
+      secLastResult[p]="hit";
+      addLog($("#secLog"), t("secrets.log.decryptOk",{principal:name, v:secVersion}), "good");
+    } else {
+      secLastResult[p]="fail";
+      secDenied++;
+      addLog($("#secLog"), t("secrets.log.decryptDenied",{principal:name}), "bad");
+    }
+    secRenderGrants(); secUpdateStats();
+  }
+  function secToggleGrant(p, checked){
+    secGrants[p]=checked;
+    const name=t("secrets.principals."+p);
+    addLog($("#secLog"), t("secrets.log.grantChanged",{principal:name, state:t(checked?"secrets.granted":"secrets.revoked")}));
+    secRenderGrants(); secUpdateStats();
+  }
+  function secRotate(){
+    secVersion++;
+    secDays=0;
+    secLeaked=false;
+    secStaleLogged=false;
+    addLog($("#secLog"), t("secrets.log.rotated",{v:secVersion}), "good");
+    secUpdateStats();
+  }
+  function secToggleLeak(checked){
+    secLeaked=checked;
+    if(checked) addLog($("#secLog"), t("secrets.log.leaked",{v:secVersion}), "bad");
+    secUpdateStats();
+  }
+  function secAdvanceDays(){
+    secDays+=30;
+    addLog($("#secLog"), t("secrets.log.daysPassed",{n:secDays}), secLeaked?"bad":undefined);
+    if(secDays>90 && !secStaleLogged){
+      secStaleLogged=true;
+      addLog($("#secLog"), t("secrets.log.stale",{n:secDays}), "warn");
+    }
+    secUpdateStats();
+  }
+  SEC_PRINCIPALS.forEach(function(p){
+    $("#secGrant-"+p).addEventListener("change", function(){ secToggleGrant(p, $("#secGrant-"+p).checked); });
+    $("#secTry-"+p).addEventListener("click", function(){ secAttemptDecrypt(p); });
+  });
+  $("#secRotateBtn").addEventListener("click", secRotate);
+  $("#secLeak").addEventListener("change", function(){ secToggleLeak($("#secLeak").checked); });
+  $("#secAdvanceBtn").addEventListener("click", secAdvanceDays);
+  addLog($("#secLog"), t("secrets.log.init",{v:secVersion, n:2}));
+  secRenderGrants(); secUpdateStats();
+
   /* ============ RESET ALL MODULES ============ */
   function resetAllModules(){
     stateEpoch++;
@@ -4661,6 +6262,34 @@
     $("#cwLog").innerHTML=""; $("#cloudwatchStatus").dataset.statusKey="";
     addLog($("#cwLog"), t("cloudwatch.log.init",{threshold:80}));
     cwRenderSpark(); cwUpdateStats();
+
+    dbMultiAZ=false; dbReplicaCount=0; dbPrimaryStatus="healthy"; dbStandbyStatus="healthy";
+    dbWritesOk=0; dbWritesFailed=0; dbReadsServed=0; dbFailoverCount=0; dbReadRR=0;
+    $("#dbMultiAz").checked=false; $("#dbReplicas").value=0; $("#dbReplicaOut").textContent=0;
+    $("#dbLog").innerHTML=""; $("#databaseStatus").dataset.statusKey="";
+    addLog($("#dbLog"), t("database.log.init",{replicas:0, maz:"off"}));
+    dbRenderNodes(); dbUpdateStats();
+
+    ctrTasks=[{id:"TASK-1",status:"healthy"},{id:"TASK-2",status:"healthy"},{id:"TASK-3",status:"healthy"}];
+    ctrDeploys=0; ctrRollbacks=0;
+    $("#ctrDesired").value=3; $("#ctrDesiredOut").textContent=3;
+    $("#ctrLoad").value=30; $("#ctrLoadOut").textContent=30; $("#ctrBuggy").checked=false;
+    $("#ctrLog").innerHTML=""; $("#containersStatus").dataset.statusKey="";
+    addLog($("#ctrLog"), t("containers.log.init",{n:3}));
+    ctrRenderTasks(); ctrUpdateStats();
+
+    ciRuns=0; ciCaught=0; ciIncidents=0; ciWorstBlast=0;
+    $("#ciTestBug").checked=false; $("#ciProdBug").checked=false;
+    $("#ciLog").innerHTML=""; $("#cicdStatus").dataset.statusKey="";
+    addLog($("#ciLog"), t("cicd.log.init"));
+    ciSetStrategy("all"); ciUpdateStats();
+
+    secVersion=1; secDays=0; secLeaked=false; secDenied=0; secStaleLogged=false;
+    secGrants={ appServer:true, ciPipeline:true, internLaptop:false }; secLastResult={};
+    $("#secLeak").checked=false;
+    $("#secLog").innerHTML=""; $("#secretsStatus").dataset.statusKey="";
+    addLog($("#secLog"), t("secrets.log.init",{v:1, n:2}));
+    secRenderGrants(); secUpdateStats();
   }
   $("#resetAllBtn").addEventListener("click", resetAllModules);
 

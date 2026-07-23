@@ -25,12 +25,16 @@ Available in English and Turkish (toggle in the top bar). Light/dark theme follo
 13. **SNS: One Event, Many Subscribers** — a published event fans out to Email/SMS/Queue subscribers at once, with retries and a dead-letter path on failure.
 14. **CloudWatch: Monitoring & Alarms** — a live metric feeds an alarm that waits for three consecutive breaches before firing, and goes to a distinct "insufficient data" state if the agent stops reporting instead of silently assuming health.
 15. **Snowball Edge: When the Network Loses** — a live calculator comparing network transfer time against physically shipping a device, with a real crossover point.
+16. **Databases: Replicas, Multi-AZ & Failover** — the actual difference between a Multi-AZ standby (synchronous, auto-promoted) and a read replica (asynchronous, never promoted for you): kill the primary with no Multi-AZ and writes just fail until someone manually promotes a replica; turn Multi-AZ on and the same failure recovers on its own.
+17. **Containers & Orchestration** — a rolling deployment replaces tasks one at a time behind a health check, with a deployment circuit breaker that stops and rolls back the instant a bad image starts failing, instead of taking down every healthy task first.
+18. **CI/CD: Pipelines & Deploy Gates** — two independent defenses: an automated test gate that stops a bad build before it ever deploys, and a staged/canary rollout that limits how much of production a bug the tests *couldn't* catch is allowed to reach.
+19. **Secrets & Encryption (KMS)** — decrypt attempts are checked against a key policy, not just "is this encrypted"; simulate a leaked secret and watch it stay valid for as long as nobody rotates it.
 
-Every module pairs an "In plain terms" everyday analogy with a "Try this" checklist, a live simulation, and a "Real incident" — a fact-checked, real-world outage or breach the concept maps to (HealthCare.gov, Uber, GitHub, Fastly, GitLab, Capital One, Verizon/NICE Systems, Code Spaces, Knight Capital, Dyn, AWS Kinesis, two separate AWS US-EAST-1 incidents, and a Jack Dorsey SIM-swap), plus an "Under the hood" note tying it to the real service or pattern it's modeled on.
+Every module pairs an "In plain terms" everyday analogy with a "Try this" checklist, a live simulation, and a "Real incident" — a fact-checked, real-world outage or breach the concept maps to (HealthCare.gov, Uber, GitHub, Fastly, GitLab, Capital One, Verizon/NICE Systems, Code Spaces, Knight Capital, Dyn, AWS Kinesis, two separate AWS US-EAST-1 incidents, a Jack Dorsey SIM-swap, Salesforce's NA14 outage, Reddit's Pi Day Kubernetes upgrade, Cloudflare's WAF regex outage, and the Codecov supply-chain breach), plus an "Under the hood" note tying it to the real service or pattern it's modeled on.
 
 ## Quests
 
-Six of the modules above (Sign-in, IAM, S3, VPC, Route 53, CloudWatch) end with a quest: instead of just reading how the concept works, you're put in the seat of someone who actually has to fix something — a realistic scenario, a broken state, and a mocked provider console with real decisions to make. Wrong answers get a real-sounding rejection reason, not just a red X.
+Nine of the modules above (Sign-in, IAM, S3, VPC, Route 53, CloudWatch, Databases, Containers, EC2) end with a quest: instead of just reading how the concept works, you're put in the seat of someone who actually has to fix something — a realistic scenario, a broken state, and a mocked provider console with real decisions to make. Wrong answers get a real-sounding rejection reason, not just a red X. Several of the newer quests (database failover recovery, IAM/Secrets scenarios) are grounded in real AWS Certified Solutions Architect – Associate exam scenarios, adapted and re-verified across all three providers rather than copied.
 
 Each quest has an independent Easy tier (the core fix, fewer and more obvious choices) and Hard tier (a longer, denser real-world response with its own decision points) — they're separate attempts, not one list where Hard is just Easy plus a few extra steps.
 
@@ -86,7 +90,7 @@ npx serve .
 
 Vanilla HTML, CSS, and JavaScript for the app itself — no framework, no build tooling. Electron wraps it for the desktop build.
 
-- `index.html` / `styles.css` / `app.js` — the app: sixteen modules, six quests, the chat widget, the EN/TR i18n layer, and the theme toggle
+- `index.html` / `styles.css` / `app.js` — the app: twenty modules, nine quests, the chat widget, the EN/TR i18n layer, and the theme toggle
 - `main.js` / `package.json` — the Electron shell, `electron-builder` packaging config, and the `electron-updater`-based update check
 
 ---
@@ -97,8 +101,8 @@ Bulut mimarilerinde sürekli karşımıza çıkan fikirlerin küçük, istemci t
 
 İngilizce ve Türkçe olarak kullanılabilir (üst çubuktaki dil seçici). Açık/koyu tema sisteminizi takip eder, elle de değiştirilebilir. Sağ alttaki "Konsola Sor" sohbet asistanı (Groq ile çalışır) anlamadığınız her şeyi sormanızı sağlar — kendi ücretsiz Groq API anahtarınızı gerektirir, sadece tarayıcınızda saklanır.
 
-On altı modül: bulut nedir, oturum açma, IAM ve izinler, VPC, EC2, S3, Lambda, yük dengeleme, Elastic Beanstalk, Route 53, önbellekleme/CDN, dağıtık tutarlılık, yük devretme, SNS, CloudWatch ve Snowball Edge.
+Yirmi modül: bulut nedir, oturum açma, IAM ve izinler, VPC, EC2, S3, Lambda, yük dengeleme, Elastic Beanstalk, Route 53, önbellekleme/CDN, dağıtık tutarlılık, yük devretme, SNS, CloudWatch, Snowball Edge, veritabanları (replikalar/Multi-AZ/yük devretme), konteynerler ve orkestrasyon, CI/CD ve sırlar/şifreleme (KMS).
 
-Altı modül (Giriş, IAM, S3, VPC, Route 53, CloudWatch) kendi görevleriyle bitiyor: gerçekçi bir senaryo, bozuk bir durum, ve gerçek sonuçları olan kararlarla, bir şeyi düzeltmek zorunda olan kişinin yerine sizi koyuyor. Her görevin birbirinden bağımsız bir Kolay (temel düzeltme) ve bir Zor (kendi karar noktalarıyla daha uzun, gerçek dünya tepkisi) kademesi var. Her görevin ayrıca kendi AWS, Azure ve GCP sürümü var — üst çubuktaki aynı sağlayıcı seçiciyle değiştiriliyor; her sürüm o sağlayıcının gerçek konsol terimlerini, hata mesajlarını ve mekaniklerini kullanıyor, aynı adımların sadece logosu değişmiş hali değil.
+Dokuz modül (Giriş, IAM, S3, VPC, Route 53, CloudWatch, Veritabanları, Konteynerler, EC2) kendi görevleriyle bitiyor: gerçekçi bir senaryo, bozuk bir durum, ve gerçek sonuçları olan kararlarla, bir şeyi düzeltmek zorunda olan kişinin yerine sizi koyuyor. Her görevin birbirinden bağımsız bir Kolay (temel düzeltme) ve bir Zor (kendi karar noktalarıyla daha uzun, gerçek dünya tepkisi) kademesi var. Her görevin ayrıca kendi AWS, Azure ve GCP sürümü var — üst çubuktaki aynı sağlayıcı seçiciyle değiştiriliyor; her sürüm o sağlayıcının gerçek konsol terimlerini, hata mesajlarını ve mekaniklerini kullanıyor, aynı adımların sadece logosu değişmiş hali değil.
 
 Yukarıdaki rozet imzalı bir Windows kurulum dosyasına bağlanır. Kendinden imzalı bir sertifika kullanıldığından Windows SmartScreen ilk çalıştırmada "bilinmeyen yayımcı" uyarısı gösterebilir — **Diğer bilgiler → Yine de çalıştır** yeterli. Kurulumu yalnızca bir kez indirmeniz yeterli: uygulama her açılışta yeni bir sürüm olup olmadığını kontrol eder ve varsa, siz onaylamadan hiçbir şeyi indirip kurmaz.

@@ -20,7 +20,7 @@
 
 <div class="topbar">
   <div class="topbar-inner">
-    <span class="wordmark"><span class="dot"></span><span data-i18n="common.wordmark">Systems Console</span><span class="version-tag" id="versionTag">v1.4.0</span></span>
+    <span class="wordmark"><span class="dot"></span><span data-i18n="common.wordmark">Systems Console</span><span class="version-tag" id="versionTag">v1.5.0</span></span>
     <nav class="jumpnav">
       <a href="#cloud101" data-i18n="common.nav.cloud101">00 What is the cloud?</a>
       <a href="#auth" data-i18n="common.nav.auth">01 Sign-in</a>
@@ -38,6 +38,10 @@
       <a href="#sns" data-i18n="common.nav.sns">13 SNS</a>
       <a href="#cloudwatch" data-i18n="common.nav.cloudwatch">14 CloudWatch</a>
       <a href="#snowball" data-i18n="common.nav.snowball">15 Snowball Edge</a>
+      <a href="#database" data-i18n="common.nav.database">16 Databases</a>
+      <a href="#containers" data-i18n="common.nav.containers">17 Containers</a>
+      <a href="#cicd" data-i18n="common.nav.cicd">18 CI/CD</a>
+      <a href="#secrets" data-i18n="common.nav.secrets">19 Secrets &amp; KMS</a>
     </nav>
     <div class="topbar-tools">
       <div class="lang-toggle" role="group" aria-label="Cloud provider">
@@ -58,8 +62,8 @@
 <div class="page">
   <div class="intro">
     <h1 data-i18n="intro.title">Cloud systems, taken apart</h1>
-    <p data-i18n="intro.p">Sixteen small, live simulations of the mechanisms that keep large systems running.</p>
-    <div class="meta" data-i18n="intro.meta">16 modules · runs entirely in your browser · no real infrastructure</div>
+    <p data-i18n="intro.p">Twenty small, live simulations of the mechanisms that keep large systems running.</p>
+    <div class="meta" data-i18n="intro.meta">20 modules · runs entirely in your browser · no real infrastructure</div>
   </div>
 
   <!-- MODULE 00 — WHAT IS THE CLOUD -->
@@ -300,6 +304,7 @@
       <p class="meta" data-i18n="ec2.incident.meta">Code Spaces · June 2014</p>
       <p class="body" data-i18n="ec2.incident.body">An attacker deleted a company's entire AWS footprint.</p>
     </div>
+    <div class="quest-mount" id="quest-mount-ec2"></div>
   </section>
 
   <!-- MODULE 05 — S3 -->
@@ -893,6 +898,216 @@
       <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
       <p class="meta" data-i18n="snowball.incident.meta">Real world, not an outage</p>
       <p class="body" data-i18n="snowball.incident.body">AWS built a literal truck to move exabytes of data.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 16 — DATABASES -->
+  <section class="panel" id="database">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="database.modId">MODULE 16</span>
+      <h2 data-i18n="database.title">Databases: Replicas, Multi-AZ &amp; Failover</h2>
+      <span class="status-pill good" id="databaseStatus">HEALTHY</span>
+    </header>
+    <p class="dek" data-i18n="database.dek">A read replica and a standby sound similar. Only one of them takes over automatically.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="database.analogy">Multi-AZ is an understudy standing in the wings.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="database.tryStep1">Kill the primary with no Multi-AZ — writes just fail.</li>
+        <li data-i18n="database.tryStep2">Add read replicas and send reads.</li>
+        <li data-i18n="database.tryStep3">Turn on Multi-AZ and kill the primary again.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="cluster-row" id="dbNodes"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label class="checkbox"><input type="checkbox" id="dbMultiAz"> <span data-i18n="database.multiAzLabel">Multi-AZ standby (synchronous)</span></label>
+          <label><span data-i18n="database.replicaLabel">Read replicas —</span> <output id="dbReplicaOut">0</output>
+            <input type="range" id="dbReplicas" min="0" max="3" value="0">
+          </label>
+          <button type="button" class="btn" id="dbWriteBtn" data-i18n="database.writeBtn">Send a write</button>
+          <button type="button" class="btn" id="dbReadBtn" data-i18n="database.readBtn">Send a read</button>
+          <button type="button" class="btn" id="dbKillBtn" data-i18n="database.killBtn">Kill the primary</button>
+          <button type="button" class="btn" id="dbPromoteBtn" data-i18n="database.promoteBtn">Manually promote</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="database.statWritesOk">Writes succeeded</span><span class="stat-value" id="dbStatWritesOk">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="database.statWritesFailed">Writes failed</span><span class="stat-value" id="dbStatWritesFailed">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="database.statReads">Reads served</span><span class="stat-value" id="dbStatReads">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="database.statFailovers">Automatic failovers</span><span class="stat-value" id="dbStatFailovers">0</span></div>
+        </div>
+        <div class="log" id="dbLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="database.note">Multi-AZ is synchronous and auto-promoted.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="database.incident.meta">Salesforce · May 2016</p>
+      <p class="body" data-i18n="database.incident.body">A firmware bug on a storage array corrupted file consistency during a restart.</p>
+    </div>
+    <div class="quest-mount" id="quest-mount-database"></div>
+  </section>
+
+  <!-- MODULE 17 — CONTAINERS -->
+  <section class="panel" id="containers">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="containers.modId">MODULE 17</span>
+      <h2 data-i18n="containers.title">Containers &amp; Orchestration</h2>
+      <span class="status-pill good" id="containersStatus">ALL TASKS HEALTHY</span>
+    </header>
+    <p class="dek" data-i18n="containers.dek">A rolling deployment doesn't ask whether the new version is good. A health check does.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="containers.analogy">It's a relay race where the incoming runner has to catch the baton.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="containers.tryStep1">Deploy a clean version, one task at a time.</li>
+        <li data-i18n="containers.tryStep2">Bake in a bug and watch the rollout stop and roll back.</li>
+        <li data-i18n="containers.tryStep3">Push load up and let target tracking react.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="cluster-row" id="ctrTasks"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label><span data-i18n="containers.desiredLabel">Desired task count —</span> <output id="ctrDesiredOut">3</output>
+            <input type="range" id="ctrDesired" min="1" max="6" value="3">
+          </label>
+          <label><span data-i18n="containers.loadLabel">Simulated CPU load —</span> <output id="ctrLoadOut">30</output>%
+            <input type="range" id="ctrLoad" min="0" max="100" value="30">
+          </label>
+          <label class="checkbox"><input type="checkbox" id="ctrBuggy"> <span data-i18n="containers.buggyLabel">Bake a bug into the new image</span></label>
+          <button type="button" class="btn" id="ctrDeployBtn" data-i18n="containers.deployBtn">Deploy new image version</button>
+          <button type="button" class="btn" id="ctrScaleBtn" data-i18n="containers.scaleBtn">Let target tracking react to load</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="containers.statHealthy">Healthy tasks</span><span class="stat-value" id="ctrStatHealthy">3/3</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="containers.statDesired">Desired count</span><span class="stat-value" id="ctrStatDesired">3</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="containers.statDeploys">Deployments</span><span class="stat-value" id="ctrStatDeploys">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="containers.statRollbacks">Rollbacks stopped mid-way</span><span class="stat-value" id="ctrStatRollbacks">0</span></div>
+        </div>
+        <div class="log" id="ctrLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="containers.note">This mirrors ECS/Kubernetes rolling updates.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="containers.incident.meta">Reddit · March 2023</p>
+      <p class="body" data-i18n="containers.incident.body">A Kubernetes upgrade dropped node labels that service discovery depended on.</p>
+    </div>
+    <div class="quest-mount" id="quest-mount-containers"></div>
+  </section>
+
+  <!-- MODULE 18 — CI/CD -->
+  <section class="panel" id="cicd">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="cicd.modId">MODULE 18</span>
+      <h2 data-i18n="cicd.title">CI/CD: Pipelines &amp; Deploy Gates</h2>
+      <span class="status-pill good" id="cicdStatus">IDLE</span>
+    </header>
+    <p class="dek" data-i18n="cicd.dek">A test suite only catches the bugs it thought to check for.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="cicd.analogy">It's tasting the soup, then still sending the first bowl to one table.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="cicd.tryStep1">Run the pipeline clean.</li>
+        <li data-i18n="cicd.tryStep2">Introduce a bug the tests catch.</li>
+        <li data-i18n="cicd.tryStep3">Introduce a bug tests can't catch and compare rollout strategies.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="cluster-row" id="ciStages"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label>
+            <span data-i18n="cicd.strategyLabel">Rollout strategy</span>
+            <div class="lang-toggle" role="group">
+              <button type="button" class="lang-btn active" id="ciStrategyAllBtn" data-strategy="all" data-i18n="cicd.strategyAll">All at once</button>
+              <button type="button" class="lang-btn" id="ciStrategyCanaryBtn" data-strategy="canary" data-i18n="cicd.strategyCanary">Staged canary (10% → 100%)</button>
+            </div>
+          </label>
+          <label class="checkbox"><input type="checkbox" id="ciTestBug"> <span data-i18n="cicd.testBugLabel">Introduce a bug the test suite catches</span></label>
+          <label class="checkbox"><input type="checkbox" id="ciProdBug"> <span data-i18n="cicd.prodBugLabel">Introduce a bug that only shows up under real production traffic</span></label>
+          <button type="button" class="btn" id="ciRunBtn" data-i18n="cicd.runBtn">Run the pipeline</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="cicd.statRuns">Pipeline runs</span><span class="stat-value" id="ciStatRuns">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="cicd.statCaught">Caught by tests</span><span class="stat-value" id="ciStatCaught">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="cicd.statIncidents">Reached production</span><span class="stat-value" id="ciStatIncidents">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="cicd.statBlast">Worst blast radius</span><span class="stat-value" id="ciStatBlast">0%</span></div>
+        </div>
+        <div class="log" id="ciLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="cicd.note">Test gates and staged rollouts are two separate defenses.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="cicd.incident.meta">Cloudflare · July 2019</p>
+      <p class="body" data-i18n="cicd.incident.body">A WAF rule shipped to every edge server at once, with no staged rollout.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 19 — SECRETS & ENCRYPTION -->
+  <section class="panel" id="secrets">
+    <header class="panel-head">
+      <span class="mod-id" data-i18n="secrets.modId">MODULE 19</span>
+      <h2 data-i18n="secrets.title">Secrets &amp; Encryption (KMS)</h2>
+      <span class="status-pill good" id="secretsStatus">KEY CURRENT</span>
+    </header>
+    <p class="dek" data-i18n="secrets.dek">Encrypting a secret doesn't help if everyone can decrypt it, and it never changes.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="secrets.analogy">It's a locked drawer with a key that gets reissued on a schedule.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="secrets.tryStep1">Try to decrypt as the intern laptop — denied.</li>
+        <li data-i18n="secrets.tryStep2">Simulate a leak and let days pass without rotating.</li>
+        <li data-i18n="secrets.tryStep3">Rotate — the leaked version stops working immediately.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="origin-card" id="secKeyCard"><span class="dotpin"></span><span data-i18n="secrets.title">Secrets &amp; Encryption (KMS)</span></div>
+        <div class="sub-list">
+          <div class="sub-card" id="secCard-appServer">
+            <label class="checkbox"><input type="checkbox" id="secGrant-appServer" checked> <span data-i18n="secrets.principals.appServer">App server role</span></label>
+            <button type="button" class="btn" id="secTry-appServer" data-i18n="secrets.tryBtn">Try decrypt</button>
+          </div>
+          <div class="sub-card" id="secCard-ciPipeline">
+            <label class="checkbox"><input type="checkbox" id="secGrant-ciPipeline" checked> <span data-i18n="secrets.principals.ciPipeline">CI pipeline</span></label>
+            <button type="button" class="btn" id="secTry-ciPipeline" data-i18n="secrets.tryBtn">Try decrypt</button>
+          </div>
+          <div class="sub-card" id="secCard-internLaptop">
+            <label class="checkbox"><input type="checkbox" id="secGrant-internLaptop"> <span data-i18n="secrets.principals.internLaptop">Intern's laptop</span></label>
+            <button type="button" class="btn" id="secTry-internLaptop" data-i18n="secrets.tryBtn">Try decrypt</button>
+          </div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <button type="button" class="btn" id="secRotateBtn" data-i18n="secrets.rotateBtn">Rotate the secret now</button>
+          <label class="checkbox"><input type="checkbox" id="secLeak"> <span data-i18n="secrets.leakLabel">Simulate this secret leaking to a compromised script</span></label>
+          <button type="button" class="btn" id="secAdvanceBtn" data-i18n="secrets.advanceBtn">Let 30 days pass</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="secrets.statVersion">Secret version</span><span class="stat-value" id="secStatVersion">v1</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="secrets.statAge">Days since rotation</span><span class="stat-value" id="secStatAge">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="secrets.statGranted">Principals granted</span><span class="stat-value" id="secStatGranted">2</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="secrets.statDenied">Access denied attempts</span><span class="stat-value" id="secStatDenied">0</span></div>
+        </div>
+        <div class="log" id="secLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="secrets.note">Rotation is what actually ends a leaked secret's access.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="secrets.incident.meta">Codecov · April 2021</p>
+      <p class="body" data-i18n="secrets.incident.body">A compromised script exfiltrated CI secrets for over two months undetected.</p>
     </div>
   </section>
 
