@@ -427,6 +427,54 @@ select, .btn{ font-size:0.82rem; padding:8px 10px; border-radius:var(--radius); 
 .svc-table th.svc-active{ color:var(--accent); }
 .svc-empty{ padding:0 22px 22px; margin:0; color:var(--ink-dim); font-size:0.9rem; }
 
+/* modules 23-31 — shared pieces */
+.sidenav-cat{ margin:12px 0 2px; padding:0 14px; font-family:var(--font-mono); font-size:0.62rem; letter-spacing:0.09em; text-transform:uppercase; color:var(--ink-faint); }
+.finding-list{ display:flex; flex-direction:column; gap:10px; }
+.finding{ display:flex; align-items:flex-start; gap:10px; border:1px solid var(--border-strong); border-left:3px solid var(--ink-faint); border-radius:var(--radius); background:var(--bg-panel-2); padding:10px 12px; font-size:0.82rem; }
+.finding.sev-high{ border-left-color:var(--bad); }
+.finding.sev-med{ border-left-color:var(--warn); }
+.finding.sev-low{ border-left-color:var(--accent); }
+.finding .sev{ font-family:var(--font-mono); font-size:0.64rem; letter-spacing:0.05em; flex:none; padding-top:2px; }
+.finding.sev-high .sev{ color:var(--bad); }
+.finding.sev-med .sev{ color:var(--warn); }
+.finding.sev-low .sev{ color:var(--accent); }
+.finding .fbody{ flex:1; min-width:0; }
+.finding .fbody p{ margin:0; }
+.finding .fbody .fdetail{ color:var(--ink-faint); font-size:0.74rem; margin-top:3px; }
+.finding .btn{ font-size:0.7rem; padding:5px 10px; flex:none; }
+.finding-empty{ margin:0; color:var(--ink-faint); font-size:0.85rem; }
+.cred-list{ display:flex; flex-direction:column; gap:10px; }
+.cred-card{ border:1px solid var(--border-strong); border-radius:var(--radius); background:var(--bg-panel-2); padding:10px 12px; font-family:var(--font-mono); font-size:0.76rem; display:flex; align-items:center; gap:12px; }
+.cred-card .cred-ttl{ margin-left:auto; flex:none; color:var(--accent); }
+.cred-card.long .cred-ttl{ color:var(--bad); }
+.cred-card.dead{ opacity:0.5; }
+.cred-card.dead .cred-ttl{ color:var(--ink-faint); }
+.cert-card{ align-self:flex-start; border:1px solid var(--border-strong); border-radius:var(--radius); background:var(--bg-panel-2); padding:16px 20px; display:flex; flex-direction:column; gap:2px; }
+.cert-card .cert-domain{ font-family:var(--font-mono); font-size:0.76rem; color:var(--ink-dim); }
+.cert-card .cert-days{ font-family:var(--font-display); font-weight:800; font-size:2rem; line-height:1.1; }
+.cert-card.expiring .cert-days{ color:var(--warn); }
+.cert-card.expired .cert-days{ color:var(--bad); }
+.cert-card .cert-days-label{ font-size:0.72rem; color:var(--ink-faint); }
+.match-col{ display:flex; flex-direction:column; gap:10px; }
+.match-col .sub-card{ width:100%; text-align:left; font:inherit; font-size:0.83rem; color:var(--ink); }
+.match-col .sub-card.selected{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
+.match-col .sub-card.matched{ border-color:var(--good); opacity:0.65; cursor:default; }
+.rate-wrap{ display:flex; align-items:center; gap:10px; }
+.rate-wrap .rate-bar{ flex:1; width:auto; }
+.rate-label{ font-family:var(--font-mono); font-size:0.68rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.04em; flex:none; }
+.iac-envs{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media (max-width:560px){ .iac-envs{ grid-template-columns:1fr; } }
+.iac-env{ border:1px dashed var(--border-strong); border-radius:var(--radius); padding:12px; display:flex; flex-direction:column; gap:10px; }
+.iac-env .sub-list{ flex-direction:column; }
+.iac-env .sub-card{ cursor:default; font-family:var(--font-mono); font-size:0.74rem; }
+.iac-env .sub-card.drifted{ border-color:var(--warn); color:var(--warn); }
+.aiint-panel{ display:flex; flex-direction:column; gap:8px; }
+.aiint-row{ display:flex; gap:8px; align-items:center; }
+.aiint-row .svc-search{ flex:1; max-width:none; }
+.aiint-out{ margin:0; min-height:1.3em; font-family:var(--font-mono); font-size:0.76rem; color:var(--ink-dim); }
+.aiint-out.good{ color:var(--good); }
+.aiint-out.bad{ color:var(--bad); }
+
 /* ask the console — chat widget */
 .chat-fab{ position:fixed; right:20px; bottom:20px; z-index:30; width:52px; height:52px; padding:0; border-radius:50%; border:1px solid var(--border-strong); background:var(--accent); color:var(--bg-panel); cursor:pointer; box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; transition:box-shadow 160ms ease, filter 160ms ease; }
 .chat-fab .fab-icon{ width:22px; height:22px; }

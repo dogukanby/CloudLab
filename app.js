@@ -4,7 +4,7 @@
   // Keep in sync with package.json's "version" — there's no build step to
   // inject this automatically, so it's a manual mirror. Shown in the topbar
   // (and read as the desktop window title via app.getVersion() in main.js).
-  const APP_VERSION = "1.8.0";
+  const APP_VERSION = "1.9.0";
   $("#versionTag").textContent = "v"+APP_VERSION;
 
   /* ============ i18n dictionary ============ */
@@ -12,7 +12,8 @@
     en: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS", capstone1:"20 Capstone: Outage", capstone2:"21 Capstone: Exposure", services:"22 Service directory" },
+        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS", capstone1:"20 Capstone: Outage", capstone2:"21 Capstone: Exposure", services:"22 Service directory", threat:"23 Threat detection", edge:"24 WAF & DDoS", identity:"25 Identity & access", certs:"26 Certs & PII", analytics:"27 Data & analytics", hybrid:"28 Hybrid & migration", iac:"29 Infrastructure as code", govern:"30 Governance & cost", aiint:"31 AI & integration" },
+        navCat:{ security:"Security", data:"Data & analytics", connect:"Hybrid & migration", ops:"Automation & governance", ai:"AI & integration" },
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"CloudLab",
         statusChanged:"status → {status}",
@@ -44,7 +45,7 @@
       intro:{
         title:"Cloud systems, taken apart",
         p:"Twenty small, live simulations of the mechanisms that keep large systems running, plus two capstone incidents that tie several of them together — no real servers behind any of it, just the logic. Turn the dials and watch what actually happens under load, under a network partition, under a cache miss, under a failure.",
-        meta:"20 modules · 19 incident-response quests · 47-service directory · runs entirely in your browser"
+        meta:"29 modules · 28 incident-response quests · 47-service directory · runs entirely in your browser"
       },
       lb:{
         modId:"MODULE 07", title:"Load Balancing & Auto-Scaling",
@@ -625,6 +626,1821 @@
         easyLabel:"Easy", hardLabel:"Hard",
         resetBtn:"Reset quest",
         completeNote:"Every decision above mirrors a real one — this is genuinely what responding to this would look like.",
+        iac:{
+          aws:{
+            title:"Prod doesn't match staging, and nobody knows why",
+            scenario:"The release that sailed through staging just failed in prod. The two environments were built months apart, by hand, by different people. Sales also just promised five new customers their own identical environments.",
+            consoleLabel:"CloudFormation Console (simulated)",
+            actionBtn:"Deploy from the template",
+            successText:"One reviewed template now produces every environment — identical, diffable, and rebuildable on demand.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Name the actual problem",
+                prompt:"Why does prod behave differently from staging?",
+                options:[
+                  { key:"random", label:"Cloud environments just drift apart naturally", correct:false, feedback:"Nothing drifts on its own — every difference was a human hand-change nobody wrote down." },
+                  { key:"drift", label:"Months of undocumented hand-edits accumulated into two different environments", correct:true, feedback:"Exactly — every console click was a tiny fork. The environments are now different machines wearing the same name." },
+                  { key:"staging", label:"Staging must be broken", correct:false, feedback:"Staging is the one where things work — and 'which one is right' is unanswerable when neither has a definition." }
+                ],
+                errorText:"The difference between the environments still has no explanation — the next release rolls the same dice."
+              },
+              { id:"e-template", type:"action",
+                label:"Capture the environment as a template",
+                actionLabel:"Write the template", loadingLabel:"Writing…", doneLabel:"Environment captured in a CloudFormation template — reviewed, versioned, and in the repo.", loadingMs:700,
+                errorText:"There's still no written definition of what this environment is supposed to contain."
+              },
+              { id:"e-deploy", type:"action",
+                label:"Rebuild prod from the template",
+                actionLabel:"Deploy template to prod", loadingLabel:"Deploying…", doneLabel:"Prod redeployed from the template — it now matches staging exactly, provably.", loadingMs:800,
+                errorText:"Prod is still the hand-built snowflake that just failed a release."
+              }
+            ],
+            hardSteps:[
+              { id:"h-find", type:"choice",
+                label:"Find every hand-made change first",
+                prompt:"Before templating, you need to know exactly what was changed by hand over the months. What actually answers that?",
+                options:[
+                  { key:"history", label:"Search everyone's shell history and the ticket queue", correct:false, feedback:"Console clicks leave no shell history, and the whole problem is that these changes never got tickets." },
+                  { key:"drift", label:"Drift detection — compare live resources against the last known definition", correct:true, feedback:"Drift detection diffs reality against the template and lists every deviation, including the ones nobody remembers making." },
+                  { key:"standup", label:"Ask the team in standup what they changed", correct:false, feedback:"Memory is exactly what already failed here — months of changes, different people, nothing written down." }
+                ],
+                errorText:"You still don't have a complete list of what was hand-changed — any template you write now codifies guesses."
+              },
+              { id:"h-params", type:"choice",
+                label:"Stamp out the five customer environments",
+                prompt:"Five customers need identical environments differing only in name and size. How is that expressed?",
+                options:[
+                  { key:"copies", label:"Five copies of the template, edited per customer", correct:false, feedback:"Five copies immediately begin drifting from each other — you'd be rebuilding today's problem five times over." },
+                  { key:"params", label:"One template with parameters for name and size", correct:true, feedback:"One definition, five parameter sets — a fix to the template reaches every customer identically, forever." },
+                  { key:"manual", label:"Build them by hand — five is manageable", correct:false, feedback:"Five hand-built environments is five new snowflakes — the exact practice this incident just indicted." }
+                ],
+                errorText:"The five customer environments still have no single source of truth."
+              },
+              { id:"h-guard", type:"choice",
+                label:"Make sure hand-edits can't restart the drift",
+                prompt:"The template is live. What stops next month's 'quick console fix' from forking prod again?",
+                options:[
+                  { key:"trust", label:"The team agreed to only change things through the template now", correct:false, feedback:"The last team agreed too. At 2am with prod down, agreements lose to the console every time — guardrails don't." },
+                  { key:"guardrails", label:"Pipeline-only changes, enforced by guardrails, with a break-glass role that pages when used", correct:true, feedback:"Changes flow through review by default; the emergency path exists but is loud — drift can't accumulate silently anymore." },
+                  { key:"revoke", label:"Delete all console write access for everyone, permanently", correct:false, feedback:"With zero emergency path, the first real 2am incident gets resolved by sharing the root password — worse than before." }
+                ],
+                errorText:"Nothing prevents the next quick console fix — the drift clock has already restarted."
+              },
+              { id:"h-deploy", type:"action",
+                label:"Roll out the parameterized stack",
+                actionLabel:"Deploy all environments", loadingLabel:"Deploying…", doneLabel:"Prod, staging, and five customer stacks deployed from one template — identical by construction.", loadingMs:800,
+                errorText:"The template exists but the environments are still the old hand-built ones."
+              }
+            ]
+          },
+          azure:{
+            title:"Prod doesn't match staging, and nobody knows why",
+            scenario:"The release that sailed through staging just failed in prod. The two environments were built months apart, by hand, by different people. Sales also just promised five new customers their own identical environments.",
+            consoleLabel:"ARM / Bicep Deployments (simulated)",
+            actionBtn:"Deploy from the template",
+            successText:"One reviewed Bicep file now produces every environment — identical, diffable, and rebuildable on demand.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Name the actual problem",
+                prompt:"Why does prod behave differently from staging?",
+                options:[
+                  { key:"random", label:"Cloud environments just drift apart naturally", correct:false, feedback:"Nothing drifts on its own — every difference was a human hand-change nobody wrote down." },
+                  { key:"drift", label:"Months of undocumented portal edits accumulated into two different environments", correct:true, feedback:"Exactly — every portal click was a tiny fork. The environments are now different machines wearing the same name." },
+                  { key:"staging", label:"Staging must be broken", correct:false, feedback:"Staging is the one where things work — and 'which one is right' is unanswerable when neither has a definition." }
+                ],
+                errorText:"The difference between the environments still has no explanation — the next release rolls the same dice."
+              },
+              { id:"e-template", type:"action",
+                label:"Capture the environment as a Bicep file",
+                actionLabel:"Write the Bicep file", loadingLabel:"Writing…", doneLabel:"Environment captured in Bicep — reviewed, versioned, and in the repo.", loadingMs:700,
+                errorText:"There's still no written definition of what this environment is supposed to contain."
+              },
+              { id:"e-deploy", type:"action",
+                label:"Rebuild prod from the template",
+                actionLabel:"Deploy Bicep to prod", loadingLabel:"Deploying…", doneLabel:"Prod redeployed from Bicep — it now matches staging exactly, provably.", loadingMs:800,
+                errorText:"Prod is still the hand-built snowflake that just failed a release."
+              }
+            ],
+            hardSteps:[
+              { id:"h-find", type:"choice",
+                label:"Find every hand-made change first",
+                prompt:"Before templating, you need to know exactly what was changed by hand over the months. What actually answers that?",
+                options:[
+                  { key:"history", label:"Search everyone's shell history and the ticket queue", correct:false, feedback:"Portal clicks leave no shell history, and the whole problem is that these changes never got tickets." },
+                  { key:"whatif", label:"A what-if deployment — diff live resources against the template definition", correct:true, feedback:"What-if diffs reality against the file and lists every deviation, including the ones nobody remembers making." },
+                  { key:"standup", label:"Ask the team in standup what they changed", correct:false, feedback:"Memory is exactly what already failed here — months of changes, different people, nothing written down." }
+                ],
+                errorText:"You still don't have a complete list of what was hand-changed — any template you write now codifies guesses."
+              },
+              { id:"h-params", type:"choice",
+                label:"Stamp out the five customer environments",
+                prompt:"Five customers need identical environments differing only in name and size. How is that expressed?",
+                options:[
+                  { key:"copies", label:"Five copies of the Bicep file, edited per customer", correct:false, feedback:"Five copies immediately begin drifting from each other — you'd be rebuilding today's problem five times over." },
+                  { key:"params", label:"One Bicep file with parameters for name and size", correct:true, feedback:"One definition, five parameter files — a fix to the template reaches every customer identically, forever." },
+                  { key:"manual", label:"Build them by hand — five is manageable", correct:false, feedback:"Five hand-built environments is five new snowflakes — the exact practice this incident just indicted." }
+                ],
+                errorText:"The five customer environments still have no single source of truth."
+              },
+              { id:"h-guard", type:"choice",
+                label:"Make sure hand-edits can't restart the drift",
+                prompt:"The template is live. What stops next month's 'quick portal fix' from forking prod again?",
+                options:[
+                  { key:"trust", label:"The team agreed to only change things through the pipeline now", correct:false, feedback:"The last team agreed too. At 2am with prod down, agreements lose to the portal every time — policy doesn't." },
+                  { key:"policy", label:"Pipeline-only changes enforced by Azure Policy, with a break-glass role that pages when used", correct:true, feedback:"Changes flow through review by default; the emergency path exists but is loud — drift can't accumulate silently anymore." },
+                  { key:"revoke", label:"Delete all portal write access for everyone, permanently", correct:false, feedback:"With zero emergency path, the first real 2am incident gets resolved by sharing the owner password — worse than before." }
+                ],
+                errorText:"Nothing prevents the next quick portal fix — the drift clock has already restarted."
+              },
+              { id:"h-deploy", type:"action",
+                label:"Roll out the parameterized deployment",
+                actionLabel:"Deploy all environments", loadingLabel:"Deploying…", doneLabel:"Prod, staging, and five customer environments deployed from one Bicep file — identical by construction.", loadingMs:800,
+                errorText:"The template exists but the environments are still the old hand-built ones."
+              }
+            ]
+          },
+          gcp:{
+            title:"Prod doesn't match staging, and nobody knows why",
+            scenario:"The release that sailed through staging just failed in prod. The two environments were built months apart, by hand, by different people. Sales also just promised five new customers their own identical environments.",
+            consoleLabel:"Infrastructure Manager (simulated)",
+            actionBtn:"Deploy from the template",
+            successText:"One reviewed configuration now produces every environment — identical, diffable, and rebuildable on demand.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Name the actual problem",
+                prompt:"Why does prod behave differently from staging?",
+                options:[
+                  { key:"random", label:"Cloud environments just drift apart naturally", correct:false, feedback:"Nothing drifts on its own — every difference was a human hand-change nobody wrote down." },
+                  { key:"drift", label:"Months of undocumented console edits accumulated into two different environments", correct:true, feedback:"Exactly — every console click was a tiny fork. The environments are now different machines wearing the same name." },
+                  { key:"staging", label:"Staging must be broken", correct:false, feedback:"Staging is the one where things work — and 'which one is right' is unanswerable when neither has a definition." }
+                ],
+                errorText:"The difference between the environments still has no explanation — the next release rolls the same dice."
+              },
+              { id:"e-template", type:"action",
+                label:"Capture the environment as configuration",
+                actionLabel:"Write the config", loadingLabel:"Writing…", doneLabel:"Environment captured in Infrastructure Manager config — reviewed, versioned, and in the repo.", loadingMs:700,
+                errorText:"There's still no written definition of what this environment is supposed to contain."
+              },
+              { id:"e-deploy", type:"action",
+                label:"Rebuild prod from the configuration",
+                actionLabel:"Deploy config to prod", loadingLabel:"Deploying…", doneLabel:"Prod redeployed from configuration — it now matches staging exactly, provably.", loadingMs:800,
+                errorText:"Prod is still the hand-built snowflake that just failed a release."
+              }
+            ],
+            hardSteps:[
+              { id:"h-find", type:"choice",
+                label:"Find every hand-made change first",
+                prompt:"Before templating, you need to know exactly what was changed by hand over the months. What actually answers that?",
+                options:[
+                  { key:"history", label:"Search everyone's shell history and the ticket queue", correct:false, feedback:"Console clicks leave no shell history, and the whole problem is that these changes never got tickets." },
+                  { key:"preview", label:"A preview/plan run — diff live resources against the configuration", correct:true, feedback:"The plan diff compares reality against the file and lists every deviation, including the ones nobody remembers making." },
+                  { key:"standup", label:"Ask the team in standup what they changed", correct:false, feedback:"Memory is exactly what already failed here — months of changes, different people, nothing written down." }
+                ],
+                errorText:"You still don't have a complete list of what was hand-changed — any config you write now codifies guesses."
+              },
+              { id:"h-params", type:"choice",
+                label:"Stamp out the five customer environments",
+                prompt:"Five customers need identical environments differing only in name and size. How is that expressed?",
+                options:[
+                  { key:"copies", label:"Five copies of the configuration, edited per customer", correct:false, feedback:"Five copies immediately begin drifting from each other — you'd be rebuilding today's problem five times over." },
+                  { key:"vars", label:"One configuration with input variables for name and size", correct:true, feedback:"One definition, five variable sets — a fix to the config reaches every customer identically, forever." },
+                  { key:"manual", label:"Build them by hand — five is manageable", correct:false, feedback:"Five hand-built environments is five new snowflakes — the exact practice this incident just indicted." }
+                ],
+                errorText:"The five customer environments still have no single source of truth."
+              },
+              { id:"h-guard", type:"choice",
+                label:"Make sure hand-edits can't restart the drift",
+                prompt:"The configuration is live. What stops next month's 'quick console fix' from forking prod again?",
+                options:[
+                  { key:"trust", label:"The team agreed to only change things through the pipeline now", correct:false, feedback:"The last team agreed too. At 2am with prod down, agreements lose to the console every time — org policy doesn't." },
+                  { key:"orgpolicy", label:"Pipeline-only changes enforced by Organization Policy, with a break-glass role that pages when used", correct:true, feedback:"Changes flow through review by default; the emergency path exists but is loud — drift can't accumulate silently anymore." },
+                  { key:"revoke", label:"Delete all console write access for everyone, permanently", correct:false, feedback:"With zero emergency path, the first real 2am incident gets resolved by sharing the owner credentials — worse than before." }
+                ],
+                errorText:"Nothing prevents the next quick console fix — the drift clock has already restarted."
+              },
+              { id:"h-deploy", type:"action",
+                label:"Roll out the parameterized configuration",
+                actionLabel:"Deploy all environments", loadingLabel:"Deploying…", doneLabel:"Prod, staging, and five customer environments deployed from one configuration — identical by construction.", loadingMs:800,
+                errorText:"The configuration exists but the environments are still the old hand-built ones."
+              }
+            ]
+          }
+        },
+        govern:{
+          aws:{
+            title:"The bill doubled in a quarter — and the security review is Friday",
+            scenario:"Finance flagged the cloud bill: it has doubled in three months while traffic grew 10%. A customer's security review lands Friday. Nobody has audited the account since spring.",
+            consoleLabel:"Trusted Advisor Console (simulated)",
+            actionBtn:"Submit the review evidence",
+            successText:"The waste is gone, the holes are closed, and next time a machine notices before finance does.",
+            easySteps:[
+              { id:"e-first", type:"choice",
+                label:"Choose the first move",
+                prompt:"Doubled bill, review on Friday, five days. What do you run first?",
+                options:[
+                  { key:"manual", label:"Walk every resource in the console, one by one", correct:false, feedback:"Hundreds of resources across regions — a hand audit takes longer than the week you have and misses things anyway." },
+                  { key:"advisor", label:"Trusted Advisor — the automated best-practice scan", correct:true, feedback:"Minutes, not days: cost, security, and limits checks against the whole account, ranked by impact." },
+                  { key:"wait", label:"Wait for next month's bill to see if it's a trend", correct:false, feedback:"Another month of doubled spend to confirm what finance already flagged — and Friday doesn't move." }
+                ],
+                errorText:"The week is burning and no scan has run — you're still guessing where the money and risk are."
+              },
+              { id:"e-idle", type:"action",
+                label:"Stop paying for machines that work nights and weekends alone",
+                actionLabel:"Schedule the dev fleet", loadingLabel:"Scheduling…", doneLabel:"Dev fleet now stops at 7pm and weekends — the single biggest line item just shrank.", loadingMs:600,
+                errorText:"The dev fleet still burns money 128 idle hours a week."
+              },
+              { id:"e-mfa", type:"action",
+                label:"Close the worst security finding",
+                actionLabel:"Enable MFA on root", loadingLabel:"Enabling…", doneLabel:"Root MFA on — one phished password no longer loses the whole account.", loadingMs:500,
+                errorText:"The root account is still one phished password away from being anyone's."
+              }
+            ],
+            hardSteps:[
+              { id:"h-prevent", type:"choice",
+                label:"Make sure this can't silently happen again",
+                prompt:"This drift took three months to notice. What stops the next one?",
+                options:[
+                  { key:"quarterly", label:"A quarterly manual audit on the calendar", correct:false, feedback:"Quarterly means the next leak gets up to three months of free burn — this incident is exactly that cadence failing." },
+                  { key:"continuous", label:"AWS Config rules plus budget alerts — continuous checks that page someone", correct:true, feedback:"Machines watch continuously and page on breach — the gap between 'it happened' and 'we know' collapses to minutes." },
+                  { key:"trust", label:"The team knows now — they'll be more careful", correct:false, feedback:"The team knew last quarter too. Awareness decays; automated checks don't." }
+                ],
+                errorText:"Nothing is watching the account continuously — the next three-month drift has already started."
+              },
+              { id:"h-spot", type:"choice",
+                label:"Apply Spot pricing where it actually fits",
+                prompt:"Three workloads could move to Spot for ~70% savings. Which one is actually safe there?",
+                options:[
+                  { key:"db", label:"The production database", correct:false, feedback:"A database that can be reclaimed with two minutes' notice is an outage generator — never Spot." },
+                  { key:"batch", label:"The nightly render batch — stateless, restartable, deadline-flexible", correct:true, feedback:"Interruptible by design: a reclaimed instance just means a chunk re-renders. That's the workload Spot was built for." },
+                  { key:"api", label:"The payment API servers", correct:false, feedback:"Customer-facing latency-sensitive servers vanishing mid-request is not a savings plan." }
+                ],
+                errorText:"Spot is either unused or aimed at a workload that can't survive an interruption."
+              },
+              { id:"h-pillar", type:"choice",
+                label:"Frame the last finding for Friday's review",
+                prompt:"The review also found there's no tested failover plan. In Well-Architected terms, which pillar is failing?",
+                options:[
+                  { key:"cost", label:"Cost optimization", correct:false, feedback:"Cost is the pillar you just fixed — an untested failover plan doesn't waste money, it risks uptime." },
+                  { key:"reliability", label:"Reliability", correct:true, feedback:"Exactly — reliability is the pillar about surviving failure, and an untested plan is an unproven one." },
+                  { key:"sustain", label:"Sustainability", correct:false, feedback:"Sustainability is about resource efficiency and footprint — not about whether failover works." }
+                ],
+                errorText:"The finding still isn't mapped to the framework the reviewers will use on Friday."
+              },
+              { id:"h-verify", type:"action",
+                label:"Assemble the evidence pack",
+                actionLabel:"Generate evidence", loadingLabel:"Generating…", doneLabel:"Before/after bill, closed findings, continuous checks, and the pillar mapping — Friday is ready.", loadingMs:700,
+                errorText:"The review is Friday and the improvements exist only as verbal claims."
+              }
+            ]
+          },
+          azure:{
+            title:"The bill doubled in a quarter — and the security review is Friday",
+            scenario:"Finance flagged the cloud bill: it has doubled in three months while traffic grew 10%. A customer's security review lands Friday. Nobody has audited the subscription since spring.",
+            consoleLabel:"Azure Advisor (simulated)",
+            actionBtn:"Submit the review evidence",
+            successText:"The waste is gone, the holes are closed, and next time a machine notices before finance does.",
+            easySteps:[
+              { id:"e-first", type:"choice",
+                label:"Choose the first move",
+                prompt:"Doubled bill, review on Friday, five days. What do you run first?",
+                options:[
+                  { key:"manual", label:"Walk every resource in the portal, one by one", correct:false, feedback:"Hundreds of resources across regions — a hand audit takes longer than the week you have and misses things anyway." },
+                  { key:"advisor", label:"Azure Advisor — the automated best-practice scan", correct:true, feedback:"Minutes, not days: cost, security, and reliability checks against the whole subscription, ranked by impact." },
+                  { key:"wait", label:"Wait for next month's bill to see if it's a trend", correct:false, feedback:"Another month of doubled spend to confirm what finance already flagged — and Friday doesn't move." }
+                ],
+                errorText:"The week is burning and no scan has run — you're still guessing where the money and risk are."
+              },
+              { id:"e-idle", type:"action",
+                label:"Stop paying for machines that work nights and weekends alone",
+                actionLabel:"Schedule the dev VMs", loadingLabel:"Scheduling…", doneLabel:"Dev VMs now auto-shutdown at 7pm and weekends — the single biggest line item just shrank.", loadingMs:600,
+                errorText:"The dev VMs still burn money 128 idle hours a week."
+              },
+              { id:"e-mfa", type:"action",
+                label:"Close the worst security finding",
+                actionLabel:"Enforce MFA for admins", loadingLabel:"Enforcing…", doneLabel:"Admin MFA enforced — one phished password no longer loses the whole tenant.", loadingMs:500,
+                errorText:"The global admin is still one phished password away from being anyone's."
+              }
+            ],
+            hardSteps:[
+              { id:"h-prevent", type:"choice",
+                label:"Make sure this can't silently happen again",
+                prompt:"This drift took three months to notice. What stops the next one?",
+                options:[
+                  { key:"quarterly", label:"A quarterly manual audit on the calendar", correct:false, feedback:"Quarterly means the next leak gets up to three months of free burn — this incident is exactly that cadence failing." },
+                  { key:"continuous", label:"Azure Policy plus budget alerts — continuous checks that page someone", correct:true, feedback:"Machines watch continuously and page on breach — the gap between 'it happened' and 'we know' collapses to minutes." },
+                  { key:"trust", label:"The team knows now — they'll be more careful", correct:false, feedback:"The team knew last quarter too. Awareness decays; automated checks don't." }
+                ],
+                errorText:"Nothing is watching the subscription continuously — the next three-month drift has already started."
+              },
+              { id:"h-spot", type:"choice",
+                label:"Apply Spot pricing where it actually fits",
+                prompt:"Three workloads could move to Spot VMs for ~70% savings. Which one is actually safe there?",
+                options:[
+                  { key:"db", label:"The production database", correct:false, feedback:"A database that can be evicted with short notice is an outage generator — never Spot." },
+                  { key:"batch", label:"The nightly render batch — stateless, restartable, deadline-flexible", correct:true, feedback:"Interruptible by design: an evicted VM just means a chunk re-renders. That's the workload Spot was built for." },
+                  { key:"api", label:"The payment API servers", correct:false, feedback:"Customer-facing latency-sensitive servers vanishing mid-request is not a savings plan." }
+                ],
+                errorText:"Spot is either unused or aimed at a workload that can't survive an eviction."
+              },
+              { id:"h-pillar", type:"choice",
+                label:"Frame the last finding for Friday's review",
+                prompt:"The review also found there's no tested failover plan. In Well-Architected terms, which pillar is failing?",
+                options:[
+                  { key:"cost", label:"Cost optimization", correct:false, feedback:"Cost is the pillar you just fixed — an untested failover plan doesn't waste money, it risks uptime." },
+                  { key:"reliability", label:"Reliability", correct:true, feedback:"Exactly — reliability is the pillar about surviving failure, and an untested plan is an unproven one." },
+                  { key:"perf", label:"Performance efficiency", correct:false, feedback:"Performance is about using resources well under load — not about whether failover works." }
+                ],
+                errorText:"The finding still isn't mapped to the framework the reviewers will use on Friday."
+              },
+              { id:"h-verify", type:"action",
+                label:"Assemble the evidence pack",
+                actionLabel:"Generate evidence", loadingLabel:"Generating…", doneLabel:"Before/after bill, closed findings, continuous checks, and the pillar mapping — Friday is ready.", loadingMs:700,
+                errorText:"The review is Friday and the improvements exist only as verbal claims."
+              }
+            ]
+          },
+          gcp:{
+            title:"The bill doubled in a quarter — and the security review is Friday",
+            scenario:"Finance flagged the cloud bill: it has doubled in three months while traffic grew 10%. A customer's security review lands Friday. Nobody has audited the project since spring.",
+            consoleLabel:"Recommender (simulated)",
+            actionBtn:"Submit the review evidence",
+            successText:"The waste is gone, the holes are closed, and next time a machine notices before finance does.",
+            easySteps:[
+              { id:"e-first", type:"choice",
+                label:"Choose the first move",
+                prompt:"Doubled bill, review on Friday, five days. What do you run first?",
+                options:[
+                  { key:"manual", label:"Walk every resource in the console, one by one", correct:false, feedback:"Hundreds of resources across regions — a hand audit takes longer than the week you have and misses things anyway." },
+                  { key:"recommender", label:"Recommender — the automated best-practice scan", correct:true, feedback:"Minutes, not days: cost, security, and idle-resource recommendations across the project, ranked by impact." },
+                  { key:"wait", label:"Wait for next month's bill to see if it's a trend", correct:false, feedback:"Another month of doubled spend to confirm what finance already flagged — and Friday doesn't move." }
+                ],
+                errorText:"The week is burning and no scan has run — you're still guessing where the money and risk are."
+              },
+              { id:"e-idle", type:"action",
+                label:"Stop paying for machines that work nights and weekends alone",
+                actionLabel:"Schedule the dev instances", loadingLabel:"Scheduling…", doneLabel:"Dev instances now stop at 7pm and weekends — the single biggest line item just shrank.", loadingMs:600,
+                errorText:"The dev instances still burn money 128 idle hours a week."
+              },
+              { id:"e-mfa", type:"action",
+                label:"Close the worst security finding",
+                actionLabel:"Enforce 2SV for admins", loadingLabel:"Enforcing…", doneLabel:"Admin 2-Step Verification enforced — one phished password no longer loses the whole org.", loadingMs:500,
+                errorText:"The org admin is still one phished password away from being anyone's."
+              }
+            ],
+            hardSteps:[
+              { id:"h-prevent", type:"choice",
+                label:"Make sure this can't silently happen again",
+                prompt:"This drift took three months to notice. What stops the next one?",
+                options:[
+                  { key:"quarterly", label:"A quarterly manual audit on the calendar", correct:false, feedback:"Quarterly means the next leak gets up to three months of free burn — this incident is exactly that cadence failing." },
+                  { key:"continuous", label:"Organization Policy constraints plus budget alerts — continuous checks that page someone", correct:true, feedback:"Machines watch continuously and page on breach — the gap between 'it happened' and 'we know' collapses to minutes." },
+                  { key:"trust", label:"The team knows now — they'll be more careful", correct:false, feedback:"The team knew last quarter too. Awareness decays; automated checks don't." }
+                ],
+                errorText:"Nothing is watching the project continuously — the next three-month drift has already started."
+              },
+              { id:"h-spot", type:"choice",
+                label:"Apply Spot pricing where it actually fits",
+                prompt:"Three workloads could move to Spot VMs for ~70% savings. Which one is actually safe there?",
+                options:[
+                  { key:"db", label:"The production database", correct:false, feedback:"A database that can be preempted with 30 seconds' notice is an outage generator — never Spot." },
+                  { key:"batch", label:"The nightly render batch — stateless, restartable, deadline-flexible", correct:true, feedback:"Interruptible by design: a preempted VM just means a chunk re-renders. That's the workload Spot was built for." },
+                  { key:"api", label:"The payment API servers", correct:false, feedback:"Customer-facing latency-sensitive servers vanishing mid-request is not a savings plan." }
+                ],
+                errorText:"Spot is either unused or aimed at a workload that can't survive preemption."
+              },
+              { id:"h-pillar", type:"choice",
+                label:"Frame the last finding for Friday's review",
+                prompt:"The review also found there's no tested failover plan. In Architecture Framework terms, which pillar is failing?",
+                options:[
+                  { key:"cost", label:"Cost optimization", correct:false, feedback:"Cost is the pillar you just fixed — an untested failover plan doesn't waste money, it risks uptime." },
+                  { key:"reliability", label:"Reliability", correct:true, feedback:"Exactly — reliability is the pillar about surviving failure, and an untested plan is an unproven one." },
+                  { key:"security", label:"Security", correct:false, feedback:"Security is about protecting data and access — not about whether failover works." }
+                ],
+                errorText:"The finding still isn't mapped to the framework the reviewers will use on Friday."
+              },
+              { id:"h-verify", type:"action",
+                label:"Assemble the evidence pack",
+                actionLabel:"Generate evidence", loadingLabel:"Generating…", doneLabel:"Before/after bill, closed findings, continuous checks, and the pillar mapping — Friday is ready.", loadingMs:700,
+                errorText:"The review is Friday and the improvements exist only as verbal claims."
+              }
+            ]
+          }
+        },
+        aiint:{
+          aws:{
+            title:"The worker died for 40 minutes and took the orders with it",
+            scenario:"The order-processing worker crashed at lunch. For 40 minutes the web app kept calling it directly and synchronously — every order in that window returned an error and is simply gone.",
+            consoleLabel:"Amazon MQ Console (simulated)",
+            actionBtn:"Re-run the failure drill",
+            successText:"The worker can die whenever it likes now — orders wait in the queue, process in order, and poison messages can't jam the line.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Name why the orders were lost",
+                prompt:"Why did a worker crash turn into lost orders?",
+                options:[
+                  { key:"db", label:"The database ran out of space", correct:false, feedback:"The database was healthy the whole time — orders never reached anything that could store them." },
+                  { key:"sync", label:"The web app called the worker directly — no worker, nowhere for orders to go", correct:true, feedback:"Synchronous coupling: the caller's success depends on the callee being alive at that exact moment. It wasn't." },
+                  { key:"traffic", label:"A lunch-hour traffic spike overwhelmed everything", correct:false, feedback:"Traffic was normal — the worker didn't drown, it died. And direct calls meant its death was every caller's problem." }
+                ],
+                errorText:"The architecture that lost the orders is still unnamed — and still in production."
+              },
+              { id:"e-queue", type:"action",
+                label:"Put a queue between the app and the worker",
+                actionLabel:"Deploy Amazon MQ", loadingLabel:"Deploying…", doneLabel:"Queue deployed — the app publishes and returns instantly; the worker consumes at its own pace.", loadingMs:700,
+                errorText:"The app still calls the worker directly — the next crash loses orders exactly the same way."
+              },
+              { id:"e-verify", type:"action",
+                label:"Prove it: kill the worker and keep ordering",
+                actionLabel:"Run kill test", loadingLabel:"Testing…", doneLabel:"Worker killed for 10 minutes under live orders — depth grew, worker returned, queue drained, zero lost.", loadingMs:800,
+                errorText:"Nobody has actually proven the queue survives a worker death — that was the entire point."
+              }
+            ],
+            hardSteps:[
+              { id:"h-order", type:"choice",
+                label:"Guarantee per-customer ordering",
+                prompt:"Payment events for the same customer must process in order — charge before refund, never after. What guarantees that?",
+                options:[
+                  { key:"standard", label:"The standard queue — messages roughly keep their order anyway", correct:false, feedback:"'Roughly' is the problem: standard queues guarantee delivery, not order — a refund can and eventually will overtake its charge." },
+                  { key:"fifo", label:"A FIFO queue with the customer ID as the message group", correct:true, feedback:"Message groups serialize per customer while different customers still process in parallel — ordered where it matters, fast where it doesn't." },
+                  { key:"timestamp", label:"Add timestamps and have the consumer sort it out", correct:false, feedback:"Now every consumer reimplements ordering logic, buffering, and edge cases — badly, forever. The queue can just do this." }
+                ],
+                errorText:"Refunds can still overtake their charges — per-customer ordering is still unguaranteed."
+              },
+              { id:"h-poison", type:"choice",
+                label:"Handle the message that kills every consumer",
+                prompt:"One malformed order crashes the consumer on every read — redelivered forever, blocking the whole line. What's the fix?",
+                options:[
+                  { key:"restart", label:"Auto-restart the consumer faster each time", correct:false, feedback:"It crashes on the same message every restart — you've built a faster crash loop, and the line is still blocked." },
+                  { key:"dlq", label:"A dead-letter queue after N failed attempts", correct:true, feedback:"The poison message gets shunted aside for humans after N tries — the line keeps moving, and the evidence is preserved." },
+                  { key:"purge", label:"Purge the whole queue to clear the jam", correct:false, feedback:"That deletes every innocent order behind the poison one — recreating the original incident, on purpose." }
+                ],
+                errorText:"One malformed message can still jam the entire order line indefinitely."
+              },
+              { id:"h-bot", type:"choice",
+                label:"Design the support bot's failure mode",
+                prompt:"The new Lex support bot won't understand everything. What happens on an unrecognized request?",
+                options:[
+                  { key:"guess", label:"Answer with the closest low-confidence match anyway", correct:false, feedback:"Confidently wrong answers about orders and refunds are worse than no bot — that's how trust (and money) gets lost." },
+                  { key:"handoff", label:"A fallback intent that hands the conversation to a human, with the transcript logged", correct:true, feedback:"The bot handles what it's sure of, humans get the rest with context, and the logs show what to teach it next." },
+                  { key:"end", label:"Reply \"I don't understand\" and end the chat", correct:false, feedback:"A dead end for the customer at their moment of need — the bot just became a wall instead of a door." }
+                ],
+                errorText:"The bot still fails closed on confused customers — or worse, fails confidently wrong."
+              },
+              { id:"h-verify", type:"action",
+                label:"Run the full failure drill",
+                actionLabel:"Run full drill", loadingLabel:"Drilling…", doneLabel:"Ordering held under parallel load, poison message shunted to the DLQ, bot handed off cleanly — all green.", loadingMs:800,
+                errorText:"The improvements exist on paper — none of them have been proven under failure."
+              }
+            ]
+          },
+          azure:{
+            title:"The worker died for 40 minutes and took the orders with it",
+            scenario:"The order-processing worker crashed at lunch. For 40 minutes the web app kept calling it directly and synchronously — every order in that window returned an error and is simply gone.",
+            consoleLabel:"Azure Service Bus (simulated)",
+            actionBtn:"Re-run the failure drill",
+            successText:"The worker can die whenever it likes now — orders wait in the queue, process in order, and poison messages can't jam the line.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Name why the orders were lost",
+                prompt:"Why did a worker crash turn into lost orders?",
+                options:[
+                  { key:"db", label:"The database ran out of space", correct:false, feedback:"The database was healthy the whole time — orders never reached anything that could store them." },
+                  { key:"sync", label:"The web app called the worker directly — no worker, nowhere for orders to go", correct:true, feedback:"Synchronous coupling: the caller's success depends on the callee being alive at that exact moment. It wasn't." },
+                  { key:"traffic", label:"A lunch-hour traffic spike overwhelmed everything", correct:false, feedback:"Traffic was normal — the worker didn't drown, it died. And direct calls meant its death was every caller's problem." }
+                ],
+                errorText:"The architecture that lost the orders is still unnamed — and still in production."
+              },
+              { id:"e-queue", type:"action",
+                label:"Put a queue between the app and the worker",
+                actionLabel:"Deploy Service Bus", loadingLabel:"Deploying…", doneLabel:"Queue deployed — the app publishes and returns instantly; the worker consumes at its own pace.", loadingMs:700,
+                errorText:"The app still calls the worker directly — the next crash loses orders exactly the same way."
+              },
+              { id:"e-verify", type:"action",
+                label:"Prove it: kill the worker and keep ordering",
+                actionLabel:"Run kill test", loadingLabel:"Testing…", doneLabel:"Worker killed for 10 minutes under live orders — depth grew, worker returned, queue drained, zero lost.", loadingMs:800,
+                errorText:"Nobody has actually proven the queue survives a worker death — that was the entire point."
+              }
+            ],
+            hardSteps:[
+              { id:"h-order", type:"choice",
+                label:"Guarantee per-customer ordering",
+                prompt:"Payment events for the same customer must process in order — charge before refund, never after. What guarantees that?",
+                options:[
+                  { key:"standard", label:"The basic queue — messages roughly keep their order anyway", correct:false, feedback:"'Roughly' is the problem: plain queues guarantee delivery, not order — a refund can and eventually will overtake its charge." },
+                  { key:"sessions", label:"Service Bus sessions keyed by customer ID", correct:true, feedback:"Sessions serialize per customer while different customers still process in parallel — ordered where it matters, fast where it doesn't." },
+                  { key:"timestamp", label:"Add timestamps and have the consumer sort it out", correct:false, feedback:"Now every consumer reimplements ordering logic, buffering, and edge cases — badly, forever. The queue can just do this." }
+                ],
+                errorText:"Refunds can still overtake their charges — per-customer ordering is still unguaranteed."
+              },
+              { id:"h-poison", type:"choice",
+                label:"Handle the message that kills every consumer",
+                prompt:"One malformed order crashes the consumer on every read — redelivered forever, blocking the whole line. What's the fix?",
+                options:[
+                  { key:"restart", label:"Auto-restart the consumer faster each time", correct:false, feedback:"It crashes on the same message every restart — you've built a faster crash loop, and the line is still blocked." },
+                  { key:"dlq", label:"The built-in dead-letter queue after max delivery attempts", correct:true, feedback:"The poison message gets shunted aside for humans after N tries — the line keeps moving, and the evidence is preserved." },
+                  { key:"purge", label:"Purge the whole queue to clear the jam", correct:false, feedback:"That deletes every innocent order behind the poison one — recreating the original incident, on purpose." }
+                ],
+                errorText:"One malformed message can still jam the entire order line indefinitely."
+              },
+              { id:"h-bot", type:"choice",
+                label:"Design the support bot's failure mode",
+                prompt:"The new Bot Service assistant won't understand everything. What happens on an unrecognized request?",
+                options:[
+                  { key:"guess", label:"Answer with the closest low-confidence match anyway", correct:false, feedback:"Confidently wrong answers about orders and refunds are worse than no bot — that's how trust (and money) gets lost." },
+                  { key:"handoff", label:"A fallback intent that hands the conversation to a human, with the transcript logged", correct:true, feedback:"The bot handles what it's sure of, humans get the rest with context, and the logs show what to teach it next." },
+                  { key:"end", label:"Reply \"I don't understand\" and end the chat", correct:false, feedback:"A dead end for the customer at their moment of need — the bot just became a wall instead of a door." }
+                ],
+                errorText:"The bot still fails closed on confused customers — or worse, fails confidently wrong."
+              },
+              { id:"h-verify", type:"action",
+                label:"Run the full failure drill",
+                actionLabel:"Run full drill", loadingLabel:"Drilling…", doneLabel:"Ordering held under parallel load, poison message dead-lettered, bot handed off cleanly — all green.", loadingMs:800,
+                errorText:"The improvements exist on paper — none of them have been proven under failure."
+              }
+            ]
+          },
+          gcp:{
+            title:"The worker died for 40 minutes and took the orders with it",
+            scenario:"The order-processing worker crashed at lunch. For 40 minutes the web app kept calling it directly and synchronously — every order in that window returned an error and is simply gone.",
+            consoleLabel:"Cloud Pub/Sub Console (simulated)",
+            actionBtn:"Re-run the failure drill",
+            successText:"The worker can die whenever it likes now — orders wait in the queue, process in order, and poison messages can't jam the line.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Name why the orders were lost",
+                prompt:"Why did a worker crash turn into lost orders?",
+                options:[
+                  { key:"db", label:"The database ran out of space", correct:false, feedback:"The database was healthy the whole time — orders never reached anything that could store them." },
+                  { key:"sync", label:"The web app called the worker directly — no worker, nowhere for orders to go", correct:true, feedback:"Synchronous coupling: the caller's success depends on the callee being alive at that exact moment. It wasn't." },
+                  { key:"traffic", label:"A lunch-hour traffic spike overwhelmed everything", correct:false, feedback:"Traffic was normal — the worker didn't drown, it died. And direct calls meant its death was every caller's problem." }
+                ],
+                errorText:"The architecture that lost the orders is still unnamed — and still in production."
+              },
+              { id:"e-queue", type:"action",
+                label:"Put a topic and subscription between the app and the worker",
+                actionLabel:"Deploy Pub/Sub", loadingLabel:"Deploying…", doneLabel:"Topic deployed — the app publishes and returns instantly; the worker pulls at its own pace.", loadingMs:700,
+                errorText:"The app still calls the worker directly — the next crash loses orders exactly the same way."
+              },
+              { id:"e-verify", type:"action",
+                label:"Prove it: kill the worker and keep ordering",
+                actionLabel:"Run kill test", loadingLabel:"Testing…", doneLabel:"Worker killed for 10 minutes under live orders — backlog grew, worker returned, subscription drained, zero lost.", loadingMs:800,
+                errorText:"Nobody has actually proven the queue survives a worker death — that was the entire point."
+              }
+            ],
+            hardSteps:[
+              { id:"h-order", type:"choice",
+                label:"Guarantee per-customer ordering",
+                prompt:"Payment events for the same customer must process in order — charge before refund, never after. What guarantees that?",
+                options:[
+                  { key:"standard", label:"The default subscription — messages roughly keep their order anyway", correct:false, feedback:"'Roughly' is the problem: default delivery guarantees arrival, not order — a refund can and eventually will overtake its charge." },
+                  { key:"ordering", label:"Ordering keys set to the customer ID", correct:true, feedback:"Ordering keys serialize per customer while different customers still process in parallel — ordered where it matters, fast where it doesn't." },
+                  { key:"timestamp", label:"Add timestamps and have the consumer sort it out", correct:false, feedback:"Now every consumer reimplements ordering logic, buffering, and edge cases — badly, forever. Pub/Sub can just do this." }
+                ],
+                errorText:"Refunds can still overtake their charges — per-customer ordering is still unguaranteed."
+              },
+              { id:"h-poison", type:"choice",
+                label:"Handle the message that kills every consumer",
+                prompt:"One malformed order crashes the consumer on every read — redelivered forever, blocking the whole line. What's the fix?",
+                options:[
+                  { key:"restart", label:"Auto-restart the consumer faster each time", correct:false, feedback:"It crashes on the same message every restart — you've built a faster crash loop, and the line is still blocked." },
+                  { key:"dlq", label:"A dead-letter topic after max delivery attempts", correct:true, feedback:"The poison message gets shunted aside for humans after N tries — the line keeps moving, and the evidence is preserved." },
+                  { key:"purge", label:"Purge the subscription to clear the jam", correct:false, feedback:"That deletes every innocent order behind the poison one — recreating the original incident, on purpose." }
+                ],
+                errorText:"One malformed message can still jam the entire order line indefinitely."
+              },
+              { id:"h-bot", type:"choice",
+                label:"Design the support bot's failure mode",
+                prompt:"The new Dialogflow support bot won't understand everything. What happens on an unrecognized request?",
+                options:[
+                  { key:"guess", label:"Answer with the closest low-confidence match anyway", correct:false, feedback:"Confidently wrong answers about orders and refunds are worse than no bot — that's how trust (and money) gets lost." },
+                  { key:"handoff", label:"A fallback intent that hands the conversation to a human, with the transcript logged", correct:true, feedback:"The bot handles what it's sure of, humans get the rest with context, and the logs show what to teach it next." },
+                  { key:"end", label:"Reply \"I don't understand\" and end the chat", correct:false, feedback:"A dead end for the customer at their moment of need — the bot just became a wall instead of a door." }
+                ],
+                errorText:"The bot still fails closed on confused customers — or worse, fails confidently wrong."
+              },
+              { id:"h-verify", type:"action",
+                label:"Run the full failure drill",
+                actionLabel:"Run full drill", loadingLabel:"Drilling…", doneLabel:"Ordering held under parallel load, poison message dead-lettered, bot handed off cleanly — all green.", loadingMs:800,
+                errorText:"The improvements exist on paper — none of them have been proven under failure."
+              }
+            ]
+          }
+        },
+        certs:{
+          aws:{
+            title:"A certificate expires Saturday — and a bucket that shouldn't exist",
+            scenario:"The marketing microsite's TLS certificate expires Saturday, and it was imported by hand a year ago. Separately, a bucket of customer-uploaded files has never been scanned for what's actually in it.",
+            consoleLabel:"ACM & Macie Console (simulated)",
+            actionBtn:"Confirm both risks are closed",
+            successText:"The certificate renews itself forever, and the personal data has been found, locked down, and accounted for.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Understand what Saturday looks like if nothing is done",
+                prompt:"What happens the moment the certificate expires?",
+                options:[
+                  { key:"nothing", label:"Nothing visible — certificates are a formality", correct:false, feedback:"Every browser will throw a full-screen security warning and refuse the connection. The site is effectively down." },
+                  { key:"warning", label:"Browsers refuse the connection with a security error — the site is effectively down", correct:true, feedback:"Exactly — NET::ERR_CERT_DATE_INVALID, and no customer clicks past that screen." },
+                  { key:"http", label:"The site quietly falls back to plain HTTP", correct:false, feedback:"There's no automatic fallback — and serving customers over plain HTTP would be worse than an outage anyway." }
+                ],
+                errorText:"Saturday is still coming and nobody has established what expiry actually does."
+              },
+              { id:"e-renew", type:"action",
+                label:"Replace it with a managed, auto-renewing certificate",
+                actionLabel:"Issue ACM certificate", loadingLabel:"Issuing…", doneLabel:"ACM certificate issued and attached — it renews itself from now on, forever.", loadingMs:700,
+                errorText:"The hand-imported certificate is still the one being served — Saturday still ends in an outage."
+              },
+              { id:"e-scan", type:"action",
+                label:"Scan the upload bucket for sensitive data",
+                actionLabel:"Run Macie scan", loadingLabel:"Scanning…", doneLabel:"Scan complete: three objects contain government IDs and card numbers.", loadingMs:800,
+                errorText:"Nobody knows what's in that bucket — which means nobody is protecting what's in that bucket."
+              }
+            ],
+            hardSteps:[
+              { id:"h-why", type:"choice",
+                label:"Explain why only this certificate nearly lapsed",
+                prompt:"Every other certificate in the account renews itself. Why is this one different?",
+                options:[
+                  { key:"outage", label:"ACM had an outage on its renewal date", correct:false, feedback:"ACM renews continuously ahead of expiry, not on a single fragile date — and no outage was reported." },
+                  { key:"imported", label:"It was imported from an outside CA — ACM can't renew what it didn't issue", correct:true, feedback:"Exactly — imported certificates keep their original issuer's lifecycle. Auto-renewal only covers what ACM itself issues." },
+                  { key:"random", label:"Certificates sometimes expire early at random", correct:false, feedback:"Expiry dates are fixed at issuance — nothing about them is random." }
+                ],
+                errorText:"Until the root cause is named, the next hand-imported certificate will do exactly the same thing."
+              },
+              { id:"h-pin", type:"choice",
+                label:"Deal with the mobile app that pinned the old certificate",
+                prompt:"The mobile team pinned the exact old certificate in the app. Rotating it breaks every install. What's the right call?",
+                options:[
+                  { key:"never", label:"Keep the old certificate forever so the app keeps working", correct:false, feedback:"You can't — it expires Saturday regardless. Pinning a leaf certificate created this trap; keeping it doesn't escape it." },
+                  { key:"update", label:"Ship an app update that pins the CA (not the leaf) before rotating", correct:true, feedback:"Pin the stable thing: the CA chain survives rotation, so the app trusts every future renewal automatically." },
+                  { key:"ignore", label:"Rotate anyway — mobile users can reinstall", correct:false, feedback:"That bricks every installed app the moment you rotate — an outage you chose, on top of the one you're avoiding." }
+                ],
+                errorText:"Either the app breaks on rotation day, or the site breaks on Saturday — the pinning trap is still armed."
+              },
+              { id:"h-pii", type:"choice",
+                label:"Act on what the scan found",
+                prompt:"Macie flagged government IDs in three objects — in a bucket with public-read enabled. First move?",
+                options:[
+                  { key:"delete", label:"Delete the whole bucket immediately", correct:false, feedback:"That destroys legitimate customer files and possibly legal evidence — containment first, not demolition." },
+                  { key:"lock", label:"Turn on Block Public Access, then quarantine the flagged objects", correct:true, feedback:"Close the exposure first, then isolate the sensitive objects for review — reversible, auditable, immediate." },
+                  { key:"policy", label:"Write a policy telling users not to upload IDs", correct:false, feedback:"A policy doesn't move a single byte — the IDs are still public while the memo circulates." }
+                ],
+                errorText:"Government IDs are still one URL away from anyone on the internet."
+              },
+              { id:"h-verify", type:"action",
+                label:"Prove both fixes hold",
+                actionLabel:"Run verification", loadingLabel:"Verifying…", doneLabel:"Renewal simulated, pinned app still connects, public access blocked, flagged objects quarantined.", loadingMs:800,
+                errorText:"Nothing has been verified end-to-end — 'probably fine' is what Saturday was running on before."
+              }
+            ]
+          },
+          azure:{
+            title:"A certificate expires Saturday — and a container that shouldn't exist",
+            scenario:"The marketing microsite's TLS certificate expires Saturday, and it was uploaded by hand a year ago. Separately, a storage container of customer-uploaded files has never been scanned for what's actually in it.",
+            consoleLabel:"Key Vault & Purview (simulated)",
+            actionBtn:"Confirm both risks are closed",
+            successText:"The certificate renews itself forever, and the personal data has been found, locked down, and accounted for.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Understand what Saturday looks like if nothing is done",
+                prompt:"What happens the moment the certificate expires?",
+                options:[
+                  { key:"nothing", label:"Nothing visible — certificates are a formality", correct:false, feedback:"Every browser will throw a full-screen security warning and refuse the connection. The site is effectively down." },
+                  { key:"warning", label:"Browsers refuse the connection with a security error — the site is effectively down", correct:true, feedback:"Exactly — NET::ERR_CERT_DATE_INVALID, and no customer clicks past that screen." },
+                  { key:"http", label:"The site quietly falls back to plain HTTP", correct:false, feedback:"There's no automatic fallback — and serving customers over plain HTTP would be worse than an outage anyway." }
+                ],
+                errorText:"Saturday is still coming and nobody has established what expiry actually does."
+              },
+              { id:"e-renew", type:"action",
+                label:"Replace it with a Key Vault managed certificate",
+                actionLabel:"Issue managed certificate", loadingLabel:"Issuing…", doneLabel:"Key Vault certificate issued with an auto-rotation policy — it renews itself from now on.", loadingMs:700,
+                errorText:"The hand-uploaded certificate is still the one being served — Saturday still ends in an outage."
+              },
+              { id:"e-scan", type:"action",
+                label:"Scan the upload container for sensitive data",
+                actionLabel:"Run Purview scan", loadingLabel:"Scanning…", doneLabel:"Scan complete: three blobs contain government IDs and card numbers.", loadingMs:800,
+                errorText:"Nobody knows what's in that container — which means nobody is protecting what's in it."
+              }
+            ],
+            hardSteps:[
+              { id:"h-why", type:"choice",
+                label:"Explain why only this certificate nearly lapsed",
+                prompt:"Every other certificate in the vault renews itself. Why is this one different?",
+                options:[
+                  { key:"outage", label:"Key Vault had an outage on its renewal date", correct:false, feedback:"Managed certificates renew continuously ahead of expiry, not on a single fragile date — and no outage was reported." },
+                  { key:"imported", label:"It was uploaded as a raw file — Key Vault can't rotate what it doesn't manage", correct:true, feedback:"Exactly — imported certificates keep their original issuer's lifecycle. Auto-rotation only covers vault-managed issuance." },
+                  { key:"random", label:"Certificates sometimes expire early at random", correct:false, feedback:"Expiry dates are fixed at issuance — nothing about them is random." }
+                ],
+                errorText:"Until the root cause is named, the next hand-uploaded certificate will do exactly the same thing."
+              },
+              { id:"h-pin", type:"choice",
+                label:"Deal with the mobile app that pinned the old certificate",
+                prompt:"The mobile team pinned the exact old certificate in the app. Rotating it breaks every install. What's the right call?",
+                options:[
+                  { key:"never", label:"Keep the old certificate forever so the app keeps working", correct:false, feedback:"You can't — it expires Saturday regardless. Pinning a leaf certificate created this trap; keeping it doesn't escape it." },
+                  { key:"update", label:"Ship an app update that pins the CA (not the leaf) before rotating", correct:true, feedback:"Pin the stable thing: the CA chain survives rotation, so the app trusts every future renewal automatically." },
+                  { key:"ignore", label:"Rotate anyway — mobile users can reinstall", correct:false, feedback:"That bricks every installed app the moment you rotate — an outage you chose, on top of the one you're avoiding." }
+                ],
+                errorText:"Either the app breaks on rotation day, or the site breaks on Saturday — the pinning trap is still armed."
+              },
+              { id:"h-pii", type:"choice",
+                label:"Act on what the scan found",
+                prompt:"Purview flagged government IDs in three blobs — in a container with anonymous read enabled. First move?",
+                options:[
+                  { key:"delete", label:"Delete the whole container immediately", correct:false, feedback:"That destroys legitimate customer files and possibly legal evidence — containment first, not demolition." },
+                  { key:"lock", label:"Disable anonymous access, then quarantine the flagged blobs", correct:true, feedback:"Close the exposure first, then isolate the sensitive blobs for review — reversible, auditable, immediate." },
+                  { key:"policy", label:"Write a policy telling users not to upload IDs", correct:false, feedback:"A policy doesn't move a single byte — the IDs are still public while the memo circulates." }
+                ],
+                errorText:"Government IDs are still one URL away from anyone on the internet."
+              },
+              { id:"h-verify", type:"action",
+                label:"Prove both fixes hold",
+                actionLabel:"Run verification", loadingLabel:"Verifying…", doneLabel:"Rotation simulated, pinned app still connects, anonymous access off, flagged blobs quarantined.", loadingMs:800,
+                errorText:"Nothing has been verified end-to-end — 'probably fine' is what Saturday was running on before."
+              }
+            ]
+          },
+          gcp:{
+            title:"A certificate expires Saturday — and a bucket that shouldn't exist",
+            scenario:"The marketing microsite's TLS certificate expires Saturday, and it was uploaded by hand a year ago. Separately, a bucket of customer-uploaded files has never been scanned for what's actually in it.",
+            consoleLabel:"Certificate Manager & DLP (simulated)",
+            actionBtn:"Confirm both risks are closed",
+            successText:"The certificate renews itself forever, and the personal data has been found, locked down, and accounted for.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Understand what Saturday looks like if nothing is done",
+                prompt:"What happens the moment the certificate expires?",
+                options:[
+                  { key:"nothing", label:"Nothing visible — certificates are a formality", correct:false, feedback:"Every browser will throw a full-screen security warning and refuse the connection. The site is effectively down." },
+                  { key:"warning", label:"Browsers refuse the connection with a security error — the site is effectively down", correct:true, feedback:"Exactly — NET::ERR_CERT_DATE_INVALID, and no customer clicks past that screen." },
+                  { key:"http", label:"The site quietly falls back to plain HTTP", correct:false, feedback:"There's no automatic fallback — and serving customers over plain HTTP would be worse than an outage anyway." }
+                ],
+                errorText:"Saturday is still coming and nobody has established what expiry actually does."
+              },
+              { id:"e-renew", type:"action",
+                label:"Replace it with a Google-managed certificate",
+                actionLabel:"Issue managed certificate", loadingLabel:"Issuing…", doneLabel:"Managed certificate issued and attached — it renews itself from now on, forever.", loadingMs:700,
+                errorText:"The hand-uploaded certificate is still the one being served — Saturday still ends in an outage."
+              },
+              { id:"e-scan", type:"action",
+                label:"Scan the upload bucket for sensitive data",
+                actionLabel:"Run DLP scan", loadingLabel:"Scanning…", doneLabel:"Scan complete: three objects contain government IDs and card numbers.", loadingMs:800,
+                errorText:"Nobody knows what's in that bucket — which means nobody is protecting what's in that bucket."
+              }
+            ],
+            hardSteps:[
+              { id:"h-why", type:"choice",
+                label:"Explain why only this certificate nearly lapsed",
+                prompt:"Every other certificate in the project renews itself. Why is this one different?",
+                options:[
+                  { key:"outage", label:"Certificate Manager had an outage on its renewal date", correct:false, feedback:"Managed certificates renew continuously ahead of expiry, not on a single fragile date — and no outage was reported." },
+                  { key:"imported", label:"It was uploaded as a self-managed certificate — Google can't renew what it didn't issue", correct:true, feedback:"Exactly — self-managed certificates keep their original issuer's lifecycle. Auto-renewal only covers Google-managed issuance." },
+                  { key:"random", label:"Certificates sometimes expire early at random", correct:false, feedback:"Expiry dates are fixed at issuance — nothing about them is random." }
+                ],
+                errorText:"Until the root cause is named, the next self-managed certificate will do exactly the same thing."
+              },
+              { id:"h-pin", type:"choice",
+                label:"Deal with the mobile app that pinned the old certificate",
+                prompt:"The mobile team pinned the exact old certificate in the app. Rotating it breaks every install. What's the right call?",
+                options:[
+                  { key:"never", label:"Keep the old certificate forever so the app keeps working", correct:false, feedback:"You can't — it expires Saturday regardless. Pinning a leaf certificate created this trap; keeping it doesn't escape it." },
+                  { key:"update", label:"Ship an app update that pins the CA (not the leaf) before rotating", correct:true, feedback:"Pin the stable thing: the CA chain survives rotation, so the app trusts every future renewal automatically." },
+                  { key:"ignore", label:"Rotate anyway — mobile users can reinstall", correct:false, feedback:"That bricks every installed app the moment you rotate — an outage you chose, on top of the one you're avoiding." }
+                ],
+                errorText:"Either the app breaks on rotation day, or the site breaks on Saturday — the pinning trap is still armed."
+              },
+              { id:"h-pii", type:"choice",
+                label:"Act on what the scan found",
+                prompt:"DLP flagged government IDs in three objects — in a bucket with allUsers read access. First move?",
+                options:[
+                  { key:"delete", label:"Delete the whole bucket immediately", correct:false, feedback:"That destroys legitimate customer files and possibly legal evidence — containment first, not demolition." },
+                  { key:"lock", label:"Remove the allUsers binding, then quarantine the flagged objects", correct:true, feedback:"Close the exposure first, then isolate the sensitive objects for review — reversible, auditable, immediate." },
+                  { key:"policy", label:"Write a policy telling users not to upload IDs", correct:false, feedback:"A policy doesn't move a single byte — the IDs are still public while the memo circulates." }
+                ],
+                errorText:"Government IDs are still one URL away from anyone on the internet."
+              },
+              { id:"h-verify", type:"action",
+                label:"Prove both fixes hold",
+                actionLabel:"Run verification", loadingLabel:"Verifying…", doneLabel:"Renewal simulated, pinned app still connects, public access removed, flagged objects quarantined.", loadingMs:800,
+                errorText:"Nothing has been verified end-to-end — 'probably fine' is what Saturday was running on before."
+              }
+            ]
+          }
+        },
+        analytics:{
+          aws:{
+            title:"The nightly reports are strangling the checkout database",
+            scenario:"Every night at 2am the BI team's reports scan five years of orders — directly against the production database. Checkout latency triples while they run, and the reports keep getting slower too.",
+            consoleLabel:"Redshift & Athena Console (simulated)",
+            actionBtn:"Verify checkout and reporting are both healthy",
+            successText:"Checkout never feels the reports anymore, the reports finish in minutes, and one-off questions don't need a pipeline at all.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Diagnose the 2am slowdowns",
+                prompt:"Why does checkout slow down at 2am — the site's quietest hour?",
+                options:[
+                  { key:"traffic", label:"A hidden nightly traffic spike", correct:false, feedback:"Traffic graphs show 2am is the daily minimum — customers aren't doing this." },
+                  { key:"reports", label:"The report queries scan years of history on the same database serving checkout", correct:true, feedback:"Exactly — analytical scans and transactional lookups are fighting over the same CPU, memory, and disk." },
+                  { key:"disk", label:"The disk is full", correct:false, feedback:"Storage metrics are fine — and a full disk wouldn't recover on its own at 4am when the reports end." }
+                ],
+                errorText:"The root cause is still unnamed — checkout will crawl again at 2am tonight."
+              },
+              { id:"e-offload", type:"choice",
+                label:"Pick where the reports should live",
+                prompt:"What's the right home for heavy analytical queries over years of history?",
+                options:[
+                  { key:"bigger", label:"A much bigger production database instance", correct:false, feedback:"You'd pay peak-analytics prices 24/7 and the workloads still collide — sharing is the problem, not size." },
+                  { key:"warehouse", label:"A data warehouse (Redshift) fed from production", correct:true, feedback:"Columnar storage built for exactly this: scanning years of history fast, on hardware checkout never touches." },
+                  { key:"cache", label:"A cache in front of the database", correct:false, feedback:"Caches serve repeated reads of the same hot data — a report scanning five years of history is the opposite of that." }
+                ],
+                errorText:"The reports still have nowhere to go except the checkout database."
+              },
+              { id:"e-pipeline", type:"action",
+                label:"Set up the nightly export to the warehouse",
+                actionLabel:"Create export pipeline", loadingLabel:"Creating…", doneLabel:"Nightly export flowing — reports now run in Redshift and checkout never feels them.", loadingMs:800,
+                errorText:"The warehouse exists but holds no data — the reports still hit production."
+              }
+            ],
+            hardSteps:[
+              { id:"h-fresh", type:"choice",
+                label:"Handle the real-time dashboard request",
+                prompt:"An analyst wants dashboards that lag production by minutes, not a day. What's the right feed?",
+                options:[
+                  { key:"replica", label:"Point the BI tool at a production read replica", correct:false, feedback:"A replica is still OLTP-shaped — the same heavy scans run slow there, and long queries stall replication for everything else." },
+                  { key:"stream", label:"Continuous replication into the warehouse instead of a nightly batch", correct:true, feedback:"Streaming change data into Redshift keeps dashboards minutes fresh while the heavy scanning stays on warehouse hardware." },
+                  { key:"prod", label:"Let that one analyst query production directly", correct:false, feedback:"That reopens tonight's incident with one user instead of a pipeline — the collision is the problem, not who causes it." }
+                ],
+                errorText:"The freshness request still has no answer that doesn't re-strangle production."
+              },
+              { id:"h-adhoc", type:"choice",
+                label:"Answer a one-off question about raw logs",
+                prompt:"Someone needs one answer from raw request logs already sitting in S3. What's the right tool?",
+                options:[
+                  { key:"load", label:"Load the logs into the warehouse first, then query", correct:false, feedback:"Building ingestion for a single question is days of work the question doesn't justify." },
+                  { key:"athena", label:"Athena — SQL directly against the files in S3", correct:true, feedback:"No loading, no cluster: point Athena at the bucket, write SQL, pay for the one query. Built for exactly this." },
+                  { key:"script", label:"Download everything and grep through it locally", correct:false, feedback:"Terabytes over your office connection to answer one SQL-shaped question — the tool for this already exists." }
+                ],
+                errorText:"A one-line SQL question is still waiting on either a pipeline build or a giant download."
+              },
+              { id:"h-cost", type:"choice",
+                label:"Stop the warehouse bill from climbing",
+                prompt:"A month in, the warehouse bill spikes — analysts SELECT * across all five years for every question. What's the fix?",
+                options:[
+                  { key:"bigger", label:"Move to a bigger warehouse cluster", correct:false, feedback:"That raises the ceiling and the bill — the waste scans just finish faster." },
+                  { key:"partition", label:"Partition by date and teach queries to touch only the columns and ranges they need", correct:true, feedback:"Columnar engines bill by data scanned — partition pruning plus column selection routinely cuts 90%+ of it." },
+                  { key:"limit", label:"Restrict analysts to three queries per day", correct:false, feedback:"Rationing punishes the people doing their job instead of fixing the queries that waste the scans." }
+                ],
+                errorText:"Every dashboard refresh still scans five full years — the bill climbs with each one."
+              },
+              { id:"h-verify", type:"action",
+                label:"Verify both sides are healthy",
+                actionLabel:"Run health check", loadingLabel:"Checking…", doneLabel:"Checkout p99 flat through the 2am window; reports finish in minutes; the one-off ran for pennies.", loadingMs:700,
+                errorText:"Nobody has actually confirmed checkout survives the 2am window untouched."
+              }
+            ]
+          },
+          azure:{
+            title:"The nightly reports are strangling the checkout database",
+            scenario:"Every night at 2am the BI team's reports scan five years of orders — directly against the production database. Checkout latency triples while they run, and the reports keep getting slower too.",
+            consoleLabel:"Synapse Analytics (simulated)",
+            actionBtn:"Verify checkout and reporting are both healthy",
+            successText:"Checkout never feels the reports anymore, the reports finish in minutes, and one-off questions don't need a pipeline at all.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Diagnose the 2am slowdowns",
+                prompt:"Why does checkout slow down at 2am — the site's quietest hour?",
+                options:[
+                  { key:"traffic", label:"A hidden nightly traffic spike", correct:false, feedback:"Traffic graphs show 2am is the daily minimum — customers aren't doing this." },
+                  { key:"reports", label:"The report queries scan years of history on the same database serving checkout", correct:true, feedback:"Exactly — analytical scans and transactional lookups are fighting over the same CPU, memory, and disk." },
+                  { key:"disk", label:"The disk is full", correct:false, feedback:"Storage metrics are fine — and a full disk wouldn't recover on its own at 4am when the reports end." }
+                ],
+                errorText:"The root cause is still unnamed — checkout will crawl again at 2am tonight."
+              },
+              { id:"e-offload", type:"choice",
+                label:"Pick where the reports should live",
+                prompt:"What's the right home for heavy analytical queries over years of history?",
+                options:[
+                  { key:"bigger", label:"A much bigger production database tier", correct:false, feedback:"You'd pay peak-analytics prices 24/7 and the workloads still collide — sharing is the problem, not size." },
+                  { key:"warehouse", label:"Azure Synapse Analytics, fed from production", correct:true, feedback:"Columnar storage built for exactly this: scanning years of history fast, on hardware checkout never touches." },
+                  { key:"cache", label:"A cache in front of the database", correct:false, feedback:"Caches serve repeated reads of the same hot data — a report scanning five years of history is the opposite of that." }
+                ],
+                errorText:"The reports still have nowhere to go except the checkout database."
+              },
+              { id:"e-pipeline", type:"action",
+                label:"Set up the nightly export to Synapse",
+                actionLabel:"Create export pipeline", loadingLabel:"Creating…", doneLabel:"Nightly export flowing — reports now run in Synapse and checkout never feels them.", loadingMs:800,
+                errorText:"The warehouse exists but holds no data — the reports still hit production."
+              }
+            ],
+            hardSteps:[
+              { id:"h-fresh", type:"choice",
+                label:"Handle the real-time dashboard request",
+                prompt:"An analyst wants dashboards that lag production by minutes, not a day. What's the right feed?",
+                options:[
+                  { key:"replica", label:"Point Power BI at a production read replica", correct:false, feedback:"A replica is still OLTP-shaped — the same heavy scans run slow there, and long queries stall replication for everything else." },
+                  { key:"stream", label:"Continuous replication into Synapse instead of a nightly batch", correct:true, feedback:"Streaming change data into the warehouse keeps dashboards minutes fresh while heavy scanning stays on warehouse hardware." },
+                  { key:"prod", label:"Let that one analyst query production directly", correct:false, feedback:"That reopens tonight's incident with one user instead of a pipeline — the collision is the problem, not who causes it." }
+                ],
+                errorText:"The freshness request still has no answer that doesn't re-strangle production."
+              },
+              { id:"h-adhoc", type:"choice",
+                label:"Answer a one-off question about raw logs",
+                prompt:"Someone needs one answer from raw request logs already sitting in blob storage. What's the right tool?",
+                options:[
+                  { key:"load", label:"Load the logs into the warehouse first, then query", correct:false, feedback:"Building ingestion for a single question is days of work the question doesn't justify." },
+                  { key:"serverless", label:"Synapse serverless SQL — query the files where they sit", correct:true, feedback:"No loading, no cluster: point serverless SQL at the container, write the query, pay for the one scan. Built for exactly this." },
+                  { key:"script", label:"Download everything and grep through it locally", correct:false, feedback:"Terabytes over your office connection to answer one SQL-shaped question — the tool for this already exists." }
+                ],
+                errorText:"A one-line SQL question is still waiting on either a pipeline build or a giant download."
+              },
+              { id:"h-cost", type:"choice",
+                label:"Stop the warehouse bill from climbing",
+                prompt:"A month in, the Synapse bill spikes — analysts SELECT * across all five years for every question. What's the fix?",
+                options:[
+                  { key:"bigger", label:"Scale up to a bigger dedicated pool", correct:false, feedback:"That raises the ceiling and the bill — the waste scans just finish faster." },
+                  { key:"partition", label:"Partition by date and teach queries to touch only the columns and ranges they need", correct:true, feedback:"Columnar engines bill by data scanned — partition pruning plus column selection routinely cuts 90%+ of it." },
+                  { key:"limit", label:"Restrict analysts to three queries per day", correct:false, feedback:"Rationing punishes the people doing their job instead of fixing the queries that waste the scans." }
+                ],
+                errorText:"Every dashboard refresh still scans five full years — the bill climbs with each one."
+              },
+              { id:"h-verify", type:"action",
+                label:"Verify both sides are healthy",
+                actionLabel:"Run health check", loadingLabel:"Checking…", doneLabel:"Checkout p99 flat through the 2am window; reports finish in minutes; the one-off ran for pennies.", loadingMs:700,
+                errorText:"Nobody has actually confirmed checkout survives the 2am window untouched."
+              }
+            ]
+          },
+          gcp:{
+            title:"The nightly reports are strangling the checkout database",
+            scenario:"Every night at 2am the BI team's reports scan five years of orders — directly against the production database. Checkout latency triples while they run, and the reports keep getting slower too.",
+            consoleLabel:"BigQuery Console (simulated)",
+            actionBtn:"Verify checkout and reporting are both healthy",
+            successText:"Checkout never feels the reports anymore, the reports finish in minutes, and one-off questions don't need a pipeline at all.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Diagnose the 2am slowdowns",
+                prompt:"Why does checkout slow down at 2am — the site's quietest hour?",
+                options:[
+                  { key:"traffic", label:"A hidden nightly traffic spike", correct:false, feedback:"Traffic graphs show 2am is the daily minimum — customers aren't doing this." },
+                  { key:"reports", label:"The report queries scan years of history on the same database serving checkout", correct:true, feedback:"Exactly — analytical scans and transactional lookups are fighting over the same CPU, memory, and disk." },
+                  { key:"disk", label:"The disk is full", correct:false, feedback:"Storage metrics are fine — and a full disk wouldn't recover on its own at 4am when the reports end." }
+                ],
+                errorText:"The root cause is still unnamed — checkout will crawl again at 2am tonight."
+              },
+              { id:"e-offload", type:"choice",
+                label:"Pick where the reports should live",
+                prompt:"What's the right home for heavy analytical queries over years of history?",
+                options:[
+                  { key:"bigger", label:"A much bigger Cloud SQL instance", correct:false, feedback:"You'd pay peak-analytics prices 24/7 and the workloads still collide — sharing is the problem, not size." },
+                  { key:"warehouse", label:"BigQuery, fed from production", correct:true, feedback:"Columnar, serverless, built for exactly this: scanning years of history fast, on infrastructure checkout never touches." },
+                  { key:"cache", label:"A cache in front of the database", correct:false, feedback:"Caches serve repeated reads of the same hot data — a report scanning five years of history is the opposite of that." }
+                ],
+                errorText:"The reports still have nowhere to go except the checkout database."
+              },
+              { id:"e-pipeline", type:"action",
+                label:"Set up the nightly export to BigQuery",
+                actionLabel:"Create export pipeline", loadingLabel:"Creating…", doneLabel:"Nightly export flowing — reports now run in BigQuery and checkout never feels them.", loadingMs:800,
+                errorText:"The warehouse exists but holds no data — the reports still hit production."
+              }
+            ],
+            hardSteps:[
+              { id:"h-fresh", type:"choice",
+                label:"Handle the real-time dashboard request",
+                prompt:"An analyst wants dashboards that lag production by minutes, not a day. What's the right feed?",
+                options:[
+                  { key:"replica", label:"Point the BI tool at a Cloud SQL read replica", correct:false, feedback:"A replica is still OLTP-shaped — the same heavy scans run slow there, and long queries stall replication for everything else." },
+                  { key:"stream", label:"Continuous change-data replication into BigQuery instead of a nightly batch", correct:true, feedback:"Streaming changes into BigQuery keeps dashboards minutes fresh while heavy scanning stays on warehouse infrastructure." },
+                  { key:"prod", label:"Let that one analyst query production directly", correct:false, feedback:"That reopens tonight's incident with one user instead of a pipeline — the collision is the problem, not who causes it." }
+                ],
+                errorText:"The freshness request still has no answer that doesn't re-strangle production."
+              },
+              { id:"h-adhoc", type:"choice",
+                label:"Answer a one-off question about raw logs",
+                prompt:"Someone needs one answer from raw request logs already sitting in Cloud Storage. What's the right tool?",
+                options:[
+                  { key:"load", label:"Load the logs into native BigQuery tables first, then query", correct:false, feedback:"Building ingestion for a single question is days of work the question doesn't justify." },
+                  { key:"external", label:"A BigQuery external table — SQL directly against the files in the bucket", correct:true, feedback:"No loading: define the external table, write SQL, pay for the one scan. Built for exactly this." },
+                  { key:"script", label:"Download everything and grep through it locally", correct:false, feedback:"Terabytes over your office connection to answer one SQL-shaped question — the tool for this already exists." }
+                ],
+                errorText:"A one-line SQL question is still waiting on either a pipeline build or a giant download."
+              },
+              { id:"h-cost", type:"choice",
+                label:"Stop the warehouse bill from climbing",
+                prompt:"A month in, the BigQuery bill spikes — analysts SELECT * across all five years for every question. What's the fix?",
+                options:[
+                  { key:"bigger", label:"Buy more slots / reserved capacity", correct:false, feedback:"That raises the ceiling and the bill — the waste scans just finish faster." },
+                  { key:"partition", label:"Partition by date, cluster hot columns, and teach queries to touch only what they need", correct:true, feedback:"BigQuery bills by data scanned — partition pruning plus column selection routinely cuts 90%+ of it." },
+                  { key:"limit", label:"Restrict analysts to three queries per day", correct:false, feedback:"Rationing punishes the people doing their job instead of fixing the queries that waste the scans." }
+                ],
+                errorText:"Every dashboard refresh still scans five full years — the bill climbs with each one."
+              },
+              { id:"h-verify", type:"action",
+                label:"Verify both sides are healthy",
+                actionLabel:"Run health check", loadingLabel:"Checking…", doneLabel:"Checkout p99 flat through the 2am window; reports finish in minutes; the one-off ran for pennies.", loadingMs:700,
+                errorText:"Nobody has actually confirmed checkout survives the 2am window untouched."
+              }
+            ]
+          }
+        },
+        hybrid:{
+          aws:{
+            title:"Ninety days to empty the datacenter",
+            scenario:"The datacenter lease ends in 90 days: a 500GB production database that can't stop serving, a 40TB file share, and one workload that legally cannot leave the building.",
+            consoleLabel:"Migration Console (simulated)",
+            actionBtn:"Execute the cutover weekend",
+            successText:"Database cut over with minutes of downtime, files landed on schedule, the regulated workload stayed home on cloud hardware — lease surrendered on time.",
+            easySteps:[
+              { id:"e-db", type:"choice",
+                label:"Plan the database move",
+                prompt:"The production database can't afford more than minutes of downtime. How does it move?",
+                options:[
+                  { key:"dump", label:"Take it offline, export, upload, import — one long weekend", correct:false, feedback:"That's 10+ hours of downtime for a database that 'can't stop serving' — the constraint rules this out on its face." },
+                  { key:"dms", label:"DMS continuous replication until cutover minute", correct:true, feedback:"The source keeps serving while DMS mirrors every change to the target — cutover is minutes, not a weekend." },
+                  { key:"snowball", label:"Put the database on a Snowball device", correct:false, feedback:"A truck gives you a stale copy — by the time it arrives, production has changed under it. Wrong tool for a live database." }
+                ],
+                errorText:"The database still has no migration path that honors its uptime constraint."
+              },
+              { id:"e-files", type:"action",
+                label:"Start the 40TB file share moving",
+                actionLabel:"Schedule DataSync", loadingLabel:"Scheduling…", doneLabel:"DataSync running nightly — verified, throttled, incremental transfers with no scripts to babysit.", loadingMs:700,
+                errorText:"40TB is still sitting in a building you're leaving in 90 days."
+              },
+              { id:"e-cutover", type:"action",
+                label:"Run the cutover weekend",
+                actionLabel:"Execute cutover", loadingLabel:"Cutting over…", doneLabel:"DNS flipped, replication caught up, applications now serving from the cloud.", loadingMs:800,
+                errorText:"Everything is staged but nothing has actually cut over — the lease clock is still running."
+              }
+            ],
+            hardSteps:[
+              { id:"h-link", type:"choice",
+                label:"Pick connectivity for the 90-day window and after",
+                prompt:"Teams need a stable link to the cloud during migration, and a permanent 10 Gbps private link after. What's the play?",
+                options:[
+                  { key:"vpnonly", label:"Site-to-Site VPN and keep it forever", correct:false, feedback:"A VPN stands up in days but rides the public internet — it can't promise the steady 10 Gbps private path the end-state requires." },
+                  { key:"both", label:"VPN this week for the migration; order Direct Connect now for the end-state", correct:true, feedback:"The VPN covers the 90-day window immediately; the Direct Connect circuit — which takes weeks to provision — lands in time to be the permanent link." },
+                  { key:"wait", label:"Wait for Direct Connect before starting anything", correct:false, feedback:"Provisioning eats a third of the lease window before a single byte moves — the deadline doesn't wait for the circuit." }
+                ],
+                errorText:"The teams still have no link plan that covers both the deadline and the end-state."
+              },
+              { id:"h-compliance", type:"choice",
+                label:"Solve the workload that can't leave the building",
+                prompt:"One system processes data that legally may not leave the premises — but its team wants cloud APIs and tooling. What's the answer?",
+                options:[
+                  { key:"ignore", label:"Move it anyway — the regulator probably won't check", correct:false, feedback:"Betting the company on 'probably won't check' isn't a migration strategy, it's a liability with a start date." },
+                  { key:"outposts", label:"AWS Outposts — the provider's rack, inside your building, same APIs", correct:true, feedback:"The data never leaves the premises; the team still gets the cloud control plane. This is exactly the niche Outposts exists for." },
+                  { key:"keepdc", label:"Keep the whole datacenter for this one workload", correct:false, feedback:"Renewing an entire facility for one rack's worth of workload defeats the point of the migration you're 90 days into." }
+                ],
+                errorText:"The regulated workload still has nowhere legal to run after the lease ends."
+              },
+              { id:"h-validate", type:"choice",
+                label:"Prove the replicated database is actually correct",
+                prompt:"Before cutover: how do you know the target database truly matches the source?",
+                options:[
+                  { key:"progress", label:"The replication dashboard shows 100% — that's the proof", correct:false, feedback:"A progress bar proves data moved, not that it's identical — silent type conversions and skipped rows hide behind 100%." },
+                  { key:"validate", label:"Run row-count and checksum validation, then a full rehearsal cutover", correct:true, feedback:"Validation catches silent drift; the rehearsal proves the runbook and the timing before the weekend that counts." },
+                  { key:"spot", label:"Manually diff a handful of important rows", correct:false, feedback:"A hand-picked sample can't speak for 500GB — the rows that break are always the ones nobody thought to check." }
+                ],
+                errorText:"Cutover is scheduled against a target nobody has actually proven correct."
+              },
+              { id:"h-cutover", type:"action",
+                label:"Execute the rehearsed cutover",
+                actionLabel:"Execute final cutover", loadingLabel:"Cutting over…", doneLabel:"Validated, rehearsed, executed — minutes of downtime, zero surprises, lease surrendered.", loadingMs:800,
+                errorText:"The rehearsal exists but the real cutover hasn't happened — the lease clock is still running."
+              }
+            ]
+          },
+          azure:{
+            title:"Ninety days to empty the datacenter",
+            scenario:"The datacenter lease ends in 90 days: a 500GB production database that can't stop serving, a 40TB file share, and one workload that legally cannot leave the building.",
+            consoleLabel:"Azure Migrate (simulated)",
+            actionBtn:"Execute the cutover weekend",
+            successText:"Database cut over with minutes of downtime, files landed on schedule, the regulated workload stayed home on cloud hardware — lease surrendered on time.",
+            easySteps:[
+              { id:"e-db", type:"choice",
+                label:"Plan the database move",
+                prompt:"The production database can't afford more than minutes of downtime. How does it move?",
+                options:[
+                  { key:"dump", label:"Take it offline, export, upload, import — one long weekend", correct:false, feedback:"That's 10+ hours of downtime for a database that 'can't stop serving' — the constraint rules this out on its face." },
+                  { key:"dms", label:"Azure Database Migration Service with continuous sync until cutover", correct:true, feedback:"The source keeps serving while DMS mirrors every change to the target — cutover is minutes, not a weekend." },
+                  { key:"databox", label:"Put the database on a Data Box device", correct:false, feedback:"A shipped box gives you a stale copy — by the time it arrives, production has changed under it. Wrong tool for a live database." }
+                ],
+                errorText:"The database still has no migration path that honors its uptime constraint."
+              },
+              { id:"e-files", type:"action",
+                label:"Start the 40TB file share moving",
+                actionLabel:"Schedule AzCopy sync", loadingLabel:"Scheduling…", doneLabel:"Nightly sync running — verified, throttled, incremental transfers with no scripts to babysit.", loadingMs:700,
+                errorText:"40TB is still sitting in a building you're leaving in 90 days."
+              },
+              { id:"e-cutover", type:"action",
+                label:"Run the cutover weekend",
+                actionLabel:"Execute cutover", loadingLabel:"Cutting over…", doneLabel:"DNS flipped, replication caught up, applications now serving from Azure.", loadingMs:800,
+                errorText:"Everything is staged but nothing has actually cut over — the lease clock is still running."
+              }
+            ],
+            hardSteps:[
+              { id:"h-link", type:"choice",
+                label:"Pick connectivity for the 90-day window and after",
+                prompt:"Teams need a stable link to Azure during migration, and a permanent 10 Gbps private link after. What's the play?",
+                options:[
+                  { key:"vpnonly", label:"VPN Gateway and keep it forever", correct:false, feedback:"A VPN stands up in days but rides the public internet — it can't promise the steady 10 Gbps private path the end-state requires." },
+                  { key:"both", label:"VPN Gateway this week; order ExpressRoute now for the end-state", correct:true, feedback:"The VPN covers the 90-day window immediately; the ExpressRoute circuit — which takes weeks to provision — lands in time to be the permanent link." },
+                  { key:"wait", label:"Wait for ExpressRoute before starting anything", correct:false, feedback:"Provisioning eats a third of the lease window before a single byte moves — the deadline doesn't wait for the circuit." }
+                ],
+                errorText:"The teams still have no link plan that covers both the deadline and the end-state."
+              },
+              { id:"h-compliance", type:"choice",
+                label:"Solve the workload that can't leave the building",
+                prompt:"One system processes data that legally may not leave the premises — but its team wants cloud APIs and tooling. What's the answer?",
+                options:[
+                  { key:"ignore", label:"Move it anyway — the regulator probably won't check", correct:false, feedback:"Betting the company on 'probably won't check' isn't a migration strategy, it's a liability with a start date." },
+                  { key:"local", label:"Azure Local — Azure's stack, on your premises, same control plane", correct:true, feedback:"The data never leaves the premises; the team still gets the Azure portal and APIs. This is exactly the niche Azure Local exists for." },
+                  { key:"keepdc", label:"Keep the whole datacenter for this one workload", correct:false, feedback:"Renewing an entire facility for one rack's worth of workload defeats the point of the migration you're 90 days into." }
+                ],
+                errorText:"The regulated workload still has nowhere legal to run after the lease ends."
+              },
+              { id:"h-validate", type:"choice",
+                label:"Prove the replicated database is actually correct",
+                prompt:"Before cutover: how do you know the target database truly matches the source?",
+                options:[
+                  { key:"progress", label:"The migration dashboard shows 100% — that's the proof", correct:false, feedback:"A progress bar proves data moved, not that it's identical — silent type conversions and skipped rows hide behind 100%." },
+                  { key:"validate", label:"Run row-count and checksum validation, then a full rehearsal cutover", correct:true, feedback:"Validation catches silent drift; the rehearsal proves the runbook and the timing before the weekend that counts." },
+                  { key:"spot", label:"Manually diff a handful of important rows", correct:false, feedback:"A hand-picked sample can't speak for 500GB — the rows that break are always the ones nobody thought to check." }
+                ],
+                errorText:"Cutover is scheduled against a target nobody has actually proven correct."
+              },
+              { id:"h-cutover", type:"action",
+                label:"Execute the rehearsed cutover",
+                actionLabel:"Execute final cutover", loadingLabel:"Cutting over…", doneLabel:"Validated, rehearsed, executed — minutes of downtime, zero surprises, lease surrendered.", loadingMs:800,
+                errorText:"The rehearsal exists but the real cutover hasn't happened — the lease clock is still running."
+              }
+            ]
+          },
+          gcp:{
+            title:"Ninety days to empty the datacenter",
+            scenario:"The datacenter lease ends in 90 days: a 500GB production database that can't stop serving, a 40TB file share, and one workload that legally cannot leave the building.",
+            consoleLabel:"Migration Center (simulated)",
+            actionBtn:"Execute the cutover weekend",
+            successText:"Database cut over with minutes of downtime, files landed on schedule, the regulated workload stayed home on cloud hardware — lease surrendered on time.",
+            easySteps:[
+              { id:"e-db", type:"choice",
+                label:"Plan the database move",
+                prompt:"The production database can't afford more than minutes of downtime. How does it move?",
+                options:[
+                  { key:"dump", label:"Take it offline, export, upload, import — one long weekend", correct:false, feedback:"That's 10+ hours of downtime for a database that 'can't stop serving' — the constraint rules this out on its face." },
+                  { key:"dms", label:"Database Migration Service with continuous replication until cutover", correct:true, feedback:"The source keeps serving while DMS mirrors every change to the target — cutover is minutes, not a weekend." },
+                  { key:"appliance", label:"Put the database on a Transfer Appliance", correct:false, feedback:"A shipped appliance gives you a stale copy — by the time it arrives, production has changed under it. Wrong tool for a live database." }
+                ],
+                errorText:"The database still has no migration path that honors its uptime constraint."
+              },
+              { id:"e-files", type:"action",
+                label:"Start the 40TB file share moving",
+                actionLabel:"Schedule Storage Transfer", loadingLabel:"Scheduling…", doneLabel:"Storage Transfer Service running nightly — verified, throttled, incremental, no scripts to babysit.", loadingMs:700,
+                errorText:"40TB is still sitting in a building you're leaving in 90 days."
+              },
+              { id:"e-cutover", type:"action",
+                label:"Run the cutover weekend",
+                actionLabel:"Execute cutover", loadingLabel:"Cutting over…", doneLabel:"DNS flipped, replication caught up, applications now serving from Google Cloud.", loadingMs:800,
+                errorText:"Everything is staged but nothing has actually cut over — the lease clock is still running."
+              }
+            ],
+            hardSteps:[
+              { id:"h-link", type:"choice",
+                label:"Pick connectivity for the 90-day window and after",
+                prompt:"Teams need a stable link to the cloud during migration, and a permanent 10 Gbps private link after. What's the play?",
+                options:[
+                  { key:"vpnonly", label:"Cloud VPN and keep it forever", correct:false, feedback:"A VPN stands up in days but rides the public internet — it can't promise the steady 10 Gbps private path the end-state requires." },
+                  { key:"both", label:"Cloud VPN this week; order Cloud Interconnect now for the end-state", correct:true, feedback:"The VPN covers the 90-day window immediately; the Interconnect circuit — which takes weeks to provision — lands in time to be the permanent link." },
+                  { key:"wait", label:"Wait for Interconnect before starting anything", correct:false, feedback:"Provisioning eats a third of the lease window before a single byte moves — the deadline doesn't wait for the circuit." }
+                ],
+                errorText:"The teams still have no link plan that covers both the deadline and the end-state."
+              },
+              { id:"h-compliance", type:"choice",
+                label:"Solve the workload that can't leave the building",
+                prompt:"One system processes data that legally may not leave the premises — but its team wants cloud APIs and tooling. What's the answer?",
+                options:[
+                  { key:"ignore", label:"Move it anyway — the regulator probably won't check", correct:false, feedback:"Betting the company on 'probably won't check' isn't a migration strategy, it's a liability with a start date." },
+                  { key:"gdc", label:"Google Distributed Cloud — Google's stack, on your premises, same control plane", correct:true, feedback:"The data never leaves the premises; the team still gets the cloud tooling. This is exactly the niche Distributed Cloud exists for." },
+                  { key:"keepdc", label:"Keep the whole datacenter for this one workload", correct:false, feedback:"Renewing an entire facility for one rack's worth of workload defeats the point of the migration you're 90 days into." }
+                ],
+                errorText:"The regulated workload still has nowhere legal to run after the lease ends."
+              },
+              { id:"h-validate", type:"choice",
+                label:"Prove the replicated database is actually correct",
+                prompt:"Before cutover: how do you know the target database truly matches the source?",
+                options:[
+                  { key:"progress", label:"The replication dashboard shows 100% — that's the proof", correct:false, feedback:"A progress bar proves data moved, not that it's identical — silent type conversions and skipped rows hide behind 100%." },
+                  { key:"validate", label:"Run row-count and checksum validation, then a full rehearsal cutover", correct:true, feedback:"Validation catches silent drift; the rehearsal proves the runbook and the timing before the weekend that counts." },
+                  { key:"spot", label:"Manually diff a handful of important rows", correct:false, feedback:"A hand-picked sample can't speak for 500GB — the rows that break are always the ones nobody thought to check." }
+                ],
+                errorText:"Cutover is scheduled against a target nobody has actually proven correct."
+              },
+              { id:"h-cutover", type:"action",
+                label:"Execute the rehearsed cutover",
+                actionLabel:"Execute final cutover", loadingLabel:"Cutting over…", doneLabel:"Validated, rehearsed, executed — minutes of downtime, zero surprises, lease surrendered.", loadingMs:800,
+                errorText:"The rehearsal exists but the real cutover hasn't happened — the lease clock is still running."
+              }
+            ]
+          }
+        },
+        threat:{
+          aws:{
+            title:"A 3am finding: your instance is mining cryptocurrency",
+            scenario:"GuardDuty raised CryptoCurrency:EC2/BitcoinTool.B!DNS on a production instance at 3:12am. The instance keeps resolving mining-pool domains. Nobody deployed anything tonight.",
+            consoleLabel:"Amazon GuardDuty Console (simulated)",
+            actionBtn:"Close the incident",
+            successText:"Contained, traced, and hardened — the miner is gone, the way in is shut, and the next one gets caught in minutes.",
+            easySteps:[
+              { id:"e-read", type:"choice",
+                label:"Read the finding correctly",
+                prompt:"What is this finding actually telling you?",
+                options:[
+                  { key:"billing", label:"It's an AWS billing anomaly notification", correct:false, feedback:"GuardDuty doesn't watch your bill — it watches behavior. This is the instance itself talking to mining pools." },
+                  { key:"mining", label:"Something on this instance is mining cryptocurrency for someone else", correct:true, feedback:"Exactly — mining-pool DNS lookups from a prod instance means someone else's code is running on your machine." },
+                  { key:"fp", label:"A false positive — safe to archive", correct:false, feedback:"An instance that has no business with crypto resolving mining pools at 3am is about as clear a signal as this ever gets." }
+                ],
+                errorText:"The finding is still sitting unread — the miner is still running on your bill."
+              },
+              { id:"e-isolate", type:"action",
+                label:"Isolate the instance from the network",
+                actionLabel:"Isolate instance", loadingLabel:"Isolating…", doneLabel:"Instance isolated — the miner can no longer reach its pool or anything else.", loadingMs:600,
+                errorText:"The instance still has open network access — the miner is still connected and still earning."
+              },
+              { id:"e-rotate", type:"action",
+                label:"Rotate the credentials that instance was holding",
+                actionLabel:"Rotate credentials", loadingLabel:"Rotating…", doneLabel:"Credentials rotated — whatever the attacker copied is now worthless.", loadingMs:600,
+                errorText:"The credentials the attacker could have copied off that machine still work everywhere."
+              }
+            ],
+            hardSteps:[
+              { id:"h-trace", type:"choice",
+                label:"Establish how this actually happened",
+                prompt:"You need to know who or what created the process on this instance and every API call around it. Which service answers that?",
+                options:[
+                  { key:"cw", label:"CloudWatch metrics", correct:false, feedback:"CloudWatch tells you CPU was at 98% — numbers, not actors. It can't tell you who did what." },
+                  { key:"trail", label:"CloudTrail", correct:true, feedback:"CloudTrail is the audit record: every API call, its caller, its source IP, its time. This is where investigations live." },
+                  { key:"inspector", label:"Amazon Inspector", correct:false, feedback:"Inspector finds vulnerabilities before they're exploited — it doesn't record what already happened." }
+                ],
+                errorText:"You still don't know how the attacker got in — anything you fix now is a guess."
+              },
+              { id:"h-contain", type:"choice",
+                label:"Contain it without destroying the evidence",
+                prompt:"The instance is compromised right now. What's the correct containment move?",
+                options:[
+                  { key:"terminate", label:"Terminate the instance immediately", correct:false, feedback:"Termination destroys the disk — and with it every artifact your investigation (and maybe your legal team) needs." },
+                  { key:"snapshot", label:"Snapshot the disk, then swap its security group to an isolation group", correct:true, feedback:"Evidence preserved, network cut. The instance is a crime scene — you rope it off, you don't bulldoze it." },
+                  { key:"reboot", label:"Reboot it — that clears most malware", correct:false, feedback:"A reboot clears nothing that persisted itself, loses volatile evidence, and tells the attacker you noticed." }
+                ],
+                errorText:"The instance is either still talking to the pool, or you've already destroyed what the investigation needed."
+              },
+              { id:"h-root", type:"choice",
+                label:"Cut off the way in",
+                prompt:"CloudTrail shows the miner was installed using a leaked IAM access key. What's the first fix?",
+                options:[
+                  { key:"deactivate", label:"Deactivate that access key now", correct:true, feedback:"The leaked key is the open door. Everything else is secondary until it's dead." },
+                  { key:"email", label:"Email the team asking everyone to be more careful with keys", correct:false, feedback:"The leaked key doesn't care about the email — it still works while everyone reads it." },
+                  { key:"mfa", label:"Enable MFA on the root account", correct:false, feedback:"Good hygiene, wrong door — this attacker came through an access key, and MFA on root doesn't invalidate it." }
+                ],
+                errorText:"The leaked key still works — the attacker can walk back in exactly the way they came."
+              },
+              { id:"h-hub", type:"action",
+                label:"Make sure the next one is caught in minutes, not days",
+                actionLabel:"Enable Security Hub standard", loadingLabel:"Enabling…", doneLabel:"Security Hub is aggregating GuardDuty, Inspector, and config checks into one scored dashboard with alerts wired to the on-call.", loadingMs:700,
+                errorText:"Detection still depends on someone happening to open the right console at the right time."
+              }
+            ]
+          },
+          azure:{
+            title:"A 3am alert: your VM is mining cryptocurrency",
+            scenario:"Microsoft Defender for Cloud raised a high-severity alert on a production VM at 3:12am: crypto-mining behavior detected. The VM keeps resolving mining-pool domains. Nobody deployed anything tonight.",
+            consoleLabel:"Microsoft Defender for Cloud (simulated)",
+            actionBtn:"Close the incident",
+            successText:"Contained, traced, and hardened — the miner is gone, the way in is shut, and the next one gets caught in minutes.",
+            easySteps:[
+              { id:"e-read", type:"choice",
+                label:"Read the alert correctly",
+                prompt:"What is this alert actually telling you?",
+                options:[
+                  { key:"billing", label:"It's an Azure cost-management notification", correct:false, feedback:"Defender for Cloud watches workload behavior, not your invoice. This is the VM itself talking to mining pools." },
+                  { key:"mining", label:"Something on this VM is mining cryptocurrency for someone else", correct:true, feedback:"Exactly — mining-pool DNS lookups from a prod VM means someone else's code is running on your machine." },
+                  { key:"fp", label:"A false positive — dismiss it", correct:false, feedback:"A VM with no business in crypto resolving mining pools at 3am is about as clear a signal as this ever gets." }
+                ],
+                errorText:"The alert is still sitting unread — the miner is still running on your bill."
+              },
+              { id:"e-isolate", type:"action",
+                label:"Isolate the VM from the network",
+                actionLabel:"Isolate VM", loadingLabel:"Isolating…", doneLabel:"VM isolated behind a deny-all NSG — the miner can no longer reach its pool.", loadingMs:600,
+                errorText:"The VM still has open network access — the miner is still connected and still earning."
+              },
+              { id:"e-rotate", type:"action",
+                label:"Rotate the credentials that VM was holding",
+                actionLabel:"Rotate credentials", loadingLabel:"Rotating…", doneLabel:"Secrets rotated in Key Vault — whatever the attacker copied is now worthless.", loadingMs:600,
+                errorText:"The credentials the attacker could have copied off that machine still work everywhere."
+              }
+            ],
+            hardSteps:[
+              { id:"h-trace", type:"choice",
+                label:"Establish how this actually happened",
+                prompt:"You need to know who or what touched this VM and every management call around it. Where do you look?",
+                options:[
+                  { key:"metrics", label:"Azure Monitor metrics", correct:false, feedback:"Metrics tell you CPU was at 98% — numbers, not actors. They can't tell you who did what." },
+                  { key:"activity", label:"The Azure Activity Log", correct:true, feedback:"The Activity Log is the audit record: every management operation, its caller, its IP, its time. This is where investigations live." },
+                  { key:"advisor", label:"Azure Advisor", correct:false, feedback:"Advisor recommends best practices — it doesn't record what already happened." }
+                ],
+                errorText:"You still don't know how the attacker got in — anything you fix now is a guess."
+              },
+              { id:"h-contain", type:"choice",
+                label:"Contain it without destroying the evidence",
+                prompt:"The VM is compromised right now. What's the correct containment move?",
+                options:[
+                  { key:"delete", label:"Delete the VM immediately", correct:false, feedback:"Deletion destroys the disk — and with it every artifact your investigation (and maybe your legal team) needs." },
+                  { key:"snapshot", label:"Snapshot the disk, then move the NIC into an isolation NSG", correct:true, feedback:"Evidence preserved, network cut. The VM is a crime scene — you rope it off, you don't bulldoze it." },
+                  { key:"restart", label:"Restart it — that clears most malware", correct:false, feedback:"A restart clears nothing that persisted itself, loses volatile evidence, and tells the attacker you noticed." }
+                ],
+                errorText:"The VM is either still talking to the pool, or you've already destroyed what the investigation needed."
+              },
+              { id:"h-root", type:"choice",
+                label:"Cut off the way in",
+                prompt:"The Activity Log shows the miner was installed using a leaked service principal secret. What's the first fix?",
+                options:[
+                  { key:"revoke", label:"Revoke that service principal's secret now", correct:true, feedback:"The leaked secret is the open door. Everything else is secondary until it's dead." },
+                  { key:"email", label:"Email the team asking everyone to be more careful with secrets", correct:false, feedback:"The leaked secret doesn't care about the email — it still works while everyone reads it." },
+                  { key:"mfa", label:"Require MFA for the global admin account", correct:false, feedback:"Good hygiene, wrong door — this attacker came through a service principal, and admin MFA doesn't invalidate its secret." }
+                ],
+                errorText:"The leaked secret still works — the attacker can walk back in exactly the way they came."
+              },
+              { id:"h-hub", type:"action",
+                label:"Make sure the next one is caught in minutes, not days",
+                actionLabel:"Enable Defender plans + alerts", loadingLabel:"Enabling…", doneLabel:"Defender for Cloud is now scoring the whole subscription and routing alerts straight to the on-call.", loadingMs:700,
+                errorText:"Detection still depends on someone happening to open the right portal blade at the right time."
+              }
+            ]
+          },
+          gcp:{
+            title:"A 3am finding: your instance is mining cryptocurrency",
+            scenario:"Security Command Center raised a cryptomining finding on a production Compute Engine instance at 3:12am. The instance keeps resolving mining-pool domains. Nobody deployed anything tonight.",
+            consoleLabel:"Security Command Center (simulated)",
+            actionBtn:"Close the incident",
+            successText:"Contained, traced, and hardened — the miner is gone, the way in is shut, and the next one gets caught in minutes.",
+            easySteps:[
+              { id:"e-read", type:"choice",
+                label:"Read the finding correctly",
+                prompt:"What is this finding actually telling you?",
+                options:[
+                  { key:"billing", label:"It's a billing-budget notification", correct:false, feedback:"Security Command Center watches workload behavior, not your invoice. This is the instance itself talking to mining pools." },
+                  { key:"mining", label:"Something on this instance is mining cryptocurrency for someone else", correct:true, feedback:"Exactly — mining-pool DNS lookups from a prod instance means someone else's code is running on your machine." },
+                  { key:"fp", label:"A false positive — mute the finding", correct:false, feedback:"An instance with no business in crypto resolving mining pools at 3am is about as clear a signal as this ever gets." }
+                ],
+                errorText:"The finding is still sitting unread — the miner is still running on your bill."
+              },
+              { id:"e-isolate", type:"action",
+                label:"Isolate the instance from the network",
+                actionLabel:"Isolate instance", loadingLabel:"Isolating…", doneLabel:"Instance isolated behind a deny-all firewall tag — the miner can no longer reach its pool.", loadingMs:600,
+                errorText:"The instance still has open network access — the miner is still connected and still earning."
+              },
+              { id:"e-rotate", type:"action",
+                label:"Rotate the credentials that instance was holding",
+                actionLabel:"Rotate credentials", loadingLabel:"Rotating…", doneLabel:"Service account keys rotated — whatever the attacker copied is now worthless.", loadingMs:600,
+                errorText:"The credentials the attacker could have copied off that machine still work everywhere."
+              }
+            ],
+            hardSteps:[
+              { id:"h-trace", type:"choice",
+                label:"Establish how this actually happened",
+                prompt:"You need to know who or what touched this instance and every API call around it. Where do you look?",
+                options:[
+                  { key:"metrics", label:"Cloud Monitoring metrics", correct:false, feedback:"Monitoring tells you CPU was at 98% — numbers, not actors. It can't tell you who did what." },
+                  { key:"audit", label:"Cloud Audit Logs", correct:true, feedback:"Audit Logs are the record: every API call, its caller, its IP, its time. This is where investigations live." },
+                  { key:"scanner", label:"Web Security Scanner", correct:false, feedback:"The scanner finds vulnerabilities before they're exploited — it doesn't record what already happened." }
+                ],
+                errorText:"You still don't know how the attacker got in — anything you fix now is a guess."
+              },
+              { id:"h-contain", type:"choice",
+                label:"Contain it without destroying the evidence",
+                prompt:"The instance is compromised right now. What's the correct containment move?",
+                options:[
+                  { key:"delete", label:"Delete the instance immediately", correct:false, feedback:"Deletion destroys the disk — and with it every artifact your investigation (and maybe your legal team) needs." },
+                  { key:"snapshot", label:"Snapshot the disk, then apply a deny-all firewall tag", correct:true, feedback:"Evidence preserved, network cut. The instance is a crime scene — you rope it off, you don't bulldoze it." },
+                  { key:"reset", label:"Reset it — that clears most malware", correct:false, feedback:"A reset clears nothing that persisted itself, loses volatile evidence, and tells the attacker you noticed." }
+                ],
+                errorText:"The instance is either still talking to the pool, or you've already destroyed what the investigation needed."
+              },
+              { id:"h-root", type:"choice",
+                label:"Cut off the way in",
+                prompt:"Audit Logs show the miner was installed using a leaked service account key. What's the first fix?",
+                options:[
+                  { key:"disable", label:"Disable that service account key now", correct:true, feedback:"The leaked key is the open door. Everything else is secondary until it's dead." },
+                  { key:"email", label:"Email the team asking everyone to be more careful with keys", correct:false, feedback:"The leaked key doesn't care about the email — it still works while everyone reads it." },
+                  { key:"2sv", label:"Enforce 2-Step Verification for the org admins", correct:false, feedback:"Good hygiene, wrong door — this attacker came through a service account key, and admin 2SV doesn't invalidate it." }
+                ],
+                errorText:"The leaked key still works — the attacker can walk back in exactly the way they came."
+              },
+              { id:"h-hub", type:"action",
+                label:"Make sure the next one is caught in minutes, not days",
+                actionLabel:"Enable SCC Premium + alerting", loadingLabel:"Enabling…", doneLabel:"Security Command Center Premium is now scoring the org and routing findings straight to the on-call.", loadingMs:700,
+                errorText:"Detection still depends on someone happening to open the right console at the right time."
+              }
+            ]
+          }
+        },
+        edge:{
+          aws:{
+            title:"Injection probes today, a DDoS threat for the weekend",
+            scenario:"Access logs show ' OR 1=1-- probes against the checkout endpoint all morning, and a crew is threatening a volumetric attack for Saturday's sale. Nothing sits between the internet and the load balancer.",
+            consoleLabel:"AWS WAF & Shield Console (simulated)",
+            actionBtn:"Run the attack simulation",
+            successText:"Injections die at the edge, the flood gets absorbed upstream, and real customers never notice either one.",
+            easySteps:[
+              { id:"e-identify", type:"choice",
+                label:"Identify what's in the logs",
+                prompt:"Requests keep arriving with ' OR 1=1-- inside a query parameter. What is that?",
+                options:[
+                  { key:"typo", label:"Users mistyping their search terms", correct:false, feedback:"No user types a quote, a boolean, and a SQL comment marker by accident, hundreds of times, from rotating IPs." },
+                  { key:"sqli", label:"SQL injection probing — someone testing if your database will execute their input", correct:true, feedback:"Classic SQLi probing: if the app ever concatenates that into a query, the attacker owns your data." },
+                  { key:"bot", label:"A harmless search-engine crawler", correct:false, feedback:"Crawlers fetch pages; they don't inject boolean logic into checkout parameters." }
+                ],
+                errorText:"You still haven't recognized the probes — the next one might be the one that works."
+              },
+              { id:"e-waf", type:"action",
+                label:"Put a WAF with managed rules in front of the load balancer",
+                actionLabel:"Attach AWS WAF", loadingLabel:"Attaching…", doneLabel:"WAF attached with the managed SQLi rule group — injection patterns now die at the edge.", loadingMs:700,
+                errorText:"There's still nothing between the internet and your app — every probe still reaches your code."
+              },
+              { id:"e-verify", type:"action",
+                label:"Replay this morning's probes against the protected endpoint",
+                actionLabel:"Replay probes", loadingLabel:"Replaying…", doneLabel:"Every replayed probe came back 403 — blocked before touching the application.", loadingMs:600,
+                errorText:"You haven't confirmed the rules actually catch the traffic you saw this morning."
+              }
+            ],
+            hardSteps:[
+              { id:"h-layer", type:"choice",
+                label:"Cover Saturday's threat too",
+                prompt:"The WAF now stops the injections. Does it also handle the threatened volumetric attack?",
+                options:[
+                  { key:"yes", label:"Yes — the WAF inspects every request, so it can drop the flood too", correct:false, feedback:"A WAF inspects requests one at a time at layer 7 — a terabit flood exhausts capacity long before rule evaluation matters." },
+                  { key:"shield", label:"No — volumetric floods are absorbed lower in the stack, by DDoS protection at the provider edge", correct:true, feedback:"Right — Shield absorbs layer 3/4 volume across AWS's global edge before it converges on you. Different layer, different product." },
+                  { key:"scale", label:"No — so double the server fleet for the weekend instead", correct:false, feedback:"You cannot out-buy a botnet with instances; you'd be paying to absorb the attack with your own bill." }
+                ],
+                errorText:"Saturday's flood has no answer yet — the WAF alone will be a speed bump, not a wall."
+              },
+              { id:"h-rate", type:"choice",
+                label:"Handle the credential-stuffing wave",
+                prompt:"Overnight, one IP range starts trying leaked username/password pairs against the login — 40 a second. Which WAF tool fits?",
+                options:[
+                  { key:"manual", label:"Block the offending IPs by hand as they appear", correct:false, feedback:"They rotate IPs faster than you can type — manual blocking is a treadmill, not a fix." },
+                  { key:"rate", label:"A rate-based rule that temporarily blocks any source exceeding a request threshold", correct:true, feedback:"Rate-based rules make the attack self-defeating: cross the threshold, get blocked automatically, no human in the loop." },
+                  { key:"captcha", label:"Put a CAPTCHA in front of every page on the site", correct:false, feedback:"That punishes every real customer on every page to solve a problem that lives on one endpoint." }
+                ],
+                errorText:"The login endpoint is still eating 40 credential attempts a second."
+              },
+              { id:"h-fp", type:"choice",
+                label:"Fix the false positives without dropping your guard",
+                prompt:"After enabling strict rules, customers searching for the product \"O'Brien's SELECT toolkit\" get blocked. What's the right fix?",
+                options:[
+                  { key:"off", label:"Disable the SQLi rule group — it's hurting sales", correct:false, feedback:"That reopens the exact hole this incident started with. False positives are tuned, not surrendered to." },
+                  { key:"tune", label:"Scope a targeted exception for the search parameter and keep the rule everywhere else", correct:true, feedback:"Precisely — narrow the rule where it misfires, keep full protection on every other path and parameter." },
+                  { key:"rename", label:"Ask marketing to rename the product", correct:false, feedback:"Renaming a product to satisfy a firewall rule is solving the problem from the wrong end." }
+                ],
+                errorText:"Either real customers are still being blocked, or the SQLi protection is off entirely."
+              },
+              { id:"h-verify", type:"action",
+                label:"Run the full attack simulation before Saturday",
+                actionLabel:"Run simulation", loadingLabel:"Simulating…", doneLabel:"Simulated SQLi, stuffing, and flood all handled at the edge — Saturday is covered.", loadingMs:800,
+                errorText:"You're going into Saturday without having tested any of this under fire."
+              }
+            ]
+          },
+          azure:{
+            title:"Injection probes today, a DDoS threat for the weekend",
+            scenario:"Access logs show ' OR 1=1-- probes against the checkout endpoint all morning, and a crew is threatening a volumetric attack for Saturday's sale. Nothing sits between the internet and the app gateway.",
+            consoleLabel:"Azure WAF & DDoS Protection (simulated)",
+            actionBtn:"Run the attack simulation",
+            successText:"Injections die at the edge, the flood gets absorbed upstream, and real customers never notice either one.",
+            easySteps:[
+              { id:"e-identify", type:"choice",
+                label:"Identify what's in the logs",
+                prompt:"Requests keep arriving with ' OR 1=1-- inside a query parameter. What is that?",
+                options:[
+                  { key:"typo", label:"Users mistyping their search terms", correct:false, feedback:"No user types a quote, a boolean, and a SQL comment marker by accident, hundreds of times, from rotating IPs." },
+                  { key:"sqli", label:"SQL injection probing — someone testing if your database will execute their input", correct:true, feedback:"Classic SQLi probing: if the app ever concatenates that into a query, the attacker owns your data." },
+                  { key:"bot", label:"A harmless search-engine crawler", correct:false, feedback:"Crawlers fetch pages; they don't inject boolean logic into checkout parameters." }
+                ],
+                errorText:"You still haven't recognized the probes — the next one might be the one that works."
+              },
+              { id:"e-waf", type:"action",
+                label:"Enable the WAF policy on the application gateway",
+                actionLabel:"Enable Azure WAF", loadingLabel:"Enabling…", doneLabel:"WAF enabled with the managed OWASP rule set — injection patterns now die at the edge.", loadingMs:700,
+                errorText:"There's still nothing between the internet and your app — every probe still reaches your code."
+              },
+              { id:"e-verify", type:"action",
+                label:"Replay this morning's probes against the protected endpoint",
+                actionLabel:"Replay probes", loadingLabel:"Replaying…", doneLabel:"Every replayed probe came back 403 — blocked before touching the application.", loadingMs:600,
+                errorText:"You haven't confirmed the rules actually catch the traffic you saw this morning."
+              }
+            ],
+            hardSteps:[
+              { id:"h-layer", type:"choice",
+                label:"Cover Saturday's threat too",
+                prompt:"The WAF now stops the injections. Does it also handle the threatened volumetric attack?",
+                options:[
+                  { key:"yes", label:"Yes — the WAF inspects every request, so it can drop the flood too", correct:false, feedback:"A WAF inspects requests one at a time at layer 7 — a terabit flood exhausts capacity long before rule evaluation matters." },
+                  { key:"ddos", label:"No — volumetric floods need a DDoS Protection plan absorbing them at the Azure edge", correct:true, feedback:"Right — DDoS Protection absorbs layer 3/4 volume across Microsoft's global edge before it converges on you. Different layer, different product." },
+                  { key:"scale", label:"No — so double the server fleet for the weekend instead", correct:false, feedback:"You cannot out-buy a botnet with VMs; you'd be paying to absorb the attack with your own bill." }
+                ],
+                errorText:"Saturday's flood has no answer yet — the WAF alone will be a speed bump, not a wall."
+              },
+              { id:"h-rate", type:"choice",
+                label:"Handle the credential-stuffing wave",
+                prompt:"Overnight, one IP range starts trying leaked username/password pairs against the login — 40 a second. Which WAF tool fits?",
+                options:[
+                  { key:"manual", label:"Block the offending IPs by hand as they appear", correct:false, feedback:"They rotate IPs faster than you can type — manual blocking is a treadmill, not a fix." },
+                  { key:"rate", label:"A rate-limit rule that temporarily blocks any source exceeding a request threshold", correct:true, feedback:"Rate-limit rules make the attack self-defeating: cross the threshold, get blocked automatically, no human in the loop." },
+                  { key:"captcha", label:"Put a CAPTCHA in front of every page on the site", correct:false, feedback:"That punishes every real customer on every page to solve a problem that lives on one endpoint." }
+                ],
+                errorText:"The login endpoint is still eating 40 credential attempts a second."
+              },
+              { id:"h-fp", type:"choice",
+                label:"Fix the false positives without dropping your guard",
+                prompt:"After enabling strict rules, customers searching for the product \"O'Brien's SELECT toolkit\" get blocked. What's the right fix?",
+                options:[
+                  { key:"off", label:"Disable the OWASP rule set — it's hurting sales", correct:false, feedback:"That reopens the exact hole this incident started with. False positives are tuned, not surrendered to." },
+                  { key:"tune", label:"Add a targeted exclusion for the search parameter and keep the rules everywhere else", correct:true, feedback:"Precisely — narrow the rule where it misfires, keep full protection on every other path and parameter." },
+                  { key:"rename", label:"Ask marketing to rename the product", correct:false, feedback:"Renaming a product to satisfy a firewall rule is solving the problem from the wrong end." }
+                ],
+                errorText:"Either real customers are still being blocked, or the SQLi protection is off entirely."
+              },
+              { id:"h-verify", type:"action",
+                label:"Run the full attack simulation before Saturday",
+                actionLabel:"Run simulation", loadingLabel:"Simulating…", doneLabel:"Simulated SQLi, stuffing, and flood all handled at the edge — Saturday is covered.", loadingMs:800,
+                errorText:"You're going into Saturday without having tested any of this under fire."
+              }
+            ]
+          },
+          gcp:{
+            title:"Injection probes today, a DDoS threat for the weekend",
+            scenario:"Access logs show ' OR 1=1-- probes against the checkout endpoint all morning, and a crew is threatening a volumetric attack for Saturday's sale. Nothing sits between the internet and the load balancer.",
+            consoleLabel:"Cloud Armor Console (simulated)",
+            actionBtn:"Run the attack simulation",
+            successText:"Injections die at the edge, the flood gets absorbed upstream, and real customers never notice either one.",
+            easySteps:[
+              { id:"e-identify", type:"choice",
+                label:"Identify what's in the logs",
+                prompt:"Requests keep arriving with ' OR 1=1-- inside a query parameter. What is that?",
+                options:[
+                  { key:"typo", label:"Users mistyping their search terms", correct:false, feedback:"No user types a quote, a boolean, and a SQL comment marker by accident, hundreds of times, from rotating IPs." },
+                  { key:"sqli", label:"SQL injection probing — someone testing if your database will execute their input", correct:true, feedback:"Classic SQLi probing: if the app ever concatenates that into a query, the attacker owns your data." },
+                  { key:"bot", label:"A harmless search-engine crawler", correct:false, feedback:"Crawlers fetch pages; they don't inject boolean logic into checkout parameters." }
+                ],
+                errorText:"You still haven't recognized the probes — the next one might be the one that works."
+              },
+              { id:"e-waf", type:"action",
+                label:"Attach a Cloud Armor security policy with preconfigured WAF rules",
+                actionLabel:"Attach Cloud Armor policy", loadingLabel:"Attaching…", doneLabel:"Security policy attached with the preconfigured SQLi rules — injection patterns now die at the edge.", loadingMs:700,
+                errorText:"There's still nothing between the internet and your app — every probe still reaches your code."
+              },
+              { id:"e-verify", type:"action",
+                label:"Replay this morning's probes against the protected endpoint",
+                actionLabel:"Replay probes", loadingLabel:"Replaying…", doneLabel:"Every replayed probe came back 403 — blocked before touching the application.", loadingMs:600,
+                errorText:"You haven't confirmed the rules actually catch the traffic you saw this morning."
+              }
+            ],
+            hardSteps:[
+              { id:"h-layer", type:"choice",
+                label:"Cover Saturday's threat too",
+                prompt:"The WAF rules now stop the injections. What handles the threatened volumetric attack?",
+                options:[
+                  { key:"same", label:"The same WAF rules — they inspect every request anyway", correct:false, feedback:"Rule evaluation at layer 7 doesn't absorb a terabit of layer 3/4 volume — capacity dies first." },
+                  { key:"adaptive", label:"Cloud Armor's edge absorption and Adaptive Protection, upstream of your backends", correct:true, feedback:"Right — Google's edge absorbs the volume and Adaptive Protection learns and blocks attack signatures automatically. Different layer, same product family." },
+                  { key:"scale", label:"Nothing — just double the backend fleet for the weekend", correct:false, feedback:"You cannot out-buy a botnet with instances; you'd be paying to absorb the attack with your own bill." }
+                ],
+                errorText:"Saturday's flood has no answer yet — request rules alone will be a speed bump, not a wall."
+              },
+              { id:"h-rate", type:"choice",
+                label:"Handle the credential-stuffing wave",
+                prompt:"Overnight, one IP range starts trying leaked username/password pairs against the login — 40 a second. Which tool fits?",
+                options:[
+                  { key:"manual", label:"Block the offending IPs by hand as they appear", correct:false, feedback:"They rotate IPs faster than you can type — manual blocking is a treadmill, not a fix." },
+                  { key:"rate", label:"A rate-based ban rule that temporarily blocks any source exceeding a threshold", correct:true, feedback:"Rate-based bans make the attack self-defeating: cross the threshold, get blocked automatically, no human in the loop." },
+                  { key:"captcha", label:"Put a CAPTCHA in front of every page on the site", correct:false, feedback:"That punishes every real customer on every page to solve a problem that lives on one endpoint." }
+                ],
+                errorText:"The login endpoint is still eating 40 credential attempts a second."
+              },
+              { id:"h-fp", type:"choice",
+                label:"Fix the false positives without dropping your guard",
+                prompt:"After enabling strict rules, customers searching for the product \"O'Brien's SELECT toolkit\" get blocked. What's the right fix?",
+                options:[
+                  { key:"off", label:"Disable the SQLi rules — they're hurting sales", correct:false, feedback:"That reopens the exact hole this incident started with. False positives are tuned, not surrendered to." },
+                  { key:"tune", label:"Scope a targeted exception for the search parameter and keep the rules everywhere else", correct:true, feedback:"Precisely — narrow the rule where it misfires, keep full protection on every other path and parameter." },
+                  { key:"rename", label:"Ask marketing to rename the product", correct:false, feedback:"Renaming a product to satisfy a firewall rule is solving the problem from the wrong end." }
+                ],
+                errorText:"Either real customers are still being blocked, or the SQLi protection is off entirely."
+              },
+              { id:"h-verify", type:"action",
+                label:"Run the full attack simulation before Saturday",
+                actionLabel:"Run simulation", loadingLabel:"Simulating…", doneLabel:"Simulated SQLi, stuffing, and flood all handled at the edge — Saturday is covered.", loadingMs:800,
+                errorText:"You're going into Saturday without having tested any of this under fire."
+              }
+            ]
+          }
+        },
+        identity:{
+          aws:{
+            title:"A contractor needs two weeks of access — do it without minting a time bomb",
+            scenario:"An outside consultant starts Monday and needs access to three services for exactly two weeks. Last year someone's long-term access key leaked from a laptop and it took a weekend to clean up.",
+            consoleLabel:"IAM & STS Console (simulated)",
+            actionBtn:"Close out the engagement",
+            successText:"Scoped, temporary, audited access — and when the laptop was stolen, there was nothing standing left to steal.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Choose how the contractor authenticates",
+                prompt:"What kind of credentials should this two-week engagement run on?",
+                options:[
+                  { key:"iamuser", label:"A new IAM user with a long-term access key", correct:false, feedback:"That key works until someone remembers to delete it — this is exactly how last year's leak happened." },
+                  { key:"role", label:"A role they assume, receiving temporary STS credentials", correct:true, feedback:"STS credentials expire on their own — the engagement ends and the access dies with it, remembered or not." },
+                  { key:"shared", label:"Share an existing engineer's credentials for two weeks", correct:false, feedback:"Shared credentials destroy the audit trail and outlive the engagement. Never." }
+                ],
+                errorText:"The contractor still has no safe way in — or worse, a permanent one."
+              },
+              { id:"e-grant", type:"action",
+                label:"Create the role and grant it to the contractor",
+                actionLabel:"Create scoped role", loadingLabel:"Creating…", doneLabel:"Role created — the contractor assumes it and receives credentials that die hourly.", loadingMs:600,
+                errorText:"The contractor starts Monday and there's still nothing for them to assume."
+              },
+              { id:"e-verify", type:"action",
+                label:"Verify the access works — and expires",
+                actionLabel:"Test assume-role", loadingLabel:"Testing…", doneLabel:"Assumed, called the three services, waited out the TTL — expired credentials denied, exactly as designed.", loadingMs:700,
+                errorText:"Nobody has confirmed the credentials actually expire — that's the entire point of the design."
+              }
+            ],
+            hardSteps:[
+              { id:"h-scope", type:"choice",
+                label:"Decide how much power the role carries",
+                prompt:"The contractor needs S3 read, DynamoDB read/write, and CloudWatch logs. What permissions does the role get?",
+                options:[
+                  { key:"admin", label:"AdministratorAccess — fastest way to unblock them", correct:false, feedback:"Admin-for-convenience means a stolen contractor laptop owns your whole account. Blast radius is a choice you make now." },
+                  { key:"exact", label:"Exactly those three services, on the specific resources involved", correct:true, feedback:"Least privilege: if these credentials ever leak, the damage is capped at what the job actually required." },
+                  { key:"readonly", label:"ReadOnlyAccess on everything", correct:false, feedback:"They can't write to DynamoDB — the job fails Monday morning and someone will 'temporarily' hand them admin." }
+                ],
+                errorText:"The role's permissions are still wrong — either dangerous or unusable."
+              },
+              { id:"h-audit", type:"choice",
+                label:"Answer \"what did they actually do?\"",
+                prompt:"A week in, your manager asks exactly that. Where's the answer?",
+                options:[
+                  { key:"ask", label:"Ask the contractor for a summary", correct:false, feedback:"Self-reporting isn't auditing — honest or not, it proves nothing." },
+                  { key:"trail", label:"CloudTrail, filtered by the assumed-role session name", correct:true, feedback:"Every STS session tags its API calls — CloudTrail replays the contractor's entire footprint, call by call." },
+                  { key:"applogs", label:"Grep the application logs", correct:false, feedback:"App logs show what the app did, not what the contractor did with cloud APIs around it." }
+                ],
+                errorText:"You still can't account for the contractor's actions — that's an audit failure, not a paperwork gap."
+              },
+              { id:"h-leak", type:"choice",
+                label:"The contractor's laptop is stolen mid-engagement",
+                prompt:"It happened again — Tuesday, week two. What does this design require you to do?",
+                options:[
+                  { key:"rotateall", label:"Company-wide credential rotation, like last year", correct:false, feedback:"That was the old design's cost. Nothing long-lived was on that laptop this time — there's nothing standing to rotate." },
+                  { key:"revoke", label:"Revoke the role's active sessions and let the short TTL kill the rest", correct:true, feedback:"One revocation, and anything already minted dies within the hour on its own. Compare that to last year's weekend." },
+                  { key:"nothing", label:"Nothing at all — expiry handles it completely", correct:false, feedback:"Close — but a session minted right before the theft could still be live for up to an hour. Revoke, then let expiry do the rest." }
+                ],
+                errorText:"Stolen hardware may still be holding a live session — and nobody has cut it."
+              },
+              { id:"h-close", type:"action",
+                label:"End the engagement cleanly",
+                actionLabel:"Remove role trust", loadingLabel:"Removing…", doneLabel:"Trust policy cleared — nothing to delete, nothing forgotten, nothing left behind.", loadingMs:600,
+                errorText:"The engagement is over but the role still trusts the contractor's identity."
+              }
+            ]
+          },
+          azure:{
+            title:"A contractor needs two weeks of access — do it without minting a time bomb",
+            scenario:"An outside consultant starts Monday and needs access to three services for exactly two weeks. Last year someone's client secret leaked from a laptop and it took a weekend to clean up.",
+            consoleLabel:"Microsoft Entra ID (simulated)",
+            actionBtn:"Close out the engagement",
+            successText:"Scoped, time-boxed, audited access — and when the laptop was stolen, there was nothing standing left to steal.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Choose how the contractor authenticates",
+                prompt:"What kind of access should this two-week engagement run on?",
+                options:[
+                  { key:"secret", label:"A service principal with a client secret they keep on the laptop", correct:false, feedback:"That secret works until someone remembers to delete it — this is exactly how last year's leak happened." },
+                  { key:"pim", label:"A guest account with a PIM role assignment that expires in two weeks", correct:true, feedback:"Entra guest + Privileged Identity Management: the assignment has an end date baked in — access dies with the engagement, remembered or not." },
+                  { key:"shared", label:"Share an existing engineer's login for two weeks", correct:false, feedback:"Shared credentials destroy the audit trail and outlive the engagement. Never." }
+                ],
+                errorText:"The contractor still has no safe way in — or worse, a permanent one."
+              },
+              { id:"e-grant", type:"action",
+                label:"Invite the guest and assign the time-boxed role",
+                actionLabel:"Assign PIM role", loadingLabel:"Assigning…", doneLabel:"Guest invited, role assigned with a hard end date two weeks out.", loadingMs:600,
+                errorText:"The contractor starts Monday and there's still nothing assigned to them."
+              },
+              { id:"e-verify", type:"action",
+                label:"Verify the access works — and expires",
+                actionLabel:"Test the assignment", loadingLabel:"Testing…", doneLabel:"Signed in, reached the three services, confirmed the assignment shows its expiry — exactly as designed.", loadingMs:700,
+                errorText:"Nobody has confirmed the assignment actually expires — that's the entire point of the design."
+              }
+            ],
+            hardSteps:[
+              { id:"h-scope", type:"choice",
+                label:"Decide how much power the assignment carries",
+                prompt:"The contractor needs Blob read, Cosmos DB read/write, and Log Analytics. What role do they get?",
+                options:[
+                  { key:"owner", label:"Owner on the subscription — fastest way to unblock them", correct:false, feedback:"Owner-for-convenience means a stolen contractor laptop owns your whole subscription. Blast radius is a choice you make now." },
+                  { key:"exact", label:"Custom role covering exactly those three services on the specific resource groups", correct:true, feedback:"Least privilege: if this access ever leaks, the damage is capped at what the job actually required." },
+                  { key:"reader", label:"Reader on everything", correct:false, feedback:"They can't write to Cosmos DB — the job fails Monday morning and someone will 'temporarily' hand them Owner." }
+                ],
+                errorText:"The assignment's permissions are still wrong — either dangerous or unusable."
+              },
+              { id:"h-audit", type:"choice",
+                label:"Answer \"what did they actually do?\"",
+                prompt:"A week in, your manager asks exactly that. Where's the answer?",
+                options:[
+                  { key:"ask", label:"Ask the contractor for a summary", correct:false, feedback:"Self-reporting isn't auditing — honest or not, it proves nothing." },
+                  { key:"logs", label:"The Activity Log and Entra sign-in logs, filtered to the guest identity", correct:true, feedback:"Every operation and sign-in is recorded against the guest — the logs replay their entire footprint." },
+                  { key:"applogs", label:"Grep the application logs", correct:false, feedback:"App logs show what the app did, not what the contractor did with management APIs around it." }
+                ],
+                errorText:"You still can't account for the contractor's actions — that's an audit failure, not a paperwork gap."
+              },
+              { id:"h-leak", type:"choice",
+                label:"The contractor's laptop is stolen mid-engagement",
+                prompt:"It happened again — Tuesday, week two. What does this design require you to do?",
+                options:[
+                  { key:"rotateall", label:"Company-wide secret rotation, like last year", correct:false, feedback:"That was the old design's cost. No standing secret was on that laptop this time — there's nothing to rotate." },
+                  { key:"revoke", label:"Revoke the guest's sessions and refresh tokens; the time-box handles the rest", correct:true, feedback:"One revocation kills the live sessions; the assignment's end date guarantees nothing outlives the engagement." },
+                  { key:"nothing", label:"Nothing at all — the end date handles it completely", correct:false, feedback:"Close — but live sessions and refresh tokens survive until revoked. Revoke, then let the time-box do the rest." }
+                ],
+                errorText:"Stolen hardware may still be holding a live session — and nobody has cut it."
+              },
+              { id:"h-close", type:"action",
+                label:"End the engagement cleanly",
+                actionLabel:"Remove guest access", loadingLabel:"Removing…", doneLabel:"Guest removed — nothing to delete, nothing forgotten, nothing left behind.", loadingMs:600,
+                errorText:"The engagement is over but the guest account still has its assignment."
+              }
+            ]
+          },
+          gcp:{
+            title:"A contractor needs two weeks of access — do it without minting a time bomb",
+            scenario:"An outside consultant starts Monday and needs access to three services for exactly two weeks. Last year someone's service account key leaked from a laptop and it took a weekend to clean up.",
+            consoleLabel:"Cloud IAM Console (simulated)",
+            actionBtn:"Close out the engagement",
+            successText:"Scoped, temporary, audited access — and when the laptop was stolen, there was nothing standing left to steal.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Choose how the contractor authenticates",
+                prompt:"What kind of credentials should this two-week engagement run on?",
+                options:[
+                  { key:"sakey", label:"A downloaded service account key file on their laptop", correct:false, feedback:"That key file works until someone remembers to delete it — this is exactly how last year's leak happened." },
+                  { key:"impersonate", label:"Their own identity with an IAM condition that expires, impersonating a service account for short-lived tokens", correct:true, feedback:"Short-lived impersonation tokens expire in minutes-to-hours, and the IAM condition kills the whole grant at the end date." },
+                  { key:"shared", label:"Share an existing engineer's login for two weeks", correct:false, feedback:"Shared credentials destroy the audit trail and outlive the engagement. Never." }
+                ],
+                errorText:"The contractor still has no safe way in — or worse, a permanent one."
+              },
+              { id:"e-grant", type:"action",
+                label:"Grant the time-conditioned IAM binding",
+                actionLabel:"Create conditional grant", loadingLabel:"Creating…", doneLabel:"Binding created with an expiry condition two weeks out — tokens minted under it die hourly.", loadingMs:600,
+                errorText:"The contractor starts Monday and there's still nothing granted to them."
+              },
+              { id:"e-verify", type:"action",
+                label:"Verify the access works — and expires",
+                actionLabel:"Test impersonation", loadingLabel:"Testing…", doneLabel:"Impersonated, reached the three services, waited out a token TTL — expired token denied, exactly as designed.", loadingMs:700,
+                errorText:"Nobody has confirmed the tokens actually expire — that's the entire point of the design."
+              }
+            ],
+            hardSteps:[
+              { id:"h-scope", type:"choice",
+                label:"Decide how much power the grant carries",
+                prompt:"The contractor needs Storage read, Firestore read/write, and Cloud Logging. What does the binding grant?",
+                options:[
+                  { key:"editor", label:"Project Editor — fastest way to unblock them", correct:false, feedback:"Editor-for-convenience means a stolen contractor laptop owns your whole project. Blast radius is a choice you make now." },
+                  { key:"exact", label:"Exactly those three roles, on the specific buckets and databases involved", correct:true, feedback:"Least privilege: if these tokens ever leak, the damage is capped at what the job actually required." },
+                  { key:"viewer", label:"Project Viewer on everything", correct:false, feedback:"They can't write to Firestore — the job fails Monday morning and someone will 'temporarily' hand them Editor." }
+                ],
+                errorText:"The grant's permissions are still wrong — either dangerous or unusable."
+              },
+              { id:"h-audit", type:"choice",
+                label:"Answer \"what did they actually do?\"",
+                prompt:"A week in, your manager asks exactly that. Where's the answer?",
+                options:[
+                  { key:"ask", label:"Ask the contractor for a summary", correct:false, feedback:"Self-reporting isn't auditing — honest or not, it proves nothing." },
+                  { key:"audit", label:"Cloud Audit Logs, filtered to the impersonated identity", correct:true, feedback:"Every impersonation and every API call is recorded — the logs replay the contractor's entire footprint." },
+                  { key:"applogs", label:"Grep the application logs", correct:false, feedback:"App logs show what the app did, not what the contractor did with cloud APIs around it." }
+                ],
+                errorText:"You still can't account for the contractor's actions — that's an audit failure, not a paperwork gap."
+              },
+              { id:"h-leak", type:"choice",
+                label:"The contractor's laptop is stolen mid-engagement",
+                prompt:"It happened again — Tuesday, week two. What does this design require you to do?",
+                options:[
+                  { key:"rotateall", label:"Company-wide key rotation, like last year", correct:false, feedback:"That was the old design's cost. No key file was on that laptop this time — there's nothing standing to rotate." },
+                  { key:"revoke", label:"Remove the IAM binding; the short token TTL kills anything already minted", correct:true, feedback:"One binding removal, and any live token dies within the hour on its own. Compare that to last year's weekend." },
+                  { key:"nothing", label:"Nothing at all — token expiry handles it completely", correct:false, feedback:"Close — but a token minted right before the theft could still be live for up to an hour. Remove the binding, then let expiry do the rest." }
+                ],
+                errorText:"Stolen hardware may still be holding a live token — and nobody has cut the grant."
+              },
+              { id:"h-close", type:"action",
+                label:"End the engagement cleanly",
+                actionLabel:"Remove IAM binding", loadingLabel:"Removing…", doneLabel:"Binding removed — nothing to delete, nothing forgotten, nothing left behind.", loadingMs:600,
+                errorText:"The engagement is over but the binding still exists."
+              }
+            ]
+          }
+        },
         auth:{
           aws:{
             title:"Fix the broken sign-in",
@@ -4448,6 +6264,317 @@
           profservices:"The provider's own global team of experts you can bring in for big migrations and projects."
         }
       },
+      threat:{
+        modId:"MODULE 23", title:"Threat Detection: GuardDuty, Inspector & Security Hub",
+        titleAzure:"Threat Detection: Microsoft Defender for Cloud", titleGcp:"Threat Detection: Security Command Center",
+        dek:"Nobody watches dashboards all night — so a detector watches the account's behavior, a scanner checks what's patchable, and one screen collects everything they find.",
+        analogy:"It's a burglar alarm (GuardDuty — someone's moving inside the house), a home inspector (Inspector — this window's lock is broken and here's the list), and the wall of monitors at the security desk where all of it lands (Security Hub). The alarm doesn't fix anything — it makes sure a human looks.",
+        keyBtn:"Simulate: leaked key used", mineBtn:"Simulate: crypto-mining", scanBtn:"Run Inspector scan", resolveBtn:"Investigate & resolve oldest",
+        statScore:"Security score", statOpen:"Open findings", statResolved:"Resolved", statTrail:"API calls on audit trail",
+        note:"This is the real division of labor: GuardDuty watches behavior (API call patterns, network flows, DNS) for signs of active compromise; Inspector scans instances, container images, and functions for known CVEs before anyone exploits them; Security Hub aggregates both — plus dozens of other sources — into one scored dashboard; and CloudTrail is the tamper-evident record of every API call that lets an investigator reconstruct exactly what an attacker did.",
+        tryStep1:"Fire a simulated attack and read the finding it produces — note the audit-trail count climbing.",
+        tryStep2:"Run the Inspector scan — those findings are vulnerabilities found before an attacker, not an attack.",
+        tryStep3:"Resolve everything and watch the security score recover.",
+        incident:{
+          meta:"Tesla · February 2018",
+          body:"Security researchers found attackers running cryptocurrency-mining software inside Tesla's AWS account. The way in was almost embarrassing: a Kubernetes administration console left exposed to the internet with no password, and inside it, credentials for Tesla's wider cloud environment. The miners even throttled their own CPU usage and hid behind CloudFlare to stay unnoticed. It's the textbook case for behavioral threat detection: no known-malware signature would have caught it — but 'this account is suddenly talking to mining pools' is exactly the anomaly GuardDuty-style monitoring exists to flag."
+        },
+        status:{ secure:"SECURE", findings:"FINDINGS OPEN", critical:"CRITICAL FINDING" },
+        f:{
+          key:{ sev:"HIGH", title:"Access key used from an unrecognized network", detail:"UnauthorizedAccess:IAMUser — 214 API calls from an IP in a country this team has never operated from, all on the audit trail." },
+          mine:{ sev:"HIGH", title:"EC2 instance querying a cryptocurrency mining pool", detail:"CryptoCurrency:EC2/BitcoinTool.B!DNS — the instance keeps resolving mining-pool domains it has no business knowing about." },
+          cve1:{ sev:"MED", title:"Web server running an OpenSSL version with a known CVE", detail:"Found by scanning the instance — nothing has exploited it yet; that's the point of finding it first." },
+          cve2:{ sev:"LOW", title:"Container image bundles an outdated JSON library", detail:"Low severity, known fix available — patch on the next build." }
+        },
+        log:{
+          init:"detectors online — account quiet",
+          attack:"NEW FINDING: {title}",
+          scan:"Inspector scan complete — 2 vulnerabilities found before any attacker did",
+          resolved:"resolved: {title}",
+          nothing:"no open findings to resolve",
+          trail:"audit trail recorded {n} API calls"
+        }
+      },
+      edge:{
+        modId:"MODULE 24", title:"Edge Protection: WAF & DDoS",
+        titleAzure:"Edge Protection: Azure WAF & DDoS Protection", titleGcp:"Edge Protection: Cloud Armor",
+        dek:"Attacks arrive as ordinary-looking web requests — one crafted to trick your database, or ten thousand a second meant to bury you. Both get stopped at the door, or not at all.",
+        analogy:"The WAF is the bouncer reading every ID at the door — it spots the fake (a request whose 'name' is actually a database command) and turns it away. DDoS protection is crowd control out on the street: when ten thousand people show up at once just to jam the entrance, it absorbs the crush before the door even feels it.",
+        siteLabel:"shop.example.com", loadLabel:"Site load",
+        srcUsers:"Legit users", srcAttacker:"Attacker", srcBotnet:"Botnet (10,000 devices)",
+        wafLabel:"WAF rules enabled", shieldLabel:"DDoS protection enabled",
+        normalBtn:"Send normal traffic", sqliBtn:"Send SQL injection", ddosBtn:"Launch botnet wave",
+        statPassed:"Requests served", statBlocked:"Blocked at the edge", statLoad:"Site load", statBreaches:"Injections that got through",
+        note:"These defend different layers: a WAF inspects individual requests at layer 7 — SQL injection, cross-site scripting, header tricks — and needs to understand HTTP to do it. DDoS protection works at layers 3/4 (and 7 for request floods), absorbing raw volume across the provider's global edge before it converges on your servers. That's why they're separate products that are almost always deployed together.",
+        tryStep1:"Send the SQL injection with the WAF off — it reaches the database.",
+        tryStep2:"Enable the WAF and send it again — blocked at the edge, site never sees it.",
+        tryStep3:"Launch the botnet wave without DDoS protection, watch the site drown — then enable protection to mitigate it.",
+        incident:{
+          meta:"AWS Shield · February 2020",
+          body:"In February 2020 AWS Shield absorbed the largest DDoS attack ever publicly disclosed at the time: 2.3 terabits per second, using hijacked CLDAP servers that reflect and amplify small queries into massive floods aimed at a victim. The customer under attack stayed up — the flood was absorbed across AWS's edge before it could converge on them. The scale is the lesson: no single company's own servers absorb 2.3 Tbps; surviving that class of attack is only possible upstream, at a global edge built for it."
+        },
+        status:{ protected:"PROTECTED", degraded:"DEGRADED", down:"SITE DOWN", breached:"BREACHED" },
+        log:{
+          init:"edge online — WAF off, DDoS protection off",
+          normal:"20 normal requests served",
+          normalDown:"site unreachable — normal users are being turned away",
+          sqliBlocked:"SQL injection matched a WAF rule — blocked at the edge",
+          sqliThrough:"SQL injection reached the database — customer table dumped",
+          ddosAbsorbed:"botnet wave absorbed at the edge — 9,900 requests dropped, legit traffic still flowing",
+          ddosDown:"botnet wave overwhelmed the origin — site is down for everyone",
+          mitigated:"DDoS protection engaged — attack traffic rerouted and absorbed, site recovering"
+        }
+      },
+      identity:{
+        modId:"MODULE 25", title:"Identity: STS, Identity Center & Cognito",
+        titleAzure:"Identity: Entra ID Tokens & SSO", titleGcp:"Identity: Cloud Identity & Federation",
+        dek:"The safest credential is one that stops working on its own — a leaked key that expired an hour ago is a souvenir, not a breach.",
+        analogy:"A hotel keycard that dies at checkout versus a metal key that opens the door forever. Lose the keycard on the last day and nobody cares; lose the metal key and the hotel changes the lock. STS hands out keycards. Long-term access keys are metal keys.",
+        acctDev:"Dev account", acctStaging:"Staging account", acctProd:"Prod account",
+        issueBtn:"Issue temporary credentials (STS)", useBtn:"Call an API with them", longBtn:"Create long-term access key",
+        ssoLabel:"Single sign-on for all accounts",
+        statActive:"Active temp credentials", statExpired:"Expired on their own", statLong:"Long-term keys to leak", statAccts:"Accounts reachable",
+        credTemp:"role/deploy-bot · temporary", credLong:"akia-key · permanent", credExpired:"expired",
+        note:"STS (Security Token Service) is what 'assuming a role' actually mints: credentials with a built-in expiry, usually minutes to hours. IAM Identity Center puts one workforce login in front of every account — no per-account passwords to phish. Cognito does the same job for your app's end users. The common thread: modern cloud identity is engineered so that nothing worth stealing lives very long.",
+        tryStep1:"Issue temporary credentials and watch the countdown — then call an API with them.",
+        tryStep2:"Let them expire and call again — denied, with zero cleanup work from you.",
+        tryStep3:"Create a long-term key and note the difference: that one is yours to guard forever.",
+        incident:{
+          meta:"CircleCI · January 2023",
+          body:"An engineer's laptop at CircleCI — a company whose product runs other companies' build pipelines — was infected with malware that stole a session cookie, letting attackers impersonate them into production. From there they exfiltrated customers' stored secrets: API tokens, deploy keys, environment variables. CircleCI had to tell every customer to rotate everything they'd ever stored. The deeper lesson sits with the customers: those whose stored credentials were short-lived or OIDC-issued had nothing standing to steal — the stolen values had already expired."
+        },
+        status:{ short:"SHORT-LIVED", long:"LONG-TERM KEYS", none:"NO CREDENTIALS" },
+        log:{
+          init:"no credentials issued",
+          issued:"STS issued temporary credentials — valid {s}s, then dead on their own",
+          used:"API call OK — signed with temporary credentials",
+          usedLong:"API call OK — but it used a permanent key that will still work in five years if it leaks",
+          denied:"API call DENIED — credentials expired; nothing to revoke, nothing to clean up",
+          expired:"temporary credentials expired on their own",
+          long:"long-term access key created — it works until someone remembers to delete it",
+          ssoOn:"SSO enabled — one login now reaches all three accounts",
+          ssoOff:"SSO disabled — separate logins per account again"
+        }
+      },
+      certs:{
+        modId:"MODULE 26", title:"Certificates & Finding Sensitive Data",
+        titleAzure:"Certificates & Sensitive Data: Key Vault & Purview", titleGcp:"Certificates & Sensitive Data: Certificate Manager & DLP",
+        dek:"Two quiet failures with loud endings: a certificate nobody renewed, and personal data sitting in a bucket nobody knew about.",
+        analogy:"A passport that expires while you're mid-trip — nothing 'broke,' but suddenly nothing lets you through. And a filing cabinet where someone shoved photocopies of customer IDs into an unmarked folder: the data isn't leaked yet, but nobody guarding the cabinet knows it's there to guard.",
+        daysLabel:"days until expiry",
+        autoLabel:"Auto-renew (managed certificates)", ffBtn:"Fast-forward 30 days", scanBtn:"Scan bucket for personal data", quarBtn:"Quarantine flagged objects",
+        statDays:"Days to expiry", statRenewals:"Auto-renewals", statPii:"Objects with personal data", statTls:"HTTPS status",
+        tlsOk:"OK", tlsBroken:"BROKEN",
+        objects:{ o1:"invoice-jan.pdf", o2:"team-photo.png", o3:"customers.csv", o4:"logo.svg", o5:"backup.sql", o6:"notes.txt", o7:"id-scans.zip", o8:"menu.pdf" },
+        note:"ACM issues public TLS certificates for free and renews them automatically — the entire class of 'the cert expired at 3am' outages exists only where certificates are managed by hand. Macie continuously scans S3 for sensitive data — names, card numbers, credentials, government IDs — using ML classifiers, because the most dangerous PII is the kind that ended up somewhere nobody expected it.",
+        tryStep1:"Fast-forward with auto-renew off until HTTPS breaks — that outage was 100% preventable.",
+        tryStep2:"Turn auto-renew on and fast-forward again — renewal happens without anyone being paged.",
+        tryStep3:"Scan the bucket: three ordinary-looking objects contain personal data. Quarantine them.",
+        incident:{
+          meta:"Microsoft Teams · February 2020",
+          body:"On February 3, 2020, Microsoft Teams went down worldwide for about three hours because a single TLS certificate had been allowed to expire. Clients couldn't establish trusted connections, so the whole service was effectively unreachable — nothing was hacked, nothing crashed; a date field simply passed. Thousands of companies lost their communication tool at the start of the workday over a renewal that any managed-certificate service would have performed automatically weeks earlier."
+        },
+        status:{ valid:"VALID", expiring:"EXPIRING SOON", expired:"CERT EXPIRED" },
+        log:{
+          init:"certificate valid for 90 days — bucket contents unscanned",
+          ff:"30 days pass…",
+          renewed:"certificate auto-renewed at the 30-day mark — nobody was paged",
+          expiring:"certificate inside the 30-day window and auto-renew is OFF",
+          expired:"CERTIFICATE EXPIRED — browsers now refuse the connection; HTTPS is down",
+          scanned:"scan complete — 3 of 8 objects contain personal data (names, card numbers, ID scans)",
+          quarantined:"flagged objects moved to a locked quarantine bucket — exposure window closed",
+          nothingToQuar:"nothing flagged yet — run the scan first"
+        }
+      },
+      analytics:{
+        modId:"MODULE 27", title:"Pick the Right Data Store",
+        titleAzure:"Pick the Right Data Store (Synapse, Cosmos DB & Power BI)", titleGcp:"Pick the Right Data Store (BigQuery, Firestore & Looker)",
+        dek:"There is no best database — only the right one for each question. Five real workloads, five tools; every mismatch has a reason it hurts.",
+        analogy:"A filing cabinet for grabbing one folder fast (key-value), a warehouse where forklifts count every box overnight (analytics), a corkboard of photos connected by string (graph), a librarian who answers questions about boxes without unpacking them (SQL-on-files), and the person who turns it all into charts for the boss (BI).",
+        tryStep1:"Click a workload on the left, then click the store you'd run it on.",
+        tryStep2:"Get one wrong on purpose and read why the mismatch actually hurts.",
+        tryStep3:"Match all five — each pairing is a real architectural decision teams get wrong.",
+        note:"This is the real taxonomy: DynamoDB is OLTP-shaped (single-row reads at scale), Redshift is OLAP-shaped (columnar scans over history), Neptune stores relationships as first-class data, Athena runs serverless SQL over files in place, and QuickSight sits on top of any of them to make charts. The same five roles exist on every cloud — only the product names change, which is exactly what the provider toggle shows.",
+        incident:{
+          meta:"Instapaper · February 2017",
+          body:"Instapaper went down for over a day when its hosted MySQL database slammed into a 2TB file-size limit almost nobody knew existed — the table had simply grown for years until inserts started failing. Recovery meant painfully rebuilding the data into a new instance while the product stayed dark. The deeper lesson is about fit: one database had been quietly asked to be the transactional store, the archive, and the analytics substrate all at once — growth pressures that separate, fit-for-purpose stores are designed to absorb."
+        },
+        statMatched:"Matched", statAttempts:"Attempts",
+        w:{
+          profile:"Load one user's profile in under 10ms, millions of times a day",
+          report:"Company-wide sales report across 5 years of history, every night",
+          graph:"\"Which of my friends know each other?\" — 3 hops deep",
+          adhoc:"One-off SQL question over raw log files already sitting in object storage",
+          bi:"Executives want interactive charts they can filter themselves"
+        },
+        whyRight:{
+          profile:"Key-value lookup by user ID — single-digit milliseconds at any scale. Exactly what this database is for.",
+          report:"A columnar warehouse scans years of history in minutes without touching the production database.",
+          graph:"Relationship hops are the native operation of a graph database — no JOIN pyramids.",
+          adhoc:"Serverless SQL directly on the files — no cluster to build, pay per query.",
+          bi:"BI tools sit on top of the stores and turn queries into charts non-engineers can drive."
+        },
+        whyWrong:{
+          profile:"This store is built for scanning huge history, not millisecond single-row lookups.",
+          report:"Scanning 5 years of rows through a transactional or key-value store hammers it and takes hours.",
+          graph:"Expressing 3-hop friendships here means recursive JOINs or N+1 queries — slow and unreadable.",
+          adhoc:"Loading raw files into a database first is exactly the work this question doesn't need.",
+          bi:"This is a data store, not a charting tool — executives can't self-serve from a connection string."
+        },
+        log:{
+          init:"5 workloads waiting — pick a workload, then a store",
+          pick:"selected: {w}",
+          correct:"MATCHED — {w} → {s}",
+          wrong:"not this one — {why}",
+          done:"all 5 workloads matched to the right store"
+        },
+        status:{ choosing:"CHOOSING", done:"ALL MATCHED" }
+      },
+      hybrid:{
+        modId:"MODULE 28", title:"Hybrid Cloud & Getting Data There",
+        titleAzure:"Hybrid & Migration: ExpressRoute & Azure Local", titleGcp:"Hybrid & Migration: Interconnect & Distributed Cloud",
+        dek:"Five ways to connect a building to a cloud — each one right for exactly one situation, and expensive or slow in all the others.",
+        analogy:"A secure courier over public roads (VPN), a private rail line you lease (Direct Connect), a branch of the factory built inside your own warehouse (Outposts), a moving company that keeps your shop open during the move (DMS), and a nightly shuttle running the same route on schedule (DataSync).",
+        tryStep1:"Click a situation on the left, then the connection or tool that fits it.",
+        tryStep2:"Note the trade each one makes: setup time vs bandwidth vs privacy vs cost.",
+        tryStep3:"Match all five — picking the wrong one here costs real companies months or millions.",
+        note:"The decision tree is real: Site-to-Site VPN is encrypted internet — live in days, variable latency. Direct Connect is a leased private circuit — weeks to provision, steady bandwidth, no public internet. Outposts puts the provider's rack in your building for data that can't leave. DMS replicates live databases continuously so cutover takes minutes. DataSync moves files in scheduled bulk with checksums and retries. Same five roles on Azure (VPN Gateway, ExpressRoute, Azure Local) and Google Cloud (Cloud VPN, Interconnect, Distributed Cloud).",
+        incident:{
+          meta:"Delta Air Lines · August 2016",
+          body:"A power-control failure in Delta's Atlanta data center cascaded into a global meltdown: roughly 2,300 flights cancelled over three days and about $150 million lost, because critical systems all lived in that one building and the failover that supposedly protected them had never truly been proven. It's the case study that pushed a generation of enterprises toward hybrid and multi-site architectures — not because clouds don't fail, but because a single building, however good, is a single point of failure with a lease."
+        },
+        statMatched:"Matched", statAttempts:"Attempts",
+        s:{
+          vpn:"Connect the office to the cloud securely — by the end of this week",
+          dx:"Steady 10 Gbps to the cloud, predictable latency, traffic must never touch the public internet",
+          outposts:"Regulation says this data physically may not leave our building — but teams want cloud APIs",
+          dms:"Move the production database with near-zero downtime — it keeps serving during the migration",
+          datasync:"Push 50TB of new video files to cloud storage every night, automatically"
+        },
+        whyRight:{
+          vpn:"An encrypted tunnel over the internet you already have — live in days, cheap, good enough for most office links.",
+          dx:"A dedicated private circuit: constant bandwidth, stable latency, zero public-internet exposure. Takes weeks to provision — this scenario is what that wait buys.",
+          outposts:"The provider's rack, in your building, running the same APIs — the only option when data legally can't leave.",
+          dms:"Continuous replication keeps source and target in sync until cutover minute — that's the near-zero downtime.",
+          datasync:"Purpose-built scheduled bulk transfer — checksums, retries, bandwidth throttling, no scripts to babysit."
+        },
+        whyWrong:{
+          vpn:"A VPN rides the public internet — variable latency, and this scenario explicitly forbids that.",
+          dx:"Weeks of provisioning and a monthly circuit bill — massive overkill for this.",
+          outposts:"Physical racks in your building are the most expensive possible answer to a connectivity question.",
+          dms:"DMS replicates databases — it doesn't move files or provide a network link.",
+          datasync:"DataSync moves files in bulk — it can't replicate a live database consistently or act as a network."
+        },
+        log:{
+          init:"5 situations waiting — pick one, then the tool that fits",
+          pick:"selected: {w}",
+          correct:"MATCHED — {w} → {s}",
+          wrong:"not this one — {why}",
+          done:"all 5 situations solved with the right tool"
+        },
+        status:{ planning:"PLANNING", done:"ALL CONNECTED" }
+      },
+      iac:{
+        modId:"MODULE 29", title:"Infrastructure as Code",
+        titleAzure:"Infrastructure as Code: ARM & Bicep", titleGcp:"Infrastructure as Code: Infrastructure Manager",
+        dek:"Clicking creates a snowflake — unique, undocumented, and impossible to rebuild under pressure. A template creates the same environment every single time, and can prove when reality has drifted from it.",
+        analogy:"Cooking from memory versus cooking from a written recipe. From memory, Tuesday's soup never quite matches Monday's, and when the chef is sick nobody can make it at all. The recipe isn't fancier cooking — it's the guarantee that anyone can produce the same dish, and the standard you check against when something tastes off.",
+        manualLabel:"BUILT BY HAND", templateLabel:"FROM TEMPLATE",
+        clickBtn:"Create next resource by hand", deployBtn:"Deploy template", driftBtn:"Run drift detection", healBtn:"Redeploy template (heal)",
+        statManual:"Manual resources", statTemplate:"Template resources", statDrift:"Drift found", statDeploys:"Template deploys",
+        res:{ r1:"VPC", r2:"Subnet", r3:"Security group", r4:"Load balancer", r5:"Web server" },
+        driftTag:"drifted",
+        note:"CloudFormation (and ARM/Bicep, and Infrastructure Manager) turns an environment into a reviewable text file: version-controlled, diffable, deployable identically to dev, staging, and prod. Drift detection compares the file against reality and reports every hand-made change. Control Tower applies the same idea one level up — entire accounts stamped from a governed template. The CLI is the thread through all of it: anything clickable is scriptable.",
+        tryStep1:"Build the manual environment click by click — watch a typo sneak in.",
+        tryStep2:"Deploy the template side in one action — five resources, identical every time.",
+        tryStep3:"Run drift detection, then heal the template side with a redeploy. Note the manual side can only be fixed by hand.",
+        incident:{
+          meta:"Facebook · October 2021",
+          body:"On October 4, 2021, a routine configuration change to Facebook's backbone routers went wrong and withdrew the BGP routes that told the internet where facebook.com lives. Facebook, Instagram, and WhatsApp vanished for six hours. The failure compounded: the tool that should have caught the bad change had a bug, and the outage locked engineers out of the very systems needed to fix it — badge readers and internal tools depended on the network that was down. Infrastructure changes need review, automated validation, and a rollback path — the exact disciplines infrastructure-as-code exists to enforce."
+        },
+        status:{ sync:"IN SYNC", drift:"DRIFT DETECTED", empty:"NOTHING DEPLOYED" },
+        log:{
+          init:"two empty environments — one built by clicks, one from a template",
+          manual:"hand-created: {r}",
+          manualDrift:"hand-created: {r} — with a typo: port 3306 left open to 0.0.0.0/0",
+          manualDone:"manual environment complete — is it correct? nobody can say without checking every resource",
+          deployed:"template deployed — 5 resources, identical to the file, in one action",
+          hotfix:"someone hand-edited the template environment directly in the console…",
+          driftNone:"drift detection: template environment matches its file exactly",
+          driftFound:"drift detection: {n} resource(s) differ from their definition",
+          healed:"template redeployed — drift erased, environment matches the file again",
+          nothingToHeal:"nothing to heal — deploy the template first"
+        }
+      },
+      govern:{
+        modId:"MODULE 30", title:"Governance & the Bill",
+        titleAzure:"Governance & the Bill: Azure Advisor & Policy", titleGcp:"Governance & the Bill: Recommender & Org Policy",
+        dek:"Most cloud waste and most cloud risk share one property: they're invisible until something goes looking. So the providers built things that go looking.",
+        analogy:"A home energy audit that also checks whether you locked the doors: the auditor walks the house, finds the fridge running in the empty garage, the window painted open, the spare key under the mat — and hands you a list sorted by what it costs you.",
+        scanBtn:"Run advisor scan", spotLabel:"Run batch fleet on Spot instances",
+        statBill:"Monthly bill", statOpen:"Open findings", statFixed:"Fixed", statSaved:"Saved per month",
+        fixBtn:"Fix",
+        f:{
+          ssh:{ sev:"HIGH", title:"SSH open to the entire internet on 3 instances", detail:"Security — port 22 answers to 0.0.0.0/0. No monthly cost; enormous risk.", save:0 },
+          mfa:{ sev:"HIGH", title:"Root account has no MFA", detail:"Security — one phished password from losing the whole account.", save:0 },
+          idle:{ sev:"MED", title:"Dev instances running nights and weekends", detail:"Cost — the fleet idles 128 of 168 hours a week.", save:1800 },
+          vol:{ sev:"LOW", title:"6 unattached storage volumes", detail:"Cost — paying for disks connected to nothing.", save:240 },
+          db:{ sev:"MED", title:"Database instance 4× larger than its load", detail:"Cost — peak CPU is 11%. Right-size it.", save:950 }
+        },
+        note:"Trusted Advisor (and Azure Advisor, and Recommender) continuously checks the account against known best practices for cost, security, and resilience. AWS Config turns your own rules into continuous checks. The Well-Architected Framework is the rulebook behind all of it — six pillars: operational excellence, security, reliability, performance efficiency, cost optimization, sustainability. And Spot pricing is the standing offer: run interruptible work on spare capacity for up to ~90% off.",
+        tryStep1:"Run the scan — two findings cost nothing to fix and matter most.",
+        tryStep2:"Fix the cost findings and watch the bill drop by thousands.",
+        tryStep3:"Move the batch fleet to Spot — same work, ~70% cheaper, because it tolerates interruption.",
+        incident:{
+          meta:"Adobe · early 2018",
+          body:"An Adobe team left a computing job running on Azure — and nobody noticed until the bill arrived: roughly $80,000 a day, over half a million dollars before it was caught. Nothing was broken, nothing was hacked; machines simply kept running because nothing was watching for 'this is burning money for no reason.' It's the exact class of failure cost-governance tooling exists to catch on day one instead of on the invoice."
+        },
+        status:{ unreviewed:"UNREVIEWED", open:"FINDINGS OPEN", optimized:"OPTIMIZED" },
+        log:{
+          init:"monthly bill $8,420 — nobody has looked at this account in months",
+          scanned:"advisor scan complete — 5 findings (2 security, 3 cost)",
+          fixed:"fixed: {title}{save}",
+          saveSuffix:" — saving ${n}/mo",
+          spotOn:"batch fleet moved to Spot — same throughput, ${n}/mo cheaper, interruptions tolerated by design",
+          spotOff:"batch fleet back on On-Demand — flexibility premium restored",
+          allFixed:"every finding closed — the account matches the rulebook"
+        }
+      },
+      aiint:{
+        modId:"MODULE 31", title:"AI Services & App Integration",
+        titleAzure:"AI & Integration: Bot Service, AI Speech & Service Bus", titleGcp:"AI & Integration: Dialogflow, Text-to-Speech & Pub/Sub",
+        dek:"A bot that turns a sentence into a structured command, a voice that reads text aloud, and a queue that keeps orders safe while the worker that processes them is dead.",
+        analogy:"A receptionist who hears \"table for four tonight?\" and writes down {book, 4, tonight} (Lex), a narrator who reads any page aloud (Polly), and the inbox tray between two desks — if the second desk is empty for an hour, work piles up in the tray instead of on the floor (MQ).",
+        botLabel:"CHATBOT — INTENT DETECTION", botPh:"e.g. book a table for 4 tonight", botBtn:"Send",
+        ttsLabel:"TEXT TO SPEECH", ttsPh:"Type something to say out loud", ttsBtn:"Speak",
+        mqLabel:"MESSAGE QUEUE — orders", depthLabel:"Queue depth",
+        sendBtn:"Send an order (producer)", workerLabel:"Order-processing worker online",
+        statIntents:"Intents detected", statDepth:"Queue depth", statProcessed:"Orders processed", statLost:"Orders lost",
+        botIntent:"intent={i}", botSlots:" · slots: {s}", botFallback:"no intent matched — a real bot would ask a clarifying question",
+        ttsSpoken:"spoken with your browser's speech engine — Polly does this server-side with lifelike voices",
+        ttsEmpty:"type something first",
+        ttsUnsupported:"this browser has no speech engine — Polly would return an audio stream instead",
+        note:"Lex parses utterances into intents and slots — the same NLU that powers Alexa. Polly turns text into speech via an API call (the demo uses your browser's built-in engine to stay offline). Amazon MQ is a managed ActiveMQ/RabbitMQ broker: producers and consumers never talk directly, so a dead consumer means a growing queue, not lost orders — the single most load-bearing integration pattern in real systems.",
+        tryStep1:"Ask the bot for a table, an order status, or a cancellation — watch the structured intent come out.",
+        tryStep2:"Make your machine speak a sentence.",
+        tryStep3:"Take the worker offline, send five orders, bring it back — count the lost orders: zero.",
+        incident:{
+          meta:"Microsoft Tay · March 2016",
+          body:"Microsoft launched Tay, a chatbot that learned from what Twitter users said to it — live, with no guardrails. Coordinated users fed it toxic content, and within 16 hours the bot was repeating racist and offensive output; Microsoft shut it down the same day. It remains the canonical lesson for conversational AI: the model is the easy part. Input validation, output filtering, and a kill switch are product requirements, not afterthoughts — modern bot platforms build those guardrails in because Tay proved what happens without them."
+        },
+        status:{ decoupled:"DECOUPLED", backlog:"BACKLOG GROWING" },
+        log:{
+          init:"bot ready — worker online — queue empty",
+          intent:"utterance parsed → {out}",
+          fallback:"no intent matched",
+          spoken:"text sent to the speech engine",
+          sent:"order published to the queue",
+          processed:"worker consumed order — processed",
+          queued:"worker offline — order waiting safely in the queue (depth {n})",
+          drained:"worker back online — draining the queue",
+          drainedDone:"queue drained — every order survived the outage"
+        }
+      },
       chat:{
         title:"Ask the Console", fabAria:"Ask a question", closeAria:"Close",
         setupIntro:"This runs entirely in your browser through Groq's free API — nothing is sent anywhere except directly to Groq. Paste your own key to turn it on; it's saved only on this device, never on any server.",
@@ -4464,7 +6591,8 @@
     tr: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS", capstone1:"20 Final Görev: Kesinti", capstone2:"21 Final Görev: Sızıntı", services:"22 Servis rehberi" },
+        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS", capstone1:"20 Final Görev: Kesinti", capstone2:"21 Final Görev: Sızıntı", services:"22 Servis rehberi", threat:"23 Tehdit algılama", edge:"24 WAF ve DDoS", identity:"25 Kimlik ve erişim", certs:"26 Sertifikalar ve PII", analytics:"27 Veri ve analitik", hybrid:"28 Hibrit ve taşıma", iac:"29 Kod olarak altyapı", govern:"30 Yönetişim ve maliyet", aiint:"31 YZ ve entegrasyon" },
+        navCat:{ security:"Güvenlik", data:"Veri ve analitik", connect:"Hibrit ve taşıma", ops:"Otomasyon ve yönetişim", ai:"YZ ve entegrasyon" },
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"CloudLab",
         statusChanged:"durum → {status}",
@@ -4496,7 +6624,7 @@
       intro:{
         title:"Bulut sistemleri, parçalarına ayrıldı",
         p:"Büyük sistemleri ayakta tutan mekanizmaların yirmi küçük, canlı simülasyonu, ve bunlardan birkaçını bir araya getiren iki final görev olayı — arkasında gerçek sunucu yok, sadece mantık. Kadranları çevirin ve yük altında, bir ağ bölünmesinde, bir önbellek ıskalamasında, bir arızada gerçekte ne olduğunu izleyin.",
-        meta:"20 modül · 19 olay müdahale görevi · 47 servislik rehber · tamamen tarayıcınızda çalışır"
+        meta:"29 modül · 28 olay müdahale görevi · 47 servislik rehber · tamamen tarayıcınızda çalışır"
       },
       lb:{
         modId:"MODÜL 07", title:"Yük Dengeleme ve Otomatik Ölçekleme",
@@ -5077,6 +7205,1821 @@
         easyLabel:"Kolay", hardLabel:"Zor",
         resetBtn:"Görevi sıfırla",
         completeNote:"Yukarıdaki her karar gerçek bir kararı yansıtıyor — buna gerçekte böyle yanıt verilirdi.",
+        iac:{
+          aws:{
+            title:"Prod staging'le eşleşmiyor ve nedenini kimse bilmiyor",
+            scenario:"Staging'den süzülerek geçen sürüm prod'da az önce patladı. İki ortam aylar arayla, elle, farklı kişilerce kuruldu. Satış da az önce beş yeni müşteriye kendi birebir aynı ortamlarını söz verdi.",
+            consoleLabel:"CloudFormation Konsolu (simüle)",
+            actionBtn:"Şablondan dağıt",
+            successText:"Artık her ortamı tek bir incelenmiş şablon üretiyor — birebir aynı, diff'lenebilir, istendiğinde yeniden kurulabilir.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Asıl sorunu adlandır",
+                prompt:"Prod neden staging'den farklı davranıyor?",
+                options:[
+                  { key:"random", label:"Bulut ortamları doğal olarak birbirinden uzaklaşır", correct:false, feedback:"Hiçbir şey kendi kendine sapmaz — her fark, kimsenin yazmadığı bir insan eliyle yapılmış değişiklikti." },
+                  { key:"drift", label:"Aylarca belgesiz el düzeltmesi birikip iki farklı ortam üretti", correct:true, feedback:"Aynen — her konsol tıklaması küçük bir çatallanmaydı. Ortamlar artık aynı adı taşıyan farklı makineler." },
+                  { key:"staging", label:"Bozuk olan staging olmalı", correct:false, feedback:"Çalışan taraf staging — ve ikisinin de tanımı yokken 'hangisi doğru' sorusu cevaplanamaz." }
+                ],
+                errorText:"Ortamlar arasındaki farkın hâlâ bir açıklaması yok — bir sonraki sürüm aynı zarı atacak."
+              },
+              { id:"e-template", type:"action",
+                label:"Ortamı bir şablon olarak yakala",
+                actionLabel:"Şablonu yaz", loadingLabel:"Yazılıyor…", doneLabel:"Ortam bir CloudFormation şablonunda — incelendi, sürümlendi, repoda.", loadingMs:700,
+                errorText:"Bu ortamın ne içermesi gerektiğinin yazılı bir tanımı hâlâ yok."
+              },
+              { id:"e-deploy", type:"action",
+                label:"Prod'u şablondan yeniden kur",
+                actionLabel:"Şablonu prod'a dağıt", loadingLabel:"Dağıtılıyor…", doneLabel:"Prod şablondan yeniden dağıtıldı — artık staging'le kanıtlanabilir şekilde birebir aynı.", loadingMs:800,
+                errorText:"Prod hâlâ az önce sürüm patlatan elle kurulmuş kar tanesi."
+              }
+            ],
+            hardSteps:[
+              { id:"h-find", type:"choice",
+                label:"Önce elle yapılmış her değişikliği bul",
+                prompt:"Şablonlamadan önce aylar içinde elle nelerin değiştiğini tam olarak bilmen gerek. Buna gerçekte ne cevap verir?",
+                options:[
+                  { key:"history", label:"Herkesin kabuk geçmişini ve bilet kuyruğunu tara", correct:false, feedback:"Konsol tıklamaları kabuk geçmişi bırakmaz ve bütün sorun bu değişikliklerin hiç bilet almamış olması." },
+                  { key:"drift", label:"Sapma tespiti — canlı kaynakları bilinen son tanımla karşılaştır", correct:true, feedback:"Sapma tespiti gerçekliği şablonla diff'ler ve kimsenin yaptığını hatırlamadıkları dahil her sapmayı listeler." },
+                  { key:"standup", label:"Ekibe standup'ta ne değiştirdiklerini sor", correct:false, feedback:"Burada zaten başarısız olan şey tam olarak hafıza — aylarca değişiklik, farklı insanlar, yazılı hiçbir şey." }
+                ],
+                errorText:"Elle nelerin değiştiğinin tam listesi hâlâ yok — şimdi yazacağın her şablon tahminleri yasalaştırır."
+              },
+              { id:"h-params", type:"choice",
+                label:"Beş müşteri ortamını kalıptan bas",
+                prompt:"Beş müşteri, yalnız ad ve boyutla ayrışan birebir ortamlar istiyor. Bu nasıl ifade edilir?",
+                options:[
+                  { key:"copies", label:"Şablonun beş kopyası, müşteri başına düzenlenmiş", correct:false, feedback:"Beş kopya anında birbirinden sapmaya başlar — bugünkü sorunu beş kez yeniden inşa etmiş olursun." },
+                  { key:"params", label:"Ad ve boyut için parametreli tek şablon", correct:true, feedback:"Tek tanım, beş parametre seti — şablona yapılan düzeltme her müşteriye birebir aynı ulaşır, sonsuza dek." },
+                  { key:"manual", label:"Elle kur — beş tane idare edilir", correct:false, feedback:"Elle kurulmuş beş ortam beş yeni kar tanesi — bu olayın az önce mahkûm ettiği pratiğin ta kendisi." }
+                ],
+                errorText:"Beş müşteri ortamının hâlâ tek bir doğruluk kaynağı yok."
+              },
+              { id:"h-guard", type:"choice",
+                label:"El düzeltmelerinin sapmayı yeniden başlatamamasını sağla",
+                prompt:"Şablon canlı. Gelecek ayki 'hızlı konsol düzeltmesinin' prod'u yeniden çatallamasını ne engeller?",
+                options:[
+                  { key:"trust", label:"Ekip artık her şeyi şablondan değiştirmeye söz verdi", correct:false, feedback:"Önceki ekip de söz vermişti. Gece 2'de prod çökmüşken sözler konsola her seferinde yenilir — korkuluklar yenilmez." },
+                  { key:"guardrails", label:"Korkuluklarla zorlanmış yalnız-pipeline değişiklikler ve kullanılınca nöbetçiyi çağıran bir acil-durum rolü", correct:true, feedback:"Değişiklikler varsayılan olarak incelemeden akar; acil yol var ama gürültülü — sapma artık sessizce birikemez." },
+                  { key:"revoke", label:"Herkesin konsol yazma erişimini kalıcı olarak sil", correct:false, feedback:"Sıfır acil yol varken ilk gerçek gece 2 olayı root parolası paylaşılarak çözülür — öncekinden beter." }
+                ],
+                errorText:"Bir sonraki hızlı konsol düzeltmesini hiçbir şey engellemiyor — sapma saati çoktan yeniden başladı."
+              },
+              { id:"h-deploy", type:"action",
+                label:"Parametreli yığını yay",
+                actionLabel:"Tüm ortamları dağıt", loadingLabel:"Dağıtılıyor…", doneLabel:"Prod, staging ve beş müşteri yığını tek şablondan dağıtıldı — inşaat gereği birebir aynı.", loadingMs:800,
+                errorText:"Şablon var ama ortamlar hâlâ eski elle kurulmuş olanlar."
+              }
+            ]
+          },
+          azure:{
+            title:"Prod staging'le eşleşmiyor ve nedenini kimse bilmiyor",
+            scenario:"Staging'den süzülerek geçen sürüm prod'da az önce patladı. İki ortam aylar arayla, elle, farklı kişilerce kuruldu. Satış da az önce beş yeni müşteriye kendi birebir aynı ortamlarını söz verdi.",
+            consoleLabel:"ARM / Bicep Dağıtımları (simüle)",
+            actionBtn:"Şablondan dağıt",
+            successText:"Artık her ortamı tek bir incelenmiş Bicep dosyası üretiyor — birebir aynı, diff'lenebilir, istendiğinde yeniden kurulabilir.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Asıl sorunu adlandır",
+                prompt:"Prod neden staging'den farklı davranıyor?",
+                options:[
+                  { key:"random", label:"Bulut ortamları doğal olarak birbirinden uzaklaşır", correct:false, feedback:"Hiçbir şey kendi kendine sapmaz — her fark, kimsenin yazmadığı bir insan eliyle yapılmış değişiklikti." },
+                  { key:"drift", label:"Aylarca belgesiz portal düzeltmesi birikip iki farklı ortam üretti", correct:true, feedback:"Aynen — her portal tıklaması küçük bir çatallanmaydı. Ortamlar artık aynı adı taşıyan farklı makineler." },
+                  { key:"staging", label:"Bozuk olan staging olmalı", correct:false, feedback:"Çalışan taraf staging — ve ikisinin de tanımı yokken 'hangisi doğru' sorusu cevaplanamaz." }
+                ],
+                errorText:"Ortamlar arasındaki farkın hâlâ bir açıklaması yok — bir sonraki sürüm aynı zarı atacak."
+              },
+              { id:"e-template", type:"action",
+                label:"Ortamı bir Bicep dosyası olarak yakala",
+                actionLabel:"Bicep dosyasını yaz", loadingLabel:"Yazılıyor…", doneLabel:"Ortam Bicep'te — incelendi, sürümlendi, repoda.", loadingMs:700,
+                errorText:"Bu ortamın ne içermesi gerektiğinin yazılı bir tanımı hâlâ yok."
+              },
+              { id:"e-deploy", type:"action",
+                label:"Prod'u şablondan yeniden kur",
+                actionLabel:"Bicep'i prod'a dağıt", loadingLabel:"Dağıtılıyor…", doneLabel:"Prod Bicep'ten yeniden dağıtıldı — artık staging'le kanıtlanabilir şekilde birebir aynı.", loadingMs:800,
+                errorText:"Prod hâlâ az önce sürüm patlatan elle kurulmuş kar tanesi."
+              }
+            ],
+            hardSteps:[
+              { id:"h-find", type:"choice",
+                label:"Önce elle yapılmış her değişikliği bul",
+                prompt:"Şablonlamadan önce aylar içinde elle nelerin değiştiğini tam olarak bilmen gerek. Buna gerçekte ne cevap verir?",
+                options:[
+                  { key:"history", label:"Herkesin kabuk geçmişini ve bilet kuyruğunu tara", correct:false, feedback:"Portal tıklamaları kabuk geçmişi bırakmaz ve bütün sorun bu değişikliklerin hiç bilet almamış olması." },
+                  { key:"whatif", label:"Bir what-if dağıtımı — canlı kaynakları şablon tanımıyla diff'le", correct:true, feedback:"What-if gerçekliği dosyayla diff'ler ve kimsenin yaptığını hatırlamadıkları dahil her sapmayı listeler." },
+                  { key:"standup", label:"Ekibe standup'ta ne değiştirdiklerini sor", correct:false, feedback:"Burada zaten başarısız olan şey tam olarak hafıza — aylarca değişiklik, farklı insanlar, yazılı hiçbir şey." }
+                ],
+                errorText:"Elle nelerin değiştiğinin tam listesi hâlâ yok — şimdi yazacağın her şablon tahminleri yasalaştırır."
+              },
+              { id:"h-params", type:"choice",
+                label:"Beş müşteri ortamını kalıptan bas",
+                prompt:"Beş müşteri, yalnız ad ve boyutla ayrışan birebir ortamlar istiyor. Bu nasıl ifade edilir?",
+                options:[
+                  { key:"copies", label:"Bicep dosyasının beş kopyası, müşteri başına düzenlenmiş", correct:false, feedback:"Beş kopya anında birbirinden sapmaya başlar — bugünkü sorunu beş kez yeniden inşa etmiş olursun." },
+                  { key:"params", label:"Ad ve boyut için parametreli tek Bicep dosyası", correct:true, feedback:"Tek tanım, beş parametre dosyası — şablona yapılan düzeltme her müşteriye birebir aynı ulaşır, sonsuza dek." },
+                  { key:"manual", label:"Elle kur — beş tane idare edilir", correct:false, feedback:"Elle kurulmuş beş ortam beş yeni kar tanesi — bu olayın az önce mahkûm ettiği pratiğin ta kendisi." }
+                ],
+                errorText:"Beş müşteri ortamının hâlâ tek bir doğruluk kaynağı yok."
+              },
+              { id:"h-guard", type:"choice",
+                label:"El düzeltmelerinin sapmayı yeniden başlatamamasını sağla",
+                prompt:"Şablon canlı. Gelecek ayki 'hızlı portal düzeltmesinin' prod'u yeniden çatallamasını ne engeller?",
+                options:[
+                  { key:"trust", label:"Ekip artık her şeyi pipeline'dan değiştirmeye söz verdi", correct:false, feedback:"Önceki ekip de söz vermişti. Gece 2'de prod çökmüşken sözler portala her seferinde yenilir — politika yenilmez." },
+                  { key:"policy", label:"Azure Policy ile zorlanmış yalnız-pipeline değişiklikler ve kullanılınca nöbetçiyi çağıran bir acil-durum rolü", correct:true, feedback:"Değişiklikler varsayılan olarak incelemeden akar; acil yol var ama gürültülü — sapma artık sessizce birikemez." },
+                  { key:"revoke", label:"Herkesin portal yazma erişimini kalıcı olarak sil", correct:false, feedback:"Sıfır acil yol varken ilk gerçek gece 2 olayı owner parolası paylaşılarak çözülür — öncekinden beter." }
+                ],
+                errorText:"Bir sonraki hızlı portal düzeltmesini hiçbir şey engellemiyor — sapma saati çoktan yeniden başladı."
+              },
+              { id:"h-deploy", type:"action",
+                label:"Parametreli dağıtımı yay",
+                actionLabel:"Tüm ortamları dağıt", loadingLabel:"Dağıtılıyor…", doneLabel:"Prod, staging ve beş müşteri ortamı tek Bicep dosyasından dağıtıldı — inşaat gereği birebir aynı.", loadingMs:800,
+                errorText:"Şablon var ama ortamlar hâlâ eski elle kurulmuş olanlar."
+              }
+            ]
+          },
+          gcp:{
+            title:"Prod staging'le eşleşmiyor ve nedenini kimse bilmiyor",
+            scenario:"Staging'den süzülerek geçen sürüm prod'da az önce patladı. İki ortam aylar arayla, elle, farklı kişilerce kuruldu. Satış da az önce beş yeni müşteriye kendi birebir aynı ortamlarını söz verdi.",
+            consoleLabel:"Infrastructure Manager (simüle)",
+            actionBtn:"Şablondan dağıt",
+            successText:"Artık her ortamı tek bir incelenmiş yapılandırma üretiyor — birebir aynı, diff'lenebilir, istendiğinde yeniden kurulabilir.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Asıl sorunu adlandır",
+                prompt:"Prod neden staging'den farklı davranıyor?",
+                options:[
+                  { key:"random", label:"Bulut ortamları doğal olarak birbirinden uzaklaşır", correct:false, feedback:"Hiçbir şey kendi kendine sapmaz — her fark, kimsenin yazmadığı bir insan eliyle yapılmış değişiklikti." },
+                  { key:"drift", label:"Aylarca belgesiz konsol düzeltmesi birikip iki farklı ortam üretti", correct:true, feedback:"Aynen — her konsol tıklaması küçük bir çatallanmaydı. Ortamlar artık aynı adı taşıyan farklı makineler." },
+                  { key:"staging", label:"Bozuk olan staging olmalı", correct:false, feedback:"Çalışan taraf staging — ve ikisinin de tanımı yokken 'hangisi doğru' sorusu cevaplanamaz." }
+                ],
+                errorText:"Ortamlar arasındaki farkın hâlâ bir açıklaması yok — bir sonraki sürüm aynı zarı atacak."
+              },
+              { id:"e-template", type:"action",
+                label:"Ortamı yapılandırma olarak yakala",
+                actionLabel:"Yapılandırmayı yaz", loadingLabel:"Yazılıyor…", doneLabel:"Ortam Infrastructure Manager yapılandırmasında — incelendi, sürümlendi, repoda.", loadingMs:700,
+                errorText:"Bu ortamın ne içermesi gerektiğinin yazılı bir tanımı hâlâ yok."
+              },
+              { id:"e-deploy", type:"action",
+                label:"Prod'u yapılandırmadan yeniden kur",
+                actionLabel:"Yapılandırmayı prod'a dağıt", loadingLabel:"Dağıtılıyor…", doneLabel:"Prod yapılandırmadan yeniden dağıtıldı — artık staging'le kanıtlanabilir şekilde birebir aynı.", loadingMs:800,
+                errorText:"Prod hâlâ az önce sürüm patlatan elle kurulmuş kar tanesi."
+              }
+            ],
+            hardSteps:[
+              { id:"h-find", type:"choice",
+                label:"Önce elle yapılmış her değişikliği bul",
+                prompt:"Şablonlamadan önce aylar içinde elle nelerin değiştiğini tam olarak bilmen gerek. Buna gerçekte ne cevap verir?",
+                options:[
+                  { key:"history", label:"Herkesin kabuk geçmişini ve bilet kuyruğunu tara", correct:false, feedback:"Konsol tıklamaları kabuk geçmişi bırakmaz ve bütün sorun bu değişikliklerin hiç bilet almamış olması." },
+                  { key:"preview", label:"Bir önizleme/plan koşusu — canlı kaynakları yapılandırmayla diff'le", correct:true, feedback:"Plan diff'i gerçekliği dosyayla karşılaştırır ve kimsenin yaptığını hatırlamadıkları dahil her sapmayı listeler." },
+                  { key:"standup", label:"Ekibe standup'ta ne değiştirdiklerini sor", correct:false, feedback:"Burada zaten başarısız olan şey tam olarak hafıza — aylarca değişiklik, farklı insanlar, yazılı hiçbir şey." }
+                ],
+                errorText:"Elle nelerin değiştiğinin tam listesi hâlâ yok — şimdi yazacağın her yapılandırma tahminleri yasalaştırır."
+              },
+              { id:"h-params", type:"choice",
+                label:"Beş müşteri ortamını kalıptan bas",
+                prompt:"Beş müşteri, yalnız ad ve boyutla ayrışan birebir ortamlar istiyor. Bu nasıl ifade edilir?",
+                options:[
+                  { key:"copies", label:"Yapılandırmanın beş kopyası, müşteri başına düzenlenmiş", correct:false, feedback:"Beş kopya anında birbirinden sapmaya başlar — bugünkü sorunu beş kez yeniden inşa etmiş olursun." },
+                  { key:"vars", label:"Ad ve boyut için girdi değişkenli tek yapılandırma", correct:true, feedback:"Tek tanım, beş değişken seti — yapılandırmaya yapılan düzeltme her müşteriye birebir aynı ulaşır, sonsuza dek." },
+                  { key:"manual", label:"Elle kur — beş tane idare edilir", correct:false, feedback:"Elle kurulmuş beş ortam beş yeni kar tanesi — bu olayın az önce mahkûm ettiği pratiğin ta kendisi." }
+                ],
+                errorText:"Beş müşteri ortamının hâlâ tek bir doğruluk kaynağı yok."
+              },
+              { id:"h-guard", type:"choice",
+                label:"El düzeltmelerinin sapmayı yeniden başlatamamasını sağla",
+                prompt:"Yapılandırma canlı. Gelecek ayki 'hızlı konsol düzeltmesinin' prod'u yeniden çatallamasını ne engeller?",
+                options:[
+                  { key:"trust", label:"Ekip artık her şeyi pipeline'dan değiştirmeye söz verdi", correct:false, feedback:"Önceki ekip de söz vermişti. Gece 2'de prod çökmüşken sözler konsola her seferinde yenilir — org politikası yenilmez." },
+                  { key:"orgpolicy", label:"Organization Policy ile zorlanmış yalnız-pipeline değişiklikler ve kullanılınca nöbetçiyi çağıran bir acil-durum rolü", correct:true, feedback:"Değişiklikler varsayılan olarak incelemeden akar; acil yol var ama gürültülü — sapma artık sessizce birikemez." },
+                  { key:"revoke", label:"Herkesin konsol yazma erişimini kalıcı olarak sil", correct:false, feedback:"Sıfır acil yol varken ilk gerçek gece 2 olayı owner kimliği paylaşılarak çözülür — öncekinden beter." }
+                ],
+                errorText:"Bir sonraki hızlı konsol düzeltmesini hiçbir şey engellemiyor — sapma saati çoktan yeniden başladı."
+              },
+              { id:"h-deploy", type:"action",
+                label:"Parametreli yapılandırmayı yay",
+                actionLabel:"Tüm ortamları dağıt", loadingLabel:"Dağıtılıyor…", doneLabel:"Prod, staging ve beş müşteri ortamı tek yapılandırmadan dağıtıldı — inşaat gereği birebir aynı.", loadingMs:800,
+                errorText:"Yapılandırma var ama ortamlar hâlâ eski elle kurulmuş olanlar."
+              }
+            ]
+          }
+        },
+        govern:{
+          aws:{
+            title:"Fatura bir çeyrekte ikiye katlandı — güvenlik incelemesi de cuma günü",
+            scenario:"Finans bulut faturasını işaretledi: trafik %10 büyürken fatura üç ayda ikiye katlandı. Bir müşterinin güvenlik incelemesi cumaya denk geliyor. Bahardan beri hesabı kimse denetlemedi.",
+            consoleLabel:"Trusted Advisor Konsolu (simüle)",
+            actionBtn:"İnceleme kanıtlarını teslim et",
+            successText:"İsraf gitti, delikler kapandı ve bir dahaki sefere finanstan önce bir makine fark edecek.",
+            easySteps:[
+              { id:"e-first", type:"choice",
+                label:"İlk hamleyi seç",
+                prompt:"İkiye katlanmış fatura, cuma incelemesi, beş gün. Önce neyi çalıştırırsın?",
+                options:[
+                  { key:"manual", label:"Konsolda her kaynağı tek tek gez", correct:false, feedback:"Bölgeler arası yüzlerce kaynak — el denetimi elindeki haftadan uzun sürer ve yine de bir şeyler kaçırır." },
+                  { key:"advisor", label:"Trusted Advisor — otomatik en-iyi-uygulama taraması", correct:true, feedback:"Günler değil dakikalar: bütün hesaba karşı maliyet, güvenlik ve limit kontrolleri, etkiye göre sıralı." },
+                  { key:"wait", label:"Eğilim mi diye görmek için gelecek ayın faturasını bekle", correct:false, feedback:"Finansın zaten işaretlediğini doğrulamak için bir ay daha ikiye katlanmış harcama — ve cuma yerinden oynamıyor." }
+                ],
+                errorText:"Hafta yanıyor ve hiçbir tarama koşmadı — paranın ve riskin nerede olduğunu hâlâ tahmin ediyorsun."
+              },
+              { id:"e-idle", type:"action",
+                label:"Geceleri ve hafta sonları yalnız çalışan makinelere ödemeyi bırak",
+                actionLabel:"Dev filosunu zamanla", loadingLabel:"Zamanlanıyor…", doneLabel:"Dev filosu artık 19:00'da ve hafta sonları duruyor — en büyük fatura kalemi küçüldü.", loadingMs:600,
+                errorText:"Dev filosu haftada 128 boş saatte hâlâ para yakıyor."
+              },
+              { id:"e-mfa", type:"action",
+                label:"En kötü güvenlik bulgusunu kapat",
+                actionLabel:"Root'ta MFA'yı aç", loadingLabel:"Açılıyor…", doneLabel:"Root MFA açık — oltalanmış tek parola artık bütün hesabı kaybettirmiyor.", loadingMs:500,
+                errorText:"Root hesabı hâlâ oltalanmış tek parola uzaklıkta."
+              }
+            ],
+            hardSteps:[
+              { id:"h-prevent", type:"choice",
+                label:"Bunun bir daha sessizce olamamasını sağla",
+                prompt:"Bu sapmanın fark edilmesi üç ay sürdü. Bir sonrakini ne durdurur?",
+                options:[
+                  { key:"quarterly", label:"Takvime üç aylık el denetimi koy", correct:false, feedback:"Üç aylık demek, bir sonraki sızıntıya üç aya kadar bedava yanma süresi demek — bu olay tam o temponun başarısızlığı." },
+                  { key:"continuous", label:"AWS Config kuralları artı bütçe uyarıları — birini çağıran sürekli kontroller", correct:true, feedback:"Makineler sürekli izler ve ihlalde çağırır — 'oldu' ile 'öğrendik' arası dakikalara iner." },
+                  { key:"trust", label:"Ekip artık biliyor — daha dikkatli olacaklar", correct:false, feedback:"Geçen çeyrek de biliyorlardı. Farkındalık söner; otomatik kontroller sönmez." }
+                ],
+                errorText:"Hesabı sürekli izleyen hiçbir şey yok — bir sonraki üç aylık sapma çoktan başladı."
+              },
+              { id:"h-spot", type:"choice",
+                label:"Spot fiyatlandırmasını gerçekten uyduğu yerde uygula",
+                prompt:"Üç iş yükü ~%70 tasarrufla Spot'a geçebilir. Hangisi orada gerçekten güvenli?",
+                options:[
+                  { key:"db", label:"Üretim veritabanı", correct:false, feedback:"İki dakikalık uyarıyla geri alınabilen bir veritabanı kesinti jeneratörüdür — asla Spot değil." },
+                  { key:"batch", label:"Gece render toplu işi — durumsuz, yeniden başlatılabilir, esnek zamanlı", correct:true, feedback:"Tasarım gereği kesilebilir: geri alınan bir sunucu sadece bir parçanın yeniden render'ı demek. Spot tam bu iş yükü için yapıldı." },
+                  { key:"api", label:"Ödeme API sunucuları", correct:false, feedback:"İsteğin ortasında yok olan müşteriye dönük, gecikmeye hassas sunucular bir tasarruf planı değildir." }
+                ],
+                errorText:"Spot ya kullanılmıyor ya da kesintiden sağ çıkamayacak bir iş yüküne doğrultulmuş."
+              },
+              { id:"h-pillar", type:"choice",
+                label:"Son bulguyu cuma incelemesi için çerçevele",
+                prompt:"İnceleme test edilmiş bir yük devretme planı olmadığını da buldu. Well-Architected diliyle hangi sütun başarısız?",
+                options:[
+                  { key:"cost", label:"Maliyet optimizasyonu", correct:false, feedback:"Maliyet az önce düzelttiğin sütun — test edilmemiş yük devretme planı para israf etmez, çalışma süresini riske atar." },
+                  { key:"reliability", label:"Güvenilirlik", correct:true, feedback:"Aynen — güvenilirlik, arızadan sağ çıkma sütunudur ve test edilmemiş plan kanıtlanmamış plandır." },
+                  { key:"sustain", label:"Sürdürülebilirlik", correct:false, feedback:"Sürdürülebilirlik kaynak verimliliği ve ayak izidir — yük devretmenin çalışıp çalışmadığı değil." }
+                ],
+                errorText:"Bulgu, denetçilerin cuma günü kullanacağı çerçeveye hâlâ eşlenmedi."
+              },
+              { id:"h-verify", type:"action",
+                label:"Kanıt paketini derle",
+                actionLabel:"Kanıt üret", loadingLabel:"Üretiliyor…", doneLabel:"Önce/sonra fatura, kapanan bulgular, sürekli kontroller ve sütun eşlemesi — cuma hazır.", loadingMs:700,
+                errorText:"İnceleme cuma ve iyileştirmeler yalnız sözlü iddia olarak var."
+              }
+            ]
+          },
+          azure:{
+            title:"Fatura bir çeyrekte ikiye katlandı — güvenlik incelemesi de cuma günü",
+            scenario:"Finans bulut faturasını işaretledi: trafik %10 büyürken fatura üç ayda ikiye katlandı. Bir müşterinin güvenlik incelemesi cumaya denk geliyor. Bahardan beri aboneliği kimse denetlemedi.",
+            consoleLabel:"Azure Advisor (simüle)",
+            actionBtn:"İnceleme kanıtlarını teslim et",
+            successText:"İsraf gitti, delikler kapandı ve bir dahaki sefere finanstan önce bir makine fark edecek.",
+            easySteps:[
+              { id:"e-first", type:"choice",
+                label:"İlk hamleyi seç",
+                prompt:"İkiye katlanmış fatura, cuma incelemesi, beş gün. Önce neyi çalıştırırsın?",
+                options:[
+                  { key:"manual", label:"Portalda her kaynağı tek tek gez", correct:false, feedback:"Bölgeler arası yüzlerce kaynak — el denetimi elindeki haftadan uzun sürer ve yine de bir şeyler kaçırır." },
+                  { key:"advisor", label:"Azure Advisor — otomatik en-iyi-uygulama taraması", correct:true, feedback:"Günler değil dakikalar: bütün aboneliğe karşı maliyet, güvenlik ve güvenilirlik kontrolleri, etkiye göre sıralı." },
+                  { key:"wait", label:"Eğilim mi diye görmek için gelecek ayın faturasını bekle", correct:false, feedback:"Finansın zaten işaretlediğini doğrulamak için bir ay daha ikiye katlanmış harcama — ve cuma yerinden oynamıyor." }
+                ],
+                errorText:"Hafta yanıyor ve hiçbir tarama koşmadı — paranın ve riskin nerede olduğunu hâlâ tahmin ediyorsun."
+              },
+              { id:"e-idle", type:"action",
+                label:"Geceleri ve hafta sonları yalnız çalışan makinelere ödemeyi bırak",
+                actionLabel:"Dev VM'lerini zamanla", loadingLabel:"Zamanlanıyor…", doneLabel:"Dev VM'leri artık 19:00'da ve hafta sonları otomatik kapanıyor — en büyük fatura kalemi küçüldü.", loadingMs:600,
+                errorText:"Dev VM'leri haftada 128 boş saatte hâlâ para yakıyor."
+              },
+              { id:"e-mfa", type:"action",
+                label:"En kötü güvenlik bulgusunu kapat",
+                actionLabel:"Adminler için MFA zorunlu kıl", loadingLabel:"Zorlanıyor…", doneLabel:"Admin MFA'sı zorunlu — oltalanmış tek parola artık bütün kiracıyı kaybettirmiyor.", loadingMs:500,
+                errorText:"Global admin hâlâ oltalanmış tek parola uzaklıkta."
+              }
+            ],
+            hardSteps:[
+              { id:"h-prevent", type:"choice",
+                label:"Bunun bir daha sessizce olamamasını sağla",
+                prompt:"Bu sapmanın fark edilmesi üç ay sürdü. Bir sonrakini ne durdurur?",
+                options:[
+                  { key:"quarterly", label:"Takvime üç aylık el denetimi koy", correct:false, feedback:"Üç aylık demek, bir sonraki sızıntıya üç aya kadar bedava yanma süresi demek — bu olay tam o temponun başarısızlığı." },
+                  { key:"continuous", label:"Azure Policy artı bütçe uyarıları — birini çağıran sürekli kontroller", correct:true, feedback:"Makineler sürekli izler ve ihlalde çağırır — 'oldu' ile 'öğrendik' arası dakikalara iner." },
+                  { key:"trust", label:"Ekip artık biliyor — daha dikkatli olacaklar", correct:false, feedback:"Geçen çeyrek de biliyorlardı. Farkındalık söner; otomatik kontroller sönmez." }
+                ],
+                errorText:"Aboneliği sürekli izleyen hiçbir şey yok — bir sonraki üç aylık sapma çoktan başladı."
+              },
+              { id:"h-spot", type:"choice",
+                label:"Spot fiyatlandırmasını gerçekten uyduğu yerde uygula",
+                prompt:"Üç iş yükü ~%70 tasarrufla Spot VM'lere geçebilir. Hangisi orada gerçekten güvenli?",
+                options:[
+                  { key:"db", label:"Üretim veritabanı", correct:false, feedback:"Kısa uyarıyla tahliye edilebilen bir veritabanı kesinti jeneratörüdür — asla Spot değil." },
+                  { key:"batch", label:"Gece render toplu işi — durumsuz, yeniden başlatılabilir, esnek zamanlı", correct:true, feedback:"Tasarım gereği kesilebilir: tahliye edilen bir VM sadece bir parçanın yeniden render'ı demek. Spot tam bu iş yükü için yapıldı." },
+                  { key:"api", label:"Ödeme API sunucuları", correct:false, feedback:"İsteğin ortasında yok olan müşteriye dönük, gecikmeye hassas sunucular bir tasarruf planı değildir." }
+                ],
+                errorText:"Spot ya kullanılmıyor ya da tahliyeden sağ çıkamayacak bir iş yüküne doğrultulmuş."
+              },
+              { id:"h-pillar", type:"choice",
+                label:"Son bulguyu cuma incelemesi için çerçevele",
+                prompt:"İnceleme test edilmiş bir yük devretme planı olmadığını da buldu. Well-Architected diliyle hangi sütun başarısız?",
+                options:[
+                  { key:"cost", label:"Maliyet optimizasyonu", correct:false, feedback:"Maliyet az önce düzelttiğin sütun — test edilmemiş yük devretme planı para israf etmez, çalışma süresini riske atar." },
+                  { key:"reliability", label:"Güvenilirlik", correct:true, feedback:"Aynen — güvenilirlik, arızadan sağ çıkma sütunudur ve test edilmemiş plan kanıtlanmamış plandır." },
+                  { key:"perf", label:"Performans verimliliği", correct:false, feedback:"Performans, yük altında kaynakları iyi kullanmaktır — yük devretmenin çalışıp çalışmadığı değil." }
+                ],
+                errorText:"Bulgu, denetçilerin cuma günü kullanacağı çerçeveye hâlâ eşlenmedi."
+              },
+              { id:"h-verify", type:"action",
+                label:"Kanıt paketini derle",
+                actionLabel:"Kanıt üret", loadingLabel:"Üretiliyor…", doneLabel:"Önce/sonra fatura, kapanan bulgular, sürekli kontroller ve sütun eşlemesi — cuma hazır.", loadingMs:700,
+                errorText:"İnceleme cuma ve iyileştirmeler yalnız sözlü iddia olarak var."
+              }
+            ]
+          },
+          gcp:{
+            title:"Fatura bir çeyrekte ikiye katlandı — güvenlik incelemesi de cuma günü",
+            scenario:"Finans bulut faturasını işaretledi: trafik %10 büyürken fatura üç ayda ikiye katlandı. Bir müşterinin güvenlik incelemesi cumaya denk geliyor. Bahardan beri projeyi kimse denetlemedi.",
+            consoleLabel:"Recommender (simüle)",
+            actionBtn:"İnceleme kanıtlarını teslim et",
+            successText:"İsraf gitti, delikler kapandı ve bir dahaki sefere finanstan önce bir makine fark edecek.",
+            easySteps:[
+              { id:"e-first", type:"choice",
+                label:"İlk hamleyi seç",
+                prompt:"İkiye katlanmış fatura, cuma incelemesi, beş gün. Önce neyi çalıştırırsın?",
+                options:[
+                  { key:"manual", label:"Konsolda her kaynağı tek tek gez", correct:false, feedback:"Bölgeler arası yüzlerce kaynak — el denetimi elindeki haftadan uzun sürer ve yine de bir şeyler kaçırır." },
+                  { key:"recommender", label:"Recommender — otomatik en-iyi-uygulama taraması", correct:true, feedback:"Günler değil dakikalar: proje genelinde maliyet, güvenlik ve boş-kaynak önerileri, etkiye göre sıralı." },
+                  { key:"wait", label:"Eğilim mi diye görmek için gelecek ayın faturasını bekle", correct:false, feedback:"Finansın zaten işaretlediğini doğrulamak için bir ay daha ikiye katlanmış harcama — ve cuma yerinden oynamıyor." }
+                ],
+                errorText:"Hafta yanıyor ve hiçbir tarama koşmadı — paranın ve riskin nerede olduğunu hâlâ tahmin ediyorsun."
+              },
+              { id:"e-idle", type:"action",
+                label:"Geceleri ve hafta sonları yalnız çalışan makinelere ödemeyi bırak",
+                actionLabel:"Dev sunucularını zamanla", loadingLabel:"Zamanlanıyor…", doneLabel:"Dev sunucuları artık 19:00'da ve hafta sonları duruyor — en büyük fatura kalemi küçüldü.", loadingMs:600,
+                errorText:"Dev sunucuları haftada 128 boş saatte hâlâ para yakıyor."
+              },
+              { id:"e-mfa", type:"action",
+                label:"En kötü güvenlik bulgusunu kapat",
+                actionLabel:"Adminler için 2SV zorunlu kıl", loadingLabel:"Zorlanıyor…", doneLabel:"Admin 2 Adımlı Doğrulaması zorunlu — oltalanmış tek parola artık bütün organizasyonu kaybettirmiyor.", loadingMs:500,
+                errorText:"Org admini hâlâ oltalanmış tek parola uzaklıkta."
+              }
+            ],
+            hardSteps:[
+              { id:"h-prevent", type:"choice",
+                label:"Bunun bir daha sessizce olamamasını sağla",
+                prompt:"Bu sapmanın fark edilmesi üç ay sürdü. Bir sonrakini ne durdurur?",
+                options:[
+                  { key:"quarterly", label:"Takvime üç aylık el denetimi koy", correct:false, feedback:"Üç aylık demek, bir sonraki sızıntıya üç aya kadar bedava yanma süresi demek — bu olay tam o temponun başarısızlığı." },
+                  { key:"continuous", label:"Organization Policy kısıtları artı bütçe uyarıları — birini çağıran sürekli kontroller", correct:true, feedback:"Makineler sürekli izler ve ihlalde çağırır — 'oldu' ile 'öğrendik' arası dakikalara iner." },
+                  { key:"trust", label:"Ekip artık biliyor — daha dikkatli olacaklar", correct:false, feedback:"Geçen çeyrek de biliyorlardı. Farkındalık söner; otomatik kontroller sönmez." }
+                ],
+                errorText:"Projeyi sürekli izleyen hiçbir şey yok — bir sonraki üç aylık sapma çoktan başladı."
+              },
+              { id:"h-spot", type:"choice",
+                label:"Spot fiyatlandırmasını gerçekten uyduğu yerde uygula",
+                prompt:"Üç iş yükü ~%70 tasarrufla Spot VM'lere geçebilir. Hangisi orada gerçekten güvenli?",
+                options:[
+                  { key:"db", label:"Üretim veritabanı", correct:false, feedback:"30 saniyelik uyarıyla el konulabilen bir veritabanı kesinti jeneratörüdür — asla Spot değil." },
+                  { key:"batch", label:"Gece render toplu işi — durumsuz, yeniden başlatılabilir, esnek zamanlı", correct:true, feedback:"Tasarım gereği kesilebilir: el konulan bir VM sadece bir parçanın yeniden render'ı demek. Spot tam bu iş yükü için yapıldı." },
+                  { key:"api", label:"Ödeme API sunucuları", correct:false, feedback:"İsteğin ortasında yok olan müşteriye dönük, gecikmeye hassas sunucular bir tasarruf planı değildir." }
+                ],
+                errorText:"Spot ya kullanılmıyor ya da el koymadan sağ çıkamayacak bir iş yüküne doğrultulmuş."
+              },
+              { id:"h-pillar", type:"choice",
+                label:"Son bulguyu cuma incelemesi için çerçevele",
+                prompt:"İnceleme test edilmiş bir yük devretme planı olmadığını da buldu. Architecture Framework diliyle hangi sütun başarısız?",
+                options:[
+                  { key:"cost", label:"Maliyet optimizasyonu", correct:false, feedback:"Maliyet az önce düzelttiğin sütun — test edilmemiş yük devretme planı para israf etmez, çalışma süresini riske atar." },
+                  { key:"reliability", label:"Güvenilirlik", correct:true, feedback:"Aynen — güvenilirlik, arızadan sağ çıkma sütunudur ve test edilmemiş plan kanıtlanmamış plandır." },
+                  { key:"security", label:"Güvenlik", correct:false, feedback:"Güvenlik veriyi ve erişimi korumaktır — yük devretmenin çalışıp çalışmadığı değil." }
+                ],
+                errorText:"Bulgu, denetçilerin cuma günü kullanacağı çerçeveye hâlâ eşlenmedi."
+              },
+              { id:"h-verify", type:"action",
+                label:"Kanıt paketini derle",
+                actionLabel:"Kanıt üret", loadingLabel:"Üretiliyor…", doneLabel:"Önce/sonra fatura, kapanan bulgular, sürekli kontroller ve sütun eşlemesi — cuma hazır.", loadingMs:700,
+                errorText:"İnceleme cuma ve iyileştirmeler yalnız sözlü iddia olarak var."
+              }
+            ]
+          }
+        },
+        aiint:{
+          aws:{
+            title:"Çalışan 40 dakika öldü ve siparişleri de yanında götürdü",
+            scenario:"Sipariş işleme çalışanı öğlen çöktü. 40 dakika boyunca web uygulaması onu doğrudan ve eşzamanlı çağırmaya devam etti — o penceredeki her sipariş hata döndü ve düpedüz kayıp.",
+            consoleLabel:"Amazon MQ Konsolu (simüle)",
+            actionBtn:"Arıza tatbikatını yeniden koş",
+            successText:"Çalışan artık canı ne zaman isterse ölebilir — siparişler kuyrukta bekliyor, sırayla işleniyor ve zehirli mesajlar hattı kilitleyemiyor.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Siparişlerin neden kaybolduğunu adlandır",
+                prompt:"Bir çalışan çöküşü nasıl kayıp siparişe dönüştü?",
+                options:[
+                  { key:"db", label:"Veritabanının yeri doldu", correct:false, feedback:"Veritabanı baştan sona sağlıklıydı — siparişler onları saklayabilecek hiçbir şeye ulaşamadı." },
+                  { key:"sync", label:"Web uygulaması çalışanı doğrudan çağırıyordu — çalışan yoksa siparişin gidecek yeri yok", correct:true, feedback:"Eşzamanlı bağlaşma: çağıranın başarısı, çağrılanın tam o anda hayatta olmasına bağlı. Değildi." },
+                  { key:"traffic", label:"Öğlen trafiği her şeyi ezdi", correct:false, feedback:"Trafik normaldi — çalışan boğulmadı, öldü. Ve doğrudan çağrılar ölümünü her çağıranın sorunu yaptı." }
+                ],
+                errorText:"Siparişleri kaybeden mimari hâlâ adsız — ve hâlâ üretimde."
+              },
+              { id:"e-queue", type:"action",
+                label:"Uygulama ile çalışan arasına bir kuyruk koy",
+                actionLabel:"Amazon MQ'yu kur", loadingLabel:"Kuruluyor…", doneLabel:"Kuyruk kuruldu — uygulama yayınlayıp anında dönüyor; çalışan kendi hızında tüketiyor.", loadingMs:700,
+                errorText:"Uygulama çalışanı hâlâ doğrudan çağırıyor — bir sonraki çöküş siparişleri aynen kaybettirir."
+              },
+              { id:"e-verify", type:"action",
+                label:"Kanıtla: çalışanı öldür, sipariş almaya devam et",
+                actionLabel:"Öldürme testini koş", loadingLabel:"Test ediliyor…", doneLabel:"Canlı siparişler altında çalışan 10 dakika öldürüldü — derinlik büyüdü, çalışan döndü, kuyruk boşaldı, sıfır kayıp.", loadingMs:800,
+                errorText:"Kuyruğun çalışan ölümünden sağ çıktığını kimse fiilen kanıtlamadı — bütün mesele buydu."
+              }
+            ],
+            hardSteps:[
+              { id:"h-order", type:"choice",
+                label:"Müşteri başına sıralamayı garanti et",
+                prompt:"Aynı müşterinin ödeme olayları sırayla işlenmeli — önce tahsilat, sonra iade; asla tersi. Bunu ne garanti eder?",
+                options:[
+                  { key:"standard", label:"Standart kuyruk — mesajlar zaten aşağı yukarı sıralı kalır", correct:false, feedback:"Sorun tam o 'aşağı yukarı': standart kuyruklar teslimatı garanti eder, sırayı değil — bir iade eninde sonunda tahsilatını sollar." },
+                  { key:"fifo", label:"Mesaj grubu müşteri kimliği olan bir FIFO kuyruğu", correct:true, feedback:"Mesaj grupları müşteri başına serileştirir, farklı müşteriler yine paralel işlenir — önemli yerde sıralı, gerisi hızlı." },
+                  { key:"timestamp", label:"Zaman damgası ekle, tüketici halletsin", correct:false, feedback:"Artık her tüketici sıralama mantığını, tamponlamayı ve uç durumları yeniden yazıyor — kötü ve sonsuza dek. Kuyruk bunu zaten yapabiliyor." }
+                ],
+                errorText:"İadeler tahsilatlarını hâlâ sollayabiliyor — müşteri başına sıralama hâlâ garantisiz."
+              },
+              { id:"h-poison", type:"choice",
+                label:"Her tüketiciyi öldüren mesajı ele al",
+                prompt:"Bozuk bir sipariş tüketiciyi her okumada çökertiyor — sonsuza dek yeniden teslim ediliyor ve bütün hattı kilitliyor. Düzeltme nedir?",
+                options:[
+                  { key:"restart", label:"Tüketiciyi her seferinde daha hızlı yeniden başlat", correct:false, feedback:"Her yeniden başlatmada aynı mesajda çöküyor — daha hızlı bir çöküş döngüsü kurdun ve hat hâlâ kilitli." },
+                  { key:"dlq", label:"N başarısız denemeden sonra ölü-mektup kuyruğu", correct:true, feedback:"Zehirli mesaj N denemeden sonra insanlar için kenara alınıyor — hat akmaya devam ediyor, kanıt da korunuyor." },
+                  { key:"purge", label:"Tıkanıklığı açmak için bütün kuyruğu boşalt", correct:false, feedback:"Bu, zehirli mesajın arkasındaki her masum siparişi siler — orijinal olayı bile bile yeniden yaratmak." }
+                ],
+                errorText:"Tek bir bozuk mesaj bütün sipariş hattını hâlâ süresiz kilitleyebiliyor."
+              },
+              { id:"h-bot", type:"choice",
+                label:"Destek botunun arıza modunu tasarla",
+                prompt:"Yeni Lex destek botu her şeyi anlamayacak. Tanınmayan bir istekte ne olur?",
+                options:[
+                  { key:"guess", label:"Yine de en yakın düşük güvenli eşleşmeyle cevapla", correct:false, feedback:"Siparişler ve iadeler hakkında kendinden emin yanlış cevaplar botsuzluktan beterdir — güven (ve para) böyle kaybedilir." },
+                  { key:"handoff", label:"Konuşmayı transkriptiyle birlikte insana devreden bir fallback niyeti", correct:true, feedback:"Bot emin olduğunu halleder, insanlar gerisini bağlamıyla alır, loglar da ona sonra ne öğretileceğini gösterir." },
+                  { key:"end", label:"\"Anlamadım\" deyip sohbeti bitir", correct:false, feedback:"Müşteriye en muhtaç anında çıkmaz sokak — bot kapı olacakken duvar oldu." }
+                ],
+                errorText:"Bot kafası karışan müşterilere hâlâ kapalı düşüyor — ya da daha kötüsü, kendinden emin yanlış."
+              },
+              { id:"h-verify", type:"action",
+                label:"Tam arıza tatbikatını koş",
+                actionLabel:"Tam tatbikatı koş", loadingLabel:"Tatbikat yapılıyor…", doneLabel:"Sıralama paralel yük altında tuttu, zehirli mesaj DLQ'ya alındı, bot temiz devretti — hepsi yeşil.", loadingMs:800,
+                errorText:"İyileştirmeler kâğıt üstünde — hiçbiri arıza altında kanıtlanmadı."
+              }
+            ]
+          },
+          azure:{
+            title:"Çalışan 40 dakika öldü ve siparişleri de yanında götürdü",
+            scenario:"Sipariş işleme çalışanı öğlen çöktü. 40 dakika boyunca web uygulaması onu doğrudan ve eşzamanlı çağırmaya devam etti — o penceredeki her sipariş hata döndü ve düpedüz kayıp.",
+            consoleLabel:"Azure Service Bus (simüle)",
+            actionBtn:"Arıza tatbikatını yeniden koş",
+            successText:"Çalışan artık canı ne zaman isterse ölebilir — siparişler kuyrukta bekliyor, sırayla işleniyor ve zehirli mesajlar hattı kilitleyemiyor.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Siparişlerin neden kaybolduğunu adlandır",
+                prompt:"Bir çalışan çöküşü nasıl kayıp siparişe dönüştü?",
+                options:[
+                  { key:"db", label:"Veritabanının yeri doldu", correct:false, feedback:"Veritabanı baştan sona sağlıklıydı — siparişler onları saklayabilecek hiçbir şeye ulaşamadı." },
+                  { key:"sync", label:"Web uygulaması çalışanı doğrudan çağırıyordu — çalışan yoksa siparişin gidecek yeri yok", correct:true, feedback:"Eşzamanlı bağlaşma: çağıranın başarısı, çağrılanın tam o anda hayatta olmasına bağlı. Değildi." },
+                  { key:"traffic", label:"Öğlen trafiği her şeyi ezdi", correct:false, feedback:"Trafik normaldi — çalışan boğulmadı, öldü. Ve doğrudan çağrılar ölümünü her çağıranın sorunu yaptı." }
+                ],
+                errorText:"Siparişleri kaybeden mimari hâlâ adsız — ve hâlâ üretimde."
+              },
+              { id:"e-queue", type:"action",
+                label:"Uygulama ile çalışan arasına bir kuyruk koy",
+                actionLabel:"Service Bus'ı kur", loadingLabel:"Kuruluyor…", doneLabel:"Kuyruk kuruldu — uygulama yayınlayıp anında dönüyor; çalışan kendi hızında tüketiyor.", loadingMs:700,
+                errorText:"Uygulama çalışanı hâlâ doğrudan çağırıyor — bir sonraki çöküş siparişleri aynen kaybettirir."
+              },
+              { id:"e-verify", type:"action",
+                label:"Kanıtla: çalışanı öldür, sipariş almaya devam et",
+                actionLabel:"Öldürme testini koş", loadingLabel:"Test ediliyor…", doneLabel:"Canlı siparişler altında çalışan 10 dakika öldürüldü — derinlik büyüdü, çalışan döndü, kuyruk boşaldı, sıfır kayıp.", loadingMs:800,
+                errorText:"Kuyruğun çalışan ölümünden sağ çıktığını kimse fiilen kanıtlamadı — bütün mesele buydu."
+              }
+            ],
+            hardSteps:[
+              { id:"h-order", type:"choice",
+                label:"Müşteri başına sıralamayı garanti et",
+                prompt:"Aynı müşterinin ödeme olayları sırayla işlenmeli — önce tahsilat, sonra iade; asla tersi. Bunu ne garanti eder?",
+                options:[
+                  { key:"standard", label:"Basit kuyruk — mesajlar zaten aşağı yukarı sıralı kalır", correct:false, feedback:"Sorun tam o 'aşağı yukarı': düz kuyruklar teslimatı garanti eder, sırayı değil — bir iade eninde sonunda tahsilatını sollar." },
+                  { key:"sessions", label:"Müşteri kimliğiyle anahtarlanmış Service Bus oturumları", correct:true, feedback:"Oturumlar müşteri başına serileştirir, farklı müşteriler yine paralel işlenir — önemli yerde sıralı, gerisi hızlı." },
+                  { key:"timestamp", label:"Zaman damgası ekle, tüketici halletsin", correct:false, feedback:"Artık her tüketici sıralama mantığını, tamponlamayı ve uç durumları yeniden yazıyor — kötü ve sonsuza dek. Kuyruk bunu zaten yapabiliyor." }
+                ],
+                errorText:"İadeler tahsilatlarını hâlâ sollayabiliyor — müşteri başına sıralama hâlâ garantisiz."
+              },
+              { id:"h-poison", type:"choice",
+                label:"Her tüketiciyi öldüren mesajı ele al",
+                prompt:"Bozuk bir sipariş tüketiciyi her okumada çökertiyor — sonsuza dek yeniden teslim ediliyor ve bütün hattı kilitliyor. Düzeltme nedir?",
+                options:[
+                  { key:"restart", label:"Tüketiciyi her seferinde daha hızlı yeniden başlat", correct:false, feedback:"Her yeniden başlatmada aynı mesajda çöküyor — daha hızlı bir çöküş döngüsü kurdun ve hat hâlâ kilitli." },
+                  { key:"dlq", label:"Azami teslim denemesinden sonra yerleşik ölü-mektup kuyruğu", correct:true, feedback:"Zehirli mesaj N denemeden sonra insanlar için kenara alınıyor — hat akmaya devam ediyor, kanıt da korunuyor." },
+                  { key:"purge", label:"Tıkanıklığı açmak için bütün kuyruğu boşalt", correct:false, feedback:"Bu, zehirli mesajın arkasındaki her masum siparişi siler — orijinal olayı bile bile yeniden yaratmak." }
+                ],
+                errorText:"Tek bir bozuk mesaj bütün sipariş hattını hâlâ süresiz kilitleyebiliyor."
+              },
+              { id:"h-bot", type:"choice",
+                label:"Destek botunun arıza modunu tasarla",
+                prompt:"Yeni Bot Service asistanı her şeyi anlamayacak. Tanınmayan bir istekte ne olur?",
+                options:[
+                  { key:"guess", label:"Yine de en yakın düşük güvenli eşleşmeyle cevapla", correct:false, feedback:"Siparişler ve iadeler hakkında kendinden emin yanlış cevaplar botsuzluktan beterdir — güven (ve para) böyle kaybedilir." },
+                  { key:"handoff", label:"Konuşmayı transkriptiyle birlikte insana devreden bir fallback niyeti", correct:true, feedback:"Bot emin olduğunu halleder, insanlar gerisini bağlamıyla alır, loglar da ona sonra ne öğretileceğini gösterir." },
+                  { key:"end", label:"\"Anlamadım\" deyip sohbeti bitir", correct:false, feedback:"Müşteriye en muhtaç anında çıkmaz sokak — bot kapı olacakken duvar oldu." }
+                ],
+                errorText:"Bot kafası karışan müşterilere hâlâ kapalı düşüyor — ya da daha kötüsü, kendinden emin yanlış."
+              },
+              { id:"h-verify", type:"action",
+                label:"Tam arıza tatbikatını koş",
+                actionLabel:"Tam tatbikatı koş", loadingLabel:"Tatbikat yapılıyor…", doneLabel:"Sıralama paralel yük altında tuttu, zehirli mesaj ölü-mektuba alındı, bot temiz devretti — hepsi yeşil.", loadingMs:800,
+                errorText:"İyileştirmeler kâğıt üstünde — hiçbiri arıza altında kanıtlanmadı."
+              }
+            ]
+          },
+          gcp:{
+            title:"Çalışan 40 dakika öldü ve siparişleri de yanında götürdü",
+            scenario:"Sipariş işleme çalışanı öğlen çöktü. 40 dakika boyunca web uygulaması onu doğrudan ve eşzamanlı çağırmaya devam etti — o penceredeki her sipariş hata döndü ve düpedüz kayıp.",
+            consoleLabel:"Cloud Pub/Sub Konsolu (simüle)",
+            actionBtn:"Arıza tatbikatını yeniden koş",
+            successText:"Çalışan artık canı ne zaman isterse ölebilir — siparişler kuyrukta bekliyor, sırayla işleniyor ve zehirli mesajlar hattı kilitleyemiyor.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Siparişlerin neden kaybolduğunu adlandır",
+                prompt:"Bir çalışan çöküşü nasıl kayıp siparişe dönüştü?",
+                options:[
+                  { key:"db", label:"Veritabanının yeri doldu", correct:false, feedback:"Veritabanı baştan sona sağlıklıydı — siparişler onları saklayabilecek hiçbir şeye ulaşamadı." },
+                  { key:"sync", label:"Web uygulaması çalışanı doğrudan çağırıyordu — çalışan yoksa siparişin gidecek yeri yok", correct:true, feedback:"Eşzamanlı bağlaşma: çağıranın başarısı, çağrılanın tam o anda hayatta olmasına bağlı. Değildi." },
+                  { key:"traffic", label:"Öğlen trafiği her şeyi ezdi", correct:false, feedback:"Trafik normaldi — çalışan boğulmadı, öldü. Ve doğrudan çağrılar ölümünü her çağıranın sorunu yaptı." }
+                ],
+                errorText:"Siparişleri kaybeden mimari hâlâ adsız — ve hâlâ üretimde."
+              },
+              { id:"e-queue", type:"action",
+                label:"Uygulama ile çalışan arasına konu ve abonelik koy",
+                actionLabel:"Pub/Sub'ı kur", loadingLabel:"Kuruluyor…", doneLabel:"Konu kuruldu — uygulama yayınlayıp anında dönüyor; çalışan kendi hızında çekiyor.", loadingMs:700,
+                errorText:"Uygulama çalışanı hâlâ doğrudan çağırıyor — bir sonraki çöküş siparişleri aynen kaybettirir."
+              },
+              { id:"e-verify", type:"action",
+                label:"Kanıtla: çalışanı öldür, sipariş almaya devam et",
+                actionLabel:"Öldürme testini koş", loadingLabel:"Test ediliyor…", doneLabel:"Canlı siparişler altında çalışan 10 dakika öldürüldü — birikim büyüdü, çalışan döndü, abonelik boşaldı, sıfır kayıp.", loadingMs:800,
+                errorText:"Kuyruğun çalışan ölümünden sağ çıktığını kimse fiilen kanıtlamadı — bütün mesele buydu."
+              }
+            ],
+            hardSteps:[
+              { id:"h-order", type:"choice",
+                label:"Müşteri başına sıralamayı garanti et",
+                prompt:"Aynı müşterinin ödeme olayları sırayla işlenmeli — önce tahsilat, sonra iade; asla tersi. Bunu ne garanti eder?",
+                options:[
+                  { key:"standard", label:"Varsayılan abonelik — mesajlar zaten aşağı yukarı sıralı kalır", correct:false, feedback:"Sorun tam o 'aşağı yukarı': varsayılan teslimat varışı garanti eder, sırayı değil — bir iade eninde sonunda tahsilatını sollar." },
+                  { key:"ordering", label:"Müşteri kimliğine ayarlanmış sıralama anahtarları", correct:true, feedback:"Sıralama anahtarları müşteri başına serileştirir, farklı müşteriler yine paralel işlenir — önemli yerde sıralı, gerisi hızlı." },
+                  { key:"timestamp", label:"Zaman damgası ekle, tüketici halletsin", correct:false, feedback:"Artık her tüketici sıralama mantığını, tamponlamayı ve uç durumları yeniden yazıyor — kötü ve sonsuza dek. Pub/Sub bunu zaten yapabiliyor." }
+                ],
+                errorText:"İadeler tahsilatlarını hâlâ sollayabiliyor — müşteri başına sıralama hâlâ garantisiz."
+              },
+              { id:"h-poison", type:"choice",
+                label:"Her tüketiciyi öldüren mesajı ele al",
+                prompt:"Bozuk bir sipariş tüketiciyi her okumada çökertiyor — sonsuza dek yeniden teslim ediliyor ve bütün hattı kilitliyor. Düzeltme nedir?",
+                options:[
+                  { key:"restart", label:"Tüketiciyi her seferinde daha hızlı yeniden başlat", correct:false, feedback:"Her yeniden başlatmada aynı mesajda çöküyor — daha hızlı bir çöküş döngüsü kurdun ve hat hâlâ kilitli." },
+                  { key:"dlq", label:"Azami teslim denemesinden sonra ölü-mektup konusu", correct:true, feedback:"Zehirli mesaj N denemeden sonra insanlar için kenara alınıyor — hat akmaya devam ediyor, kanıt da korunuyor." },
+                  { key:"purge", label:"Tıkanıklığı açmak için aboneliği boşalt", correct:false, feedback:"Bu, zehirli mesajın arkasındaki her masum siparişi siler — orijinal olayı bile bile yeniden yaratmak." }
+                ],
+                errorText:"Tek bir bozuk mesaj bütün sipariş hattını hâlâ süresiz kilitleyebiliyor."
+              },
+              { id:"h-bot", type:"choice",
+                label:"Destek botunun arıza modunu tasarla",
+                prompt:"Yeni Dialogflow destek botu her şeyi anlamayacak. Tanınmayan bir istekte ne olur?",
+                options:[
+                  { key:"guess", label:"Yine de en yakın düşük güvenli eşleşmeyle cevapla", correct:false, feedback:"Siparişler ve iadeler hakkında kendinden emin yanlış cevaplar botsuzluktan beterdir — güven (ve para) böyle kaybedilir." },
+                  { key:"handoff", label:"Konuşmayı transkriptiyle birlikte insana devreden bir fallback niyeti", correct:true, feedback:"Bot emin olduğunu halleder, insanlar gerisini bağlamıyla alır, loglar da ona sonra ne öğretileceğini gösterir." },
+                  { key:"end", label:"\"Anlamadım\" deyip sohbeti bitir", correct:false, feedback:"Müşteriye en muhtaç anında çıkmaz sokak — bot kapı olacakken duvar oldu." }
+                ],
+                errorText:"Bot kafası karışan müşterilere hâlâ kapalı düşüyor — ya da daha kötüsü, kendinden emin yanlış."
+              },
+              { id:"h-verify", type:"action",
+                label:"Tam arıza tatbikatını koş",
+                actionLabel:"Tam tatbikatı koş", loadingLabel:"Tatbikat yapılıyor…", doneLabel:"Sıralama paralel yük altında tuttu, zehirli mesaj ölü-mektuba alındı, bot temiz devretti — hepsi yeşil.", loadingMs:800,
+                errorText:"İyileştirmeler kâğıt üstünde — hiçbiri arıza altında kanıtlanmadı."
+              }
+            ]
+          }
+        },
+        certs:{
+          aws:{
+            title:"Cumartesi dolan bir sertifika — ve var olmaması gereken bir kova",
+            scenario:"Pazarlama mikrositesinin TLS sertifikası cumartesi doluyor ve bir yıl önce elle içe aktarılmıştı. Ayrıca müşteri yüklemeleriyle dolu bir kova, içinde gerçekte ne olduğuna dair hiç taranmadı.",
+            consoleLabel:"ACM ve Macie Konsolu (simüle)",
+            actionBtn:"İki riskin de kapandığını doğrula",
+            successText:"Sertifika artık kendini sonsuza dek yeniliyor ve kişisel veri bulundu, kilitlendi, hesabı verildi.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Hiçbir şey yapılmazsa cumartesinin neye benzeyeceğini anla",
+                prompt:"Sertifikanın süresi dolduğu anda ne olur?",
+                options:[
+                  { key:"nothing", label:"Görünür bir şey olmaz — sertifikalar formalitedir", correct:false, feedback:"Her tarayıcı tam ekran güvenlik uyarısı basar ve bağlantıyı reddeder. Site fiilen kapalıdır." },
+                  { key:"warning", label:"Tarayıcılar güvenlik hatasıyla bağlantıyı reddeder — site fiilen çöker", correct:true, feedback:"Aynen — NET::ERR_CERT_DATE_INVALID; ve hiçbir müşteri o ekranı geçmez." },
+                  { key:"http", label:"Site sessizce düz HTTP'ye düşer", correct:false, feedback:"Otomatik bir geri düşüş yok — müşterilere düz HTTP'yle hizmet vermek zaten kesintiden beter olurdu." }
+                ],
+                errorText:"Cumartesi hâlâ geliyor ve süre dolumunun ne yaptığını kimse ortaya koymadı."
+              },
+              { id:"e-renew", type:"action",
+                label:"Yönetilen, kendini yenileyen bir sertifikayla değiştir",
+                actionLabel:"ACM sertifikası bas", loadingLabel:"Basılıyor…", doneLabel:"ACM sertifikası basıldı ve bağlandı — artık kendini sonsuza dek yeniliyor.", loadingMs:700,
+                errorText:"Sunulan hâlâ elle içe aktarılmış sertifika — cumartesi hâlâ kesintiyle bitiyor."
+              },
+              { id:"e-scan", type:"action",
+                label:"Yükleme kovasını hassas veri için tara",
+                actionLabel:"Macie taraması çalıştır", loadingLabel:"Taranıyor…", doneLabel:"Tarama bitti: üç nesnede kimlik belgeleri ve kart numaraları var.", loadingMs:800,
+                errorText:"O kovada ne olduğunu kimse bilmiyor — yani o kovadakini kimse korumuyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-why", type:"choice",
+                label:"Neden yalnız bu sertifikanın dolmak üzere olduğunu açıkla",
+                prompt:"Hesaptaki diğer her sertifika kendini yeniliyor. Bu neden farklı?",
+                options:[
+                  { key:"outage", label:"ACM yenileme tarihinde kesinti yaşadı", correct:false, feedback:"ACM tek kırılgan bir tarihte değil, dolmadan çok önce sürekli yeniler — ve bildirilen bir kesinti yok." },
+                  { key:"imported", label:"Dış bir CA'dan içe aktarıldı — ACM kendi basmadığını yenileyemez", correct:true, feedback:"Aynen — içe aktarılan sertifikalar orijinal vericisinin yaşam döngüsünü taşır. Otomatik yenileme yalnız ACM'nin bastıklarını kapsar." },
+                  { key:"random", label:"Sertifikalar bazen rastgele erken dolar", correct:false, feedback:"Dolma tarihleri basım anında sabittir — hiçbir yanı rastgele değildir." }
+                ],
+                errorText:"Kök neden adlandırılmadıkça, elle içe aktarılan bir sonraki sertifika da aynısını yapacak."
+              },
+              { id:"h-pin", type:"choice",
+                label:"Eski sertifikayı sabitleyen mobil uygulamayla uğraş",
+                prompt:"Mobil ekip uygulamada tam olarak eski sertifikayı sabitlemiş. Döndürmek her kurulumu bozar. Doğru karar nedir?",
+                options:[
+                  { key:"never", label:"Uygulama çalışsın diye eski sertifikayı sonsuza dek tut", correct:false, feedback:"Tutamazsın — cumartesi ne olursa olsun doluyor. Uç sertifika sabitlemek bu tuzağı kurdu; tutmak tuzaktan çıkarmaz." },
+                  { key:"update", label:"Döndürmeden önce, uç yerine CA'yı sabitleyen bir uygulama güncellemesi yayınla", correct:true, feedback:"Sabit olanı sabitle: CA zinciri rotasyondan sağ çıkar, uygulama gelecekteki her yenilemeye kendiliğinden güvenir." },
+                  { key:"ignore", label:"Yine de döndür — mobil kullanıcılar yeniden kurar", correct:false, feedback:"Döndürdüğün an kurulu her uygulamayı tuğlalaştırır — kaçındığın kesintinin üstüne, seçtiğin bir kesinti." }
+                ],
+                errorText:"Ya uygulama rotasyon günü bozulacak ya site cumartesi çökecek — sabitleme tuzağı hâlâ kurulu."
+              },
+              { id:"h-pii", type:"choice",
+                label:"Taramanın bulduğuna göre davran",
+                prompt:"Macie üç nesnede kimlik belgeleri işaretledi — herkese-açık-okuma açık bir kovada. İlk hamle?",
+                options:[
+                  { key:"delete", label:"Bütün kovayı hemen sil", correct:false, feedback:"Bu meşru müşteri dosyalarını ve muhtemelen hukuki delili yok eder — önce çevreleme, yıkım değil." },
+                  { key:"lock", label:"Block Public Access'i aç, sonra işaretli nesneleri karantinaya al", correct:true, feedback:"Önce maruziyeti kapat, sonra hassas nesneleri inceleme için izole et — geri alınabilir, denetlenebilir, anında." },
+                  { key:"policy", label:"Kullanıcılara kimlik yüklemeyin diye bir politika yaz", correct:false, feedback:"Politika tek bir baytı taşımaz — genelge dolaşırken kimlikler hâlâ herkese açık." }
+                ],
+                errorText:"Kimlik belgeleri internetteki herkesten hâlâ tek URL uzakta."
+              },
+              { id:"h-verify", type:"action",
+                label:"İki düzeltmenin de tuttuğunu kanıtla",
+                actionLabel:"Doğrulama çalıştır", loadingLabel:"Doğrulanıyor…", doneLabel:"Yenileme simüle edildi, sabitli uygulama hâlâ bağlanıyor, genel erişim kapalı, işaretli nesneler karantinada.", loadingMs:800,
+                errorText:"Uçtan uca hiçbir şey doğrulanmadı — 'herhalde iyidir', cumartesinin daha önce üstünde koştuğu şeydi."
+              }
+            ]
+          },
+          azure:{
+            title:"Cumartesi dolan bir sertifika — ve var olmaması gereken bir konteyner",
+            scenario:"Pazarlama mikrositesinin TLS sertifikası cumartesi doluyor ve bir yıl önce elle yüklenmişti. Ayrıca müşteri yüklemeleriyle dolu bir depolama konteyneri, içinde gerçekte ne olduğuna dair hiç taranmadı.",
+            consoleLabel:"Key Vault ve Purview (simüle)",
+            actionBtn:"İki riskin de kapandığını doğrula",
+            successText:"Sertifika artık kendini sonsuza dek yeniliyor ve kişisel veri bulundu, kilitlendi, hesabı verildi.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Hiçbir şey yapılmazsa cumartesinin neye benzeyeceğini anla",
+                prompt:"Sertifikanın süresi dolduğu anda ne olur?",
+                options:[
+                  { key:"nothing", label:"Görünür bir şey olmaz — sertifikalar formalitedir", correct:false, feedback:"Her tarayıcı tam ekran güvenlik uyarısı basar ve bağlantıyı reddeder. Site fiilen kapalıdır." },
+                  { key:"warning", label:"Tarayıcılar güvenlik hatasıyla bağlantıyı reddeder — site fiilen çöker", correct:true, feedback:"Aynen — NET::ERR_CERT_DATE_INVALID; ve hiçbir müşteri o ekranı geçmez." },
+                  { key:"http", label:"Site sessizce düz HTTP'ye düşer", correct:false, feedback:"Otomatik bir geri düşüş yok — müşterilere düz HTTP'yle hizmet vermek zaten kesintiden beter olurdu." }
+                ],
+                errorText:"Cumartesi hâlâ geliyor ve süre dolumunun ne yaptığını kimse ortaya koymadı."
+              },
+              { id:"e-renew", type:"action",
+                label:"Key Vault yönetilen sertifikasıyla değiştir",
+                actionLabel:"Yönetilen sertifika bas", loadingLabel:"Basılıyor…", doneLabel:"Key Vault sertifikası otomatik rotasyon politikasıyla basıldı — artık kendini yeniliyor.", loadingMs:700,
+                errorText:"Sunulan hâlâ elle yüklenmiş sertifika — cumartesi hâlâ kesintiyle bitiyor."
+              },
+              { id:"e-scan", type:"action",
+                label:"Yükleme konteynerini hassas veri için tara",
+                actionLabel:"Purview taraması çalıştır", loadingLabel:"Taranıyor…", doneLabel:"Tarama bitti: üç blobda kimlik belgeleri ve kart numaraları var.", loadingMs:800,
+                errorText:"O konteynerde ne olduğunu kimse bilmiyor — yani içindekini kimse korumuyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-why", type:"choice",
+                label:"Neden yalnız bu sertifikanın dolmak üzere olduğunu açıkla",
+                prompt:"Kasadaki diğer her sertifika kendini yeniliyor. Bu neden farklı?",
+                options:[
+                  { key:"outage", label:"Key Vault yenileme tarihinde kesinti yaşadı", correct:false, feedback:"Yönetilen sertifikalar tek kırılgan bir tarihte değil, dolmadan çok önce sürekli yenilenir — ve bildirilen bir kesinti yok." },
+                  { key:"imported", label:"Ham dosya olarak yüklendi — Key Vault yönetmediğini döndüremez", correct:true, feedback:"Aynen — içe aktarılan sertifikalar orijinal vericisinin yaşam döngüsünü taşır. Otomatik rotasyon yalnız kasa yönetimli basımı kapsar." },
+                  { key:"random", label:"Sertifikalar bazen rastgele erken dolar", correct:false, feedback:"Dolma tarihleri basım anında sabittir — hiçbir yanı rastgele değildir." }
+                ],
+                errorText:"Kök neden adlandırılmadıkça, elle yüklenen bir sonraki sertifika da aynısını yapacak."
+              },
+              { id:"h-pin", type:"choice",
+                label:"Eski sertifikayı sabitleyen mobil uygulamayla uğraş",
+                prompt:"Mobil ekip uygulamada tam olarak eski sertifikayı sabitlemiş. Döndürmek her kurulumu bozar. Doğru karar nedir?",
+                options:[
+                  { key:"never", label:"Uygulama çalışsın diye eski sertifikayı sonsuza dek tut", correct:false, feedback:"Tutamazsın — cumartesi ne olursa olsun doluyor. Uç sertifika sabitlemek bu tuzağı kurdu; tutmak tuzaktan çıkarmaz." },
+                  { key:"update", label:"Döndürmeden önce, uç yerine CA'yı sabitleyen bir uygulama güncellemesi yayınla", correct:true, feedback:"Sabit olanı sabitle: CA zinciri rotasyondan sağ çıkar, uygulama gelecekteki her yenilemeye kendiliğinden güvenir." },
+                  { key:"ignore", label:"Yine de döndür — mobil kullanıcılar yeniden kurar", correct:false, feedback:"Döndürdüğün an kurulu her uygulamayı tuğlalaştırır — kaçındığın kesintinin üstüne, seçtiğin bir kesinti." }
+                ],
+                errorText:"Ya uygulama rotasyon günü bozulacak ya site cumartesi çökecek — sabitleme tuzağı hâlâ kurulu."
+              },
+              { id:"h-pii", type:"choice",
+                label:"Taramanın bulduğuna göre davran",
+                prompt:"Purview üç blobda kimlik belgeleri işaretledi — anonim okuma açık bir konteynerde. İlk hamle?",
+                options:[
+                  { key:"delete", label:"Bütün konteyneri hemen sil", correct:false, feedback:"Bu meşru müşteri dosyalarını ve muhtemelen hukuki delili yok eder — önce çevreleme, yıkım değil." },
+                  { key:"lock", label:"Anonim erişimi kapat, sonra işaretli blobları karantinaya al", correct:true, feedback:"Önce maruziyeti kapat, sonra hassas blobları inceleme için izole et — geri alınabilir, denetlenebilir, anında." },
+                  { key:"policy", label:"Kullanıcılara kimlik yüklemeyin diye bir politika yaz", correct:false, feedback:"Politika tek bir baytı taşımaz — genelge dolaşırken kimlikler hâlâ herkese açık." }
+                ],
+                errorText:"Kimlik belgeleri internetteki herkesten hâlâ tek URL uzakta."
+              },
+              { id:"h-verify", type:"action",
+                label:"İki düzeltmenin de tuttuğunu kanıtla",
+                actionLabel:"Doğrulama çalıştır", loadingLabel:"Doğrulanıyor…", doneLabel:"Rotasyon simüle edildi, sabitli uygulama hâlâ bağlanıyor, anonim erişim kapalı, işaretli bloblar karantinada.", loadingMs:800,
+                errorText:"Uçtan uca hiçbir şey doğrulanmadı — 'herhalde iyidir', cumartesinin daha önce üstünde koştuğu şeydi."
+              }
+            ]
+          },
+          gcp:{
+            title:"Cumartesi dolan bir sertifika — ve var olmaması gereken bir kova",
+            scenario:"Pazarlama mikrositesinin TLS sertifikası cumartesi doluyor ve bir yıl önce elle yüklenmişti. Ayrıca müşteri yüklemeleriyle dolu bir kova, içinde gerçekte ne olduğuna dair hiç taranmadı.",
+            consoleLabel:"Certificate Manager ve DLP (simüle)",
+            actionBtn:"İki riskin de kapandığını doğrula",
+            successText:"Sertifika artık kendini sonsuza dek yeniliyor ve kişisel veri bulundu, kilitlendi, hesabı verildi.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Hiçbir şey yapılmazsa cumartesinin neye benzeyeceğini anla",
+                prompt:"Sertifikanın süresi dolduğu anda ne olur?",
+                options:[
+                  { key:"nothing", label:"Görünür bir şey olmaz — sertifikalar formalitedir", correct:false, feedback:"Her tarayıcı tam ekran güvenlik uyarısı basar ve bağlantıyı reddeder. Site fiilen kapalıdır." },
+                  { key:"warning", label:"Tarayıcılar güvenlik hatasıyla bağlantıyı reddeder — site fiilen çöker", correct:true, feedback:"Aynen — NET::ERR_CERT_DATE_INVALID; ve hiçbir müşteri o ekranı geçmez." },
+                  { key:"http", label:"Site sessizce düz HTTP'ye düşer", correct:false, feedback:"Otomatik bir geri düşüş yok — müşterilere düz HTTP'yle hizmet vermek zaten kesintiden beter olurdu." }
+                ],
+                errorText:"Cumartesi hâlâ geliyor ve süre dolumunun ne yaptığını kimse ortaya koymadı."
+              },
+              { id:"e-renew", type:"action",
+                label:"Google yönetimli bir sertifikayla değiştir",
+                actionLabel:"Yönetilen sertifika bas", loadingLabel:"Basılıyor…", doneLabel:"Yönetilen sertifika basıldı ve bağlandı — artık kendini sonsuza dek yeniliyor.", loadingMs:700,
+                errorText:"Sunulan hâlâ elle yüklenmiş sertifika — cumartesi hâlâ kesintiyle bitiyor."
+              },
+              { id:"e-scan", type:"action",
+                label:"Yükleme kovasını hassas veri için tara",
+                actionLabel:"DLP taraması çalıştır", loadingLabel:"Taranıyor…", doneLabel:"Tarama bitti: üç nesnede kimlik belgeleri ve kart numaraları var.", loadingMs:800,
+                errorText:"O kovada ne olduğunu kimse bilmiyor — yani o kovadakini kimse korumuyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-why", type:"choice",
+                label:"Neden yalnız bu sertifikanın dolmak üzere olduğunu açıkla",
+                prompt:"Projedeki diğer her sertifika kendini yeniliyor. Bu neden farklı?",
+                options:[
+                  { key:"outage", label:"Certificate Manager yenileme tarihinde kesinti yaşadı", correct:false, feedback:"Yönetilen sertifikalar tek kırılgan bir tarihte değil, dolmadan çok önce sürekli yenilenir — ve bildirilen bir kesinti yok." },
+                  { key:"imported", label:"Kendi-yönetimli sertifika olarak yüklendi — Google kendi basmadığını yenileyemez", correct:true, feedback:"Aynen — kendi-yönetimli sertifikalar orijinal vericisinin yaşam döngüsünü taşır. Otomatik yenileme yalnız Google yönetimli basımı kapsar." },
+                  { key:"random", label:"Sertifikalar bazen rastgele erken dolar", correct:false, feedback:"Dolma tarihleri basım anında sabittir — hiçbir yanı rastgele değildir." }
+                ],
+                errorText:"Kök neden adlandırılmadıkça, kendi-yönetimli bir sonraki sertifika da aynısını yapacak."
+              },
+              { id:"h-pin", type:"choice",
+                label:"Eski sertifikayı sabitleyen mobil uygulamayla uğraş",
+                prompt:"Mobil ekip uygulamada tam olarak eski sertifikayı sabitlemiş. Döndürmek her kurulumu bozar. Doğru karar nedir?",
+                options:[
+                  { key:"never", label:"Uygulama çalışsın diye eski sertifikayı sonsuza dek tut", correct:false, feedback:"Tutamazsın — cumartesi ne olursa olsun doluyor. Uç sertifika sabitlemek bu tuzağı kurdu; tutmak tuzaktan çıkarmaz." },
+                  { key:"update", label:"Döndürmeden önce, uç yerine CA'yı sabitleyen bir uygulama güncellemesi yayınla", correct:true, feedback:"Sabit olanı sabitle: CA zinciri rotasyondan sağ çıkar, uygulama gelecekteki her yenilemeye kendiliğinden güvenir." },
+                  { key:"ignore", label:"Yine de döndür — mobil kullanıcılar yeniden kurar", correct:false, feedback:"Döndürdüğün an kurulu her uygulamayı tuğlalaştırır — kaçındığın kesintinin üstüne, seçtiğin bir kesinti." }
+                ],
+                errorText:"Ya uygulama rotasyon günü bozulacak ya site cumartesi çökecek — sabitleme tuzağı hâlâ kurulu."
+              },
+              { id:"h-pii", type:"choice",
+                label:"Taramanın bulduğuna göre davran",
+                prompt:"DLP üç nesnede kimlik belgeleri işaretledi — allUsers okuma erişimli bir kovada. İlk hamle?",
+                options:[
+                  { key:"delete", label:"Bütün kovayı hemen sil", correct:false, feedback:"Bu meşru müşteri dosyalarını ve muhtemelen hukuki delili yok eder — önce çevreleme, yıkım değil." },
+                  { key:"lock", label:"allUsers bağlamasını kaldır, sonra işaretli nesneleri karantinaya al", correct:true, feedback:"Önce maruziyeti kapat, sonra hassas nesneleri inceleme için izole et — geri alınabilir, denetlenebilir, anında." },
+                  { key:"policy", label:"Kullanıcılara kimlik yüklemeyin diye bir politika yaz", correct:false, feedback:"Politika tek bir baytı taşımaz — genelge dolaşırken kimlikler hâlâ herkese açık." }
+                ],
+                errorText:"Kimlik belgeleri internetteki herkesten hâlâ tek URL uzakta."
+              },
+              { id:"h-verify", type:"action",
+                label:"İki düzeltmenin de tuttuğunu kanıtla",
+                actionLabel:"Doğrulama çalıştır", loadingLabel:"Doğrulanıyor…", doneLabel:"Yenileme simüle edildi, sabitli uygulama hâlâ bağlanıyor, genel erişim kaldırıldı, işaretli nesneler karantinada.", loadingMs:800,
+                errorText:"Uçtan uca hiçbir şey doğrulanmadı — 'herhalde iyidir', cumartesinin daha önce üstünde koştuğu şeydi."
+              }
+            ]
+          }
+        },
+        analytics:{
+          aws:{
+            title:"Gece raporları ödeme veritabanını boğuyor",
+            scenario:"Her gece 2'de BI ekibinin raporları beş yıllık siparişi tarıyor — doğrudan üretim veritabanında. Raporlar koşarken ödeme gecikmesi üçe katlanıyor; raporlar da giderek yavaşlıyor.",
+            consoleLabel:"Redshift ve Athena Konsolu (simüle)",
+            actionBtn:"Ödemenin ve raporlamanın sağlıklı olduğunu doğrula",
+            successText:"Ödeme artık raporları hiç hissetmiyor, raporlar dakikalarda bitiyor ve tek seferlik sorular boru hattı gerektirmiyor.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Gece 2 yavaşlamalarını teşhis et",
+                prompt:"Ödeme neden gece 2'de — sitenin en sakin saatinde — yavaşlıyor?",
+                options:[
+                  { key:"traffic", label:"Gizli bir gece trafik zirvesi", correct:false, feedback:"Trafik grafikleri gece 2'nin günlük dip olduğunu gösteriyor — bunu müşteriler yapmıyor." },
+                  { key:"reports", label:"Rapor sorguları, ödemeye hizmet eden aynı veritabanında yıllarca geçmişi tarıyor", correct:true, feedback:"Aynen — analitik taramalar ve işlemsel okumalar aynı CPU, bellek ve disk için kavga ediyor." },
+                  { key:"disk", label:"Disk doldu", correct:false, feedback:"Depolama metrikleri iyi — dolu bir disk de raporlar bitince gece 4'te kendi kendine düzelmezdi." }
+                ],
+                errorText:"Kök neden hâlâ adsız — ödeme bu gece 2'de yine sürünecek."
+              },
+              { id:"e-offload", type:"choice",
+                label:"Raporların nerede yaşayacağını seç",
+                prompt:"Yıllarca geçmiş üzerindeki ağır analitik sorguların doğru evi neresi?",
+                options:[
+                  { key:"bigger", label:"Çok daha büyük bir üretim veritabanı sunucusu", correct:false, feedback:"7/24 zirve-analitik fiyatı ödersin ve iş yükleri yine çarpışır — sorun boyut değil, paylaşım." },
+                  { key:"warehouse", label:"Üretimden beslenen bir veri ambarı (Redshift)", correct:true, feedback:"Sütunsal depolama tam bunun için: yılların geçmişini, ödemenin hiç dokunmadığı donanımda hızla taramak." },
+                  { key:"cache", label:"Veritabanının önüne bir önbellek", correct:false, feedback:"Önbellek aynı sıcak verinin tekrarlı okumalarına hizmet eder — beş yıllık geçmişi tarayan rapor bunun tam tersidir." }
+                ],
+                errorText:"Raporların hâlâ ödeme veritabanından başka gidecek yeri yok."
+              },
+              { id:"e-pipeline", type:"action",
+                label:"Ambara gece aktarımını kur",
+                actionLabel:"Aktarım hattını oluştur", loadingLabel:"Oluşturuluyor…", doneLabel:"Gece aktarımı akıyor — raporlar artık Redshift'te koşuyor, ödeme onları hiç hissetmiyor.", loadingMs:800,
+                errorText:"Ambar var ama içinde veri yok — raporlar hâlâ üretimi dövüyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-fresh", type:"choice",
+                label:"Gerçek zamanlı pano talebini karşıla",
+                prompt:"Bir analist üretimin bir gün değil, dakikalar gerisinde kalan panolar istiyor. Doğru besleme nedir?",
+                options:[
+                  { key:"replica", label:"BI aracını bir üretim okuma replikasına yönlendir", correct:false, feedback:"Replika hâlâ OLTP biçimli — aynı ağır taramalar orada da yavaş koşar ve uzun sorgular replikasyonu herkes için tıkar." },
+                  { key:"stream", label:"Gece toplu işi yerine ambara sürekli replikasyon", correct:true, feedback:"Değişiklikleri Redshift'e akıtmak panoları dakikalar tazeliğinde tutar; ağır tarama ambar donanımında kalır." },
+                  { key:"prod", label:"O analiste üretimi doğrudan sorgulama izni ver", correct:false, feedback:"Bu geceki olayı boru hattı yerine tek kullanıcıyla yeniden açar — sorun çarpışma, kimin yaptığı değil." }
+                ],
+                errorText:"Tazelik talebinin üretimi yeniden boğmayan bir cevabı hâlâ yok."
+              },
+              { id:"h-adhoc", type:"choice",
+                label:"Ham loglar hakkında tek seferlik bir soruya cevap ver",
+                prompt:"Birinin, zaten S3'te duran ham istek loglarından tek bir cevaba ihtiyacı var. Doğru araç nedir?",
+                options:[
+                  { key:"load", label:"Logları önce ambara yükle, sonra sorgula", correct:false, feedback:"Tek bir soru için veri alımı kurmak, sorunun hak etmediği günlerce iştir." },
+                  { key:"athena", label:"Athena — S3'teki dosyaların üzerinde doğrudan SQL", correct:true, feedback:"Yükleme yok, küme yok: Athena'yı kovaya doğrult, SQL yaz, tek sorgunun parasını öde. Tam bunun için yapıldı." },
+                  { key:"script", label:"Hepsini indirip yerelde grep'le", correct:false, feedback:"SQL biçimli tek bir soruya cevap için ofis hattından terabaytlar — bunun aracı zaten var." }
+                ],
+                errorText:"Tek satırlık bir SQL sorusu hâlâ ya boru hattı inşaatını ya dev bir indirmeyi bekliyor."
+              },
+              { id:"h-cost", type:"choice",
+                label:"Ambar faturasının tırmanışını durdur",
+                prompt:"Bir ay sonra ambar faturası fırlıyor — analistler her soru için beş yılın tamamında SELECT * çekiyor. Düzeltme nedir?",
+                options:[
+                  { key:"bigger", label:"Daha büyük bir ambar kümesine geç", correct:false, feedback:"Bu tavanı ve faturayı yükseltir — israf taramaları sadece daha hızlı biter." },
+                  { key:"partition", label:"Tarihe göre bölümle ve sorgulara yalnız gereken sütun ve aralıklara dokunmayı öğret", correct:true, feedback:"Sütunsal motorlar taranan veriyle faturalandırır — bölüm budaması artı sütun seçimi rutin olarak %90+'ını keser." },
+                  { key:"limit", label:"Analistleri günde üç sorguyla sınırla", correct:false, feedback:"Karneye bağlamak, israf eden sorguları düzeltmek yerine işini yapan insanları cezalandırır." }
+                ],
+                errorText:"Her pano yenilemesi hâlâ beş tam yılı tarıyor — fatura her seferinde tırmanıyor."
+              },
+              { id:"h-verify", type:"action",
+                label:"İki tarafın da sağlıklı olduğunu doğrula",
+                actionLabel:"Sağlık kontrolü çalıştır", loadingLabel:"Kontrol ediliyor…", doneLabel:"Ödeme p99'u gece 2 penceresinde dümdüz; raporlar dakikalarda; tek seferlik soru kuruşlarla koştu.", loadingMs:700,
+                errorText:"Ödemenin gece 2 penceresinden dokunulmadan çıktığını kimse fiilen doğrulamadı."
+              }
+            ]
+          },
+          azure:{
+            title:"Gece raporları ödeme veritabanını boğuyor",
+            scenario:"Her gece 2'de BI ekibinin raporları beş yıllık siparişi tarıyor — doğrudan üretim veritabanında. Raporlar koşarken ödeme gecikmesi üçe katlanıyor; raporlar da giderek yavaşlıyor.",
+            consoleLabel:"Synapse Analytics (simüle)",
+            actionBtn:"Ödemenin ve raporlamanın sağlıklı olduğunu doğrula",
+            successText:"Ödeme artık raporları hiç hissetmiyor, raporlar dakikalarda bitiyor ve tek seferlik sorular boru hattı gerektirmiyor.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Gece 2 yavaşlamalarını teşhis et",
+                prompt:"Ödeme neden gece 2'de — sitenin en sakin saatinde — yavaşlıyor?",
+                options:[
+                  { key:"traffic", label:"Gizli bir gece trafik zirvesi", correct:false, feedback:"Trafik grafikleri gece 2'nin günlük dip olduğunu gösteriyor — bunu müşteriler yapmıyor." },
+                  { key:"reports", label:"Rapor sorguları, ödemeye hizmet eden aynı veritabanında yıllarca geçmişi tarıyor", correct:true, feedback:"Aynen — analitik taramalar ve işlemsel okumalar aynı CPU, bellek ve disk için kavga ediyor." },
+                  { key:"disk", label:"Disk doldu", correct:false, feedback:"Depolama metrikleri iyi — dolu bir disk de raporlar bitince gece 4'te kendi kendine düzelmezdi." }
+                ],
+                errorText:"Kök neden hâlâ adsız — ödeme bu gece 2'de yine sürünecek."
+              },
+              { id:"e-offload", type:"choice",
+                label:"Raporların nerede yaşayacağını seç",
+                prompt:"Yıllarca geçmiş üzerindeki ağır analitik sorguların doğru evi neresi?",
+                options:[
+                  { key:"bigger", label:"Çok daha büyük bir üretim veritabanı katmanı", correct:false, feedback:"7/24 zirve-analitik fiyatı ödersin ve iş yükleri yine çarpışır — sorun boyut değil, paylaşım." },
+                  { key:"warehouse", label:"Üretimden beslenen Azure Synapse Analytics", correct:true, feedback:"Sütunsal depolama tam bunun için: yılların geçmişini, ödemenin hiç dokunmadığı donanımda hızla taramak." },
+                  { key:"cache", label:"Veritabanının önüne bir önbellek", correct:false, feedback:"Önbellek aynı sıcak verinin tekrarlı okumalarına hizmet eder — beş yıllık geçmişi tarayan rapor bunun tam tersidir." }
+                ],
+                errorText:"Raporların hâlâ ödeme veritabanından başka gidecek yeri yok."
+              },
+              { id:"e-pipeline", type:"action",
+                label:"Synapse'e gece aktarımını kur",
+                actionLabel:"Aktarım hattını oluştur", loadingLabel:"Oluşturuluyor…", doneLabel:"Gece aktarımı akıyor — raporlar artık Synapse'te koşuyor, ödeme onları hiç hissetmiyor.", loadingMs:800,
+                errorText:"Ambar var ama içinde veri yok — raporlar hâlâ üretimi dövüyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-fresh", type:"choice",
+                label:"Gerçek zamanlı pano talebini karşıla",
+                prompt:"Bir analist üretimin bir gün değil, dakikalar gerisinde kalan panolar istiyor. Doğru besleme nedir?",
+                options:[
+                  { key:"replica", label:"Power BI'ı bir üretim okuma replikasına yönlendir", correct:false, feedback:"Replika hâlâ OLTP biçimli — aynı ağır taramalar orada da yavaş koşar ve uzun sorgular replikasyonu herkes için tıkar." },
+                  { key:"stream", label:"Gece toplu işi yerine Synapse'e sürekli replikasyon", correct:true, feedback:"Değişiklikleri ambara akıtmak panoları dakikalar tazeliğinde tutar; ağır tarama ambar donanımında kalır." },
+                  { key:"prod", label:"O analiste üretimi doğrudan sorgulama izni ver", correct:false, feedback:"Bu geceki olayı boru hattı yerine tek kullanıcıyla yeniden açar — sorun çarpışma, kimin yaptığı değil." }
+                ],
+                errorText:"Tazelik talebinin üretimi yeniden boğmayan bir cevabı hâlâ yok."
+              },
+              { id:"h-adhoc", type:"choice",
+                label:"Ham loglar hakkında tek seferlik bir soruya cevap ver",
+                prompt:"Birinin, zaten blob depolamada duran ham istek loglarından tek bir cevaba ihtiyacı var. Doğru araç nedir?",
+                options:[
+                  { key:"load", label:"Logları önce ambara yükle, sonra sorgula", correct:false, feedback:"Tek bir soru için veri alımı kurmak, sorunun hak etmediği günlerce iştir." },
+                  { key:"serverless", label:"Synapse sunucusuz SQL — dosyaları durdukları yerde sorgula", correct:true, feedback:"Yükleme yok, küme yok: sunucusuz SQL'i konteynere doğrult, sorguyu yaz, tek taramanın parasını öde. Tam bunun için yapıldı." },
+                  { key:"script", label:"Hepsini indirip yerelde grep'le", correct:false, feedback:"SQL biçimli tek bir soruya cevap için ofis hattından terabaytlar — bunun aracı zaten var." }
+                ],
+                errorText:"Tek satırlık bir SQL sorusu hâlâ ya boru hattı inşaatını ya dev bir indirmeyi bekliyor."
+              },
+              { id:"h-cost", type:"choice",
+                label:"Ambar faturasının tırmanışını durdur",
+                prompt:"Bir ay sonra Synapse faturası fırlıyor — analistler her soru için beş yılın tamamında SELECT * çekiyor. Düzeltme nedir?",
+                options:[
+                  { key:"bigger", label:"Daha büyük bir adanmış havuza ölçekle", correct:false, feedback:"Bu tavanı ve faturayı yükseltir — israf taramaları sadece daha hızlı biter." },
+                  { key:"partition", label:"Tarihe göre bölümle ve sorgulara yalnız gereken sütun ve aralıklara dokunmayı öğret", correct:true, feedback:"Sütunsal motorlar taranan veriyle faturalandırır — bölüm budaması artı sütun seçimi rutin olarak %90+'ını keser." },
+                  { key:"limit", label:"Analistleri günde üç sorguyla sınırla", correct:false, feedback:"Karneye bağlamak, israf eden sorguları düzeltmek yerine işini yapan insanları cezalandırır." }
+                ],
+                errorText:"Her pano yenilemesi hâlâ beş tam yılı tarıyor — fatura her seferinde tırmanıyor."
+              },
+              { id:"h-verify", type:"action",
+                label:"İki tarafın da sağlıklı olduğunu doğrula",
+                actionLabel:"Sağlık kontrolü çalıştır", loadingLabel:"Kontrol ediliyor…", doneLabel:"Ödeme p99'u gece 2 penceresinde dümdüz; raporlar dakikalarda; tek seferlik soru kuruşlarla koştu.", loadingMs:700,
+                errorText:"Ödemenin gece 2 penceresinden dokunulmadan çıktığını kimse fiilen doğrulamadı."
+              }
+            ]
+          },
+          gcp:{
+            title:"Gece raporları ödeme veritabanını boğuyor",
+            scenario:"Her gece 2'de BI ekibinin raporları beş yıllık siparişi tarıyor — doğrudan üretim veritabanında. Raporlar koşarken ödeme gecikmesi üçe katlanıyor; raporlar da giderek yavaşlıyor.",
+            consoleLabel:"BigQuery Konsolu (simüle)",
+            actionBtn:"Ödemenin ve raporlamanın sağlıklı olduğunu doğrula",
+            successText:"Ödeme artık raporları hiç hissetmiyor, raporlar dakikalarda bitiyor ve tek seferlik sorular boru hattı gerektirmiyor.",
+            easySteps:[
+              { id:"e-diagnose", type:"choice",
+                label:"Gece 2 yavaşlamalarını teşhis et",
+                prompt:"Ödeme neden gece 2'de — sitenin en sakin saatinde — yavaşlıyor?",
+                options:[
+                  { key:"traffic", label:"Gizli bir gece trafik zirvesi", correct:false, feedback:"Trafik grafikleri gece 2'nin günlük dip olduğunu gösteriyor — bunu müşteriler yapmıyor." },
+                  { key:"reports", label:"Rapor sorguları, ödemeye hizmet eden aynı veritabanında yıllarca geçmişi tarıyor", correct:true, feedback:"Aynen — analitik taramalar ve işlemsel okumalar aynı CPU, bellek ve disk için kavga ediyor." },
+                  { key:"disk", label:"Disk doldu", correct:false, feedback:"Depolama metrikleri iyi — dolu bir disk de raporlar bitince gece 4'te kendi kendine düzelmezdi." }
+                ],
+                errorText:"Kök neden hâlâ adsız — ödeme bu gece 2'de yine sürünecek."
+              },
+              { id:"e-offload", type:"choice",
+                label:"Raporların nerede yaşayacağını seç",
+                prompt:"Yıllarca geçmiş üzerindeki ağır analitik sorguların doğru evi neresi?",
+                options:[
+                  { key:"bigger", label:"Çok daha büyük bir Cloud SQL sunucusu", correct:false, feedback:"7/24 zirve-analitik fiyatı ödersin ve iş yükleri yine çarpışır — sorun boyut değil, paylaşım." },
+                  { key:"warehouse", label:"Üretimden beslenen BigQuery", correct:true, feedback:"Sütunsal, sunucusuz, tam bunun için: yılların geçmişini, ödemenin hiç dokunmadığı altyapıda hızla taramak." },
+                  { key:"cache", label:"Veritabanının önüne bir önbellek", correct:false, feedback:"Önbellek aynı sıcak verinin tekrarlı okumalarına hizmet eder — beş yıllık geçmişi tarayan rapor bunun tam tersidir." }
+                ],
+                errorText:"Raporların hâlâ ödeme veritabanından başka gidecek yeri yok."
+              },
+              { id:"e-pipeline", type:"action",
+                label:"BigQuery'ye gece aktarımını kur",
+                actionLabel:"Aktarım hattını oluştur", loadingLabel:"Oluşturuluyor…", doneLabel:"Gece aktarımı akıyor — raporlar artık BigQuery'de koşuyor, ödeme onları hiç hissetmiyor.", loadingMs:800,
+                errorText:"Ambar var ama içinde veri yok — raporlar hâlâ üretimi dövüyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-fresh", type:"choice",
+                label:"Gerçek zamanlı pano talebini karşıla",
+                prompt:"Bir analist üretimin bir gün değil, dakikalar gerisinde kalan panolar istiyor. Doğru besleme nedir?",
+                options:[
+                  { key:"replica", label:"BI aracını bir Cloud SQL okuma replikasına yönlendir", correct:false, feedback:"Replika hâlâ OLTP biçimli — aynı ağır taramalar orada da yavaş koşar ve uzun sorgular replikasyonu herkes için tıkar." },
+                  { key:"stream", label:"Gece toplu işi yerine BigQuery'ye sürekli değişiklik replikasyonu", correct:true, feedback:"Değişiklikleri BigQuery'ye akıtmak panoları dakikalar tazeliğinde tutar; ağır tarama ambar altyapısında kalır." },
+                  { key:"prod", label:"O analiste üretimi doğrudan sorgulama izni ver", correct:false, feedback:"Bu geceki olayı boru hattı yerine tek kullanıcıyla yeniden açar — sorun çarpışma, kimin yaptığı değil." }
+                ],
+                errorText:"Tazelik talebinin üretimi yeniden boğmayan bir cevabı hâlâ yok."
+              },
+              { id:"h-adhoc", type:"choice",
+                label:"Ham loglar hakkında tek seferlik bir soruya cevap ver",
+                prompt:"Birinin, zaten Cloud Storage'da duran ham istek loglarından tek bir cevaba ihtiyacı var. Doğru araç nedir?",
+                options:[
+                  { key:"load", label:"Logları önce yerel BigQuery tablolarına yükle, sonra sorgula", correct:false, feedback:"Tek bir soru için veri alımı kurmak, sorunun hak etmediği günlerce iştir." },
+                  { key:"external", label:"BigQuery harici tablosu — kovadaki dosyaların üzerinde doğrudan SQL", correct:true, feedback:"Yükleme yok: harici tabloyu tanımla, SQL yaz, tek taramanın parasını öde. Tam bunun için yapıldı." },
+                  { key:"script", label:"Hepsini indirip yerelde grep'le", correct:false, feedback:"SQL biçimli tek bir soruya cevap için ofis hattından terabaytlar — bunun aracı zaten var." }
+                ],
+                errorText:"Tek satırlık bir SQL sorusu hâlâ ya boru hattı inşaatını ya dev bir indirmeyi bekliyor."
+              },
+              { id:"h-cost", type:"choice",
+                label:"Ambar faturasının tırmanışını durdur",
+                prompt:"Bir ay sonra BigQuery faturası fırlıyor — analistler her soru için beş yılın tamamında SELECT * çekiyor. Düzeltme nedir?",
+                options:[
+                  { key:"bigger", label:"Daha çok slot / ayrılmış kapasite satın al", correct:false, feedback:"Bu tavanı ve faturayı yükseltir — israf taramaları sadece daha hızlı biter." },
+                  { key:"partition", label:"Tarihe göre bölümle, sıcak sütunları kümele ve sorgulara yalnız gerekene dokunmayı öğret", correct:true, feedback:"BigQuery taranan veriyle faturalandırır — bölüm budaması artı sütun seçimi rutin olarak %90+'ını keser." },
+                  { key:"limit", label:"Analistleri günde üç sorguyla sınırla", correct:false, feedback:"Karneye bağlamak, israf eden sorguları düzeltmek yerine işini yapan insanları cezalandırır." }
+                ],
+                errorText:"Her pano yenilemesi hâlâ beş tam yılı tarıyor — fatura her seferinde tırmanıyor."
+              },
+              { id:"h-verify", type:"action",
+                label:"İki tarafın da sağlıklı olduğunu doğrula",
+                actionLabel:"Sağlık kontrolü çalıştır", loadingLabel:"Kontrol ediliyor…", doneLabel:"Ödeme p99'u gece 2 penceresinde dümdüz; raporlar dakikalarda; tek seferlik soru kuruşlarla koştu.", loadingMs:700,
+                errorText:"Ödemenin gece 2 penceresinden dokunulmadan çıktığını kimse fiilen doğrulamadı."
+              }
+            ]
+          }
+        },
+        hybrid:{
+          aws:{
+            title:"Veri merkezini boşaltmak için doksan gün",
+            scenario:"Veri merkezi kirası 90 gün sonra bitiyor: hizmeti durduramayan 500GB'lık bir üretim veritabanı, 40TB'lık bir dosya paylaşımı ve yasal olarak binadan çıkamayan bir iş yükü.",
+            consoleLabel:"Taşıma Konsolu (simüle)",
+            actionBtn:"Geçiş hafta sonunu uygula",
+            successText:"Veritabanı dakikalarla ölçülen kesintiyle geçti, dosyalar takviminde indi, regüle iş yükü bulut donanımında evinde kaldı — kira zamanında teslim edildi.",
+            easySteps:[
+              { id:"e-db", type:"choice",
+                label:"Veritabanı taşımasını planla",
+                prompt:"Üretim veritabanı dakikalardan fazla kesintiyi kaldıramaz. Nasıl taşınır?",
+                options:[
+                  { key:"dump", label:"Kapat, dışa aktar, yükle, içe aktar — uzun bir hafta sonu", correct:false, feedback:"'Hizmeti durduramaz' denen bir veritabanı için 10+ saat kesinti — kısıt bunu daha baştan eler." },
+                  { key:"dms", label:"Geçiş dakikasına kadar DMS sürekli replikasyonu", correct:true, feedback:"DMS her değişikliği hedefe yansıtırken kaynak hizmet vermeye devam eder — geçiş hafta sonu değil, dakikalar sürer." },
+                  { key:"snowball", label:"Veritabanını bir Snowball cihazına koy", correct:false, feedback:"Kamyon sana bayat bir kopya verir — cihaz varana kadar üretim altından değişmiştir. Canlı veritabanı için yanlış araç." }
+                ],
+                errorText:"Veritabanının, çalışma süresi kısıtına saygılı bir taşıma yolu hâlâ yok."
+              },
+              { id:"e-files", type:"action",
+                label:"40TB'lık dosya paylaşımını yola çıkar",
+                actionLabel:"DataSync'i zamanla", loadingLabel:"Zamanlanıyor…", doneLabel:"DataSync her gece koşuyor — doğrulamalı, hız sınırlı, artımlı aktarımlar; bebek bakılacak betik yok.", loadingMs:700,
+                errorText:"40TB hâlâ 90 gün içinde terk edeceğin bir binada duruyor."
+              },
+              { id:"e-cutover", type:"action",
+                label:"Geçiş hafta sonunu koş",
+                actionLabel:"Geçişi uygula", loadingLabel:"Geçiliyor…", doneLabel:"DNS çevrildi, replikasyon yetişti, uygulamalar artık buluttan hizmet veriyor.", loadingMs:800,
+                errorText:"Her şey hazırlandı ama hiçbir şey fiilen geçmedi — kira saati hâlâ işliyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-link", type:"choice",
+                label:"90 günlük pencere ve sonrası için bağlantıyı seç",
+                prompt:"Ekiplerin taşıma sırasında buluta kararlı bir bağlantıya, sonrasında kalıcı 10 Gbps özel hatta ihtiyacı var. Oyun planı nedir?",
+                options:[
+                  { key:"vpnonly", label:"Site-to-Site VPN kur ve sonsuza dek onda kal", correct:false, feedback:"VPN günler içinde ayağa kalkar ama halka açık internetin üstünden gider — son durumun istediği sabit 10 Gbps özel yolu vadedemez." },
+                  { key:"both", label:"Bu hafta taşıma için VPN; son durum için Direct Connect'i şimdi sipariş et", correct:true, feedback:"VPN 90 günlük pencereyi anında kapatır; tedariki haftalar süren Direct Connect devresi de kalıcı hat olmaya tam zamanında yetişir." },
+                  { key:"wait", label:"Hiçbir şeye başlamadan Direct Connect'i bekle", correct:false, feedback:"Tedarik, tek bayt taşınmadan kira penceresinin üçte birini yer — son tarih devreyi beklemez." }
+                ],
+                errorText:"Ekiplerin hem son tarihi hem son durumu kapsayan bir bağlantı planı hâlâ yok."
+              },
+              { id:"h-compliance", type:"choice",
+                label:"Binadan çıkamayan iş yükünü çöz",
+                prompt:"Bir sistem, yasal olarak tesisten çıkamayacak verileri işliyor — ama ekibi bulut API'leri ve araçları istiyor. Cevap nedir?",
+                options:[
+                  { key:"ignore", label:"Yine de taşı — denetçi muhtemelen bakmaz", correct:false, feedback:"Şirketi 'muhtemelen bakmaz'a yatırmak taşıma stratejisi değil, başlangıç tarihli bir yükümlülüktür." },
+                  { key:"outposts", label:"AWS Outposts — sağlayıcının kabini, senin binanda, aynı API'ler", correct:true, feedback:"Veri tesisten hiç çıkmıyor; ekip yine bulut kontrol düzlemini alıyor. Outposts'un var olduğu niş tam bu." },
+                  { key:"keepdc", label:"Bu tek iş yükü için bütün veri merkezini tut", correct:false, feedback:"Tek kabinlik iş yükü için koca tesisi yenilemek, 90 gündür içinde olduğun taşınmanın amacını boşa çıkarır." }
+                ],
+                errorText:"Regüle iş yükünün, kira bittikten sonra yasal koşacağı bir yer hâlâ yok."
+              },
+              { id:"h-validate", type:"choice",
+                label:"Replike veritabanının gerçekten doğru olduğunu kanıtla",
+                prompt:"Geçişten önce: hedef veritabanının kaynakla gerçekten eşleştiğini nereden biliyorsun?",
+                options:[
+                  { key:"progress", label:"Replikasyon panosu %100 gösteriyor — kanıt bu", correct:false, feedback:"İlerleme çubuğu verinin taşındığını kanıtlar, aynı olduğunu değil — sessiz tip dönüşümleri ve atlanan satırlar %100'ün arkasına saklanır." },
+                  { key:"validate", label:"Satır sayısı ve sağlama toplamı doğrulaması, sonra tam bir prova geçişi", correct:true, feedback:"Doğrulama sessiz sapmayı yakalar; prova, asıl hafta sonundan önce hem runbook'u hem zamanlamayı kanıtlar." },
+                  { key:"spot", label:"Birkaç önemli satırı elle karşılaştır", correct:false, feedback:"Elle seçilmiş örnek 500GB adına konuşamaz — bozulan satırlar hep kimsenin bakmayı akıl etmedikleridir." }
+                ],
+                errorText:"Geçiş, doğruluğunu kimsenin fiilen kanıtlamadığı bir hedefe karşı planlanmış durumda."
+              },
+              { id:"h-cutover", type:"action",
+                label:"Provası yapılmış geçişi uygula",
+                actionLabel:"Nihai geçişi uygula", loadingLabel:"Geçiliyor…", doneLabel:"Doğrulandı, provalandı, uygulandı — dakikalarla kesinti, sıfır sürpriz, kira teslim edildi.", loadingMs:800,
+                errorText:"Prova var ama gerçek geçiş olmadı — kira saati hâlâ işliyor."
+              }
+            ]
+          },
+          azure:{
+            title:"Veri merkezini boşaltmak için doksan gün",
+            scenario:"Veri merkezi kirası 90 gün sonra bitiyor: hizmeti durduramayan 500GB'lık bir üretim veritabanı, 40TB'lık bir dosya paylaşımı ve yasal olarak binadan çıkamayan bir iş yükü.",
+            consoleLabel:"Azure Migrate (simüle)",
+            actionBtn:"Geçiş hafta sonunu uygula",
+            successText:"Veritabanı dakikalarla ölçülen kesintiyle geçti, dosyalar takviminde indi, regüle iş yükü bulut donanımında evinde kaldı — kira zamanında teslim edildi.",
+            easySteps:[
+              { id:"e-db", type:"choice",
+                label:"Veritabanı taşımasını planla",
+                prompt:"Üretim veritabanı dakikalardan fazla kesintiyi kaldıramaz. Nasıl taşınır?",
+                options:[
+                  { key:"dump", label:"Kapat, dışa aktar, yükle, içe aktar — uzun bir hafta sonu", correct:false, feedback:"'Hizmeti durduramaz' denen bir veritabanı için 10+ saat kesinti — kısıt bunu daha baştan eler." },
+                  { key:"dms", label:"Geçişe kadar sürekli senkronlu Azure Database Migration Service", correct:true, feedback:"DMS her değişikliği hedefe yansıtırken kaynak hizmet vermeye devam eder — geçiş hafta sonu değil, dakikalar sürer." },
+                  { key:"databox", label:"Veritabanını bir Data Box cihazına koy", correct:false, feedback:"Kargolanan kutu sana bayat bir kopya verir — varana kadar üretim altından değişmiştir. Canlı veritabanı için yanlış araç." }
+                ],
+                errorText:"Veritabanının, çalışma süresi kısıtına saygılı bir taşıma yolu hâlâ yok."
+              },
+              { id:"e-files", type:"action",
+                label:"40TB'lık dosya paylaşımını yola çıkar",
+                actionLabel:"AzCopy senkronunu zamanla", loadingLabel:"Zamanlanıyor…", doneLabel:"Gece senkronu koşuyor — doğrulamalı, hız sınırlı, artımlı aktarımlar; bebek bakılacak betik yok.", loadingMs:700,
+                errorText:"40TB hâlâ 90 gün içinde terk edeceğin bir binada duruyor."
+              },
+              { id:"e-cutover", type:"action",
+                label:"Geçiş hafta sonunu koş",
+                actionLabel:"Geçişi uygula", loadingLabel:"Geçiliyor…", doneLabel:"DNS çevrildi, replikasyon yetişti, uygulamalar artık Azure'dan hizmet veriyor.", loadingMs:800,
+                errorText:"Her şey hazırlandı ama hiçbir şey fiilen geçmedi — kira saati hâlâ işliyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-link", type:"choice",
+                label:"90 günlük pencere ve sonrası için bağlantıyı seç",
+                prompt:"Ekiplerin taşıma sırasında Azure'a kararlı bir bağlantıya, sonrasında kalıcı 10 Gbps özel hatta ihtiyacı var. Oyun planı nedir?",
+                options:[
+                  { key:"vpnonly", label:"VPN Gateway kur ve sonsuza dek onda kal", correct:false, feedback:"VPN günler içinde ayağa kalkar ama halka açık internetin üstünden gider — son durumun istediği sabit 10 Gbps özel yolu vadedemez." },
+                  { key:"both", label:"Bu hafta VPN Gateway; son durum için ExpressRoute'u şimdi sipariş et", correct:true, feedback:"VPN 90 günlük pencereyi anında kapatır; tedariki haftalar süren ExpressRoute devresi de kalıcı hat olmaya tam zamanında yetişir." },
+                  { key:"wait", label:"Hiçbir şeye başlamadan ExpressRoute'u bekle", correct:false, feedback:"Tedarik, tek bayt taşınmadan kira penceresinin üçte birini yer — son tarih devreyi beklemez." }
+                ],
+                errorText:"Ekiplerin hem son tarihi hem son durumu kapsayan bir bağlantı planı hâlâ yok."
+              },
+              { id:"h-compliance", type:"choice",
+                label:"Binadan çıkamayan iş yükünü çöz",
+                prompt:"Bir sistem, yasal olarak tesisten çıkamayacak verileri işliyor — ama ekibi bulut API'leri ve araçları istiyor. Cevap nedir?",
+                options:[
+                  { key:"ignore", label:"Yine de taşı — denetçi muhtemelen bakmaz", correct:false, feedback:"Şirketi 'muhtemelen bakmaz'a yatırmak taşıma stratejisi değil, başlangıç tarihli bir yükümlülüktür." },
+                  { key:"local", label:"Azure Local — Azure'un yığını, senin tesislerinde, aynı kontrol düzlemi", correct:true, feedback:"Veri tesisten hiç çıkmıyor; ekip yine Azure portalını ve API'leri alıyor. Azure Local'in var olduğu niş tam bu." },
+                  { key:"keepdc", label:"Bu tek iş yükü için bütün veri merkezini tut", correct:false, feedback:"Tek kabinlik iş yükü için koca tesisi yenilemek, 90 gündür içinde olduğun taşınmanın amacını boşa çıkarır." }
+                ],
+                errorText:"Regüle iş yükünün, kira bittikten sonra yasal koşacağı bir yer hâlâ yok."
+              },
+              { id:"h-validate", type:"choice",
+                label:"Replike veritabanının gerçekten doğru olduğunu kanıtla",
+                prompt:"Geçişten önce: hedef veritabanının kaynakla gerçekten eşleştiğini nereden biliyorsun?",
+                options:[
+                  { key:"progress", label:"Taşıma panosu %100 gösteriyor — kanıt bu", correct:false, feedback:"İlerleme çubuğu verinin taşındığını kanıtlar, aynı olduğunu değil — sessiz tip dönüşümleri ve atlanan satırlar %100'ün arkasına saklanır." },
+                  { key:"validate", label:"Satır sayısı ve sağlama toplamı doğrulaması, sonra tam bir prova geçişi", correct:true, feedback:"Doğrulama sessiz sapmayı yakalar; prova, asıl hafta sonundan önce hem runbook'u hem zamanlamayı kanıtlar." },
+                  { key:"spot", label:"Birkaç önemli satırı elle karşılaştır", correct:false, feedback:"Elle seçilmiş örnek 500GB adına konuşamaz — bozulan satırlar hep kimsenin bakmayı akıl etmedikleridir." }
+                ],
+                errorText:"Geçiş, doğruluğunu kimsenin fiilen kanıtlamadığı bir hedefe karşı planlanmış durumda."
+              },
+              { id:"h-cutover", type:"action",
+                label:"Provası yapılmış geçişi uygula",
+                actionLabel:"Nihai geçişi uygula", loadingLabel:"Geçiliyor…", doneLabel:"Doğrulandı, provalandı, uygulandı — dakikalarla kesinti, sıfır sürpriz, kira teslim edildi.", loadingMs:800,
+                errorText:"Prova var ama gerçek geçiş olmadı — kira saati hâlâ işliyor."
+              }
+            ]
+          },
+          gcp:{
+            title:"Veri merkezini boşaltmak için doksan gün",
+            scenario:"Veri merkezi kirası 90 gün sonra bitiyor: hizmeti durduramayan 500GB'lık bir üretim veritabanı, 40TB'lık bir dosya paylaşımı ve yasal olarak binadan çıkamayan bir iş yükü.",
+            consoleLabel:"Migration Center (simüle)",
+            actionBtn:"Geçiş hafta sonunu uygula",
+            successText:"Veritabanı dakikalarla ölçülen kesintiyle geçti, dosyalar takviminde indi, regüle iş yükü bulut donanımında evinde kaldı — kira zamanında teslim edildi.",
+            easySteps:[
+              { id:"e-db", type:"choice",
+                label:"Veritabanı taşımasını planla",
+                prompt:"Üretim veritabanı dakikalardan fazla kesintiyi kaldıramaz. Nasıl taşınır?",
+                options:[
+                  { key:"dump", label:"Kapat, dışa aktar, yükle, içe aktar — uzun bir hafta sonu", correct:false, feedback:"'Hizmeti durduramaz' denen bir veritabanı için 10+ saat kesinti — kısıt bunu daha baştan eler." },
+                  { key:"dms", label:"Geçişe kadar sürekli replikasyonlu Database Migration Service", correct:true, feedback:"DMS her değişikliği hedefe yansıtırken kaynak hizmet vermeye devam eder — geçiş hafta sonu değil, dakikalar sürer." },
+                  { key:"appliance", label:"Veritabanını bir Transfer Appliance'a koy", correct:false, feedback:"Kargolanan cihaz sana bayat bir kopya verir — varana kadar üretim altından değişmiştir. Canlı veritabanı için yanlış araç." }
+                ],
+                errorText:"Veritabanının, çalışma süresi kısıtına saygılı bir taşıma yolu hâlâ yok."
+              },
+              { id:"e-files", type:"action",
+                label:"40TB'lık dosya paylaşımını yola çıkar",
+                actionLabel:"Storage Transfer'i zamanla", loadingLabel:"Zamanlanıyor…", doneLabel:"Storage Transfer Service her gece koşuyor — doğrulamalı, hız sınırlı, artımlı; bebek bakılacak betik yok.", loadingMs:700,
+                errorText:"40TB hâlâ 90 gün içinde terk edeceğin bir binada duruyor."
+              },
+              { id:"e-cutover", type:"action",
+                label:"Geçiş hafta sonunu koş",
+                actionLabel:"Geçişi uygula", loadingLabel:"Geçiliyor…", doneLabel:"DNS çevrildi, replikasyon yetişti, uygulamalar artık Google Cloud'dan hizmet veriyor.", loadingMs:800,
+                errorText:"Her şey hazırlandı ama hiçbir şey fiilen geçmedi — kira saati hâlâ işliyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-link", type:"choice",
+                label:"90 günlük pencere ve sonrası için bağlantıyı seç",
+                prompt:"Ekiplerin taşıma sırasında buluta kararlı bir bağlantıya, sonrasında kalıcı 10 Gbps özel hatta ihtiyacı var. Oyun planı nedir?",
+                options:[
+                  { key:"vpnonly", label:"Cloud VPN kur ve sonsuza dek onda kal", correct:false, feedback:"VPN günler içinde ayağa kalkar ama halka açık internetin üstünden gider — son durumun istediği sabit 10 Gbps özel yolu vadedemez." },
+                  { key:"both", label:"Bu hafta Cloud VPN; son durum için Cloud Interconnect'i şimdi sipariş et", correct:true, feedback:"VPN 90 günlük pencereyi anında kapatır; tedariki haftalar süren Interconnect devresi de kalıcı hat olmaya tam zamanında yetişir." },
+                  { key:"wait", label:"Hiçbir şeye başlamadan Interconnect'i bekle", correct:false, feedback:"Tedarik, tek bayt taşınmadan kira penceresinin üçte birini yer — son tarih devreyi beklemez." }
+                ],
+                errorText:"Ekiplerin hem son tarihi hem son durumu kapsayan bir bağlantı planı hâlâ yok."
+              },
+              { id:"h-compliance", type:"choice",
+                label:"Binadan çıkamayan iş yükünü çöz",
+                prompt:"Bir sistem, yasal olarak tesisten çıkamayacak verileri işliyor — ama ekibi bulut API'leri ve araçları istiyor. Cevap nedir?",
+                options:[
+                  { key:"ignore", label:"Yine de taşı — denetçi muhtemelen bakmaz", correct:false, feedback:"Şirketi 'muhtemelen bakmaz'a yatırmak taşıma stratejisi değil, başlangıç tarihli bir yükümlülüktür." },
+                  { key:"gdc", label:"Google Distributed Cloud — Google'ın yığını, senin tesislerinde, aynı kontrol düzlemi", correct:true, feedback:"Veri tesisten hiç çıkmıyor; ekip yine bulut araçlarını alıyor. Distributed Cloud'un var olduğu niş tam bu." },
+                  { key:"keepdc", label:"Bu tek iş yükü için bütün veri merkezini tut", correct:false, feedback:"Tek kabinlik iş yükü için koca tesisi yenilemek, 90 gündür içinde olduğun taşınmanın amacını boşa çıkarır." }
+                ],
+                errorText:"Regüle iş yükünün, kira bittikten sonra yasal koşacağı bir yer hâlâ yok."
+              },
+              { id:"h-validate", type:"choice",
+                label:"Replike veritabanının gerçekten doğru olduğunu kanıtla",
+                prompt:"Geçişten önce: hedef veritabanının kaynakla gerçekten eşleştiğini nereden biliyorsun?",
+                options:[
+                  { key:"progress", label:"Replikasyon panosu %100 gösteriyor — kanıt bu", correct:false, feedback:"İlerleme çubuğu verinin taşındığını kanıtlar, aynı olduğunu değil — sessiz tip dönüşümleri ve atlanan satırlar %100'ün arkasına saklanır." },
+                  { key:"validate", label:"Satır sayısı ve sağlama toplamı doğrulaması, sonra tam bir prova geçişi", correct:true, feedback:"Doğrulama sessiz sapmayı yakalar; prova, asıl hafta sonundan önce hem runbook'u hem zamanlamayı kanıtlar." },
+                  { key:"spot", label:"Birkaç önemli satırı elle karşılaştır", correct:false, feedback:"Elle seçilmiş örnek 500GB adına konuşamaz — bozulan satırlar hep kimsenin bakmayı akıl etmedikleridir." }
+                ],
+                errorText:"Geçiş, doğruluğunu kimsenin fiilen kanıtlamadığı bir hedefe karşı planlanmış durumda."
+              },
+              { id:"h-cutover", type:"action",
+                label:"Provası yapılmış geçişi uygula",
+                actionLabel:"Nihai geçişi uygula", loadingLabel:"Geçiliyor…", doneLabel:"Doğrulandı, provalandı, uygulandı — dakikalarla kesinti, sıfır sürpriz, kira teslim edildi.", loadingMs:800,
+                errorText:"Prova var ama gerçek geçiş olmadı — kira saati hâlâ işliyor."
+              }
+            ]
+          }
+        },
+        threat:{
+          aws:{
+            title:"Gece 3 bulgusu: sunucun kripto para kazıyor",
+            scenario:"GuardDuty gece 3:12'de üretim sunucusunda CryptoCurrency:EC2/BitcoinTool.B!DNS bulgusu üretti. Sunucu sürekli madencilik havuzu alan adları çözüyor. Bu gece kimse hiçbir şey dağıtmadı.",
+            consoleLabel:"Amazon GuardDuty Konsolu (simüle)",
+            actionBtn:"Olayı kapat",
+            successText:"Kontrol altına alındı, izlendi ve sağlamlaştırıldı — madenci gitti, giriş yolu kapandı, bir sonraki dakikalar içinde yakalanacak.",
+            easySteps:[
+              { id:"e-read", type:"choice",
+                label:"Bulguyu doğru oku",
+                prompt:"Bu bulgu sana gerçekte ne söylüyor?",
+                options:[
+                  { key:"billing", label:"Bir AWS fatura anomalisi bildirimi", correct:false, feedback:"GuardDuty faturanı izlemez — davranışı izler. Bu, sunucunun kendisinin madencilik havuzlarıyla konuşması." },
+                  { key:"mining", label:"Bu sunucuda bir şey başkası adına kripto para kazıyor", correct:true, feedback:"Aynen — üretim sunucusundan madencilik havuzu DNS sorguları, makinede başkasının kodunun çalıştığı anlamına gelir." },
+                  { key:"fp", label:"Yanlış alarm — arşivlemek güvenli", correct:false, feedback:"Kriptoyla hiçbir işi olmayan bir sunucunun gece 3'te madencilik havuzları çözmesi, bu işin olabileceği en net sinyaldir." }
+                ],
+                errorText:"Bulgu hâlâ okunmamış duruyor — madenci hâlâ senin faturanda çalışıyor."
+              },
+              { id:"e-isolate", type:"action",
+                label:"Sunucuyu ağdan izole et",
+                actionLabel:"Sunucuyu izole et", loadingLabel:"İzole ediliyor…", doneLabel:"Sunucu izole edildi — madenci artık ne havuzuna ne başka bir şeye ulaşabiliyor.", loadingMs:600,
+                errorText:"Sunucunun ağ erişimi hâlâ açık — madenci hâlâ bağlı ve hâlâ kazanıyor."
+              },
+              { id:"e-rotate", type:"action",
+                label:"O sunucudaki kimlik bilgilerini döndür",
+                actionLabel:"Kimlik bilgilerini döndür", loadingLabel:"Döndürülüyor…", doneLabel:"Kimlik bilgileri döndürüldü — saldırganın kopyaladığı her şey artık değersiz.", loadingMs:600,
+                errorText:"Saldırganın o makineden kopyalamış olabileceği kimlik bilgileri hâlâ her yerde çalışıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-trace", type:"choice",
+                label:"Bunun nasıl olduğunu sapta",
+                prompt:"Bu sunucuda süreci kimin ya da neyin başlattığını ve etrafındaki her API çağrısını bilmen gerek. Hangi servis buna cevap verir?",
+                options:[
+                  { key:"cw", label:"CloudWatch metrikleri", correct:false, feedback:"CloudWatch sana CPU'nun %98 olduğunu söyler — sayılar, failler değil. Kimin ne yaptığını söyleyemez." },
+                  { key:"trail", label:"CloudTrail", correct:true, feedback:"CloudTrail denetim kaydıdır: her API çağrısı, çağıranı, IP'si, zamanı. Soruşturmalar burada yaşar." },
+                  { key:"inspector", label:"Amazon Inspector", correct:false, feedback:"Inspector zayıflıkları sömürülmeden önce bulur — olmuş olanı kaydetmez." }
+                ],
+                errorText:"Saldırganın nasıl girdiğini hâlâ bilmiyorsun — şimdi düzelteceğin her şey bir tahmin."
+              },
+              { id:"h-contain", type:"choice",
+                label:"Kanıtı yok etmeden kontrol altına al",
+                prompt:"Sunucu şu anda ele geçirilmiş durumda. Doğru kontrol hamlesi nedir?",
+                options:[
+                  { key:"terminate", label:"Sunucuyu hemen sonlandır", correct:false, feedback:"Sonlandırma diski yok eder — soruşturmanın (ve belki hukuk ekibinin) ihtiyacı olan her kanıtla birlikte." },
+                  { key:"snapshot", label:"Diskin anlık görüntüsünü al, sonra güvenlik grubunu izolasyon grubuyla değiştir", correct:true, feedback:"Kanıt korundu, ağ kesildi. Sunucu bir suç mahalli — şerit çekersin, buldozerle ezmezsin." },
+                  { key:"reboot", label:"Yeniden başlat — çoğu zararlıyı temizler", correct:false, feedback:"Yeniden başlatma kalıcılaşan hiçbir şeyi temizlemez, uçucu kanıtı kaybettirir ve saldırgana fark ettiğini söyler." }
+                ],
+                errorText:"Sunucu ya hâlâ havuzla konuşuyor ya da soruşturmanın ihtiyacı olanı çoktan yok ettin."
+              },
+              { id:"h-root", type:"choice",
+                label:"Giriş yolunu kes",
+                prompt:"CloudTrail madencinin sızmış bir IAM erişim anahtarıyla kurulduğunu gösteriyor. İlk düzeltme nedir?",
+                options:[
+                  { key:"deactivate", label:"O erişim anahtarını hemen devre dışı bırak", correct:true, feedback:"Sızmış anahtar açık kapıdır. O ölene kadar diğer her şey ikincil." },
+                  { key:"email", label:"Ekibe anahtarlara daha dikkat etmelerini rica eden bir e-posta at", correct:false, feedback:"Sızmış anahtar e-postayı umursamaz — herkes okurken çalışmaya devam eder." },
+                  { key:"mfa", label:"Root hesabında MFA'yı aç", correct:false, feedback:"İyi hijyen, yanlış kapı — bu saldırgan erişim anahtarından girdi ve root MFA'sı o anahtarı geçersiz kılmaz." }
+                ],
+                errorText:"Sızmış anahtar hâlâ çalışıyor — saldırgan geldiği yoldan aynen geri girebilir."
+              },
+              { id:"h-hub", type:"action",
+                label:"Bir sonrakinin günler değil dakikalar içinde yakalanmasını sağla",
+                actionLabel:"Security Hub standardını aç", loadingLabel:"Açılıyor…", doneLabel:"Security Hub, GuardDuty'yi, Inspector'ı ve yapılandırma kontrollerini nöbetçiye bağlı tek puanlı panoda topluyor.", loadingMs:700,
+                errorText:"Tespit hâlâ birinin doğru anda doğru konsolu açmasına bağlı."
+              }
+            ]
+          },
+          azure:{
+            title:"Gece 3 uyarısı: VM'in kripto para kazıyor",
+            scenario:"Microsoft Defender for Cloud gece 3:12'de üretim VM'inde yüksek önemli bir uyarı üretti: kripto madenciliği davranışı tespit edildi. VM sürekli madencilik havuzu alan adları çözüyor. Bu gece kimse hiçbir şey dağıtmadı.",
+            consoleLabel:"Microsoft Defender for Cloud (simüle)",
+            actionBtn:"Olayı kapat",
+            successText:"Kontrol altına alındı, izlendi ve sağlamlaştırıldı — madenci gitti, giriş yolu kapandı, bir sonraki dakikalar içinde yakalanacak.",
+            easySteps:[
+              { id:"e-read", type:"choice",
+                label:"Uyarıyı doğru oku",
+                prompt:"Bu uyarı sana gerçekte ne söylüyor?",
+                options:[
+                  { key:"billing", label:"Bir Azure maliyet yönetimi bildirimi", correct:false, feedback:"Defender for Cloud iş yükü davranışını izler, faturanı değil. Bu, VM'in kendisinin madencilik havuzlarıyla konuşması." },
+                  { key:"mining", label:"Bu VM'de bir şey başkası adına kripto para kazıyor", correct:true, feedback:"Aynen — üretim VM'inden madencilik havuzu DNS sorguları, makinede başkasının kodunun çalıştığı anlamına gelir." },
+                  { key:"fp", label:"Yanlış alarm — kapat gitsin", correct:false, feedback:"Kriptoyla hiçbir işi olmayan bir VM'in gece 3'te madencilik havuzları çözmesi, bu işin olabileceği en net sinyaldir." }
+                ],
+                errorText:"Uyarı hâlâ okunmamış duruyor — madenci hâlâ senin faturanda çalışıyor."
+              },
+              { id:"e-isolate", type:"action",
+                label:"VM'i ağdan izole et",
+                actionLabel:"VM'i izole et", loadingLabel:"İzole ediliyor…", doneLabel:"VM her şeyi engelleyen bir NSG'nin arkasına alındı — madenci artık havuzuna ulaşamıyor.", loadingMs:600,
+                errorText:"VM'in ağ erişimi hâlâ açık — madenci hâlâ bağlı ve hâlâ kazanıyor."
+              },
+              { id:"e-rotate", type:"action",
+                label:"O VM'deki kimlik bilgilerini döndür",
+                actionLabel:"Kimlik bilgilerini döndür", loadingLabel:"Döndürülüyor…", doneLabel:"Key Vault'taki sırlar döndürüldü — saldırganın kopyaladığı her şey artık değersiz.", loadingMs:600,
+                errorText:"Saldırganın o makineden kopyalamış olabileceği kimlik bilgileri hâlâ her yerde çalışıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-trace", type:"choice",
+                label:"Bunun nasıl olduğunu sapta",
+                prompt:"Bu VM'e kimin ya da neyin dokunduğunu ve etrafındaki her yönetim çağrısını bilmen gerek. Nereye bakarsın?",
+                options:[
+                  { key:"metrics", label:"Azure Monitor metrikleri", correct:false, feedback:"Metrikler sana CPU'nun %98 olduğunu söyler — sayılar, failler değil. Kimin ne yaptığını söyleyemez." },
+                  { key:"activity", label:"Azure Activity Log", correct:true, feedback:"Activity Log denetim kaydıdır: her yönetim işlemi, çağıranı, IP'si, zamanı. Soruşturmalar burada yaşar." },
+                  { key:"advisor", label:"Azure Advisor", correct:false, feedback:"Advisor en iyi uygulamaları önerir — olmuş olanı kaydetmez." }
+                ],
+                errorText:"Saldırganın nasıl girdiğini hâlâ bilmiyorsun — şimdi düzelteceğin her şey bir tahmin."
+              },
+              { id:"h-contain", type:"choice",
+                label:"Kanıtı yok etmeden kontrol altına al",
+                prompt:"VM şu anda ele geçirilmiş durumda. Doğru kontrol hamlesi nedir?",
+                options:[
+                  { key:"delete", label:"VM'i hemen sil", correct:false, feedback:"Silme diski yok eder — soruşturmanın (ve belki hukuk ekibinin) ihtiyacı olan her kanıtla birlikte." },
+                  { key:"snapshot", label:"Diskin anlık görüntüsünü al, sonra NIC'i izolasyon NSG'sine taşı", correct:true, feedback:"Kanıt korundu, ağ kesildi. VM bir suç mahalli — şerit çekersin, buldozerle ezmezsin." },
+                  { key:"restart", label:"Yeniden başlat — çoğu zararlıyı temizler", correct:false, feedback:"Yeniden başlatma kalıcılaşan hiçbir şeyi temizlemez, uçucu kanıtı kaybettirir ve saldırgana fark ettiğini söyler." }
+                ],
+                errorText:"VM ya hâlâ havuzla konuşuyor ya da soruşturmanın ihtiyacı olanı çoktan yok ettin."
+              },
+              { id:"h-root", type:"choice",
+                label:"Giriş yolunu kes",
+                prompt:"Activity Log madencinin sızmış bir service principal sırrıyla kurulduğunu gösteriyor. İlk düzeltme nedir?",
+                options:[
+                  { key:"revoke", label:"O service principal'ın sırrını hemen iptal et", correct:true, feedback:"Sızmış sır açık kapıdır. O ölene kadar diğer her şey ikincil." },
+                  { key:"email", label:"Ekibe sırlara daha dikkat etmelerini rica eden bir e-posta at", correct:false, feedback:"Sızmış sır e-postayı umursamaz — herkes okurken çalışmaya devam eder." },
+                  { key:"mfa", label:"Global admin hesabı için MFA zorunlu kıl", correct:false, feedback:"İyi hijyen, yanlış kapı — bu saldırgan service principal'dan girdi ve admin MFA'sı onun sırrını geçersiz kılmaz." }
+                ],
+                errorText:"Sızmış sır hâlâ çalışıyor — saldırgan geldiği yoldan aynen geri girebilir."
+              },
+              { id:"h-hub", type:"action",
+                label:"Bir sonrakinin günler değil dakikalar içinde yakalanmasını sağla",
+                actionLabel:"Defender planlarını ve uyarıları aç", loadingLabel:"Açılıyor…", doneLabel:"Defender for Cloud artık tüm aboneliği puanlıyor ve uyarıları doğrudan nöbetçiye yönlendiriyor.", loadingMs:700,
+                errorText:"Tespit hâlâ birinin doğru anda doğru portal sayfasını açmasına bağlı."
+              }
+            ]
+          },
+          gcp:{
+            title:"Gece 3 bulgusu: sunucun kripto para kazıyor",
+            scenario:"Security Command Center gece 3:12'de üretim Compute Engine sunucusunda kripto madenciliği bulgusu üretti. Sunucu sürekli madencilik havuzu alan adları çözüyor. Bu gece kimse hiçbir şey dağıtmadı.",
+            consoleLabel:"Security Command Center (simüle)",
+            actionBtn:"Olayı kapat",
+            successText:"Kontrol altına alındı, izlendi ve sağlamlaştırıldı — madenci gitti, giriş yolu kapandı, bir sonraki dakikalar içinde yakalanacak.",
+            easySteps:[
+              { id:"e-read", type:"choice",
+                label:"Bulguyu doğru oku",
+                prompt:"Bu bulgu sana gerçekte ne söylüyor?",
+                options:[
+                  { key:"billing", label:"Bir bütçe bildirimi", correct:false, feedback:"Security Command Center iş yükü davranışını izler, faturanı değil. Bu, sunucunun kendisinin madencilik havuzlarıyla konuşması." },
+                  { key:"mining", label:"Bu sunucuda bir şey başkası adına kripto para kazıyor", correct:true, feedback:"Aynen — üretim sunucusundan madencilik havuzu DNS sorguları, makinede başkasının kodunun çalıştığı anlamına gelir." },
+                  { key:"fp", label:"Yanlış alarm — bulguyu sustur", correct:false, feedback:"Kriptoyla hiçbir işi olmayan bir sunucunun gece 3'te madencilik havuzları çözmesi, bu işin olabileceği en net sinyaldir." }
+                ],
+                errorText:"Bulgu hâlâ okunmamış duruyor — madenci hâlâ senin faturanda çalışıyor."
+              },
+              { id:"e-isolate", type:"action",
+                label:"Sunucuyu ağdan izole et",
+                actionLabel:"Sunucuyu izole et", loadingLabel:"İzole ediliyor…", doneLabel:"Sunucu her şeyi engelleyen bir güvenlik duvarı etiketinin arkasına alındı — madenci artık havuzuna ulaşamıyor.", loadingMs:600,
+                errorText:"Sunucunun ağ erişimi hâlâ açık — madenci hâlâ bağlı ve hâlâ kazanıyor."
+              },
+              { id:"e-rotate", type:"action",
+                label:"O sunucudaki kimlik bilgilerini döndür",
+                actionLabel:"Kimlik bilgilerini döndür", loadingLabel:"Döndürülüyor…", doneLabel:"Servis hesabı anahtarları döndürüldü — saldırganın kopyaladığı her şey artık değersiz.", loadingMs:600,
+                errorText:"Saldırganın o makineden kopyalamış olabileceği kimlik bilgileri hâlâ her yerde çalışıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-trace", type:"choice",
+                label:"Bunun nasıl olduğunu sapta",
+                prompt:"Bu sunucuya kimin ya da neyin dokunduğunu ve etrafındaki her API çağrısını bilmen gerek. Nereye bakarsın?",
+                options:[
+                  { key:"metrics", label:"Cloud Monitoring metrikleri", correct:false, feedback:"Monitoring sana CPU'nun %98 olduğunu söyler — sayılar, failler değil. Kimin ne yaptığını söyleyemez." },
+                  { key:"audit", label:"Cloud Audit Logs", correct:true, feedback:"Audit Logs kayıttır: her API çağrısı, çağıranı, IP'si, zamanı. Soruşturmalar burada yaşar." },
+                  { key:"scanner", label:"Web Security Scanner", correct:false, feedback:"Tarayıcı zayıflıkları sömürülmeden önce bulur — olmuş olanı kaydetmez." }
+                ],
+                errorText:"Saldırganın nasıl girdiğini hâlâ bilmiyorsun — şimdi düzelteceğin her şey bir tahmin."
+              },
+              { id:"h-contain", type:"choice",
+                label:"Kanıtı yok etmeden kontrol altına al",
+                prompt:"Sunucu şu anda ele geçirilmiş durumda. Doğru kontrol hamlesi nedir?",
+                options:[
+                  { key:"delete", label:"Sunucuyu hemen sil", correct:false, feedback:"Silme diski yok eder — soruşturmanın (ve belki hukuk ekibinin) ihtiyacı olan her kanıtla birlikte." },
+                  { key:"snapshot", label:"Diskin anlık görüntüsünü al, sonra her şeyi engelleyen bir güvenlik duvarı etiketi uygula", correct:true, feedback:"Kanıt korundu, ağ kesildi. Sunucu bir suç mahalli — şerit çekersin, buldozerle ezmezsin." },
+                  { key:"reset", label:"Sıfırla — çoğu zararlıyı temizler", correct:false, feedback:"Sıfırlama kalıcılaşan hiçbir şeyi temizlemez, uçucu kanıtı kaybettirir ve saldırgana fark ettiğini söyler." }
+                ],
+                errorText:"Sunucu ya hâlâ havuzla konuşuyor ya da soruşturmanın ihtiyacı olanı çoktan yok ettin."
+              },
+              { id:"h-root", type:"choice",
+                label:"Giriş yolunu kes",
+                prompt:"Audit Logs madencinin sızmış bir servis hesabı anahtarıyla kurulduğunu gösteriyor. İlk düzeltme nedir?",
+                options:[
+                  { key:"disable", label:"O servis hesabı anahtarını hemen devre dışı bırak", correct:true, feedback:"Sızmış anahtar açık kapıdır. O ölene kadar diğer her şey ikincil." },
+                  { key:"email", label:"Ekibe anahtarlara daha dikkat etmelerini rica eden bir e-posta at", correct:false, feedback:"Sızmış anahtar e-postayı umursamaz — herkes okurken çalışmaya devam eder." },
+                  { key:"2sv", label:"Org adminleri için 2 Adımlı Doğrulamayı zorunlu kıl", correct:false, feedback:"İyi hijyen, yanlış kapı — bu saldırgan servis hesabı anahtarından girdi ve admin 2SV'si onu geçersiz kılmaz." }
+                ],
+                errorText:"Sızmış anahtar hâlâ çalışıyor — saldırgan geldiği yoldan aynen geri girebilir."
+              },
+              { id:"h-hub", type:"action",
+                label:"Bir sonrakinin günler değil dakikalar içinde yakalanmasını sağla",
+                actionLabel:"SCC Premium'u ve uyarıları aç", loadingLabel:"Açılıyor…", doneLabel:"Security Command Center Premium artık organizasyonu puanlıyor ve bulguları doğrudan nöbetçiye yönlendiriyor.", loadingMs:700,
+                errorText:"Tespit hâlâ birinin doğru anda doğru konsolu açmasına bağlı."
+              }
+            ]
+          }
+        },
+        edge:{
+          aws:{
+            title:"Bugün enjeksiyon sondaları, hafta sonuna DDoS tehdidi",
+            scenario:"Erişim logları sabahtan beri ödeme uç noktasına ' OR 1=1-- sondaları gösteriyor ve bir grup cumartesi indirimi için hacimsel saldırı tehdidinde bulunuyor. İnternetle yük dengeleyici arasında hiçbir şey yok.",
+            consoleLabel:"AWS WAF ve Shield Konsolu (simüle)",
+            actionBtn:"Saldırı simülasyonunu çalıştır",
+            successText:"Enjeksiyonlar uçta ölüyor, sel yukarıda emiliyor ve gerçek müşteriler ikisini de asla fark etmiyor.",
+            easySteps:[
+              { id:"e-identify", type:"choice",
+                label:"Loglardakinin ne olduğunu teşhis et",
+                prompt:"İstekler sorgu parametresinin içinde ' OR 1=1-- ile gelip duruyor. Bu ne?",
+                options:[
+                  { key:"typo", label:"Kullanıcıların arama terimlerini yanlış yazması", correct:false, feedback:"Hiçbir kullanıcı tırnak, boolean ve SQL yorum işaretini yanlışlıkla, yüzlerce kez, dönen IP'lerden yazmaz." },
+                  { key:"sqli", label:"SQL injection sondası — biri veritabanının kendi girdisini çalıştırıp çalıştırmayacağını test ediyor", correct:true, feedback:"Klasik SQLi sondası: uygulama bunu bir sorguya eklerse, saldırgan verinin sahibi olur." },
+                  { key:"bot", label:"Zararsız bir arama motoru botu", correct:false, feedback:"Botlar sayfa çeker; ödeme parametrelerine boolean mantık enjekte etmez." }
+                ],
+                errorText:"Sondaları hâlâ tanımadın — bir sonraki, işe yarayan olabilir."
+              },
+              { id:"e-waf", type:"action",
+                label:"Yük dengeleyicinin önüne yönetilen kurallarla bir WAF koy",
+                actionLabel:"AWS WAF'ı bağla", loadingLabel:"Bağlanıyor…", doneLabel:"WAF, yönetilen SQLi kural grubuyla bağlandı — enjeksiyon desenleri artık uçta ölüyor.", loadingMs:700,
+                errorText:"İnternetle uygulaman arasında hâlâ hiçbir şey yok — her sonda hâlâ koduna ulaşıyor."
+              },
+              { id:"e-verify", type:"action",
+                label:"Sabahki sondaları korunan uç noktaya yeniden oynat",
+                actionLabel:"Sondaları yeniden oynat", loadingLabel:"Oynatılıyor…", doneLabel:"Yeniden oynatılan her sonda 403 döndü — uygulamaya dokunmadan engellendi.", loadingMs:600,
+                errorText:"Kuralların sabah gördüğün trafiği gerçekten yakaladığını doğrulamadın."
+              }
+            ],
+            hardSteps:[
+              { id:"h-layer", type:"choice",
+                label:"Cumartesi tehdidini de kapsa",
+                prompt:"WAF artık enjeksiyonları durduruyor. Tehdit edilen hacimsel saldırıyı da o mu karşılar?",
+                options:[
+                  { key:"yes", label:"Evet — WAF her isteği inceliyor, seli de düşürebilir", correct:false, feedback:"WAF istekleri 7. katmanda tek tek inceler — terabitlik bir sel, kural değerlendirmesi devreye girmeden kapasiteyi bitirir." },
+                  { key:"shield", label:"Hayır — hacimsel seller daha aşağıda, sağlayıcı ucundaki DDoS koruması tarafından emilir", correct:true, feedback:"Doğru — Shield 3/4. katman hacmini sana yakınsamadan AWS'nin küresel ucunda emer. Farklı katman, farklı ürün." },
+                  { key:"scale", label:"Hayır — o yüzden hafta sonu için sunucu filosunu ikiye katla", correct:false, feedback:"Bir botnete karşı sunucu satın alarak kazanamazsın; saldırıyı kendi faturanla emmiş olursun." }
+                ],
+                errorText:"Cumartesi selinin hâlâ bir cevabı yok — tek başına WAF duvar değil, kasis olur."
+              },
+              { id:"h-rate", type:"choice",
+                label:"Kimlik bilgisi doldurma dalgasını karşıla",
+                prompt:"Gece bir IP aralığı, sızmış kullanıcı adı/parola çiftlerini giriş sayfasında denemeye başlıyor — saniyede 40 tane. Hangi WAF aracı uyar?",
+                options:[
+                  { key:"manual", label:"Kötü IP'leri göründükçe elle engelle", correct:false, feedback:"IP'leri senin yazabileceğinden hızlı döndürüyorlar — elle engelleme koşu bandıdır, çözüm değil." },
+                  { key:"rate", label:"Eşiği aşan her kaynağı geçici olarak engelleyen hız-tabanlı bir kural", correct:true, feedback:"Hız-tabanlı kurallar saldırıyı kendi kendini yenen bir şeye çevirir: eşiği aş, otomatik engellen, arada insan yok." },
+                  { key:"captcha", label:"Sitenin her sayfasının önüne CAPTCHA koy", correct:false, feedback:"Tek uç noktada yaşayan bir sorunu çözmek için her gerçek müşteriyi her sayfada cezalandırmak olur." }
+                ],
+                errorText:"Giriş uç noktası hâlâ saniyede 40 kimlik denemesi yiyor."
+              },
+              { id:"h-fp", type:"choice",
+                label:"Yanlış pozitifleri korumayı düşürmeden düzelt",
+                prompt:"Sıkı kurallar açıldıktan sonra \"O'Brien's SELECT toolkit\" ürününü arayan müşteriler engelleniyor. Doğru düzeltme nedir?",
+                options:[
+                  { key:"off", label:"SQLi kural grubunu kapat — satışlara zarar veriyor", correct:false, feedback:"Bu, olayın başladığı deliği yeniden açar. Yanlış pozitifler ayarlanır, teslim olunmaz." },
+                  { key:"tune", label:"Arama parametresine hedefli bir istisna tanımla, kuralı diğer her yerde tut", correct:true, feedback:"Tam olarak — kuralı yanlış ateşlediği yerde daralt, diğer her yol ve parametrede tam korumayı koru." },
+                  { key:"rename", label:"Pazarlamadan ürünün adını değiştirmesini iste", correct:false, feedback:"Bir güvenlik duvarı kuralını memnun etmek için ürün adı değiştirmek, sorunu yanlış ucundan çözmektir." }
+                ],
+                errorText:"Ya gerçek müşteriler hâlâ engelleniyor ya da SQLi koruması tamamen kapalı."
+              },
+              { id:"h-verify", type:"action",
+                label:"Cumartesiden önce tam saldırı simülasyonunu çalıştır",
+                actionLabel:"Simülasyonu çalıştır", loadingLabel:"Simüle ediliyor…", doneLabel:"Simüle SQLi, doldurma ve sel — hepsi uçta karşılandı. Cumartesi hazır.", loadingMs:800,
+                errorText:"Cumartesiye, bunların hiçbirini ateş altında test etmeden giriyorsun."
+              }
+            ]
+          },
+          azure:{
+            title:"Bugün enjeksiyon sondaları, hafta sonuna DDoS tehdidi",
+            scenario:"Erişim logları sabahtan beri ödeme uç noktasına ' OR 1=1-- sondaları gösteriyor ve bir grup cumartesi indirimi için hacimsel saldırı tehdidinde bulunuyor. İnternetle uygulama ağ geçidi arasında hiçbir şey yok.",
+            consoleLabel:"Azure WAF ve DDoS Protection (simüle)",
+            actionBtn:"Saldırı simülasyonunu çalıştır",
+            successText:"Enjeksiyonlar uçta ölüyor, sel yukarıda emiliyor ve gerçek müşteriler ikisini de asla fark etmiyor.",
+            easySteps:[
+              { id:"e-identify", type:"choice",
+                label:"Loglardakinin ne olduğunu teşhis et",
+                prompt:"İstekler sorgu parametresinin içinde ' OR 1=1-- ile gelip duruyor. Bu ne?",
+                options:[
+                  { key:"typo", label:"Kullanıcıların arama terimlerini yanlış yazması", correct:false, feedback:"Hiçbir kullanıcı tırnak, boolean ve SQL yorum işaretini yanlışlıkla, yüzlerce kez, dönen IP'lerden yazmaz." },
+                  { key:"sqli", label:"SQL injection sondası — biri veritabanının kendi girdisini çalıştırıp çalıştırmayacağını test ediyor", correct:true, feedback:"Klasik SQLi sondası: uygulama bunu bir sorguya eklerse, saldırgan verinin sahibi olur." },
+                  { key:"bot", label:"Zararsız bir arama motoru botu", correct:false, feedback:"Botlar sayfa çeker; ödeme parametrelerine boolean mantık enjekte etmez." }
+                ],
+                errorText:"Sondaları hâlâ tanımadın — bir sonraki, işe yarayan olabilir."
+              },
+              { id:"e-waf", type:"action",
+                label:"Uygulama ağ geçidinde WAF politikasını etkinleştir",
+                actionLabel:"Azure WAF'ı etkinleştir", loadingLabel:"Etkinleştiriliyor…", doneLabel:"WAF, yönetilen OWASP kural setiyle etkin — enjeksiyon desenleri artık uçta ölüyor.", loadingMs:700,
+                errorText:"İnternetle uygulaman arasında hâlâ hiçbir şey yok — her sonda hâlâ koduna ulaşıyor."
+              },
+              { id:"e-verify", type:"action",
+                label:"Sabahki sondaları korunan uç noktaya yeniden oynat",
+                actionLabel:"Sondaları yeniden oynat", loadingLabel:"Oynatılıyor…", doneLabel:"Yeniden oynatılan her sonda 403 döndü — uygulamaya dokunmadan engellendi.", loadingMs:600,
+                errorText:"Kuralların sabah gördüğün trafiği gerçekten yakaladığını doğrulamadın."
+              }
+            ],
+            hardSteps:[
+              { id:"h-layer", type:"choice",
+                label:"Cumartesi tehdidini de kapsa",
+                prompt:"WAF artık enjeksiyonları durduruyor. Tehdit edilen hacimsel saldırıyı da o mu karşılar?",
+                options:[
+                  { key:"yes", label:"Evet — WAF her isteği inceliyor, seli de düşürebilir", correct:false, feedback:"WAF istekleri 7. katmanda tek tek inceler — terabitlik bir sel, kural değerlendirmesi devreye girmeden kapasiteyi bitirir." },
+                  { key:"ddos", label:"Hayır — hacimsel seller Azure ucunda bir DDoS Protection planıyla emilir", correct:true, feedback:"Doğru — DDoS Protection 3/4. katman hacmini sana yakınsamadan Microsoft'un küresel ucunda emer. Farklı katman, farklı ürün." },
+                  { key:"scale", label:"Hayır — o yüzden hafta sonu için sunucu filosunu ikiye katla", correct:false, feedback:"Bir botnete karşı VM satın alarak kazanamazsın; saldırıyı kendi faturanla emmiş olursun." }
+                ],
+                errorText:"Cumartesi selinin hâlâ bir cevabı yok — tek başına WAF duvar değil, kasis olur."
+              },
+              { id:"h-rate", type:"choice",
+                label:"Kimlik bilgisi doldurma dalgasını karşıla",
+                prompt:"Gece bir IP aralığı, sızmış kullanıcı adı/parola çiftlerini giriş sayfasında denemeye başlıyor — saniyede 40 tane. Hangi WAF aracı uyar?",
+                options:[
+                  { key:"manual", label:"Kötü IP'leri göründükçe elle engelle", correct:false, feedback:"IP'leri senin yazabileceğinden hızlı döndürüyorlar — elle engelleme koşu bandıdır, çözüm değil." },
+                  { key:"rate", label:"Eşiği aşan her kaynağı geçici olarak engelleyen hız sınırı kuralı", correct:true, feedback:"Hız sınırı kuralları saldırıyı kendi kendini yenen bir şeye çevirir: eşiği aş, otomatik engellen, arada insan yok." },
+                  { key:"captcha", label:"Sitenin her sayfasının önüne CAPTCHA koy", correct:false, feedback:"Tek uç noktada yaşayan bir sorunu çözmek için her gerçek müşteriyi her sayfada cezalandırmak olur." }
+                ],
+                errorText:"Giriş uç noktası hâlâ saniyede 40 kimlik denemesi yiyor."
+              },
+              { id:"h-fp", type:"choice",
+                label:"Yanlış pozitifleri korumayı düşürmeden düzelt",
+                prompt:"Sıkı kurallar açıldıktan sonra \"O'Brien's SELECT toolkit\" ürününü arayan müşteriler engelleniyor. Doğru düzeltme nedir?",
+                options:[
+                  { key:"off", label:"OWASP kural setini kapat — satışlara zarar veriyor", correct:false, feedback:"Bu, olayın başladığı deliği yeniden açar. Yanlış pozitifler ayarlanır, teslim olunmaz." },
+                  { key:"tune", label:"Arama parametresine hedefli bir hariç tutma ekle, kuralları diğer her yerde tut", correct:true, feedback:"Tam olarak — kuralı yanlış ateşlediği yerde daralt, diğer her yol ve parametrede tam korumayı koru." },
+                  { key:"rename", label:"Pazarlamadan ürünün adını değiştirmesini iste", correct:false, feedback:"Bir güvenlik duvarı kuralını memnun etmek için ürün adı değiştirmek, sorunu yanlış ucundan çözmektir." }
+                ],
+                errorText:"Ya gerçek müşteriler hâlâ engelleniyor ya da SQLi koruması tamamen kapalı."
+              },
+              { id:"h-verify", type:"action",
+                label:"Cumartesiden önce tam saldırı simülasyonunu çalıştır",
+                actionLabel:"Simülasyonu çalıştır", loadingLabel:"Simüle ediliyor…", doneLabel:"Simüle SQLi, doldurma ve sel — hepsi uçta karşılandı. Cumartesi hazır.", loadingMs:800,
+                errorText:"Cumartesiye, bunların hiçbirini ateş altında test etmeden giriyorsun."
+              }
+            ]
+          },
+          gcp:{
+            title:"Bugün enjeksiyon sondaları, hafta sonuna DDoS tehdidi",
+            scenario:"Erişim logları sabahtan beri ödeme uç noktasına ' OR 1=1-- sondaları gösteriyor ve bir grup cumartesi indirimi için hacimsel saldırı tehdidinde bulunuyor. İnternetle yük dengeleyici arasında hiçbir şey yok.",
+            consoleLabel:"Cloud Armor Konsolu (simüle)",
+            actionBtn:"Saldırı simülasyonunu çalıştır",
+            successText:"Enjeksiyonlar uçta ölüyor, sel yukarıda emiliyor ve gerçek müşteriler ikisini de asla fark etmiyor.",
+            easySteps:[
+              { id:"e-identify", type:"choice",
+                label:"Loglardakinin ne olduğunu teşhis et",
+                prompt:"İstekler sorgu parametresinin içinde ' OR 1=1-- ile gelip duruyor. Bu ne?",
+                options:[
+                  { key:"typo", label:"Kullanıcıların arama terimlerini yanlış yazması", correct:false, feedback:"Hiçbir kullanıcı tırnak, boolean ve SQL yorum işaretini yanlışlıkla, yüzlerce kez, dönen IP'lerden yazmaz." },
+                  { key:"sqli", label:"SQL injection sondası — biri veritabanının kendi girdisini çalıştırıp çalıştırmayacağını test ediyor", correct:true, feedback:"Klasik SQLi sondası: uygulama bunu bir sorguya eklerse, saldırgan verinin sahibi olur." },
+                  { key:"bot", label:"Zararsız bir arama motoru botu", correct:false, feedback:"Botlar sayfa çeker; ödeme parametrelerine boolean mantık enjekte etmez." }
+                ],
+                errorText:"Sondaları hâlâ tanımadın — bir sonraki, işe yarayan olabilir."
+              },
+              { id:"e-waf", type:"action",
+                label:"Önceden yapılandırılmış WAF kurallarıyla bir Cloud Armor güvenlik politikası bağla",
+                actionLabel:"Cloud Armor politikasını bağla", loadingLabel:"Bağlanıyor…", doneLabel:"Güvenlik politikası önceden yapılandırılmış SQLi kurallarıyla bağlandı — enjeksiyon desenleri artık uçta ölüyor.", loadingMs:700,
+                errorText:"İnternetle uygulaman arasında hâlâ hiçbir şey yok — her sonda hâlâ koduna ulaşıyor."
+              },
+              { id:"e-verify", type:"action",
+                label:"Sabahki sondaları korunan uç noktaya yeniden oynat",
+                actionLabel:"Sondaları yeniden oynat", loadingLabel:"Oynatılıyor…", doneLabel:"Yeniden oynatılan her sonda 403 döndü — uygulamaya dokunmadan engellendi.", loadingMs:600,
+                errorText:"Kuralların sabah gördüğün trafiği gerçekten yakaladığını doğrulamadın."
+              }
+            ],
+            hardSteps:[
+              { id:"h-layer", type:"choice",
+                label:"Cumartesi tehdidini de kapsa",
+                prompt:"WAF kuralları artık enjeksiyonları durduruyor. Tehdit edilen hacimsel saldırıyı ne karşılar?",
+                options:[
+                  { key:"same", label:"Aynı WAF kuralları — zaten her isteği inceliyorlar", correct:false, feedback:"7. katmanda kural değerlendirmesi, terabitlik 3/4. katman hacmini emmez — önce kapasite ölür." },
+                  { key:"adaptive", label:"Cloud Armor'ın uç emilimi ve Adaptive Protection — arka uçlarının yukarısında", correct:true, feedback:"Doğru — Google'ın ucu hacmi emer, Adaptive Protection saldırı imzalarını öğrenip otomatik engeller. Farklı katman, aynı ürün ailesi." },
+                  { key:"scale", label:"Hiçbir şey — hafta sonu için arka uç filosunu ikiye katla", correct:false, feedback:"Bir botnete karşı sunucu satın alarak kazanamazsın; saldırıyı kendi faturanla emmiş olursun." }
+                ],
+                errorText:"Cumartesi selinin hâlâ bir cevabı yok — istek kuralları tek başına duvar değil, kasis olur."
+              },
+              { id:"h-rate", type:"choice",
+                label:"Kimlik bilgisi doldurma dalgasını karşıla",
+                prompt:"Gece bir IP aralığı, sızmış kullanıcı adı/parola çiftlerini giriş sayfasında denemeye başlıyor — saniyede 40 tane. Hangi araç uyar?",
+                options:[
+                  { key:"manual", label:"Kötü IP'leri göründükçe elle engelle", correct:false, feedback:"IP'leri senin yazabileceğinden hızlı döndürüyorlar — elle engelleme koşu bandıdır, çözüm değil." },
+                  { key:"rate", label:"Eşiği aşan her kaynağı geçici olarak yasaklayan hız-tabanlı ban kuralı", correct:true, feedback:"Hız-tabanlı yasaklar saldırıyı kendi kendini yenen bir şeye çevirir: eşiği aş, otomatik yasaklan, arada insan yok." },
+                  { key:"captcha", label:"Sitenin her sayfasının önüne CAPTCHA koy", correct:false, feedback:"Tek uç noktada yaşayan bir sorunu çözmek için her gerçek müşteriyi her sayfada cezalandırmak olur." }
+                ],
+                errorText:"Giriş uç noktası hâlâ saniyede 40 kimlik denemesi yiyor."
+              },
+              { id:"h-fp", type:"choice",
+                label:"Yanlış pozitifleri korumayı düşürmeden düzelt",
+                prompt:"Sıkı kurallar açıldıktan sonra \"O'Brien's SELECT toolkit\" ürününü arayan müşteriler engelleniyor. Doğru düzeltme nedir?",
+                options:[
+                  { key:"off", label:"SQLi kurallarını kapat — satışlara zarar veriyorlar", correct:false, feedback:"Bu, olayın başladığı deliği yeniden açar. Yanlış pozitifler ayarlanır, teslim olunmaz." },
+                  { key:"tune", label:"Arama parametresine hedefli bir istisna tanımla, kuralları diğer her yerde tut", correct:true, feedback:"Tam olarak — kuralı yanlış ateşlediği yerde daralt, diğer her yol ve parametrede tam korumayı koru." },
+                  { key:"rename", label:"Pazarlamadan ürünün adını değiştirmesini iste", correct:false, feedback:"Bir güvenlik duvarı kuralını memnun etmek için ürün adı değiştirmek, sorunu yanlış ucundan çözmektir." }
+                ],
+                errorText:"Ya gerçek müşteriler hâlâ engelleniyor ya da SQLi koruması tamamen kapalı."
+              },
+              { id:"h-verify", type:"action",
+                label:"Cumartesiden önce tam saldırı simülasyonunu çalıştır",
+                actionLabel:"Simülasyonu çalıştır", loadingLabel:"Simüle ediliyor…", doneLabel:"Simüle SQLi, doldurma ve sel — hepsi uçta karşılandı. Cumartesi hazır.", loadingMs:800,
+                errorText:"Cumartesiye, bunların hiçbirini ateş altında test etmeden giriyorsun."
+              }
+            ]
+          }
+        },
+        identity:{
+          aws:{
+            title:"Bir danışman iki haftalık erişim istiyor — saatli bomba üretmeden ver",
+            scenario:"Dış bir danışman pazartesi başlıyor ve tam iki hafta boyunca üç servise erişmesi gerekiyor. Geçen yıl birinin kalıcı erişim anahtarı dizüstünden sızdı ve temizlik bir hafta sonu sürdü.",
+            consoleLabel:"IAM ve STS Konsolu (simüle)",
+            actionBtn:"Sözleşmeyi kapat",
+            successText:"Kapsamlı, geçici, denetlenmiş erişim — ve dizüstü çalındığında, çalınacak kalıcı hiçbir şey yoktu.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Danışmanın nasıl kimlik doğrulayacağını seç",
+                prompt:"Bu iki haftalık iş hangi tür kimlik bilgileriyle yürümeli?",
+                options:[
+                  { key:"iamuser", label:"Kalıcı erişim anahtarı olan yeni bir IAM kullanıcısı", correct:false, feedback:"O anahtar biri silmeyi hatırlayana kadar çalışır — geçen yılki sızıntı tam olarak böyle oldu." },
+                  { key:"role", label:"Üstlendiği bir rol üzerinden STS geçici kimlik bilgileri", correct:true, feedback:"STS kimlik bilgileri kendiliğinden ölür — iş biter, erişim de hatırlansın hatırlanmasın onunla ölür." },
+                  { key:"shared", label:"Mevcut bir mühendisin kimlik bilgilerini iki haftalığına paylaş", correct:false, feedback:"Paylaşılan kimlik denetim izini yok eder ve işten uzun yaşar. Asla." }
+                ],
+                errorText:"Danışmanın hâlâ güvenli bir giriş yolu yok — ya da daha kötüsü, kalıcı bir tane var."
+              },
+              { id:"e-grant", type:"action",
+                label:"Rolü oluştur ve danışmana tanımla",
+                actionLabel:"Kapsamlı rolü oluştur", loadingLabel:"Oluşturuluyor…", doneLabel:"Rol oluşturuldu — danışman rolü üstleniyor ve saatlik ölen kimlik bilgileri alıyor.", loadingMs:600,
+                errorText:"Danışman pazartesi başlıyor ve üstlenebileceği hiçbir şey yok."
+              },
+              { id:"e-verify", type:"action",
+                label:"Erişimin çalıştığını — ve dolduğunu — doğrula",
+                actionLabel:"Rol üstlenmeyi test et", loadingLabel:"Test ediliyor…", doneLabel:"Üstlenildi, üç servis çağrıldı, TTL beklendi — süresi dolan kimlik reddedildi, tam tasarlandığı gibi.", loadingMs:700,
+                errorText:"Kimlik bilgilerinin gerçekten dolduğunu kimse doğrulamadı — tasarımın bütün amacı buydu."
+              }
+            ],
+            hardSteps:[
+              { id:"h-scope", type:"choice",
+                label:"Rolün ne kadar güç taşıyacağına karar ver",
+                prompt:"Danışmanın S3 okuma, DynamoDB okuma/yazma ve CloudWatch loglarına ihtiyacı var. Role hangi izinler verilir?",
+                options:[
+                  { key:"admin", label:"AdministratorAccess — önünü açmanın en hızlı yolu", correct:false, feedback:"Kolaylık için admin, çalınan danışman dizüstünün bütün hesabına sahip olması demek. Patlama yarıçapı şimdi verdiğin bir karar." },
+                  { key:"exact", label:"Tam olarak o üç servis, ilgili belirli kaynaklar üzerinde", correct:true, feedback:"En az ayrıcalık: bu kimlikler sızarsa hasar, işin gerçekten gerektirdiğiyle sınırlı kalır." },
+                  { key:"readonly", label:"Her şeyde ReadOnlyAccess", correct:false, feedback:"DynamoDB'ye yazamaz — iş pazartesi sabahı durur ve biri ona 'geçici olarak' admin verir." }
+                ],
+                errorText:"Rolün izinleri hâlâ yanlış — ya tehlikeli ya kullanılamaz."
+              },
+              { id:"h-audit", type:"choice",
+                label:"\"Gerçekte ne yaptı?\" sorusuna cevap ver",
+                prompt:"Bir hafta sonra müdürün tam olarak bunu soruyor. Cevap nerede?",
+                options:[
+                  { key:"ask", label:"Danışmandan özet iste", correct:false, feedback:"Öz bildirim denetim değildir — dürüst olsun olmasın, hiçbir şey kanıtlamaz." },
+                  { key:"trail", label:"Üstlenilen rol oturum adına göre filtrelenmiş CloudTrail", correct:true, feedback:"Her STS oturumu API çağrılarını etiketler — CloudTrail danışmanın bütün ayak izini çağrı çağrı oynatır." },
+                  { key:"applogs", label:"Uygulama loglarını tara", correct:false, feedback:"Uygulama logları uygulamanın ne yaptığını gösterir, danışmanın etrafındaki bulut API'leriyle ne yaptığını değil." }
+                ],
+                errorText:"Danışmanın eylemlerinin hâlâ hesabını veremiyorsun — bu evrak eksiği değil, denetim hatası."
+              },
+              { id:"h-leak", type:"choice",
+                label:"Danışmanın dizüstü işin ortasında çalındı",
+                prompt:"Yine oldu — ikinci hafta, salı. Bu tasarım senden ne istiyor?",
+                options:[
+                  { key:"rotateall", label:"Geçen yılki gibi şirket çapında kimlik rotasyonu", correct:false, feedback:"O eski tasarımın bedeliydi. Bu sefer o dizüstünde kalıcı hiçbir şey yoktu — döndürülecek bir şey yok." },
+                  { key:"revoke", label:"Rolün aktif oturumlarını iptal et, kalanını kısa TTL öldürsün", correct:true, feedback:"Tek iptal — ve zaten basılmış her şey bir saat içinde kendiliğinden ölüyor. Geçen yılın hafta sonuyla kıyasla.", },
+                  { key:"nothing", label:"Hiçbir şey — süre dolumu her şeyi halleder", correct:false, feedback:"Yaklaştın — ama hırsızlıktan hemen önce basılmış bir oturum bir saate kadar canlı olabilir. İptal et, kalanını süre halletsin." }
+                ],
+                errorText:"Çalınan donanımda hâlâ canlı bir oturum olabilir — ve kimse onu kesmedi."
+              },
+              { id:"h-close", type:"action",
+                label:"Sözleşmeyi temiz kapat",
+                actionLabel:"Rol güvenini kaldır", loadingLabel:"Kaldırılıyor…", doneLabel:"Güven politikası temizlendi — silinecek şey yok, unutulan şey yok, geride kalan şey yok.", loadingMs:600,
+                errorText:"İş bitti ama rol hâlâ danışmanın kimliğine güveniyor."
+              }
+            ]
+          },
+          azure:{
+            title:"Bir danışman iki haftalık erişim istiyor — saatli bomba üretmeden ver",
+            scenario:"Dış bir danışman pazartesi başlıyor ve tam iki hafta boyunca üç servise erişmesi gerekiyor. Geçen yıl birinin client secret'ı dizüstünden sızdı ve temizlik bir hafta sonu sürdü.",
+            consoleLabel:"Microsoft Entra ID (simüle)",
+            actionBtn:"Sözleşmeyi kapat",
+            successText:"Kapsamlı, süre sınırlı, denetlenmiş erişim — ve dizüstü çalındığında, çalınacak kalıcı hiçbir şey yoktu.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Danışmanın nasıl kimlik doğrulayacağını seç",
+                prompt:"Bu iki haftalık iş hangi tür erişimle yürümeli?",
+                options:[
+                  { key:"secret", label:"Dizüstünde tutacağı client secret'lı bir service principal", correct:false, feedback:"O sır biri silmeyi hatırlayana kadar çalışır — geçen yılki sızıntı tam olarak böyle oldu." },
+                  { key:"pim", label:"İki haftada dolan PIM rol atamalı bir konuk hesabı", correct:true, feedback:"Entra konuk + Privileged Identity Management: atamanın içinde bitiş tarihi gömülü — erişim, hatırlansın hatırlanmasın işle birlikte ölür." },
+                  { key:"shared", label:"Mevcut bir mühendisin girişini iki haftalığına paylaş", correct:false, feedback:"Paylaşılan kimlik denetim izini yok eder ve işten uzun yaşar. Asla." }
+                ],
+                errorText:"Danışmanın hâlâ güvenli bir giriş yolu yok — ya da daha kötüsü, kalıcı bir tane var."
+              },
+              { id:"e-grant", type:"action",
+                label:"Konuğu davet et ve süre sınırlı rolü ata",
+                actionLabel:"PIM rolünü ata", loadingLabel:"Atanıyor…", doneLabel:"Konuk davet edildi, iki hafta sonrası kesin bitişli rol atandı.", loadingMs:600,
+                errorText:"Danışman pazartesi başlıyor ve ona atanmış hiçbir şey yok."
+              },
+              { id:"e-verify", type:"action",
+                label:"Erişimin çalıştığını — ve dolduğunu — doğrula",
+                actionLabel:"Atamayı test et", loadingLabel:"Test ediliyor…", doneLabel:"Giriş yapıldı, üç servise ulaşıldı, atamanın bitiş tarihi doğrulandı — tam tasarlandığı gibi.", loadingMs:700,
+                errorText:"Atamanın gerçekten dolduğunu kimse doğrulamadı — tasarımın bütün amacı buydu."
+              }
+            ],
+            hardSteps:[
+              { id:"h-scope", type:"choice",
+                label:"Atamanın ne kadar güç taşıyacağına karar ver",
+                prompt:"Danışmanın Blob okuma, Cosmos DB okuma/yazma ve Log Analytics'e ihtiyacı var. Hangi rolü alır?",
+                options:[
+                  { key:"owner", label:"Abonelikte Owner — önünü açmanın en hızlı yolu", correct:false, feedback:"Kolaylık için Owner, çalınan danışman dizüstünün bütün aboneliğe sahip olması demek. Patlama yarıçapı şimdi verdiğin bir karar." },
+                  { key:"exact", label:"Tam olarak o üç servisi, belirli kaynak gruplarında kapsayan özel rol", correct:true, feedback:"En az ayrıcalık: bu erişim sızarsa hasar, işin gerçekten gerektirdiğiyle sınırlı kalır." },
+                  { key:"reader", label:"Her şeyde Reader", correct:false, feedback:"Cosmos DB'ye yazamaz — iş pazartesi sabahı durur ve biri ona 'geçici olarak' Owner verir." }
+                ],
+                errorText:"Atamanın izinleri hâlâ yanlış — ya tehlikeli ya kullanılamaz."
+              },
+              { id:"h-audit", type:"choice",
+                label:"\"Gerçekte ne yaptı?\" sorusuna cevap ver",
+                prompt:"Bir hafta sonra müdürün tam olarak bunu soruyor. Cevap nerede?",
+                options:[
+                  { key:"ask", label:"Danışmandan özet iste", correct:false, feedback:"Öz bildirim denetim değildir — dürüst olsun olmasın, hiçbir şey kanıtlamaz." },
+                  { key:"logs", label:"Konuk kimliğine filtrelenmiş Activity Log ve Entra oturum açma logları", correct:true, feedback:"Her işlem ve her giriş konuğun üzerine kayıtlı — loglar bütün ayak izini oynatır." },
+                  { key:"applogs", label:"Uygulama loglarını tara", correct:false, feedback:"Uygulama logları uygulamanın ne yaptığını gösterir, danışmanın etrafındaki yönetim API'leriyle ne yaptığını değil." }
+                ],
+                errorText:"Danışmanın eylemlerinin hâlâ hesabını veremiyorsun — bu evrak eksiği değil, denetim hatası."
+              },
+              { id:"h-leak", type:"choice",
+                label:"Danışmanın dizüstü işin ortasında çalındı",
+                prompt:"Yine oldu — ikinci hafta, salı. Bu tasarım senden ne istiyor?",
+                options:[
+                  { key:"rotateall", label:"Geçen yılki gibi şirket çapında sır rotasyonu", correct:false, feedback:"O eski tasarımın bedeliydi. Bu sefer o dizüstünde kalıcı hiçbir sır yoktu — döndürülecek bir şey yok." },
+                  { key:"revoke", label:"Konuğun oturumlarını ve yenileme jetonlarını iptal et; kalanını süre sınırı halletsin", correct:true, feedback:"Tek iptal canlı oturumları öldürür; atamanın bitiş tarihi hiçbir şeyin işten uzun yaşamamasını garantiler." },
+                  { key:"nothing", label:"Hiçbir şey — bitiş tarihi her şeyi halleder", correct:false, feedback:"Yaklaştın — ama canlı oturumlar ve yenileme jetonları iptal edilene kadar yaşar. İptal et, kalanını süre halletsin." }
+                ],
+                errorText:"Çalınan donanımda hâlâ canlı bir oturum olabilir — ve kimse onu kesmedi."
+              },
+              { id:"h-close", type:"action",
+                label:"Sözleşmeyi temiz kapat",
+                actionLabel:"Konuk erişimini kaldır", loadingLabel:"Kaldırılıyor…", doneLabel:"Konuk kaldırıldı — silinecek şey yok, unutulan şey yok, geride kalan şey yok.", loadingMs:600,
+                errorText:"İş bitti ama konuk hesabının ataması hâlâ duruyor."
+              }
+            ]
+          },
+          gcp:{
+            title:"Bir danışman iki haftalık erişim istiyor — saatli bomba üretmeden ver",
+            scenario:"Dış bir danışman pazartesi başlıyor ve tam iki hafta boyunca üç servise erişmesi gerekiyor. Geçen yıl birinin servis hesabı anahtarı dizüstünden sızdı ve temizlik bir hafta sonu sürdü.",
+            consoleLabel:"Cloud IAM Konsolu (simüle)",
+            actionBtn:"Sözleşmeyi kapat",
+            successText:"Kapsamlı, geçici, denetlenmiş erişim — ve dizüstü çalındığında, çalınacak kalıcı hiçbir şey yoktu.",
+            easySteps:[
+              { id:"e-method", type:"choice",
+                label:"Danışmanın nasıl kimlik doğrulayacağını seç",
+                prompt:"Bu iki haftalık iş hangi tür kimlik bilgileriyle yürümeli?",
+                options:[
+                  { key:"sakey", label:"Dizüstüne indirilen bir servis hesabı anahtar dosyası", correct:false, feedback:"O anahtar dosyası biri silmeyi hatırlayana kadar çalışır — geçen yılki sızıntı tam olarak böyle oldu." },
+                  { key:"impersonate", label:"Süresi dolan IAM koşuluyla kendi kimliği — kısa ömürlü jetonlar için servis hesabını taklit ederek", correct:true, feedback:"Kısa ömürlü taklit jetonları dakikalar-saatler içinde ölür ve IAM koşulu bitiş tarihinde bütün yetkiyi öldürür." },
+                  { key:"shared", label:"Mevcut bir mühendisin girişini iki haftalığına paylaş", correct:false, feedback:"Paylaşılan kimlik denetim izini yok eder ve işten uzun yaşar. Asla." }
+                ],
+                errorText:"Danışmanın hâlâ güvenli bir giriş yolu yok — ya da daha kötüsü, kalıcı bir tane var."
+              },
+              { id:"e-grant", type:"action",
+                label:"Zaman koşullu IAM bağlamasını ver",
+                actionLabel:"Koşullu yetki oluştur", loadingLabel:"Oluşturuluyor…", doneLabel:"İki hafta sonra dolan koşullu bağlama oluşturuldu — altında basılan jetonlar saatlik ölüyor.", loadingMs:600,
+                errorText:"Danışman pazartesi başlıyor ve ona verilmiş hiçbir şey yok."
+              },
+              { id:"e-verify", type:"action",
+                label:"Erişimin çalıştığını — ve dolduğunu — doğrula",
+                actionLabel:"Taklidi test et", loadingLabel:"Test ediliyor…", doneLabel:"Taklit edildi, üç servise ulaşıldı, jeton TTL'i beklendi — süresi dolan jeton reddedildi, tam tasarlandığı gibi.", loadingMs:700,
+                errorText:"Jetonların gerçekten dolduğunu kimse doğrulamadı — tasarımın bütün amacı buydu."
+              }
+            ],
+            hardSteps:[
+              { id:"h-scope", type:"choice",
+                label:"Yetkinin ne kadar güç taşıyacağına karar ver",
+                prompt:"Danışmanın Storage okuma, Firestore okuma/yazma ve Cloud Logging'e ihtiyacı var. Bağlama ne verir?",
+                options:[
+                  { key:"editor", label:"Project Editor — önünü açmanın en hızlı yolu", correct:false, feedback:"Kolaylık için Editor, çalınan danışman dizüstünün bütün projeye sahip olması demek. Patlama yarıçapı şimdi verdiğin bir karar." },
+                  { key:"exact", label:"Tam olarak o üç rol, ilgili belirli kova ve veritabanlarında", correct:true, feedback:"En az ayrıcalık: bu jetonlar sızarsa hasar, işin gerçekten gerektirdiğiyle sınırlı kalır." },
+                  { key:"viewer", label:"Her şeyde Project Viewer", correct:false, feedback:"Firestore'a yazamaz — iş pazartesi sabahı durur ve biri ona 'geçici olarak' Editor verir." }
+                ],
+                errorText:"Yetkinin izinleri hâlâ yanlış — ya tehlikeli ya kullanılamaz."
+              },
+              { id:"h-audit", type:"choice",
+                label:"\"Gerçekte ne yaptı?\" sorusuna cevap ver",
+                prompt:"Bir hafta sonra müdürün tam olarak bunu soruyor. Cevap nerede?",
+                options:[
+                  { key:"ask", label:"Danışmandan özet iste", correct:false, feedback:"Öz bildirim denetim değildir — dürüst olsun olmasın, hiçbir şey kanıtlamaz." },
+                  { key:"audit", label:"Taklit edilen kimliğe filtrelenmiş Cloud Audit Logs", correct:true, feedback:"Her taklit ve her API çağrısı kayıtlı — loglar danışmanın bütün ayak izini oynatır." },
+                  { key:"applogs", label:"Uygulama loglarını tara", correct:false, feedback:"Uygulama logları uygulamanın ne yaptığını gösterir, danışmanın etrafındaki bulut API'leriyle ne yaptığını değil." }
+                ],
+                errorText:"Danışmanın eylemlerinin hâlâ hesabını veremiyorsun — bu evrak eksiği değil, denetim hatası."
+              },
+              { id:"h-leak", type:"choice",
+                label:"Danışmanın dizüstü işin ortasında çalındı",
+                prompt:"Yine oldu — ikinci hafta, salı. Bu tasarım senden ne istiyor?",
+                options:[
+                  { key:"rotateall", label:"Geçen yılki gibi şirket çapında anahtar rotasyonu", correct:false, feedback:"O eski tasarımın bedeliydi. Bu sefer o dizüstünde anahtar dosyası yoktu — döndürülecek kalıcı bir şey yok." },
+                  { key:"revoke", label:"IAM bağlamasını kaldır; kısa jeton TTL'i basılmış olanları öldürsün", correct:true, feedback:"Tek bağlama kaldırma — ve canlı her jeton bir saat içinde kendiliğinden ölüyor. Geçen yılın hafta sonuyla kıyasla." },
+                  { key:"nothing", label:"Hiçbir şey — jeton süresi her şeyi halleder", correct:false, feedback:"Yaklaştın — ama hırsızlıktan hemen önce basılmış bir jeton bir saate kadar canlı olabilir. Bağlamayı kaldır, kalanını süre halletsin." }
+                ],
+                errorText:"Çalınan donanımda hâlâ canlı bir jeton olabilir — ve kimse yetkiyi kesmedi."
+              },
+              { id:"h-close", type:"action",
+                label:"Sözleşmeyi temiz kapat",
+                actionLabel:"IAM bağlamasını kaldır", loadingLabel:"Kaldırılıyor…", doneLabel:"Bağlama kaldırıldı — silinecek şey yok, unutulan şey yok, geride kalan şey yok.", loadingMs:600,
+                errorText:"İş bitti ama bağlama hâlâ duruyor."
+              }
+            ]
+          }
+        },
         auth:{
           aws:{
             title:"Bozuk oturum açmayı düzelt",
@@ -8900,6 +12843,317 @@
           profservices:"Büyük taşıma ve projeler için devreye alabileceğiniz, sağlayıcının kendi küresel uzman ekibi."
         }
       },
+      threat:{
+        modId:"MODÜL 23", title:"Tehdit Algılama: GuardDuty, Inspector ve Security Hub",
+        titleAzure:"Tehdit Algılama: Microsoft Defender for Cloud", titleGcp:"Tehdit Algılama: Security Command Center",
+        dek:"Kimse bütün gece panoları izlemez — bu yüzden bir dedektör hesabın davranışını izler, bir tarayıcı yamalanabilecekleri kontrol eder ve tek ekran ikisinin de bulduklarını toplar.",
+        analogy:"Bir hırsız alarmı (GuardDuty — evin içinde biri dolaşıyor), bir yapı denetçisi (Inspector — şu pencerenin kilidi bozuk, işte liste) ve hepsinin düştüğü güvenlik masasındaki monitör duvarı (Security Hub). Alarm hiçbir şeyi düzeltmez — bir insanın bakmasını garanti eder.",
+        keyBtn:"Simüle et: sızmış anahtar kullanıldı", mineBtn:"Simüle et: kripto madenciliği", scanBtn:"Inspector taraması çalıştır", resolveBtn:"En eskiyi incele ve çöz",
+        statScore:"Güvenlik puanı", statOpen:"Açık bulgular", statResolved:"Çözülen", statTrail:"Denetim izindeki API çağrıları",
+        note:"Gerçek iş bölümü tam olarak bu: GuardDuty davranışı izler (API çağrı desenleri, ağ akışları, DNS) ve aktif bir ele geçirmenin izlerini arar; Inspector sunucuları, konteyner imajlarını ve fonksiyonları biri sömürmeden önce bilinen CVE'lere karşı tarar; Security Hub ikisini de — ve onlarca başka kaynağı — tek puanlı panoda toplar; CloudTrail ise her API çağrısının kurcalamaya dayanıklı kaydıdır: müfettişin saldırganın tam olarak ne yaptığını yeniden kurmasını sağlar.",
+        tryStep1:"Bir simüle saldırı başlat ve ürettiği bulguyu oku — denetim izi sayacının yükselişine dikkat et.",
+        tryStep2:"Inspector taramasını çalıştır — o bulgular saldırı değil, saldırgandan önce bulunmuş zayıflıklar.",
+        tryStep3:"Hepsini çöz ve güvenlik puanının toparlanışını izle.",
+        incident:{
+          meta:"Tesla · Şubat 2018",
+          body:"Güvenlik araştırmacıları, Tesla'nın AWS hesabının içinde kripto para madenciliği yazılımı çalıştıran saldırganlar buldu. Giriş yolu neredeyse utanç vericiydi: internete parolasız açık bırakılmış bir Kubernetes yönetim konsolu — ve içinde Tesla'nın daha geniş bulut ortamının kimlik bilgileri. Madenciler fark edilmemek için kendi CPU kullanımlarını bile kısıp CloudFlare'in arkasına saklandılar. Davranışsal tehdit algılamanın ders kitabı vakası: hiçbir bilinen-zararlı imzası bunu yakalayamazdı — ama \"bu hesap birden madencilik havuzlarıyla konuşuyor\" tam olarak GuardDuty tarzı izlemenin var olma sebebi olan anomalidir."
+        },
+        status:{ secure:"GÜVENDE", findings:"AÇIK BULGU VAR", critical:"KRİTİK BULGU" },
+        f:{
+          key:{ sev:"YÜKSEK", title:"Erişim anahtarı tanınmayan bir ağdan kullanıldı", detail:"UnauthorizedAccess:IAMUser — bu ekibin hiç çalışmadığı bir ülkedeki IP'den 214 API çağrısı, hepsi denetim izinde." },
+          mine:{ sev:"YÜKSEK", title:"EC2 sunucusu bir kripto madencilik havuzunu sorguluyor", detail:"CryptoCurrency:EC2/BitcoinTool.B!DNS — sunucu, bilmesine hiç gerek olmayan madencilik alan adlarını çözüp duruyor." },
+          cve1:{ sev:"ORTA", title:"Web sunucusu bilinen CVE'li bir OpenSSL sürümü çalıştırıyor", detail:"Sunucu taramasında bulundu — henüz kimse sömürmedi; önce bulmanın anlamı da bu." },
+          cve2:{ sev:"DÜŞÜK", title:"Konteyner imajı eski bir JSON kütüphanesi içeriyor", detail:"Düşük önem, bilinen düzeltme mevcut — bir sonraki derlemede yamala." }
+        },
+        log:{
+          init:"dedektörler devrede — hesap sakin",
+          attack:"YENİ BULGU: {title}",
+          scan:"Inspector taraması bitti — 2 zayıflık, herhangi bir saldırgandan önce bulundu",
+          resolved:"çözüldü: {title}",
+          nothing:"çözülecek açık bulgu yok",
+          trail:"denetim izi {n} API çağrısı kaydetti"
+        }
+      },
+      edge:{
+        modId:"MODÜL 24", title:"Uç Koruması: WAF ve DDoS",
+        titleAzure:"Uç Koruması: Azure WAF ve DDoS Protection", titleGcp:"Uç Koruması: Cloud Armor",
+        dek:"Saldırılar sıradan görünümlü web istekleri olarak gelir — biri veritabanını kandırmak için el yapımı, ya da sizi gömmek için saniyede on bin tane. İkisi de ya kapıda durdurulur ya da hiç durdurulamaz.",
+        analogy:"WAF kapıda her kimliği okuyan fedaidir — sahteyi (adı aslında bir veritabanı komutu olan isteği) yakalar ve geri çevirir. DDoS koruması sokaktaki kalabalık kontrolüdür: sırf girişi tıkamak için aynı anda on bin kişi gelirse, izdiham kapıya değmeden emilir.",
+        siteLabel:"shop.example.com", loadLabel:"Site yükü",
+        srcUsers:"Gerçek kullanıcılar", srcAttacker:"Saldırgan", srcBotnet:"Botnet (10.000 cihaz)",
+        wafLabel:"WAF kuralları açık", shieldLabel:"DDoS koruması açık",
+        normalBtn:"Normal trafik gönder", sqliBtn:"SQL injection gönder", ddosBtn:"Botnet dalgası başlat",
+        statPassed:"Sunulan istekler", statBlocked:"Uçta engellenen", statLoad:"Site yükü", statBreaches:"İçeri sızan enjeksiyonlar",
+        note:"Bunlar farklı katmanları savunur: WAF tek tek istekleri 7. katmanda inceler — SQL injection, XSS, başlık oyunları — ve bunun için HTTP'yi anlaması gerekir. DDoS koruması 3/4. katmanlarda (ve istek selleri için 7'de) çalışır; ham hacmi, sunucularınıza yakınsamadan önce sağlayıcının küresel ucunda emer. Bu yüzden neredeyse her zaman birlikte kurulan iki ayrı üründürler.",
+        tryStep1:"WAF kapalıyken SQL injection gönder — veritabanına ulaşıyor.",
+        tryStep2:"WAF'ı aç ve tekrar gönder — uçta engellendi, site onu hiç görmedi.",
+        tryStep3:"DDoS koruması olmadan botnet dalgasını başlat, sitenin boğuluşunu izle — sonra korumayı açıp saldırının emilişini gör.",
+        incident:{
+          meta:"AWS Shield · Şubat 2020",
+          body:"Şubat 2020'de AWS Shield, o güne dek kamuya açıklanmış en büyük DDoS saldırısını emdi: saniyede 2,3 terabit — küçük sorguları kurbana yönelen devasa sellere yansıtıp büyüten ele geçirilmiş CLDAP sunucuları kullanılarak. Saldırıdaki müşteri ayakta kaldı; sel, ona yakınsamadan AWS'nin ucunda emildi. Ders ölçeğin kendisi: hiçbir şirketin kendi sunucuları 2,3 Tbps'yi ememez; o sınıf bir saldırıdan sağ çıkmak yalnızca yukarıda, bunun için inşa edilmiş küresel bir uçta mümkündür."
+        },
+        status:{ protected:"KORUNUYOR", degraded:"ZAYIFLADI", down:"SİTE ÇÖKTÜ", breached:"SIZINTI OLDU" },
+        log:{
+          init:"uç devrede — WAF kapalı, DDoS koruması kapalı",
+          normal:"20 normal istek sunuldu",
+          normalDown:"siteye erişilemiyor — normal kullanıcılar geri çevriliyor",
+          sqliBlocked:"SQL injection bir WAF kuralıyla eşleşti — uçta engellendi",
+          sqliThrough:"SQL injection veritabanına ulaştı — müşteri tablosu döküldü",
+          ddosAbsorbed:"botnet dalgası uçta emildi — 9.900 istek düşürüldü, gerçek trafik akmaya devam ediyor",
+          ddosDown:"botnet dalgası kaynağı boğdu — site herkes için kapalı",
+          mitigated:"DDoS koruması devreye girdi — saldırı trafiği yönlendirilip emildi, site toparlanıyor"
+        }
+      },
+      identity:{
+        modId:"MODÜL 25", title:"Kimlik: STS, Identity Center ve Cognito",
+        titleAzure:"Kimlik: Entra ID Jetonları ve SSO", titleGcp:"Kimlik: Cloud Identity ve Federasyon",
+        dek:"En güvenli kimlik bilgisi, kendi kendine çalışmayı bırakandır — bir saat önce süresi dolmuş sızmış bir anahtar ihlal değil, hatıradır.",
+        analogy:"Çıkışta ölen bir otel kartı ile kapıyı sonsuza dek açan metal anahtar. Kartı son gün kaybet, kimsenin umurunda olmaz; metal anahtarı kaybet, otel kilidi değiştirir. STS otel kartı dağıtır. Kalıcı erişim anahtarları metal anahtardır.",
+        acctDev:"Dev hesabı", acctStaging:"Staging hesabı", acctProd:"Prod hesabı",
+        issueBtn:"Geçici kimlik bilgisi al (STS)", useBtn:"Onlarla bir API çağır", longBtn:"Kalıcı erişim anahtarı oluştur",
+        ssoLabel:"Tüm hesaplar için tek oturum açma",
+        statActive:"Aktif geçici kimlikler", statExpired:"Kendiliğinden süresi dolan", statLong:"Sızabilecek kalıcı anahtarlar", statAccts:"Erişilebilen hesaplar",
+        credTemp:"role/deploy-bot · geçici", credLong:"akia-key · kalıcı", credExpired:"süresi doldu",
+        note:"STS (Güvenlik Jetonu Servisi), \"rol üstlenmenin\" gerçekte bastığı şeydir: içine son kullanma saati gömülü, genellikle dakikalar-saatler yaşayan kimlik bilgileri. IAM Identity Center her hesabın önüne tek bir çalışan girişi koyar — hesap başına oltalanacak parola kalmaz. Cognito aynı işi uygulamanızın son kullanıcıları için yapar. Ortak iplik: modern bulut kimliği, çalınmaya değer hiçbir şeyin uzun yaşamaması üzerine mühendislenmiştir.",
+        tryStep1:"Geçici kimlik bilgisi al, geri sayımı izle — sonra onlarla bir API çağır.",
+        tryStep2:"Süresi dolsun ve tekrar çağır — reddedildi, senden sıfır temizlik işiyle.",
+        tryStep3:"Bir kalıcı anahtar oluştur ve farkı gör: o artık sonsuza dek senin koruman gereken bir şey.",
+        incident:{
+          meta:"CircleCI · Ocak 2023",
+          body:"Başka şirketlerin derleme hatlarını çalıştıran CircleCI'da bir mühendisin dizüstüsüne bulaşan zararlı, bir oturum çerezini çaldı ve saldırganların onun kimliğiyle üretime girmesini sağladı. Oradan müşterilerin sakladığı sırları sızdırdılar: API jetonları, dağıtım anahtarları, ortam değişkenleri. CircleCI her müşteriye \"sakladığınız her şeyi döndürün\" demek zorunda kaldı. Asıl ders müşterilerde: kısa ömürlü ya da OIDC ile basılmış kimlik bilgisi kullananların çalınacak hiçbir kalıcı şeyi yoktu — çalınan değerlerin süresi zaten dolmuştu."
+        },
+        status:{ short:"KISA ÖMÜRLÜ", long:"KALICI ANAHTAR VAR", none:"KİMLİK YOK" },
+        log:{
+          init:"hiç kimlik bilgisi alınmadı",
+          issued:"STS geçici kimlik bilgisi verdi — {s} sn geçerli, sonra kendiliğinden ölü",
+          used:"API çağrısı TAMAM — geçici kimlik bilgileriyle imzalandı",
+          usedLong:"API çağrısı TAMAM — ama sızarsa beş yıl sonra da çalışacak kalıcı bir anahtar kullandı",
+          denied:"API çağrısı REDDEDİLDİ — kimlik bilgisi süresi doldu; iptal edilecek, temizlenecek bir şey yok",
+          expired:"geçici kimlik bilgisinin süresi kendiliğinden doldu",
+          long:"kalıcı erişim anahtarı oluşturuldu — biri silmeyi hatırlayana kadar çalışır",
+          ssoOn:"SSO açıldı — tek giriş artık üç hesaba da ulaşıyor",
+          ssoOff:"SSO kapandı — yine hesap başına ayrı giriş"
+        }
+      },
+      certs:{
+        modId:"MODÜL 26", title:"Sertifikalar ve Hassas Veriyi Bulmak",
+        titleAzure:"Sertifikalar ve Hassas Veri: Key Vault ve Purview", titleGcp:"Sertifikalar ve Hassas Veri: Certificate Manager ve DLP",
+        dek:"Sonu gürültülü iki sessiz arıza: kimsenin yenilemediği bir sertifika ve kimsenin varlığını bilmediği bir kovada duran kişisel veriler.",
+        analogy:"Yolculuğun ortasında süresi dolan bir pasaport — hiçbir şey \"bozulmadı\" ama artık hiçbir yerden geçemiyorsun. Ve birinin müşteri kimlik fotokopilerini etiketsiz bir klasöre tıktığı dosya dolabı: veri henüz sızmadı, ama dolabı koruyan hiç kimse orada korunacak bir şey olduğunu bilmiyor.",
+        daysLabel:"gün sonra süresi doluyor",
+        autoLabel:"Otomatik yenileme (yönetilen sertifika)", ffBtn:"30 gün ileri sar", scanBtn:"Kovada kişisel veri tara", quarBtn:"İşaretlenenleri karantinaya al",
+        statDays:"Kalan gün", statRenewals:"Otomatik yenileme", statPii:"Kişisel veri içeren nesneler", statTls:"HTTPS durumu",
+        tlsOk:"OK", tlsBroken:"BOZUK",
+        objects:{ o1:"fatura-ocak.pdf", o2:"ekip-foto.png", o3:"musteriler.csv", o4:"logo.svg", o5:"yedek.sql", o6:"notlar.txt", o7:"kimlik-taramalari.zip", o8:"menu.pdf" },
+        note:"ACM, halka açık TLS sertifikalarını ücretsiz basar ve otomatik yeniler — \"sertifika gece 3'te doldu\" kesintileri sınıfı yalnızca sertifikaların elle yönetildiği yerlerde vardır. Macie ise S3'ü hassas veri için sürekli tarar — isimler, kart numaraları, kimlik bilgileri — çünkü en tehlikeli kişisel veri, kimsenin beklemediği bir yere düşmüş olandır.",
+        tryStep1:"Otomatik yenileme kapalıyken HTTPS kırılana dek ileri sar — o kesinti %100 önlenebilirdi.",
+        tryStep2:"Otomatik yenilemeyi aç ve tekrar ileri sar — kimse çağrılmadan yenilendi.",
+        tryStep3:"Kovayı tara: sıradan görünen üç nesne kişisel veri içeriyor. Karantinaya al.",
+        incident:{
+          meta:"Microsoft Teams · Şubat 2020",
+          body:"3 Şubat 2020'de Microsoft Teams, tek bir TLS sertifikasının süresi dolduğu için dünya çapında yaklaşık üç saat çöktü. İstemciler güvenilir bağlantı kuramadı, servis fiilen erişilmez oldu — hiçbir şey hacklenmedi, hiçbir şey çökmedi; bir tarih alanı geçiverdi. Binlerce şirket, herhangi bir yönetilen sertifika servisinin haftalar önce kendiliğinden yapacağı bir yenileme yüzünden iş gününün başında iletişim aracını kaybetti."
+        },
+        status:{ valid:"GEÇERLİ", expiring:"SÜRESİ YAKLAŞIYOR", expired:"SERTİFİKA DOLDU" },
+        log:{
+          init:"sertifika 90 gün geçerli — kova içeriği taranmadı",
+          ff:"30 gün geçti…",
+          renewed:"sertifika 30 gün kala otomatik yenilendi — kimse çağrılmadı",
+          expiring:"sertifika 30 günlük pencerede ve otomatik yenileme KAPALI",
+          expired:"SERTİFİKA SÜRESİ DOLDU — tarayıcılar bağlantıyı reddediyor; HTTPS kapalı",
+          scanned:"tarama bitti — 8 nesnenin 3'ü kişisel veri içeriyor (isimler, kart numaraları, kimlik taramaları)",
+          quarantined:"işaretlenen nesneler kilitli karantina kovasına taşındı — maruziyet penceresi kapandı",
+          nothingToQuar:"henüz işaretli bir şey yok — önce taramayı çalıştır"
+        }
+      },
+      analytics:{
+        modId:"MODÜL 27", title:"Doğru Veri Deposunu Seç",
+        titleAzure:"Doğru Veri Deposunu Seç (Synapse, Cosmos DB ve Power BI)", titleGcp:"Doğru Veri Deposunu Seç (BigQuery, Firestore ve Looker)",
+        dek:"En iyi veritabanı yoktur — her soru için doğru olan vardır. Beş gerçek iş yükü, beş araç; her yanlış eşleşmenin canını yakan bir sebebi var.",
+        analogy:"Tek klasörü hızla çekmek için dosya dolabı (anahtar-değer), forkliftlerin her kutuyu gece saydığı depo (analitik), iplerle bağlı fotoğraf panosu (graf), kutuları açmadan sorulara cevap veren kütüphaneci (dosya üstünde SQL) ve hepsini patrona grafiğe çeviren kişi (BI).",
+        tryStep1:"Solda bir iş yüküne, sonra onu koşturacağın depoya tıkla.",
+        tryStep2:"Bilerek bir tanesini yanlış yap ve uyumsuzluğun neden can yaktığını oku.",
+        tryStep3:"Beşini de eşleştir — her eşleşme, ekiplerin gerçekten yanlış yaptığı bir mimari karar.",
+        note:"Gerçek sınıflandırma bu: DynamoDB OLTP biçimli (ölçekte tek satır okuma), Redshift OLAP biçimli (geçmiş üzerinde sütunsal tarama), Neptune ilişkileri birinci sınıf veri olarak saklar, Athena dosyaların üstünde yerinde sunucusuz SQL koşar, QuickSight da hepsinin üstüne oturup grafik çıkarır. Aynı beş rol her bulutta var — değişen yalnız ürün adları; sağlayıcı düğmesinin gösterdiği tam olarak bu.",
+        incident:{
+          meta:"Instapaper · Şubat 2017",
+          body:"Instapaper, barındırılan MySQL veritabanı neredeyse kimsenin varlığını bilmediği 2TB'lık dosya boyutu sınırına çarpınca bir günden uzun süre çöktü — tablo yıllarca büyümüş, sonunda eklemeler hata vermeye başlamıştı. Kurtarma, ürün karanlıktayken veriyi yeni bir sunucuya sancıyla yeniden inşa etmek demekti. Derin ders uyum hakkında: tek bir veritabanından sessizce aynı anda işlem deposu, arşiv ve analitik zemin olması istenmişti — ayrı, amaca uygun depoların emmek için tasarlandığı büyüme baskıları."
+        },
+        statMatched:"Eşleşen", statAttempts:"Deneme",
+        w:{
+          profile:"Bir kullanıcının profilini 10ms altında yükle — günde milyonlarca kez",
+          report:"5 yıllık geçmiş üzerinde şirket geneli satış raporu — her gece",
+          graph:"\"Arkadaşlarımdan hangileri birbirini tanıyor?\" — 3 adım derinlikte",
+          adhoc:"Zaten nesne depolamada duran ham log dosyaları üzerinde tek seferlik SQL sorusu",
+          bi:"Yöneticiler kendilerinin filtreleyebileceği etkileşimli grafikler istiyor"
+        },
+        whyRight:{
+          profile:"Kullanıcı kimliğiyle anahtar-değer okuma — her ölçekte tek haneli milisaniye. Bu veritabanının varlık sebebi tam olarak bu.",
+          report:"Sütunsal bir ambar, üretim veritabanına dokunmadan yıllarca geçmişi dakikalar içinde tarar.",
+          graph:"İlişki adımları graf veritabanının ana dili — JOIN piramitleri yok.",
+          adhoc:"Dosyaların üstünde sunucusuz SQL — kurulacak küme yok, sorgu başına ödeme.",
+          bi:"BI araçları depoların üstüne oturur ve sorguları mühendis olmayanların kullanabileceği grafiklere çevirir."
+        },
+        whyWrong:{
+          profile:"Bu depo devasa geçmişi taramak için yapılmış — milisaniyelik tek satır okumalar için değil.",
+          report:"5 yıllık satırları işlemsel ya da anahtar-değer bir depodan taramak onu ezer ve saatler alır.",
+          graph:"3 adımlık arkadaşlıkları burada ifade etmek özyinelemeli JOIN'ler demek — yavaş ve okunmaz.",
+          adhoc:"Ham dosyaları önce bir veritabanına yüklemek, bu sorunun tam da gerektirmediği iştir.",
+          bi:"Bu bir veri deposu, grafik aracı değil — yöneticiler bağlantı diziliminden kendi kendine grafik çıkaramaz."
+        },
+        log:{
+          init:"5 iş yükü bekliyor — önce iş yükünü, sonra depoyu seç",
+          pick:"seçildi: {w}",
+          correct:"EŞLEŞTİ — {w} → {s}",
+          wrong:"bu değil — {why}",
+          done:"5 iş yükünün 5'i de doğru depoyla eşleşti"
+        },
+        status:{ choosing:"SEÇİLİYOR", done:"HEPSİ EŞLEŞTİ" }
+      },
+      hybrid:{
+        modId:"MODÜL 28", title:"Hibrit Bulut ve Veriyi Oraya Taşımak",
+        titleAzure:"Hibrit ve Taşıma: ExpressRoute ve Azure Local", titleGcp:"Hibrit ve Taşıma: Interconnect ve Distributed Cloud",
+        dek:"Bir binayı buluta bağlamanın beş yolu — her biri tam olarak tek bir durum için doğru, diğerlerinde ya pahalı ya yavaş.",
+        analogy:"Halka açık yollarda güvenli bir kurye (VPN), kiraladığın özel demiryolu (Direct Connect), kendi deponun içine kurulmuş fabrika şubesi (Outposts), taşınma sırasında dükkânı açık tutan nakliye şirketi (DMS) ve her gece aynı rotayı tarifeyle koşan servis aracı (DataSync).",
+        tryStep1:"Solda bir duruma, sonra ona uyan bağlantı ya da araca tıkla.",
+        tryStep2:"Her birinin yaptığı takasa dikkat et: kurulum süresi mi, bant genişliği mi, mahremiyet mi, maliyet mi.",
+        tryStep3:"Beşini de eşleştir — burada yanlış seçim gerçek şirketlere aylara ya da milyonlara mal oluyor.",
+        note:"Karar ağacı gerçek: Site-to-Site VPN şifreli internettir — günlerde canlı, gecikmesi değişken. Direct Connect kiralık özel devredir — tedariki haftalar, bant genişliği sabit, halka açık internet yok. Outposts, çıkamayan veri için sağlayıcının kabinini binana koyar. DMS canlı veritabanlarını sürekli replike eder, geçiş dakikalar sürer. DataSync dosyaları sağlama toplamlı, yeniden denemeli zamanlanmış yığınlar hâlinde taşır. Aynı beş rol Azure'da (VPN Gateway, ExpressRoute, Azure Local) ve Google Cloud'da (Cloud VPN, Interconnect, Distributed Cloud) da var.",
+        incident:{
+          meta:"Delta Air Lines · Ağustos 2016",
+          body:"Delta'nın Atlanta veri merkezindeki bir güç kontrol arızası küresel bir çöküşe dönüştü: üç günde yaklaşık 2.300 uçuş iptali ve yaklaşık 150 milyon dolar kayıp — çünkü kritik sistemlerin hepsi o tek binada yaşıyordu ve onları koruduğu varsayılan yük devretme hiç gerçekten kanıtlanmamıştı. Bir kuşak şirketi hibrit ve çok-tesisli mimarilere iten vaka çalışması bu — bulutlar çökmediği için değil; ne kadar iyi olursa olsun tek bir binanın, kirası olan tek bir arıza noktası olduğu için."
+        },
+        statMatched:"Eşleşen", statAttempts:"Deneme",
+        s:{
+          vpn:"Ofisi buluta güvenle bağla — bu hafta bitmiş olsun",
+          dx:"Buluta sabit 10 Gbps, öngörülebilir gecikme; trafik halka açık internete asla değmemeli",
+          outposts:"Mevzuat bu verinin binamızdan fiziksel olarak çıkamayacağını söylüyor — ama ekipler bulut API'leri istiyor",
+          dms:"Üretim veritabanını sıfıra yakın kesintiyle taşı — taşıma boyunca hizmet vermeye devam edecek",
+          datasync:"Her gece 50TB yeni video dosyasını bulut depolamaya otomatik gönder"
+        },
+        whyRight:{
+          vpn:"Zaten sahip olduğun internetin üstünde şifreli tünel — günler içinde canlı, ucuz, çoğu ofis bağlantısı için yeterli.",
+          dx:"Adanmış özel devre: sabit bant genişliği, kararlı gecikme, sıfır halka açık internet. Tedariki haftalar sürer — bu senaryo o bekleyişin satın aldığı şey.",
+          outposts:"Sağlayıcının kabini, senin binanda, aynı API'lerle — veri yasal olarak dışarı çıkamıyorsa tek seçenek.",
+          dms:"Sürekli replikasyon, kaynakla hedefi geçiş dakikasına kadar eşzamanlı tutar — sıfıra yakın kesinti budur.",
+          datasync:"Amaca özel zamanlanmış toplu aktarım — sağlama toplamları, yeniden denemeler, bant sınırı; bebek bakılacak betik yok."
+        },
+        whyWrong:{
+          vpn:"VPN halka açık internetin üstünden gider — değişken gecikme; bu senaryo onu açıkça yasaklıyor.",
+          dx:"Haftalarca tedarik ve aylık devre faturası — bunun için devasa israf.",
+          outposts:"Binanda fiziksel kabinler, bir bağlantı sorusunun olabilecek en pahalı cevabı.",
+          dms:"DMS veritabanı replike eder — dosya taşımaz, ağ bağlantısı da sağlamaz.",
+          datasync:"DataSync dosyaları toplu taşır — canlı bir veritabanını tutarlı replike edemez, ağ da değildir."
+        },
+        log:{
+          init:"5 durum bekliyor — önce durumu, sonra uyan aracı seç",
+          pick:"seçildi: {w}",
+          correct:"EŞLEŞTİ — {w} → {s}",
+          wrong:"bu değil — {why}",
+          done:"5 durumun 5'i de doğru araçla çözüldü"
+        },
+        status:{ planning:"PLANLANIYOR", done:"HEPSİ BAĞLANDI" }
+      },
+      iac:{
+        modId:"MODÜL 29", title:"Kod Olarak Altyapı",
+        titleAzure:"Kod Olarak Altyapı: ARM ve Bicep", titleGcp:"Kod Olarak Altyapı: Infrastructure Manager",
+        dek:"Tıklamak kar tanesi üretir — benzersiz, belgesiz ve baskı altında yeniden kurulamaz. Şablon ise her seferinde aynı ortamı üretir ve gerçekliğin ondan ne zaman saptığını kanıtlayabilir.",
+        analogy:"Ezberden yemek yapmak ile yazılı tariften yemek yapmak. Ezberden, salı günkü çorba pazartesininkini hiç tutmaz; şef hastalanınca da kimse yapamaz. Tarif daha süslü yemek değildir — herkesin aynı yemeği çıkarabileceğinin garantisi ve tadı bozulduğunda karşılaştıracağın standarttır.",
+        manualLabel:"ELLE KURULDU", templateLabel:"ŞABLONDAN",
+        clickBtn:"Sıradaki kaynağı elle oluştur", deployBtn:"Şablonu dağıt", driftBtn:"Sapma tespiti çalıştır", healBtn:"Şablonu yeniden dağıt (iyileştir)",
+        statManual:"Elle kaynaklar", statTemplate:"Şablon kaynakları", statDrift:"Bulunan sapma", statDeploys:"Şablon dağıtımı",
+        res:{ r1:"VPC", r2:"Alt ağ", r3:"Güvenlik grubu", r4:"Yük dengeleyici", r5:"Web sunucusu" },
+        driftTag:"saptı",
+        note:"CloudFormation (ve ARM/Bicep, ve Infrastructure Manager) bir ortamı gözden geçirilebilir bir metin dosyasına çevirir: sürüm kontrollü, diff'lenebilir, dev-staging-prod'a birebir aynı dağıtılabilir. Sapma tespiti dosyayı gerçeklikle karşılaştırıp elle yapılmış her değişikliği raporlar. Control Tower aynı fikri bir seviye yukarı taşır — yönetilen bir şablondan basılan koca hesaplar. CLI hepsinin ortak ipliği: tıklanabilen her şey betiklenebilir.",
+        tryStep1:"Elle ortamı tık tık kur — bir yazım hatasının sızışını izle.",
+        tryStep2:"Şablon tarafını tek hamlede dağıt — beş kaynak, her seferinde birebir aynı.",
+        tryStep3:"Sapma tespitini çalıştır, sonra şablon tarafını yeniden dağıtarak iyileştir. Elle tarafın ancak elle düzelebildiğine dikkat et.",
+        incident:{
+          meta:"Facebook · Ekim 2021",
+          body:"4 Ekim 2021'de Facebook'un omurga yönlendiricilerine yapılan rutin bir yapılandırma değişikliği ters gitti ve internete facebook.com'un nerede yaşadığını söyleyen BGP rotalarını geri çekti. Facebook, Instagram ve WhatsApp altı saat boyunca yok oldu. Arıza katlandı: kötü değişikliği yakalaması gereken aracın kendisinde hata vardı ve kesinti, mühendisleri onu düzeltmek için gereken sistemlerin dışına kilitledi — kart okuyucular ve iç araçlar, çökmüş olan ağa bağımlıydı. Altyapı değişiklikleri inceleme, otomatik doğrulama ve geri dönüş yolu ister — kod-olarak-altyapının dayattığı disiplinlerin ta kendisi."
+        },
+        status:{ sync:"EŞİTLENMİŞ", drift:"SAPMA BULUNDU", empty:"DAĞITIM YOK" },
+        log:{
+          init:"iki boş ortam — biri tıklamayla, biri şablondan kurulacak",
+          manual:"elle oluşturuldu: {r}",
+          manualDrift:"elle oluşturuldu: {r} — bir yazım hatasıyla: 3306 portu 0.0.0.0/0'a açık kaldı",
+          manualDone:"elle ortam tamam — doğru mu? her kaynağı tek tek bakmadan kimse söyleyemez",
+          deployed:"şablon dağıtıldı — 5 kaynak, dosyayla birebir, tek hamlede",
+          hotfix:"biri şablon ortamını konsoldan elle düzeltiverdi…",
+          driftNone:"sapma tespiti: şablon ortamı dosyasıyla birebir aynı",
+          driftFound:"sapma tespiti: {n} kaynak tanımından farklı",
+          healed:"şablon yeniden dağıtıldı — sapma silindi, ortam yine dosyayla aynı",
+          nothingToHeal:"iyileştirilecek bir şey yok — önce şablonu dağıt"
+        }
+      },
+      govern:{
+        modId:"MODÜL 30", title:"Yönetişim ve Fatura",
+        titleAzure:"Yönetişim ve Fatura: Azure Advisor ve Policy", titleGcp:"Yönetişim ve Fatura: Recommender ve Org Policy",
+        dek:"Bulut israfının ve bulut riskinin çoğu aynı özelliği taşır: biri bakmaya gidene kadar görünmezler. Sağlayıcılar da bakmaya giden şeyler yaptı.",
+        analogy:"Kapıları kilitleyip kilitlemediğini de kontrol eden bir ev enerji denetimi: denetçi evi gezer, boş garajda çalışan buzdolabını, boyayla açık kalmış pencereyi, paspasın altındaki yedek anahtarı bulur — ve sana maliyetine göre sıralanmış bir liste verir.",
+        scanBtn:"Danışman taraması çalıştır", spotLabel:"Toplu işleri Spot sunucularda çalıştır",
+        statBill:"Aylık fatura", statOpen:"Açık bulgular", statFixed:"Düzeltilen", statSaved:"Aylık tasarruf",
+        fixBtn:"Düzelt",
+        f:{
+          ssh:{ sev:"YÜKSEK", title:"3 sunucuda SSH bütün internete açık", detail:"Güvenlik — 22 portu 0.0.0.0/0'a cevap veriyor. Aylık maliyeti yok; riski devasa.", save:0 },
+          mfa:{ sev:"YÜKSEK", title:"Root hesabında MFA yok", detail:"Güvenlik — bütün hesabı kaybetmekle aranda oltalanmış tek parola var.", save:0 },
+          idle:{ sev:"ORTA", title:"Dev sunucuları geceleri ve hafta sonları çalışıyor", detail:"Maliyet — filo haftanın 168 saatinin 128'inde boşta.", save:1800 },
+          vol:{ sev:"DÜŞÜK", title:"6 bağlantısız depolama diski", detail:"Maliyet — hiçbir şeye bağlı olmayan disklere para ödeniyor.", save:240 },
+          db:{ sev:"ORTA", title:"Veritabanı sunucusu yükünün 4 katı büyüklükte", detail:"Maliyet — tepe CPU %11. Doğru boyutlandır.", save:950 }
+        },
+        note:"Trusted Advisor (ve Azure Advisor, ve Recommender) hesabı maliyet, güvenlik ve dayanıklılık için bilinen en iyi uygulamalara karşı sürekli denetler. AWS Config kendi kurallarını sürekli kontrollere çevirir. Well-Architected Framework hepsinin arkasındaki kural kitabıdır — altı sütun: operasyonel mükemmellik, güvenlik, güvenilirlik, performans verimliliği, maliyet optimizasyonu, sürdürülebilirlik. Spot fiyatlandırması da masadaki teklif: kesintiye dayanıklı işleri boş kapasitede ~%90'a varan indirimle çalıştır.",
+        tryStep1:"Taramayı çalıştır — iki bulgunun düzeltmesi bedava ve en çok onlar önemli.",
+        tryStep2:"Maliyet bulgularını düzelt ve faturanın binlerce dolar düşüşünü izle.",
+        tryStep3:"Toplu işleri Spot'a taşı — aynı iş, ~%70 ucuz; çünkü kesintiyi tolere ediyor.",
+        incident:{
+          meta:"Adobe · 2018 başı",
+          body:"Bir Adobe ekibi Azure'da bir hesaplama işini çalışır bıraktı — ve fatura gelene kadar kimse fark etmedi: günde yaklaşık 80.000 dolar, yakalanana kadar yarım milyon doları aşkın. Hiçbir şey bozulmadı, hiçbir şey hacklenmedi; makineler çalışmaya devam etti çünkü \"bu, boşu boşuna para yakıyor\" diye bakan bir şey yoktu. Maliyet yönetişim araçlarının fatura yerine ilk gün yakalamak için var olduğu arıza sınıfının ta kendisi."
+        },
+        status:{ unreviewed:"İNCELENMEDİ", open:"AÇIK BULGU VAR", optimized:"OPTİMİZE" },
+        log:{
+          init:"aylık fatura $8.420 — bu hesaba aylardır kimse bakmamış",
+          scanned:"danışman taraması bitti — 5 bulgu (2 güvenlik, 3 maliyet)",
+          fixed:"düzeltildi: {title}{save}",
+          saveSuffix:" — ayda ${n} tasarruf",
+          spotOn:"toplu iş filosu Spot'a taşındı — aynı iş, ayda ${n} daha ucuz, kesintiler tasarımla tolere ediliyor",
+          spotOff:"toplu iş filosu On-Demand'e döndü — esneklik primi geri geldi",
+          allFixed:"tüm bulgular kapandı — hesap kural kitabıyla uyumlu"
+        }
+      },
+      aiint:{
+        modId:"MODÜL 31", title:"Yapay Zekâ Servisleri ve Uygulama Entegrasyonu",
+        titleAzure:"YZ ve Entegrasyon: Bot Service, AI Speech ve Service Bus", titleGcp:"YZ ve Entegrasyon: Dialogflow, Text-to-Speech ve Pub/Sub",
+        dek:"Cümleyi yapılandırılmış komuta çeviren bir bot, metni sesli okuyan bir ses ve işleyen çalışan ölmüşken siparişleri güvende tutan bir kuyruk.",
+        analogy:"\"Bu akşama dörtlük masa?\" cümlesini duyup {rezervasyon, 4, bu akşam} diye not alan resepsiyonist (Lex), her sayfayı sesli okuyan anlatıcı (Polly) ve iki masa arasındaki evrak tepsisi — ikinci masa bir saat boşsa iş yere değil tepsiye birikir (MQ).",
+        botLabel:"SOHBET BOTU — NİYET TESPİTİ", botPh:"örn. bu akşam 4 kişilik masa ayır", botBtn:"Gönder",
+        ttsLabel:"METİNDEN SESE", ttsPh:"Sesli söylenecek bir şey yaz", ttsBtn:"Konuş",
+        mqLabel:"MESAJ KUYRUĞU — siparişler", depthLabel:"Kuyruk derinliği",
+        sendBtn:"Sipariş gönder (üretici)", workerLabel:"Sipariş işleme çalışanı devrede",
+        statIntents:"Tespit edilen niyetler", statDepth:"Kuyruk derinliği", statProcessed:"İşlenen siparişler", statLost:"Kaybolan siparişler",
+        botIntent:"niyet={i}", botSlots:" · alanlar: {s}", botFallback:"niyet eşleşmedi — gerçek bir bot netleştirme sorusu sorardı",
+        ttsSpoken:"tarayıcının konuşma motoruyla seslendirildi — Polly bunu sunucuda gerçeğe yakın seslerle yapar",
+        ttsEmpty:"önce bir şey yaz",
+        ttsUnsupported:"bu tarayıcıda konuşma motoru yok — Polly bunun yerine bir ses akışı döndürürdü",
+        note:"Lex, söylenenleri niyetlere ve alanlara ayrıştırır — Alexa'yı çalıştıran NLU'nun aynısı. Polly metni bir API çağrısıyla sese çevirir (demo çevrimdışı kalmak için tarayıcının kendi motorunu kullanır). Amazon MQ yönetilen bir ActiveMQ/RabbitMQ aracısıdır: üreticiler ve tüketiciler asla doğrudan konuşmaz; ölü bir tüketici, kaybolan siparişler değil büyüyen bir kuyruk demektir — gerçek sistemlerdeki en yük taşıyan entegrasyon deseni.",
+        tryStep1:"Bottan masa, sipariş durumu ya da iptal iste — çıkan yapılandırılmış niyeti izle.",
+        tryStep2:"Makinene bir cümle söylet.",
+        tryStep3:"Çalışanı devre dışı bırak, beş sipariş gönder, geri getir — kaybolan siparişi say: sıfır.",
+        incident:{
+          meta:"Microsoft Tay · Mart 2016",
+          body:"Microsoft, Twitter kullanıcılarının ona söylediklerinden — canlı ve korkuluksuz — öğrenen sohbet botu Tay'i yayınladı. Organize kullanıcılar botu zehirli içerikle besledi ve 16 saat içinde bot ırkçı ve saldırgan çıktılar tekrarlıyordu; Microsoft aynı gün kapattı. Konuşma yapay zekâsının kanonik dersi olmaya devam ediyor: model işin kolay kısmı. Girdi doğrulama, çıktı filtreleme ve kapatma düğmesi sonradan akla gelen şeyler değil ürün gereksinimleridir — modern bot platformları o korkulukları içine gömer, çünkü Tay onlarsız ne olacağını kanıtladı."
+        },
+        status:{ decoupled:"AYRIŞIK", backlog:"KUYRUK BÜYÜYOR" },
+        log:{
+          init:"bot hazır — çalışan devrede — kuyruk boş",
+          intent:"söylenen ayrıştırıldı → {out}",
+          fallback:"niyet eşleşmedi",
+          spoken:"metin konuşma motoruna gönderildi",
+          sent:"sipariş kuyruğa yayınlandı",
+          processed:"çalışan siparişi tüketti — işlendi",
+          queued:"çalışan devre dışı — sipariş kuyrukta güvenle bekliyor (derinlik {n})",
+          drained:"çalışan geri döndü — kuyruk boşaltılıyor",
+          drainedDone:"kuyruk boşaldı — her sipariş kesintiden sağ çıktı"
+        }
+      },
       chat:{
         title:"Konsola Sor", fabAria:"Bir soru sor", closeAria:"Kapat",
         setupIntro:"Bu tamamen tarayıcınızda, Groq'un ücretsiz API'si üzerinden çalışır — hiçbir şey Groq dışında bir yere gönderilmez. Etkinleştirmek için kendi anahtarınızı yapıştırın; sadece bu cihazda saklanır, hiçbir sunucuda değil.",
@@ -8919,7 +13173,7 @@
   let currentLang = localStorage.getItem(LANG_KEY) || (((navigator.language||"").toLowerCase().indexOf("tr")===0) ? "tr" : "en");
   let themeMode = localStorage.getItem(THEME_KEY) || "auto";
   let providerMode = localStorage.getItem(PROVIDER_KEY) || "aws";
-  const PROVIDER_MODULES=["auth","iam","vpc","ec2","s3","lambda","lb","beanstalk","route53","cache","consistency","failover","sns","cloudwatch","snowball","database","containers","cicd","secrets"];
+  const PROVIDER_MODULES=["auth","iam","vpc","ec2","s3","lambda","lb","beanstalk","route53","cache","consistency","failover","sns","cloudwatch","snowball","database","containers","cicd","secrets","threat","edge","identity","certs","analytics","hybrid","iac","govern","aiint"];
   let stateEpoch = 0; // bumped by resetAllModules() so in-flight setTimeouts from before a reset become no-ops
 
   function t(path, vars){
@@ -9940,7 +14194,7 @@
   authUpdateStats();
 
   /* ============ QUESTS SECTION — generic engine ============ */
-  const QUEST_KEYS=["auth","iam","s3","vpc","route53","cloudwatch","database","containers","ec2","lambda","lb","beanstalk","cache","consistency","failover","sns","snowball","cicd","secrets","capstone1","capstone2"];
+  const QUEST_KEYS=["auth","iam","s3","vpc","route53","cloudwatch","database","containers","ec2","lambda","lb","beanstalk","cache","consistency","failover","sns","snowball","cicd","secrets","capstone1","capstone2","threat","edge","identity","certs","analytics","hybrid","iac","govern","aiint"];
   let questState={};
   let questEls={};
 
@@ -10996,6 +15250,52 @@
     $("#secLog").innerHTML=""; $("#secretsStatus").dataset.statusKey="";
     addLog($("#secLog"), t("secrets.log.init",{v:1, n:2}));
     secRenderGrants(); secUpdateStats();
+
+    threatFindings=[]; threatResolvedCount=0; threatTrail=0;
+    $("#threatLog").innerHTML=""; $("#threatStatus").dataset.statusKey="";
+    addLog($("#threatLog"), t("threat.log.init"));
+    threatRender(); threatUpdateStats();
+
+    edgePassed=0; edgeBlocked=0; edgeBreaches=0; edgeDown=false;
+    $("#edgeWaf").checked=false; $("#edgeShield").checked=false;
+    $("#edgeLog").innerHTML=""; $("#edgeStatus").dataset.statusKey="";
+    addLog($("#edgeLog"), t("edge.log.init"));
+    edgeSetLoad(8); edgeUpdateStats();
+
+    idCreds=[]; idExpiredCount=0;
+    $("#idSso").checked=false;
+    $("#idLog").innerHTML=""; $("#idStatus").dataset.statusKey="";
+    addLog($("#idLog"), t("identity.log.init"));
+    idRender(); idUpdateStats();
+
+    certDays=90; certRenewals=0; certScanned=false; certQuarantined=false;
+    $("#certAuto").checked=false;
+    $("#certLog").innerHTML=""; $("#certStatus").dataset.statusKey="";
+    addLog($("#certLog"), t("certs.log.init"));
+    certObjectsRender(); certUpdate();
+
+    analyticsGame.reset();
+    hybridGame.reset();
+
+    iacManualRes=[]; iacTemplateUp=false; iacTemplateDriftCount=0; iacDeploys=0; iacLastDrift=0;
+    $("#iacLog").innerHTML=""; $("#iacStatus").dataset.statusKey="";
+    addLog($("#iacLog"), t("iac.log.init"));
+    iacRender(); iacUpdateStats();
+
+    govScanned=false; govFixed={};
+    $("#governSpot").checked=false;
+    $("#governLog").innerHTML=""; $("#governStatus").dataset.statusKey="";
+    addLog($("#governLog"), t("govern.log.init"));
+    governRender(); governUpdateStats();
+
+    aiIntents=0; aiDepth=0; aiProcessed=0; aiDraining=false;
+    $("#aiintWorker").checked=true;
+    $("#aiintBotInput").value=""; $("#aiintTtsInput").value="";
+    aiintSetOut($("#aiintBotOut"), "");
+    aiintSetOut($("#aiintTtsOut"), "");
+    $("#aiintLog").innerHTML=""; $("#aiintStatus").dataset.statusKey="";
+    addLog($("#aiintLog"), t("aiint.log.init"));
+    aiintUpdateStats();
   }
   $("#resetAllBtn").addEventListener("click", resetAllModules);
 
@@ -11107,6 +15407,666 @@
     chatSend(q);
   });
   chatShowBodyIfKeySet();
+
+  /* ============ MODULE 23 — threat detection ============ */
+  let threatFindings=[], threatResolvedCount=0, threatTrail=0;
+  function threatSevClass(key){ return key==="cve1" ? "sev-med" : key==="cve2" ? "sev-low" : "sev-high"; }
+  function threatRender(){
+    const list=$("#threatFindings");
+    list.innerHTML="";
+    if(!threatFindings.length){
+      const p=document.createElement("p");
+      p.className="finding-empty";
+      p.textContent=t("threat.log.init");
+      list.appendChild(p);
+      return;
+    }
+    threatFindings.forEach(function(f){
+      const d=document.createElement("div");
+      d.className="finding "+threatSevClass(f.key);
+      const sev=document.createElement("span"); sev.className="sev"; sev.textContent=t("threat.f."+f.key+".sev");
+      const body=document.createElement("div"); body.className="fbody";
+      const p1=document.createElement("p"); p1.textContent=t("threat.f."+f.key+".title");
+      const p2=document.createElement("p"); p2.className="fdetail"; p2.textContent=t("threat.f."+f.key+".detail");
+      body.appendChild(p1); body.appendChild(p2);
+      d.appendChild(sev); d.appendChild(body);
+      list.appendChild(d);
+    });
+  }
+  function threatUpdateStats(){
+    const open=threatFindings.length;
+    $("#threatScore").textContent=Math.max(10, 100-open*15);
+    $("#threatOpen").textContent=open;
+    $("#threatResolved").textContent=threatResolvedCount;
+    $("#threatTrail").textContent=threatTrail;
+    const anyHigh=threatFindings.some(function(f){ return f.key==="key"||f.key==="mine"; });
+    setStatus($("#threatStatus"), $("#threatLog"), open===0?"secure":(anyHigh?"critical":"findings"), "threat.status", open===0?"good":(anyHigh?"bad":"warn"));
+  }
+  function threatAttack(key, trailCalls){
+    threatTrail+=trailCalls;
+    addLog($("#threatLog"), t("threat.log.trail",{n:trailCalls}));
+    if(!threatFindings.some(function(f){ return f.key===key; })){
+      threatFindings.push({ key:key });
+      addLog($("#threatLog"), t("threat.log.attack",{title:t("threat.f."+key+".title")}), "bad");
+    }
+    threatRender(); threatUpdateStats();
+  }
+  $("#threatKeyBtn").addEventListener("click", function(){ threatAttack("key", 214); });
+  $("#threatMineBtn").addEventListener("click", function(){ threatAttack("mine", 57); });
+  $("#threatScanBtn").addEventListener("click", function(){
+    let added=false;
+    ["cve1","cve2"].forEach(function(k){
+      if(!threatFindings.some(function(f){ return f.key===k; })){ threatFindings.push({ key:k }); added=true; }
+    });
+    addLog($("#threatLog"), t("threat.log.scan"), added?"warn":undefined);
+    threatRender(); threatUpdateStats();
+  });
+  $("#threatResolveBtn").addEventListener("click", function(){
+    if(!threatFindings.length){ addLog($("#threatLog"), t("threat.log.nothing")); return; }
+    const f=threatFindings.shift();
+    threatResolvedCount++;
+    addLog($("#threatLog"), t("threat.log.resolved",{title:t("threat.f."+f.key+".title")}), "good");
+    threatRender(); threatUpdateStats();
+  });
+  addLog($("#threatLog"), t("threat.log.init"));
+  threatRender(); threatUpdateStats();
+
+  /* ============ MODULE 24 — edge protection ============ */
+  let edgePassed=0, edgeBlocked=0, edgeBreaches=0, edgeLoadVal=8, edgeDown=false;
+  function edgeFlash(id, ok){
+    const el=document.getElementById(id);
+    el.classList.remove("hit","fail");
+    void el.offsetWidth;
+    el.classList.add(ok?"hit":"fail");
+    setTimeout(function(){ el.classList.remove("hit","fail"); }, 600);
+  }
+  function edgeSetLoad(v){
+    edgeLoadVal=Math.max(0, Math.min(100, v));
+    $("#edgeLoadBar").style.width=edgeLoadVal+"%";
+  }
+  function edgeUpdateStats(){
+    $("#edgePassed").textContent=edgePassed;
+    $("#edgeBlocked").textContent=edgeBlocked;
+    $("#edgeBreaches").textContent=edgeBreaches;
+    $("#edgeLoad").textContent=Math.round(edgeLoadVal)+"%";
+    let key="protected", cls="good";
+    if(edgeDown){ key="down"; cls="bad"; }
+    else if(edgeBreaches>0){ key="breached"; cls="bad"; }
+    else if(edgeLoadVal>=70){ key="degraded"; cls="warn"; }
+    setStatus($("#edgeStatus"), $("#edgeLog"), key, "edge.status", cls);
+  }
+  $("#edgeNormalBtn").addEventListener("click", function(){
+    if(edgeDown){
+      addLog($("#edgeLog"), t("edge.log.normalDown"), "bad");
+      edgeFlash("edge-src-users", false);
+    } else {
+      edgePassed+=20;
+      edgeSetLoad(edgeLoadVal+4);
+      addLog($("#edgeLog"), t("edge.log.normal"), "good");
+      edgeFlash("edge-src-users", true);
+    }
+    edgeUpdateStats();
+  });
+  $("#edgeSqliBtn").addEventListener("click", function(){
+    if(edgeDown){
+      addLog($("#edgeLog"), t("edge.log.normalDown"), "bad");
+      edgeUpdateStats();
+      return;
+    }
+    if($("#edgeWaf").checked){
+      edgeBlocked++;
+      addLog($("#edgeLog"), t("edge.log.sqliBlocked"), "good");
+      edgeFlash("edge-src-attacker", false);
+    } else {
+      edgeBreaches++;
+      addLog($("#edgeLog"), t("edge.log.sqliThrough"), "bad");
+      edgeFlash("edge-src-attacker", true);
+    }
+    edgeUpdateStats();
+  });
+  $("#edgeDdosBtn").addEventListener("click", function(){
+    if($("#edgeShield").checked){
+      edgeBlocked+=9900;
+      edgePassed+=100;
+      edgeSetLoad(edgeLoadVal+10);
+      addLog($("#edgeLog"), t("edge.log.ddosAbsorbed"), "good");
+      edgeFlash("edge-src-botnet", false);
+    } else {
+      edgeDown=true;
+      edgeSetLoad(100);
+      addLog($("#edgeLog"), t("edge.log.ddosDown"), "bad");
+      edgeFlash("edge-src-botnet", true);
+    }
+    edgeUpdateStats();
+  });
+  $("#edgeShield").addEventListener("change", function(){
+    if(this.checked && edgeDown){
+      edgeDown=false;
+      edgeSetLoad(20);
+      addLog($("#edgeLog"), t("edge.log.mitigated"), "good");
+    }
+    edgeUpdateStats();
+  });
+  $("#edgeWaf").addEventListener("change", edgeUpdateStats);
+  addLog($("#edgeLog"), t("edge.log.init"));
+  edgeSetLoad(8); edgeUpdateStats();
+
+  /* ============ MODULE 25 — identity ============ */
+  const ID_TTL=45;
+  let idCreds=[], idExpiredCount=0;
+  function idRender(){
+    const list=$("#idCredList");
+    list.innerHTML="";
+    if(!idCreds.length){
+      const p=document.createElement("p");
+      p.className="finding-empty";
+      p.textContent=t("identity.log.init");
+      list.appendChild(p);
+      return;
+    }
+    idCreds.forEach(function(c){
+      const d=document.createElement("div");
+      d.className="cred-card"+(c.type==="long"?" long":"")+(c.dead?" dead":"");
+      const name=document.createElement("span");
+      name.textContent=t(c.type==="long"?"identity.credLong":"identity.credTemp");
+      const ttl=document.createElement("span");
+      ttl.className="cred-ttl";
+      ttl.textContent = c.type==="long" ? "∞" : (c.dead ? t("identity.credExpired") : c.ttl+"s");
+      d.appendChild(name); d.appendChild(ttl);
+      list.appendChild(d);
+    });
+  }
+  function idUpdateStats(){
+    const active=idCreds.filter(function(c){ return c.type==="temp" && !c.dead; }).length;
+    const longs=idCreds.filter(function(c){ return c.type==="long"; }).length;
+    $("#idActive").textContent=active;
+    $("#idExpired").textContent=idExpiredCount;
+    $("#idLong").textContent=longs;
+    const sso=$("#idSso").checked;
+    $("#idAccts").textContent=sso?3:1;
+    ["id-acct-dev","id-acct-staging","id-acct-prod"].forEach(function(aid,i){
+      document.getElementById(aid).classList.toggle("hit", sso || i===0);
+    });
+    let key, cls;
+    if(longs>0){ key="long"; cls="warn"; }
+    else if(active>0 || idExpiredCount>0){ key="short"; cls="good"; }
+    else { key="none"; cls="warn"; }
+    setStatus($("#idStatus"), $("#idLog"), key, "identity.status", cls);
+  }
+  setInterval(function(){
+    let changed=false;
+    idCreds.forEach(function(c){
+      if(c.type==="temp" && !c.dead){
+        c.ttl--;
+        changed=true;
+        if(c.ttl<=0){
+          c.dead=true;
+          idExpiredCount++;
+          addLog($("#idLog"), t("identity.log.expired"), "warn");
+        }
+      }
+    });
+    if(changed){ idRender(); idUpdateStats(); }
+  }, 1000);
+  $("#idIssueBtn").addEventListener("click", function(){
+    idCreds.push({ type:"temp", ttl:ID_TTL, dead:false });
+    if(idCreds.length>5){
+      const i=idCreds.findIndex(function(c){ return c.dead; });
+      if(i!==-1) idCreds.splice(i,1);
+    }
+    addLog($("#idLog"), t("identity.log.issued",{s:ID_TTL}), "good");
+    idRender(); idUpdateStats();
+  });
+  $("#idUseBtn").addEventListener("click", function(){
+    const alive=idCreds.some(function(c){ return c.type==="temp" && !c.dead; });
+    const longs=idCreds.some(function(c){ return c.type==="long"; });
+    if(alive) addLog($("#idLog"), t("identity.log.used"), "good");
+    else if(longs) addLog($("#idLog"), t("identity.log.usedLong"), "warn");
+    else addLog($("#idLog"), t("identity.log.denied"), "bad");
+    idUpdateStats();
+  });
+  $("#idLongBtn").addEventListener("click", function(){
+    if(!idCreds.some(function(c){ return c.type==="long"; })){
+      idCreds.push({ type:"long" });
+    }
+    addLog($("#idLog"), t("identity.log.long"), "warn");
+    idRender(); idUpdateStats();
+  });
+  $("#idSso").addEventListener("change", function(){
+    addLog($("#idLog"), t(this.checked?"identity.log.ssoOn":"identity.log.ssoOff"), this.checked?"good":undefined);
+    idUpdateStats();
+  });
+  addLog($("#idLog"), t("identity.log.init"));
+  idRender(); idUpdateStats();
+
+  /* ============ MODULE 26 — certificates & data discovery ============ */
+  const CERT_OBJECTS=["o1","o2","o3","o4","o5","o6","o7","o8"];
+  const CERT_PII=["o3","o5","o7"];
+  let certDays=90, certRenewals=0, certScanned=false, certQuarantined=false;
+  function certObjectsRender(){
+    const wrap=$("#certObjects");
+    wrap.innerHTML="";
+    CERT_OBJECTS.forEach(function(k){
+      const d=document.createElement("div");
+      d.className="sub-card";
+      if(certScanned && CERT_PII.indexOf(k)!==-1){
+        d.classList.add(certQuarantined?"matched":"fail");
+      }
+      const span=document.createElement("span");
+      span.textContent=t("certs.objects."+k);
+      d.appendChild(span);
+      wrap.appendChild(d);
+    });
+  }
+  function certUpdate(){
+    const days=Math.max(0, certDays);
+    $("#certDays").textContent=days;
+    $("#certDaysStat").textContent=days;
+    $("#certRenewals").textContent=certRenewals;
+    $("#certPii").textContent = certScanned ? (certQuarantined ? 0 : CERT_PII.length) : "?";
+    const expired=certDays<=0;
+    $("#certTls").textContent=t(expired?"certs.tlsBroken":"certs.tlsOk");
+    const card=$("#certCard");
+    card.classList.toggle("expired", expired);
+    card.classList.toggle("expiring", !expired && certDays<=30);
+    setStatus($("#certStatus"), $("#certLog"), expired?"expired":(certDays<=30?"expiring":"valid"), "certs.status", expired?"bad":(certDays<=30?"warn":"good"));
+  }
+  $("#certFfBtn").addEventListener("click", function(){
+    addLog($("#certLog"), t("certs.log.ff"));
+    certDays-=30;
+    if(certDays>0 && certDays<=30 && $("#certAuto").checked){
+      certDays=90;
+      certRenewals++;
+      addLog($("#certLog"), t("certs.log.renewed"), "good");
+    } else if(certDays<=0){
+      addLog($("#certLog"), t("certs.log.expired"), "bad");
+    } else if(certDays<=30){
+      addLog($("#certLog"), t("certs.log.expiring"), "warn");
+    }
+    certUpdate();
+  });
+  $("#certAuto").addEventListener("change", function(){
+    if(this.checked && certDays>0 && certDays<=30){
+      certDays=90;
+      certRenewals++;
+      addLog($("#certLog"), t("certs.log.renewed"), "good");
+    }
+    certUpdate();
+  });
+  $("#certScanBtn").addEventListener("click", function(){
+    certScanned=true;
+    addLog($("#certLog"), t("certs.log.scanned"), "warn");
+    certObjectsRender(); certUpdate();
+  });
+  $("#certQuarBtn").addEventListener("click", function(){
+    if(!certScanned){
+      addLog($("#certLog"), t("certs.log.nothingToQuar"));
+      return;
+    }
+    if(!certQuarantined){
+      certQuarantined=true;
+      addLog($("#certLog"), t("certs.log.quarantined"), "good");
+    }
+    certObjectsRender(); certUpdate();
+  });
+  addLog($("#certLog"), t("certs.log.init"));
+  certObjectsRender(); certUpdate();
+
+  /* ============ MODULES 27 & 28 — match games ============ */
+  function matchGameInit(cfg){
+    const state={ selected:null, matched:{}, attempts:0 };
+    function labelFor(item){ return t(cfg.base+"."+cfg.wPath+"."+item); }
+    function render(){
+      const wWrap=$(cfg.workEl), sWrap=$(cfg.storeEl);
+      wWrap.innerHTML=""; sWrap.innerHTML="";
+      cfg.pairs.forEach(function(p){
+        const d=document.createElement("button");
+        d.type="button";
+        d.className="sub-card"+(state.matched[p.key]?" matched":"")+(state.selected===p.key?" selected":"");
+        const span=document.createElement("span");
+        span.textContent=labelFor(p.key);
+        d.appendChild(span);
+        d.addEventListener("click", function(){
+          if(state.matched[p.key]) return;
+          state.selected = state.selected===p.key ? null : p.key;
+          if(state.selected) addLog($(cfg.logEl), t(cfg.base+".log.pick",{w:labelFor(p.key)}));
+          render();
+        });
+        wWrap.appendChild(d);
+      });
+      cfg.pairs.forEach(function(p){
+        const d=document.createElement("button");
+        d.type="button";
+        d.className="sub-card"+(state.matched[p.key]?" matched":"");
+        const span=document.createElement("span");
+        span.textContent=p.names[providerMode]||p.names.aws;
+        d.appendChild(span);
+        d.addEventListener("click", function(){
+          if(!state.selected || state.matched[p.key]) return;
+          state.attempts++;
+          if(state.selected===p.key){
+            state.matched[p.key]=true;
+            addLog($(cfg.logEl), t(cfg.base+".log.correct",{w:labelFor(p.key), s:p.names[providerMode]||p.names.aws}), "good");
+          } else {
+            addLog($(cfg.logEl), t(cfg.base+".log.wrong",{why:t(cfg.base+".whyWrong."+p.key)}), "bad");
+          }
+          state.selected=null;
+          const doneCount=Object.keys(state.matched).length;
+          if(doneCount===cfg.pairs.length) addLog($(cfg.logEl), t(cfg.base+".log.done"), "good");
+          render(); updateStats();
+        });
+        sWrap.appendChild(d);
+      });
+    }
+    function updateStats(){
+      const doneCount=Object.keys(state.matched).length;
+      $(cfg.matchedEl).textContent=doneCount+" / "+cfg.pairs.length;
+      $(cfg.attemptsEl).textContent=state.attempts;
+      const done=doneCount===cfg.pairs.length;
+      setStatus($(cfg.statusEl), $(cfg.logEl), done?"done":cfg.idleKey, cfg.base+".status", done?"good":"warn");
+    }
+    function reset(){
+      state.selected=null; state.matched={}; state.attempts=0;
+      $(cfg.logEl).innerHTML="";
+      $(cfg.statusEl).dataset.statusKey="";
+      addLog($(cfg.logEl), t(cfg.base+".log.init"));
+      render(); updateStats();
+    }
+    render(); updateStats();
+    addLog($(cfg.logEl), t(cfg.base+".log.init"));
+    return { render:render, updateStats:updateStats, reset:reset };
+  }
+  const analyticsGame=matchGameInit({
+    base:"analytics", wPath:"w",
+    workEl:"#analyticsWorkloads", storeEl:"#analyticsStores",
+    matchedEl:"#analyticsMatched", attemptsEl:"#analyticsAttempts",
+    logEl:"#analyticsLog", statusEl:"#analyticsStatus", idleKey:"choosing",
+    pairs:[
+      { key:"profile", names:{ aws:"DynamoDB", azure:"Cosmos DB", gcp:"Firestore" } },
+      { key:"report", names:{ aws:"Redshift", azure:"Synapse Analytics", gcp:"BigQuery" } },
+      { key:"graph", names:{ aws:"Neptune", azure:"Cosmos DB (Gremlin)", gcp:"JanusGraph on Bigtable" } },
+      { key:"adhoc", names:{ aws:"Athena", azure:"Synapse Serverless SQL", gcp:"BigQuery (external tables)" } },
+      { key:"bi", names:{ aws:"QuickSight", azure:"Power BI", gcp:"Looker Studio" } }
+    ]
+  });
+  const hybridGame=matchGameInit({
+    base:"hybrid", wPath:"s",
+    workEl:"#hybridScenarios", storeEl:"#hybridTools",
+    matchedEl:"#hybridMatched", attemptsEl:"#hybridAttempts",
+    logEl:"#hybridLog", statusEl:"#hybridStatus", idleKey:"planning",
+    pairs:[
+      { key:"vpn", names:{ aws:"Site-to-Site VPN", azure:"VPN Gateway", gcp:"Cloud VPN" } },
+      { key:"dx", names:{ aws:"Direct Connect", azure:"ExpressRoute", gcp:"Cloud Interconnect" } },
+      { key:"outposts", names:{ aws:"Outposts", azure:"Azure Local", gcp:"Distributed Cloud" } },
+      { key:"dms", names:{ aws:"DMS", azure:"Database Migration Service", gcp:"Database Migration Service" } },
+      { key:"datasync", names:{ aws:"DataSync", azure:"AzCopy / File Sync", gcp:"Storage Transfer Service" } }
+    ]
+  });
+
+  /* ============ MODULE 29 — infrastructure as code ============ */
+  const IAC_RES=["r1","r2","r3","r4","r5"];
+  let iacManualRes=[], iacTemplateUp=false, iacTemplateDriftCount=0, iacDeploys=0, iacLastDrift=0;
+  function iacRender(){
+    const mWrap=$("#iacManual"), tWrap=$("#iacTemplate");
+    mWrap.innerHTML=""; tWrap.innerHTML="";
+    iacManualRes.forEach(function(r){
+      const d=document.createElement("div");
+      d.className="sub-card"+(r.drifted?" drifted":"");
+      const span=document.createElement("span");
+      span.textContent=t("iac.res."+r.key)+(r.drifted?" · "+t("iac.driftTag"):"");
+      d.appendChild(span);
+      mWrap.appendChild(d);
+    });
+    if(iacTemplateUp){
+      IAC_RES.forEach(function(k,i){
+        const drifted=i<iacTemplateDriftCount;
+        const d=document.createElement("div");
+        d.className="sub-card"+(drifted?" drifted":"");
+        const span=document.createElement("span");
+        span.textContent=t("iac.res."+k)+(drifted?" · "+t("iac.driftTag"):"");
+        d.appendChild(span);
+        tWrap.appendChild(d);
+      });
+    }
+  }
+  function iacUpdateStats(){
+    $("#iacManualCount").textContent=iacManualRes.length+" / 5";
+    $("#iacTemplateCount").textContent=(iacTemplateUp?5:0)+" / 5";
+    $("#iacDrift").textContent=iacLastDrift;
+    $("#iacDeploys").textContent=iacDeploys;
+    let key, cls;
+    if(!iacTemplateUp && !iacManualRes.length){ key="empty"; cls="warn"; }
+    else if(iacLastDrift>0){ key="drift"; cls="warn"; }
+    else { key="sync"; cls="good"; }
+    setStatus($("#iacStatus"), $("#iacLog"), key, "iac.status", cls);
+  }
+  $("#iacClickBtn").addEventListener("click", function(){
+    if(iacManualRes.length>=5){
+      if(iacTemplateUp && iacTemplateDriftCount<2){
+        iacTemplateDriftCount++;
+        addLog($("#iacLog"), t("iac.log.hotfix"), "warn");
+      } else {
+        addLog($("#iacLog"), t("iac.log.manualDone"));
+      }
+      iacRender(); iacUpdateStats();
+      return;
+    }
+    const idx=iacManualRes.length;
+    const drifted=idx===2;
+    iacManualRes.push({ key:IAC_RES[idx], drifted:drifted });
+    addLog($("#iacLog"), t(drifted?"iac.log.manualDrift":"iac.log.manual",{r:t("iac.res."+IAC_RES[idx])}), drifted?"warn":undefined);
+    if(iacManualRes.length===5) addLog($("#iacLog"), t("iac.log.manualDone"));
+    iacRender(); iacUpdateStats();
+  });
+  $("#iacDeployBtn").addEventListener("click", function(){
+    iacTemplateUp=true;
+    iacTemplateDriftCount=0;
+    iacDeploys++;
+    addLog($("#iacLog"), t("iac.log.deployed"), "good");
+    iacRender(); iacUpdateStats();
+  });
+  $("#iacDriftBtn").addEventListener("click", function(){
+    const n=iacManualRes.filter(function(r){ return r.drifted; }).length + iacTemplateDriftCount;
+    iacLastDrift=n;
+    addLog($("#iacLog"), n?t("iac.log.driftFound",{n:n}):t("iac.log.driftNone"), n?"warn":"good");
+    iacUpdateStats();
+  });
+  $("#iacHealBtn").addEventListener("click", function(){
+    if(!iacTemplateUp){
+      addLog($("#iacLog"), t("iac.log.nothingToHeal"));
+      return;
+    }
+    iacTemplateDriftCount=0;
+    iacDeploys++;
+    iacLastDrift=iacManualRes.filter(function(r){ return r.drifted; }).length;
+    addLog($("#iacLog"), t("iac.log.healed"), "good");
+    iacRender(); iacUpdateStats();
+  });
+  addLog($("#iacLog"), t("iac.log.init"));
+  iacRender(); iacUpdateStats();
+
+  /* ============ MODULE 30 — governance & cost ============ */
+  const GOV_KEYS=["ssh","mfa","idle","vol","db"];
+  const GOV_SAVE={ ssh:0, mfa:0, idle:1800, vol:240, db:950 };
+  const GOV_BASE=8420, GOV_SPOT_SAVE=840;
+  let govScanned=false, govFixed={};
+  function govSevClass(k){ return k==="ssh"||k==="mfa" ? "sev-high" : k==="vol" ? "sev-low" : "sev-med"; }
+  function governRender(){
+    const wrap=$("#governFindings");
+    wrap.innerHTML="";
+    if(!govScanned){
+      const p=document.createElement("p");
+      p.className="finding-empty";
+      p.textContent=t("govern.log.init");
+      wrap.appendChild(p);
+      return;
+    }
+    GOV_KEYS.forEach(function(k){
+      const d=document.createElement("div");
+      d.className="finding "+govSevClass(k);
+      if(govFixed[k]) d.style.opacity="0.55";
+      const sev=document.createElement("span"); sev.className="sev"; sev.textContent=t("govern.f."+k+".sev");
+      const body=document.createElement("div"); body.className="fbody";
+      const p1=document.createElement("p"); p1.textContent=t("govern.f."+k+".title");
+      const p2=document.createElement("p"); p2.className="fdetail"; p2.textContent=t("govern.f."+k+".detail");
+      body.appendChild(p1); body.appendChild(p2);
+      d.appendChild(sev); d.appendChild(body);
+      if(!govFixed[k]){
+        const btn=document.createElement("button");
+        btn.type="button";
+        btn.className="btn";
+        btn.textContent=t("govern.fixBtn");
+        btn.addEventListener("click", function(){ govFix(k); });
+        d.appendChild(btn);
+      }
+      wrap.appendChild(d);
+    });
+  }
+  function govSavedTotal(){
+    let s=0;
+    GOV_KEYS.forEach(function(k){ if(govFixed[k]) s+=GOV_SAVE[k]; });
+    if($("#governSpot").checked) s+=GOV_SPOT_SAVE;
+    return s;
+  }
+  function governUpdateStats(){
+    const saved=govSavedTotal();
+    const locale=currentLang==="tr"?"tr-TR":"en-US";
+    $("#governBill").textContent="$"+(GOV_BASE-saved).toLocaleString(locale);
+    $("#governSaved").textContent="$"+saved.toLocaleString(locale);
+    const fixedCount=GOV_KEYS.filter(function(k){ return govFixed[k]; }).length;
+    $("#governFixed").textContent=fixedCount;
+    $("#governOpen").textContent=govScanned ? (GOV_KEYS.length-fixedCount) : "?";
+    let key, cls;
+    if(!govScanned){ key="unreviewed"; cls="warn"; }
+    else if(fixedCount<GOV_KEYS.length){
+      const highOpen=["ssh","mfa"].some(function(k){ return !govFixed[k]; });
+      key="open"; cls=highOpen?"bad":"warn";
+    }
+    else { key="optimized"; cls="good"; }
+    setStatus($("#governStatus"), $("#governLog"), key, "govern.status", cls);
+  }
+  function govFix(k){
+    if(govFixed[k]) return;
+    govFixed[k]=true;
+    const save=GOV_SAVE[k];
+    addLog($("#governLog"), t("govern.log.fixed",{title:t("govern.f."+k+".title"), save:save?t("govern.log.saveSuffix",{n:save.toLocaleString("en-US")}):""}), "good");
+    if(GOV_KEYS.every(function(kk){ return govFixed[kk]; })) addLog($("#governLog"), t("govern.log.allFixed"), "good");
+    governRender(); governUpdateStats();
+  }
+  $("#governScanBtn").addEventListener("click", function(){
+    if(!govScanned){
+      govScanned=true;
+      addLog($("#governLog"), t("govern.log.scanned"), "warn");
+    }
+    governRender(); governUpdateStats();
+  });
+  $("#governSpot").addEventListener("change", function(){
+    addLog($("#governLog"), t(this.checked?"govern.log.spotOn":"govern.log.spotOff",{n:GOV_SPOT_SAVE.toLocaleString("en-US")}), this.checked?"good":undefined);
+    governUpdateStats();
+  });
+  addLog($("#governLog"), t("govern.log.init"));
+  governRender(); governUpdateStats();
+
+  /* ============ MODULE 31 — AI & integration ============ */
+  let aiIntents=0, aiDepth=0, aiProcessed=0, aiDraining=false;
+  function aiintSetOut(el, text, cls){
+    el.textContent=text;
+    el.className="aiint-out"+(cls?" "+cls:"");
+  }
+  function aiintUpdateStats(){
+    $("#aiintIntents").textContent=aiIntents;
+    $("#aiintDepth").textContent=aiDepth;
+    $("#aiintProcessed").textContent=aiProcessed;
+    $("#aiintLost").textContent=0;
+    $("#aiintDepthBar").style.width=Math.min(100, aiDepth*10)+"%";
+    setStatus($("#aiintStatus"), $("#aiintLog"), aiDepth>0?"backlog":"decoupled", "aiint.status", aiDepth>0?"warn":"good");
+  }
+  function aiintParse(text){
+    const s=text.toLowerCase();
+    let intent=null;
+    if(/book|table|reserve|reservation|rezervasyon|masa|ayır/.test(s)) intent="BookTable";
+    else if(/status|order|where|sipariş|durum|nerede/.test(s)) intent="OrderStatus";
+    else if(/cancel|iptal/.test(s)) intent="CancelOrder";
+    if(!intent) return null;
+    const slots=[];
+    const num=s.match(/\d+/);
+    if(num) slots.push("party="+num[0]);
+    if(/tonight|today|tomorrow|akşam|bugün|yarın/.test(s)) slots.push("time="+(s.match(/tonight|today|tomorrow|akşam|bugün|yarın/)[0]));
+    return { intent:intent, slots:slots };
+  }
+  $("#aiintBotBtn").addEventListener("click", function(){
+    const text=$("#aiintBotInput").value.trim();
+    if(!text) return;
+    const parsed=aiintParse(text);
+    if(parsed){
+      aiIntents++;
+      let out=t("aiint.botIntent",{i:parsed.intent});
+      if(parsed.slots.length) out+=t("aiint.botSlots",{s:"{"+parsed.slots.join(", ")+"}"});
+      aiintSetOut($("#aiintBotOut"), out, "good");
+      addLog($("#aiintLog"), t("aiint.log.intent",{out:out}), "good");
+    } else {
+      aiintSetOut($("#aiintBotOut"), t("aiint.botFallback"), "bad");
+      addLog($("#aiintLog"), t("aiint.log.fallback"), "warn");
+    }
+    aiintUpdateStats();
+  });
+  $("#aiintBotInput").addEventListener("keydown", function(e){ if(e.key==="Enter") $("#aiintBotBtn").click(); });
+  $("#aiintTtsBtn").addEventListener("click", function(){
+    const text=$("#aiintTtsInput").value.trim();
+    if(!text){
+      aiintSetOut($("#aiintTtsOut"), t("aiint.ttsEmpty"), "bad");
+      return;
+    }
+    if(window.speechSynthesis && window.SpeechSynthesisUtterance){
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang = currentLang==="tr" ? "tr-TR" : "en-US";
+      window.speechSynthesis.speak(u);
+      aiintSetOut($("#aiintTtsOut"), t("aiint.ttsSpoken"), "good");
+      addLog($("#aiintLog"), t("aiint.log.spoken"), "good");
+    } else {
+      aiintSetOut($("#aiintTtsOut"), t("aiint.ttsUnsupported"));
+    }
+  });
+  $("#aiintTtsInput").addEventListener("keydown", function(e){ if(e.key==="Enter") $("#aiintTtsBtn").click(); });
+  function aiintDrain(){
+    if(aiDraining) return;
+    aiDraining=true;
+    const epoch=stateEpoch;
+    (function step(){
+      if(epoch!==stateEpoch){ aiDraining=false; return; }
+      if(!$("#aiintWorker").checked || aiDepth<=0){
+        aiDraining=false;
+        if(aiDepth<=0 && $("#aiintWorker").checked) addLog($("#aiintLog"), t("aiint.log.drainedDone"), "good");
+        aiintUpdateStats();
+        return;
+      }
+      aiDepth--;
+      aiProcessed++;
+      aiintUpdateStats();
+      setTimeout(step, 400);
+    })();
+  }
+  $("#aiintSendBtn").addEventListener("click", function(){
+    addLog($("#aiintLog"), t("aiint.log.sent"));
+    if($("#aiintWorker").checked && aiDepth===0){
+      aiProcessed++;
+      addLog($("#aiintLog"), t("aiint.log.processed"), "good");
+    } else {
+      aiDepth++;
+      addLog($("#aiintLog"), t("aiint.log.queued",{n:aiDepth}), "warn");
+      if($("#aiintWorker").checked) aiintDrain();
+    }
+    aiintUpdateStats();
+  });
+  $("#aiintWorker").addEventListener("change", function(){
+    if(this.checked && aiDepth>0){
+      addLog($("#aiintLog"), t("aiint.log.drained"), "good");
+      aiintDrain();
+    }
+    aiintUpdateStats();
+  });
+  addLog($("#aiintLog"), t("aiint.log.init"));
+  aiintUpdateStats();
 
   /* ============ MODULE 22 — service directory ============ */
   const SERVICE_DIRECTORY=[
@@ -11246,6 +16206,15 @@
     lambdaRenderPool(); lambdaUpdateStats();
     cwRenderSpark(); cwUpdateStats();
     servicesRender();
+    threatRender(); threatUpdateStats();
+    edgeUpdateStats();
+    idRender(); idUpdateStats();
+    certObjectsRender(); certUpdate();
+    analyticsGame.render(); analyticsGame.updateStats();
+    hybridGame.render(); hybridGame.updateStats();
+    iacRender(); iacUpdateStats();
+    governRender(); governUpdateStats();
+    aiintUpdateStats();
     applyProviderTitles();
   }
   $("#langEnBtn").addEventListener("click", function(){ setLang("en"); });
@@ -11268,6 +16237,8 @@
     });
     applyProviderTitles();
     servicesRender();
+    analyticsGame.render();
+    hybridGame.render();
     // Each provider's quest has its own step ids and content, so leftover
     // progress from another provider can't carry over meaningfully — reset.
     QUEST_KEYS.forEach(function(key){

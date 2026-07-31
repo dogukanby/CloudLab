@@ -42,6 +42,15 @@
   <symbol id="ic-capstone1" viewBox="0 0 24 24"><path d="M12 4 21 19H3L12 4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 10.5v3.5M12 16.8h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
   <symbol id="ic-capstone2" viewBox="0 0 24 24"><path d="M10 14 14 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="3.5" y="12.5" width="6" height="6" rx="2" transform="rotate(-45 6.5 15.5)" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="14.5" y="5.5" width="6" height="6" rx="2" transform="rotate(-45 17.5 8.5)" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
   <symbol id="ic-services" viewBox="0 0 24 24"><path d="M12 6.2C10.2 4.7 7.7 4.2 4 4.2v13.6c3.7 0 6.2.5 8 2 1.8-1.5 4.3-2 8-2V4.2c-3.7 0-6.2.5-8 2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 6.2v13.6" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="ic-threat" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="ic-edge" viewBox="0 0 24 24"><path d="M4 20V9.5L6.5 7 9 9.5 12 6.5l3 3L17.5 7 20 9.5V20H4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 15h16" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="ic-identity" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 16.5c.8-1.7 2-2.5 3.5-2.5s2.7.8 3.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="ic-certs" viewBox="0 0 24 24"><circle cx="12" cy="9.5" r="5.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9.7 13.9 8.2 21l3.8-2 3.8 2-1.5-7.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-analytics" viewBox="0 0 24 24"><path d="M5 20v-7M10 20V5M15 20v-9M20 20V8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="ic-hybrid" viewBox="0 0 24 24"><path d="M3 20V8h6v12M3 12.5h6M3 16.5h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 20a3.4 3.4 0 0 1-.5-6.7 4.2 4.2 0 0 1 8-.3 3.1 3.1 0 0 1-1 7H14Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-iac" viewBox="0 0 24 24"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-govern" viewBox="0 0 24 24"><path d="M4 18a8 8 0 1 1 16 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 18l4.2-5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="18" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="ic-aiint" viewBox="0 0 24 24"><path d="M4 5h16v11H9.5L4 20V5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 8v2.2M8.8 12.6h6.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
 </svg>
 
 <button type="button" class="sidenav-backdrop" id="sidenavBackdrop" aria-hidden="true" tabindex="-1"></button>
@@ -49,7 +58,7 @@
 <nav class="sidenav" id="sidenav" aria-label="Modules">
   <div class="sidenav-head">
     <span class="wordmark"><span class="dot"></span><span data-i18n="common.wordmark">Systems Console</span></span>
-    <span class="version-tag" id="versionTag">v1.8.0</span>
+    <span class="version-tag" id="versionTag">v1.9.0</span>
     <button type="button" class="sidenav-close" id="sidenavClose" data-i18n-aria="common.closeMenu" aria-label="Close menu">✕</button>
   </div>
   <div class="sidenav-links">
@@ -78,6 +87,20 @@
     <a href="#capstone2"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-capstone2"></use></svg><span data-i18n="common.nav.capstone2">21 Capstone: Exposure</span></a>
     <div class="sidenav-divider" role="separator"></div>
     <a href="#services"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-services"></use></svg><span data-i18n="common.nav.services">22 Service directory</span></a>
+    <p class="sidenav-cat" data-i18n="common.navCat.security">Security</p>
+    <a href="#threat"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-threat"></use></svg><span data-i18n="common.nav.threat">23 Threat detection</span></a>
+    <a href="#edge"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-edge"></use></svg><span data-i18n="common.nav.edge">24 WAF &amp; DDoS</span></a>
+    <a href="#identity"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-identity"></use></svg><span data-i18n="common.nav.identity">25 Identity &amp; access</span></a>
+    <a href="#certs"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-certs"></use></svg><span data-i18n="common.nav.certs">26 Certs &amp; PII</span></a>
+    <p class="sidenav-cat" data-i18n="common.navCat.data">Data &amp; analytics</p>
+    <a href="#analytics"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-analytics"></use></svg><span data-i18n="common.nav.analytics">27 Data &amp; analytics</span></a>
+    <p class="sidenav-cat" data-i18n="common.navCat.connect">Hybrid &amp; migration</p>
+    <a href="#hybrid"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-hybrid"></use></svg><span data-i18n="common.nav.hybrid">28 Hybrid &amp; migration</span></a>
+    <p class="sidenav-cat" data-i18n="common.navCat.ops">Automation &amp; governance</p>
+    <a href="#iac"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-iac"></use></svg><span data-i18n="common.nav.iac">29 Infrastructure as code</span></a>
+    <a href="#govern"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-govern"></use></svg><span data-i18n="common.nav.govern">30 Governance &amp; cost</span></a>
+    <p class="sidenav-cat" data-i18n="common.navCat.ai">AI &amp; integration</p>
+    <a href="#aiint"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-aiint"></use></svg><span data-i18n="common.nav.aiint">31 AI &amp; integration</span></a>
   </div>
 </nav>
 
@@ -1242,6 +1265,457 @@
     </div>
     <div class="svc-groups" id="svcGroups"></div>
     <p class="svc-empty" id="svcEmpty" hidden data-i18n="services.noResults">No service matches that search.</p>
+  </section>
+
+  <!-- MODULE 23 — THREAT DETECTION -->
+  <section class="panel" id="threat">
+    <div class="panel-glow" aria-hidden="true"></div>
+    <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-threat"></use></svg></span>
+      <span class="mod-id" data-i18n="threat.modId">MODULE 23</span>
+      <h2 data-i18n="threat.title">Threat Detection: GuardDuty, Inspector &amp; Security Hub</h2>
+      <span class="status-pill good" id="threatStatus">SECURE</span>
+    </header>
+    <p class="dek" data-i18n="threat.dek">Nobody watches dashboards all night.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="threat.analogy">It's a burglar alarm, a home inspector, and a wall of monitors.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="threat.tryStep1">Simulate an attack.</li>
+        <li data-i18n="threat.tryStep2">Run a vulnerability scan.</li>
+        <li data-i18n="threat.tryStep3">Resolve the findings.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="finding-list" id="threatFindings"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <button type="button" class="btn" id="threatKeyBtn" data-i18n="threat.keyBtn">Simulate: leaked key used</button>
+          <button type="button" class="btn" id="threatMineBtn" data-i18n="threat.mineBtn">Simulate: crypto-mining</button>
+          <button type="button" class="btn" id="threatScanBtn" data-i18n="threat.scanBtn">Run Inspector scan</button>
+          <button type="button" class="btn" id="threatResolveBtn" data-i18n="threat.resolveBtn">Investigate &amp; resolve oldest</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="threat.statScore">Security score</span><span class="stat-value" id="threatScore">100</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="threat.statOpen">Open findings</span><span class="stat-value" id="threatOpen">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="threat.statResolved">Resolved</span><span class="stat-value" id="threatResolved">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="threat.statTrail">API calls on audit trail</span><span class="stat-value" id="threatTrail">0</span></div>
+        </div>
+        <div class="log" id="threatLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="threat.note">This is the real division of labor.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="threat.incident.meta">Tesla · February 2018</p>
+      <p class="body" data-i18n="threat.incident.body">Attackers mined cryptocurrency inside Tesla's cloud account.</p>
+    </div>
+    <div class="quest-mount" id="quest-mount-threat"></div>
+  </section>
+
+  <!-- MODULE 24 — EDGE PROTECTION -->
+  <section class="panel" id="edge">
+    <div class="panel-glow" aria-hidden="true"></div>
+    <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-edge"></use></svg></span>
+      <span class="mod-id" data-i18n="edge.modId">MODULE 24</span>
+      <h2 data-i18n="edge.title">Edge Protection: WAF &amp; DDoS</h2>
+      <span class="status-pill good" id="edgeStatus">PROTECTED</span>
+    </header>
+    <p class="dek" data-i18n="edge.dek">Attacks arrive as ordinary-looking web requests.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="edge.analogy">The WAF is the bouncer checking IDs; DDoS protection is crowd control at the street.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="edge.tryStep1">Send an injection with the WAF off.</li>
+        <li data-i18n="edge.tryStep2">Turn the WAF on and send it again.</li>
+        <li data-i18n="edge.tryStep3">Launch the botnet wave with and without DDoS protection.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="origin-card" id="edgeSite"><span class="dotpin"></span><span data-i18n="edge.siteLabel">shop.example.com</span></div>
+        <div class="rate-wrap"><span class="rate-label" data-i18n="edge.loadLabel">Site load</span><div class="rate-bar"><span id="edgeLoadBar"></span></div></div>
+        <div class="sub-list">
+          <div class="sub-card" id="edge-src-users"><span data-i18n="edge.srcUsers">Legit users</span></div>
+          <div class="sub-card" id="edge-src-attacker"><span data-i18n="edge.srcAttacker">Attacker</span></div>
+          <div class="sub-card" id="edge-src-botnet"><span data-i18n="edge.srcBotnet">Botnet (10,000 devices)</span></div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label class="checkbox"><input type="checkbox" id="edgeWaf"> <span data-i18n="edge.wafLabel">WAF rules enabled</span></label>
+          <label class="checkbox"><input type="checkbox" id="edgeShield"> <span data-i18n="edge.shieldLabel">DDoS protection enabled</span></label>
+          <button type="button" class="btn" id="edgeNormalBtn" data-i18n="edge.normalBtn">Send normal traffic</button>
+          <button type="button" class="btn" id="edgeSqliBtn" data-i18n="edge.sqliBtn">Send SQL injection</button>
+          <button type="button" class="btn" id="edgeDdosBtn" data-i18n="edge.ddosBtn">Launch botnet wave</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="edge.statPassed">Requests served</span><span class="stat-value" id="edgePassed">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="edge.statBlocked">Blocked at the edge</span><span class="stat-value" id="edgeBlocked">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="edge.statLoad">Site load</span><span class="stat-value" id="edgeLoad">0%</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="edge.statBreaches">Injections that got through</span><span class="stat-value" id="edgeBreaches">0</span></div>
+        </div>
+        <div class="log" id="edgeLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="edge.note">Layer 7 vs layers 3/4.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="edge.incident.meta">AWS Shield · February 2020</p>
+      <p class="body" data-i18n="edge.incident.body">The largest DDoS attack ever disclosed.</p>
+    </div>
+    <div class="quest-mount" id="quest-mount-edge"></div>
+  </section>
+
+  <!-- MODULE 25 — IDENTITY & ACCESS -->
+  <section class="panel" id="identity">
+    <div class="panel-glow" aria-hidden="true"></div>
+    <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-identity"></use></svg></span>
+      <span class="mod-id" data-i18n="identity.modId">MODULE 25</span>
+      <h2 data-i18n="identity.title">Identity: Temporary Credentials &amp; SSO</h2>
+      <span class="status-pill good" id="idStatus">SHORT-LIVED</span>
+    </header>
+    <p class="dek" data-i18n="identity.dek">The safest credential is one that stops working on its own.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="identity.analogy">A hotel keycard that expires at checkout vs a metal key that opens the door forever.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="identity.tryStep1">Issue temporary credentials and watch them tick down.</li>
+        <li data-i18n="identity.tryStep2">Try using them after they expire.</li>
+        <li data-i18n="identity.tryStep3">Enable SSO and open all three accounts with one login.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="cred-list" id="idCredList"></div>
+        <div class="sub-list">
+          <div class="sub-card" id="id-acct-dev"><span data-i18n="identity.acctDev">Dev account</span></div>
+          <div class="sub-card" id="id-acct-staging"><span data-i18n="identity.acctStaging">Staging account</span></div>
+          <div class="sub-card" id="id-acct-prod"><span data-i18n="identity.acctProd">Prod account</span></div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <button type="button" class="btn" id="idIssueBtn" data-i18n="identity.issueBtn">Issue temporary credentials (STS)</button>
+          <button type="button" class="btn" id="idUseBtn" data-i18n="identity.useBtn">Call an API with them</button>
+          <button type="button" class="btn" id="idLongBtn" data-i18n="identity.longBtn">Create long-term access key</button>
+          <label class="checkbox"><input type="checkbox" id="idSso"> <span data-i18n="identity.ssoLabel">Single sign-on for all accounts</span></label>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="identity.statActive">Active temp credentials</span><span class="stat-value" id="idActive">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="identity.statExpired">Expired on their own</span><span class="stat-value" id="idExpired">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="identity.statLong">Long-term keys to leak</span><span class="stat-value" id="idLong">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="identity.statAccts">Accounts reachable</span><span class="stat-value" id="idAccts">0</span></div>
+        </div>
+        <div class="log" id="idLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="identity.note">STS, Identity Center, Cognito.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="identity.incident.meta">CircleCI · January 2023</p>
+      <p class="body" data-i18n="identity.incident.body">One stolen laptop session exposed customers' long-lived secrets.</p>
+    </div>
+    <div class="quest-mount" id="quest-mount-identity"></div>
+  </section>
+
+  <!-- MODULE 26 — CERTIFICATES & DATA DISCOVERY -->
+  <section class="panel" id="certs">
+    <div class="panel-glow" aria-hidden="true"></div>
+    <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-certs"></use></svg></span>
+      <span class="mod-id" data-i18n="certs.modId">MODULE 26</span>
+      <h2 data-i18n="certs.title">Certificates &amp; Finding Sensitive Data</h2>
+      <span class="status-pill good" id="certStatus">VALID</span>
+    </header>
+    <p class="dek" data-i18n="certs.dek">Two quiet failures: a certificate nobody renewed, and personal data nobody knew was there.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="certs.analogy">A passport that expires while you're abroad, and a filing cabinet with unmarked folders of ID photocopies.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="certs.tryStep1">Fast-forward time with auto-renew off and watch the site break.</li>
+        <li data-i18n="certs.tryStep2">Turn auto-renew on and fast-forward again.</li>
+        <li data-i18n="certs.tryStep3">Scan the bucket and quarantine what it finds.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="cert-card" id="certCard">
+          <span class="cert-domain">shop.example.com</span>
+          <span class="cert-days" id="certDays">90</span>
+          <span class="cert-days-label" data-i18n="certs.daysLabel">days until expiry</span>
+        </div>
+        <div class="sub-list" id="certObjects"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <label class="checkbox"><input type="checkbox" id="certAuto"> <span data-i18n="certs.autoLabel">Auto-renew (managed certificates)</span></label>
+          <button type="button" class="btn" id="certFfBtn" data-i18n="certs.ffBtn">Fast-forward 30 days</button>
+          <button type="button" class="btn" id="certScanBtn" data-i18n="certs.scanBtn">Scan bucket for personal data</button>
+          <button type="button" class="btn" id="certQuarBtn" data-i18n="certs.quarBtn">Quarantine flagged objects</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="certs.statDays">Days to expiry</span><span class="stat-value" id="certDaysStat">90</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="certs.statRenewals">Auto-renewals</span><span class="stat-value" id="certRenewals">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="certs.statPii">Objects with personal data</span><span class="stat-value" id="certPii">?</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="certs.statTls">HTTPS status</span><span class="stat-value" id="certTls">OK</span></div>
+        </div>
+        <div class="log" id="certLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="certs.note">ACM and Macie.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="certs.incident.meta">Microsoft Teams · February 2020</p>
+      <p class="body" data-i18n="certs.incident.body">Teams went down worldwide because one certificate expired.</p>
+    </div>
+    <div class="quest-mount" id="quest-mount-certs"></div>
+  </section>
+
+  <!-- MODULE 27 — DATA & ANALYTICS -->
+  <section class="panel" id="analytics">
+    <div class="panel-glow" aria-hidden="true"></div>
+    <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-analytics"></use></svg></span>
+      <span class="mod-id" data-i18n="analytics.modId">MODULE 27</span>
+      <h2 data-i18n="analytics.title">Pick the Right Data Store</h2>
+      <span class="status-pill warn" id="analyticsStatus">CHOOSING</span>
+    </header>
+    <p class="dek" data-i18n="analytics.dek">There is no best database — only the right one for each question.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="analytics.analogy">A filing cabinet, a warehouse, a corkboard of strings, and a librarian.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="analytics.tryStep1">Click a workload, then click the store you'd run it on.</li>
+        <li data-i18n="analytics.tryStep2">Get one wrong on purpose and read why.</li>
+        <li data-i18n="analytics.tryStep3">Match all five.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="match-col" id="analyticsWorkloads"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <div class="match-col" id="analyticsStores"></div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="analytics.statMatched">Matched</span><span class="stat-value" id="analyticsMatched">0 / 5</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="analytics.statAttempts">Attempts</span><span class="stat-value" id="analyticsAttempts">0</span></div>
+        </div>
+        <div class="log" id="analyticsLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="analytics.note">OLTP vs OLAP vs graph vs serverless SQL.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="analytics.incident.meta">Instapaper · February 2017</p>
+      <p class="body" data-i18n="analytics.incident.body">A database hit a size limit nobody knew existed.</p>
+    </div>
+    <div class="quest-mount" id="quest-mount-analytics"></div>
+  </section>
+
+  <!-- MODULE 28 — HYBRID & MIGRATION -->
+  <section class="panel" id="hybrid">
+    <div class="panel-glow" aria-hidden="true"></div>
+    <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-hybrid"></use></svg></span>
+      <span class="mod-id" data-i18n="hybrid.modId">MODULE 28</span>
+      <h2 data-i18n="hybrid.title">Hybrid Cloud &amp; Getting Data There</h2>
+      <span class="status-pill warn" id="hybridStatus">PLANNING</span>
+    </header>
+    <p class="dek" data-i18n="hybrid.dek">Five ways to connect a building to a cloud — each one right for exactly one situation.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="hybrid.analogy">A secure courier, a private rail line, a branch office of the factory, a moving company, and a nightly shuttle.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="hybrid.tryStep1">Click a situation, then the connection or tool that fits it.</li>
+        <li data-i18n="hybrid.tryStep2">Note which ones trade money for setup time.</li>
+        <li data-i18n="hybrid.tryStep3">Match all five.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="match-col" id="hybridScenarios"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <div class="match-col" id="hybridTools"></div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="hybrid.statMatched">Matched</span><span class="stat-value" id="hybridMatched">0 / 5</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="hybrid.statAttempts">Attempts</span><span class="stat-value" id="hybridAttempts">0</span></div>
+        </div>
+        <div class="log" id="hybridLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="hybrid.note">VPN vs Direct Connect vs Outposts vs DMS vs DataSync.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="hybrid.incident.meta">Delta Air Lines · August 2016</p>
+      <p class="body" data-i18n="hybrid.incident.body">One data center's power failure grounded a global airline.</p>
+    </div>
+    <div class="quest-mount" id="quest-mount-hybrid"></div>
+  </section>
+
+  <!-- MODULE 29 — INFRASTRUCTURE AS CODE -->
+  <section class="panel" id="iac">
+    <div class="panel-glow" aria-hidden="true"></div>
+    <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-iac"></use></svg></span>
+      <span class="mod-id" data-i18n="iac.modId">MODULE 29</span>
+      <h2 data-i18n="iac.title">Infrastructure as Code</h2>
+      <span class="status-pill good" id="iacStatus">IN SYNC</span>
+    </header>
+    <p class="dek" data-i18n="iac.dek">Clicking creates a snowflake; a template creates the same environment every single time.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="iac.analogy">Cooking from memory vs cooking from a written recipe.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="iac.tryStep1">Build the manual environment by hand, click by click.</li>
+        <li data-i18n="iac.tryStep2">Deploy the template environment in one click.</li>
+        <li data-i18n="iac.tryStep3">Run drift detection, then heal the drift by redeploying.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="iac-envs">
+          <div class="iac-env"><p class="eyebrow faint" data-i18n="iac.manualLabel">BUILT BY HAND</p><div class="sub-list" id="iacManual"></div></div>
+          <div class="iac-env"><p class="eyebrow accent" data-i18n="iac.templateLabel">FROM TEMPLATE</p><div class="sub-list" id="iacTemplate"></div></div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <button type="button" class="btn" id="iacClickBtn" data-i18n="iac.clickBtn">Create next resource by hand</button>
+          <button type="button" class="btn" id="iacDeployBtn" data-i18n="iac.deployBtn">Deploy template</button>
+          <button type="button" class="btn" id="iacDriftBtn" data-i18n="iac.driftBtn">Run drift detection</button>
+          <button type="button" class="btn" id="iacHealBtn" data-i18n="iac.healBtn">Redeploy template (heal)</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="iac.statManual">Manual resources</span><span class="stat-value" id="iacManualCount">0 / 5</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="iac.statTemplate">Template resources</span><span class="stat-value" id="iacTemplateCount">0 / 5</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="iac.statDrift">Drift found</span><span class="stat-value" id="iacDrift">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="iac.statDeploys">Template deploys</span><span class="stat-value" id="iacDeploys">0</span></div>
+        </div>
+        <div class="log" id="iacLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="iac.note">CloudFormation, CLI, Control Tower.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="iac.incident.meta">Facebook · October 2021</p>
+      <p class="body" data-i18n="iac.incident.body">A config change took Facebook off the internet for six hours.</p>
+    </div>
+    <div class="quest-mount" id="quest-mount-iac"></div>
+  </section>
+
+  <!-- MODULE 30 — GOVERNANCE & COST -->
+  <section class="panel" id="govern">
+    <div class="panel-glow" aria-hidden="true"></div>
+    <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-govern"></use></svg></span>
+      <span class="mod-id" data-i18n="govern.modId">MODULE 30</span>
+      <h2 data-i18n="govern.title">Governance &amp; the Bill</h2>
+      <span class="status-pill warn" id="governStatus">UNREVIEWED</span>
+    </header>
+    <p class="dek" data-i18n="govern.dek">Most cloud waste and cloud risk is invisible until something goes looking for it.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="govern.analogy">A home energy audit that also checks whether you locked the doors.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="govern.tryStep1">Run the advisor scan and read what it finds.</li>
+        <li data-i18n="govern.tryStep2">Fix the findings and watch the bill drop.</li>
+        <li data-i18n="govern.tryStep3">Move the batch fleet to Spot and compare the bill.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="finding-list" id="governFindings"></div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <button type="button" class="btn" id="governScanBtn" data-i18n="govern.scanBtn">Run advisor scan</button>
+          <label class="checkbox"><input type="checkbox" id="governSpot"> <span data-i18n="govern.spotLabel">Run batch fleet on Spot instances</span></label>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="govern.statBill">Monthly bill</span><span class="stat-value" id="governBill">$0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="govern.statOpen">Open findings</span><span class="stat-value" id="governOpen">?</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="govern.statFixed">Fixed</span><span class="stat-value" id="governFixed">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="govern.statSaved">Saved per month</span><span class="stat-value" id="governSaved">$0</span></div>
+        </div>
+        <div class="log" id="governLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="govern.note">Trusted Advisor, Config, Well-Architected.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="govern.incident.meta">Adobe · early 2018</p>
+      <p class="body" data-i18n="govern.incident.body">A forgotten computing job burned ~$80,000 a day.</p>
+    </div>
+    <div class="quest-mount" id="quest-mount-govern"></div>
+  </section>
+
+  <!-- MODULE 31 — AI & INTEGRATION -->
+  <section class="panel" id="aiint">
+    <div class="panel-glow" aria-hidden="true"></div>
+    <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-aiint"></use></svg></span>
+      <span class="mod-id" data-i18n="aiint.modId">MODULE 31</span>
+      <h2 data-i18n="aiint.title">AI Services &amp; App Integration</h2>
+      <span class="status-pill good" id="aiintStatus">DECOUPLED</span>
+    </header>
+    <p class="dek" data-i18n="aiint.dek">A bot that understands intent, a voice that reads text aloud, and a queue that keeps orders safe when a worker dies.</p>
+    <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="aiint.analogy">A receptionist, a narrator, and an inbox tray between two desks.</p></div>
+    <div class="tryit">
+      <p class="eyebrow accent" data-i18n="common.tryThisLabel">TRY THIS</p>
+      <ol>
+        <li data-i18n="aiint.tryStep1">Type a request to the bot and watch it extract the intent.</li>
+        <li data-i18n="aiint.tryStep2">Make your computer read a sentence aloud.</li>
+        <li data-i18n="aiint.tryStep3">Take the worker offline, keep sending orders, then bring it back.</li>
+      </ol>
+    </div>
+    <div class="panel-body">
+      <div class="stage">
+        <div class="aiint-panel">
+          <p class="eyebrow accent" data-i18n="aiint.botLabel">CHATBOT — INTENT DETECTION</p>
+          <div class="aiint-row"><input type="text" class="svc-search" id="aiintBotInput" data-i18n-placeholder="aiint.botPh" placeholder="e.g. book a table for 4 tonight"><button type="button" class="btn" id="aiintBotBtn" data-i18n="aiint.botBtn">Send</button></div>
+          <p class="aiint-out" id="aiintBotOut"></p>
+        </div>
+        <div class="aiint-panel">
+          <p class="eyebrow accent" data-i18n="aiint.ttsLabel">TEXT TO SPEECH</p>
+          <div class="aiint-row"><input type="text" class="svc-search" id="aiintTtsInput" data-i18n-placeholder="aiint.ttsPh" placeholder="Type something to say out loud"><button type="button" class="btn" id="aiintTtsBtn" data-i18n="aiint.ttsBtn">Speak</button></div>
+          <p class="aiint-out" id="aiintTtsOut"></p>
+        </div>
+        <div class="aiint-panel">
+          <p class="eyebrow accent" data-i18n="aiint.mqLabel">MESSAGE QUEUE — orders</p>
+          <div class="rate-wrap"><span class="rate-label" data-i18n="aiint.depthLabel">Queue depth</span><div class="rate-bar"><span id="aiintDepthBar"></span></div></div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="controls">
+          <button type="button" class="btn" id="aiintSendBtn" data-i18n="aiint.sendBtn">Send an order (producer)</button>
+          <label class="checkbox"><input type="checkbox" id="aiintWorker" checked> <span data-i18n="aiint.workerLabel">Order-processing worker online</span></label>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label" data-i18n="aiint.statIntents">Intents detected</span><span class="stat-value" id="aiintIntents">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="aiint.statDepth">Queue depth</span><span class="stat-value" id="aiintDepth">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="aiint.statProcessed">Orders processed</span><span class="stat-value" id="aiintProcessed">0</span></div>
+          <div class="stat"><span class="stat-label" data-i18n="aiint.statLost">Orders lost</span><span class="stat-value" id="aiintLost">0</span></div>
+        </div>
+        <div class="log" id="aiintLog"></div>
+        <div class="tech-note"><p class="eyebrow faint" data-i18n="common.technicalLabel">UNDER THE HOOD</p><p class="note" data-i18n="aiint.note">Lex, Polly, MQ.</p></div>
+      </aside>
+    </div>
+    <div class="case-study">
+      <p class="eyebrow bad" data-i18n="common.realIncidentLabel">REAL INCIDENT</p>
+      <p class="meta" data-i18n="aiint.incident.meta">Microsoft Tay · March 2016</p>
+      <p class="body" data-i18n="aiint.incident.body">A chatbot learned from the internet, live, with no guardrails.</p>
+    </div>
+    <div class="quest-mount" id="quest-mount-aiint"></div>
   </section>
 
 
