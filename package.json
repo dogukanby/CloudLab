@@ -1,7 +1,7 @@
 {
   "name": "cloud-systems-console",
   "version": "1.8.0",
-  "description": "Twenty live, in-browser simulations of core cloud-systems concepts, nineteen of them with an Easy/Hard-tiered, real-consequence incident-response quest with AWS/Azure/GCP variants, plus two cross-module capstone incidents and a searchable 38-service AWS/Azure/GCP directory.",
+  "description": "Twenty live, in-browser simulations of core cloud-systems concepts, nineteen of them with an Easy/Hard-tiered, real-consequence incident-response quest with AWS/Azure/GCP variants, plus two cross-module capstone incidents and a searchable 47-service AWS/Azure/GCP directory.",
   "main": "main.js",
   "private": true,
   "author": "Doğukan Bayrı",
@@ -39,7 +39,7 @@
     "publish": {
       "provider": "github",
       "owner": "dogukanby",
-      "repo": "cloud-systems-console"
+      "repo": "CloudLab"
     }
   },
   "dependencies": {
