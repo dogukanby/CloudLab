@@ -67,7 +67,7 @@ function setupAutoUpdater(win){
           type: "info",
           title: "Downloading update",
           message: "Downloading CloudLab v" + info.version + " in the background.",
-          detail: "You'll get another prompt here once it's ready to install."
+          detail: "You will get notified in the next update."
         });
         autoUpdater.downloadUpdate();
       }
