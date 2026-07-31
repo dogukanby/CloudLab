@@ -1,6 +1,6 @@
 {
   "name": "cloud-systems-console",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Twenty-nine live, in-browser simulations of core cloud-systems concepts, twenty-eight of them with an Easy/Hard-tiered, real-consequence incident-response quest with AWS/Azure/GCP variants, plus two cross-module capstone incidents and a searchable 47-service AWS/Azure/GCP directory.",
   "main": "main.js",
   "private": true,
