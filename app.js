@@ -4,7 +4,7 @@
   // Keep in sync with package.json's "version" — there's no build step to
   // inject this automatically, so it's a manual mirror. Shown in the topbar
   // (and read as the desktop window title via app.getVersion() in main.js).
-  const APP_VERSION = "1.7.0";
+  const APP_VERSION = "1.8.0";
   $("#versionTag").textContent = "v"+APP_VERSION;
 
   /* ============ i18n dictionary ============ */
@@ -12,7 +12,7 @@
     en: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS", capstone1:"20 Capstone: Outage", capstone2:"21 Capstone: Exposure" },
+        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS", capstone1:"20 Capstone: Outage", capstone2:"21 Capstone: Exposure", services:"22 Service directory" },
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"CloudLab",
         statusChanged:"status → {status}",
@@ -44,7 +44,7 @@
       intro:{
         title:"Cloud systems, taken apart",
         p:"Twenty small, live simulations of the mechanisms that keep large systems running, plus two capstone incidents that tie several of them together — no real servers behind any of it, just the logic. Turn the dials and watch what actually happens under load, under a network partition, under a cache miss, under a failure.",
-        meta:"20 modules · 19 incident-response quests · runs entirely in your browser"
+        meta:"20 modules · 19 incident-response quests · 38-service directory · runs entirely in your browser"
       },
       lb:{
         modId:"MODULE 07", title:"Load Balancing & Auto-Scaling",
@@ -4387,6 +4387,58 @@
           }
         },
       },
+      services:{
+        modId:"MODULE 22", title:"Service Directory: One Cheat Sheet, Three Clouds",
+        dek:"Every headline service in one line each — what it does, and what the same thing is called on AWS, Azure, and Google Cloud. The provider toggle up top highlights your column.",
+        searchPh:"Filter services — try \"SQL\", \"DDoS\", \"warehouse\"…",
+        colWhat:"What it does",
+        noResults:"No service matches that search.",
+        cat:{
+          compute:"Compute & Deployment", data:"Data & Analytics", network:"Networking & Delivery",
+          security:"Security & Identity", govern:"Management & Governance", migrate:"Migration & Transfer",
+          ai:"AI & App Integration", support:"Pricing & Support"
+        },
+        items:{
+          lambdaSvc:"Run code without managing any server — upload a function, it runs on demand, and you pay only while it executes.",
+          fargate:"Serverless containers — run a container without provisioning or managing the servers underneath it.",
+          beanstalkSvc:"Deploy an application without manually creating the servers, load balancer, or scaling rules it needs.",
+          outposts:"The provider's own racks installed in your building — cloud services running on-premises.",
+          ondemand:"Rent compute with no commitment — always available, billed linearly by the second; the most flexible and most expensive option.",
+          spot:"The provider's spare capacity at up to ~90% off — cheap because it can be reclaimed at any moment.",
+          rds:"Managed relational SQL databases — MySQL, PostgreSQL, and friends, installed, patched, and backed up for you.",
+          dynamodb:"NoSQL key-value/document database — more flexible than rigid SQL tables, millisecond reads at any scale.",
+          redshift:"Data warehouse — stores enormous amounts of data for heavy analytical SQL across your whole business.",
+          neptune:"Graph database for data made of relationships — speaks SPARQL and Apache TinkerPop Gremlin.",
+          athena:"Runs SQL directly on files sitting in object storage — built for analyzing data in S3 without setting up a database.",
+          quicksight:"Business-intelligence charts and dashboards built straight from your data.",
+          versioningSvc:"Keeps every version of every object — protects data from accidental deletion or overwrite.",
+          cloudfront:"Content delivery network — caches your content at edge locations near users so it loads fast everywhere.",
+          s2svpn:"Encrypted tunnel from your on-premises network to the cloud over the public internet — up and running in about a week.",
+          directconnect:"A private physical line between your premises and the cloud — traffic never touches the public internet; takes weeks to provision.",
+          guardduty:"Threat detection — continuously monitors your accounts and workloads for malicious activity.",
+          waf:"Web application firewall — blocks SQL injection, cross-site scripting, and other request-level attacks.",
+          shield:"DDoS protection — absorbs traffic-flood attacks; teams up with the WAF.",
+          macie:"Uses machine learning to find private and sensitive data (names, cards, IDs) inside your storage buckets.",
+          credreport:"One downloadable report listing every user's credentials — password age, access keys, MFA status.",
+          accessanalyzer:"Shows which resources are shared with external accounts — catches sharing you didn't intend.",
+          artifact:"On-demand security and compliance reports about the provider itself (SOC, ISO, PCI) for your auditors.",
+          cloudformation:"Infrastructure as code — describe your whole environment in a template and deploy it repeatably.",
+          cloudtrail:"Records every API call in the account — who did what, when, and from where.",
+          cloudwatchSvc:"Watches your applications — metrics, logs, dashboards, and alarms.",
+          health:"Shows the condition of the provider's own services and how outages affect your specific resources.",
+          config:"Continuously evaluates your resources against rules and flags configuration drift.",
+          trustedadvisor:"Automated best-practice checks — flags possible security issues, waste, and service limits.",
+          controltower:"Sets up and governs a secure multi-account environment with guardrails from day one.",
+          wellarch:"The provider's official design rulebook — on AWS, six pillars: operational excellence, security, reliability, performance efficiency, cost optimization, sustainability.",
+          cli:"Drive the cloud from your terminal instead of the web console — scriptable and repeatable.",
+          dms:"Migrates databases with continuous replication — the source keeps serving traffic during the move.",
+          datasync:"One-time or scheduled bulk transfer of files into cloud storage.",
+          lex:"Build chatbots that understand voice and text — the same technology behind Alexa.",
+          polly:"Text to speech — turns written text into lifelike spoken audio.",
+          mq:"Managed message broker (ActiveMQ / RabbitMQ) — lets existing apps talk through queues without being rewritten.",
+          profservices:"The provider's own global team of experts you can bring in for big migrations and projects."
+        }
+      },
       chat:{
         title:"Ask the Console", fabAria:"Ask a question", closeAria:"Close",
         setupIntro:"This runs entirely in your browser through Groq's free API — nothing is sent anywhere except directly to Groq. Paste your own key to turn it on; it's saved only on this device, never on any server.",
@@ -4403,7 +4455,7 @@
     tr: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS", capstone1:"20 Final Görev: Kesinti", capstone2:"21 Final Görev: Sızıntı" },
+        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS", capstone1:"20 Final Görev: Kesinti", capstone2:"21 Final Görev: Sızıntı", services:"22 Servis rehberi" },
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"CloudLab",
         statusChanged:"durum → {status}",
@@ -4435,7 +4487,7 @@
       intro:{
         title:"Bulut sistemleri, parçalarına ayrıldı",
         p:"Büyük sistemleri ayakta tutan mekanizmaların yirmi küçük, canlı simülasyonu, ve bunlardan birkaçını bir araya getiren iki final görev olayı — arkasında gerçek sunucu yok, sadece mantık. Kadranları çevirin ve yük altında, bir ağ bölünmesinde, bir önbellek ıskalamasında, bir arızada gerçekte ne olduğunu izleyin.",
-        meta:"20 modül · 19 olay müdahale görevi · tamamen tarayıcınızda çalışır"
+        meta:"20 modül · 19 olay müdahale görevi · 38 servislik rehber · tamamen tarayıcınızda çalışır"
       },
       lb:{
         modId:"MODÜL 07", title:"Yük Dengeleme ve Otomatik Ölçekleme",
@@ -8778,6 +8830,58 @@
           }
         },
       },
+      services:{
+        modId:"MODÜL 22", title:"Servis Rehberi: Tek Sayfa, Üç Bulut",
+        dek:"Her önemli servis birer satırda — ne işe yaradığı ve aynı şeyin AWS, Azure ve Google Cloud'daki adı. Üstteki sağlayıcı seçimi sizin sütununuzu vurgular.",
+        searchPh:"Servis ara — \"SQL\", \"DDoS\", \"ambar\" deneyin…",
+        colWhat:"Ne işe yarar",
+        noResults:"Bu aramayla eşleşen servis yok.",
+        cat:{
+          compute:"Hesaplama & Dağıtım", data:"Veri & Analitik", network:"Ağ & İçerik Dağıtımı",
+          security:"Güvenlik & Kimlik", govern:"Yönetim & Yönetişim", migrate:"Taşıma & Aktarım",
+          ai:"Yapay Zekâ & Entegrasyon", support:"Fiyatlandırma & Destek"
+        },
+        items:{
+          lambdaSvc:"Sunucu yönetmeden kod çalıştırın — fonksiyonu yükleyin, istek geldikçe çalışır, yalnızca çalıştığı süre için ödersiniz.",
+          fargate:"Sunucusuz konteynerler — alttaki sunucuları kurup yönetmeden konteyner çalıştırın.",
+          beanstalkSvc:"Gereken sunucuları, yük dengeleyiciyi ve ölçekleme kurallarını elle oluşturmadan uygulama dağıtın.",
+          outposts:"Sağlayıcının kendi kabinleri sizin binanızda — bulut servisleri şirket içinde çalışır.",
+          ondemand:"Taahhütsüz kiralama — her an hazır, saniye başına doğrusal ödeme; en esnek ve en pahalı seçenek.",
+          spot:"Sağlayıcının boştaki kapasitesi ~%90'a varan indirimle — ucuz, çünkü her an geri alınabilir.",
+          rds:"Yönetilen ilişkisel SQL veritabanları — MySQL, PostgreSQL ve benzerleri; kurulumu, yaması, yedeği sağlayıcıda.",
+          dynamodb:"NoSQL anahtar-değer/doküman veritabanı — katı SQL tablolarından daha esnek, her ölçekte milisaniyelik okuma.",
+          redshift:"Veri ambarı — tüm şirketin verisi üzerinde ağır analitik SQL sorguları için devasa depolama.",
+          neptune:"İlişkilerden oluşan veriler için graf veritabanı — SPARQL ve Apache TinkerPop Gremlin dillerini konuşur.",
+          athena:"Nesne depolamadaki dosyaların üzerinde doğrudan SQL çalıştırır — S3'teki veriyi veritabanı kurmadan analiz etmek için.",
+          quicksight:"Verinizden doğrudan iş zekâsı grafikleri ve panoları.",
+          versioningSvc:"Her nesnenin her sürümünü saklar — yanlışlıkla silme ve üzerine yazmaya karşı korur.",
+          cloudfront:"İçerik dağıtım ağı (CDN) — içeriğinizi kullanıcılara yakın uç noktalarda önbelleğe alır, her yerde hızlı yüklenir.",
+          s2svpn:"Şirket ağınızdan buluta, halka açık internet üzerinden şifreli tünel — yaklaşık bir haftada kurulur.",
+          directconnect:"Şirketinizle bulut arasında özel fiziksel hat — trafik halka açık internete hiç değmez; kurulumu haftalar alır.",
+          guardduty:"Tehdit algılama — hesaplarınızı ve iş yüklerinizi kötü niyetli etkinliğe karşı sürekli izler.",
+          waf:"Web uygulama güvenlik duvarı — SQL injection, XSS ve benzeri istek seviyesindeki saldırıları engeller.",
+          shield:"DDoS koruması — trafik seli saldırılarını emer; WAF ile birlikte çalışır.",
+          macie:"Depolamanızdaki kişisel ve hassas verileri (isim, kart, kimlik) makine öğrenmesiyle bulur.",
+          credreport:"Tüm kullanıcıların kimlik bilgilerini listeleyen indirilebilir tek rapor — parola yaşı, erişim anahtarları, MFA durumu.",
+          accessanalyzer:"Hangi kaynakların dış hesaplarla paylaşıldığını gösterir — istemeden yapılan paylaşımı yakalar.",
+          artifact:"Sağlayıcının kendisiyle ilgili güvenlik ve uyumluluk raporları (SOC, ISO, PCI) — denetçileriniz için, istediğiniz an.",
+          cloudformation:"Kod olarak altyapı — tüm ortamı bir şablonda tanımlayın, tekrar tekrar aynı şekilde kurun.",
+          cloudtrail:"Hesaptaki her API çağrısını kaydeder — kim, neyi, ne zaman, nereden yaptı.",
+          cloudwatchSvc:"Uygulamalarınızı izler — metrikler, loglar, panolar ve alarmlar.",
+          health:"Sağlayıcının kendi servislerinin durumunu ve kesintilerin sizin kaynaklarınıza etkisini gösterir.",
+          config:"Kaynaklarınızı kurallara göre sürekli değerlendirir, ayar sapmalarını işaretler.",
+          trustedadvisor:"Otomatik en-iyi-uygulama denetimleri — olası güvenlik açıklarını, israfı ve servis limitlerini işaretler.",
+          controltower:"İlk günden korkuluk kurallarıyla güvenli, çok hesaplı bir ortam kurar ve yönetir.",
+          wellarch:"Sağlayıcının resmî tasarım el kitabı — AWS'de altı sütun: operasyonel mükemmellik, güvenlik, güvenilirlik, performans verimliliği, maliyet optimizasyonu, sürdürülebilirlik.",
+          cli:"Bulutu web konsolu yerine terminalden yönetin — betiklenebilir ve tekrarlanabilir.",
+          dms:"Veritabanlarını sürekli replikasyonla taşır — taşıma sırasında kaynak veritabanı çalışmaya devam eder.",
+          datasync:"Buluta tek seferlik veya zamanlanmış toplu dosya aktarımı.",
+          lex:"Sesi ve yazıyı anlayan sohbet botları — Alexa'nın arkasındaki teknolojinin aynısı.",
+          polly:"Metinden sese — yazılı metni doğal insan sesine çevirir.",
+          mq:"Yönetilen mesaj aracısı (ActiveMQ / RabbitMQ) — mevcut uygulamalar yeniden yazılmadan kuyruklar üzerinden haberleşir.",
+          profservices:"Büyük taşıma ve projeler için devreye alabileceğiniz, sağlayıcının kendi küresel uzman ekibi."
+        }
+      },
       chat:{
         title:"Konsola Sor", fabAria:"Bir soru sor", closeAria:"Kapat",
         setupIntro:"Bu tamamen tarayıcınızda, Groq'un ücretsiz API'si üzerinden çalışır — hiçbir şey Groq dışında bir yere gönderilmez. Etkinleştirmek için kendi anahtarınızı yapıştırın; sadece bu cihazda saklanır, hiçbir sunucuda değil.",
@@ -10986,6 +11090,107 @@
   });
   chatShowBodyIfKeySet();
 
+  /* ============ MODULE 22 — service directory ============ */
+  const SERVICE_DIRECTORY=[
+    { id:"lambdaSvc", cat:"compute", aws:"AWS Lambda", azure:"Azure Functions", gcp:"Cloud Run Functions" },
+    { id:"fargate", cat:"compute", aws:"AWS Fargate", azure:"Azure Container Apps", gcp:"Cloud Run" },
+    { id:"beanstalkSvc", cat:"compute", aws:"AWS Elastic Beanstalk", azure:"Azure App Service", gcp:"App Engine" },
+    { id:"outposts", cat:"compute", aws:"AWS Outposts", azure:"Azure Local (Azure Stack)", gcp:"Google Distributed Cloud" },
+    { id:"ondemand", cat:"compute", aws:"On-Demand Instances", azure:"Pay-as-you-go VMs", gcp:"On-demand VMs" },
+    { id:"spot", cat:"compute", aws:"Spot Instances", azure:"Azure Spot VMs", gcp:"Spot VMs" },
+    { id:"rds", cat:"data", aws:"Amazon RDS", azure:"Azure SQL Database", gcp:"Cloud SQL" },
+    { id:"dynamodb", cat:"data", aws:"Amazon DynamoDB", azure:"Azure Cosmos DB", gcp:"Firestore" },
+    { id:"redshift", cat:"data", aws:"Amazon Redshift", azure:"Azure Synapse Analytics", gcp:"BigQuery" },
+    { id:"neptune", cat:"data", aws:"Amazon Neptune", azure:"Cosmos DB for Apache Gremlin", gcp:"JanusGraph on Bigtable" },
+    { id:"athena", cat:"data", aws:"Amazon Athena", azure:"Synapse Serverless SQL", gcp:"BigQuery" },
+    { id:"quicksight", cat:"data", aws:"Amazon QuickSight", azure:"Power BI", gcp:"Looker Studio" },
+    { id:"versioningSvc", cat:"data", aws:"S3 Versioning", azure:"Blob Versioning", gcp:"Object Versioning" },
+    { id:"cloudfront", cat:"network", aws:"Amazon CloudFront", azure:"Azure Front Door / CDN", gcp:"Cloud CDN" },
+    { id:"s2svpn", cat:"network", aws:"Site-to-Site VPN", azure:"Azure VPN Gateway", gcp:"Cloud VPN" },
+    { id:"directconnect", cat:"network", aws:"AWS Direct Connect", azure:"Azure ExpressRoute", gcp:"Cloud Interconnect" },
+    { id:"guardduty", cat:"security", aws:"Amazon GuardDuty", azure:"Microsoft Defender for Cloud", gcp:"Security Command Center" },
+    { id:"waf", cat:"security", aws:"AWS WAF", azure:"Azure WAF", gcp:"Cloud Armor" },
+    { id:"shield", cat:"security", aws:"AWS Shield", azure:"Azure DDoS Protection", gcp:"Cloud Armor" },
+    { id:"macie", cat:"security", aws:"Amazon Macie", azure:"Microsoft Purview", gcp:"Sensitive Data Protection" },
+    { id:"credreport", cat:"security", aws:"IAM Credential Report", azure:"Entra ID Access Reviews", gcp:"Policy Analyzer" },
+    { id:"accessanalyzer", cat:"security", aws:"IAM Access Analyzer", azure:"Entra Permissions Management", gcp:"Policy Analyzer (External Access)" },
+    { id:"artifact", cat:"security", aws:"AWS Artifact", azure:"Service Trust Portal", gcp:"Compliance Reports Manager" },
+    { id:"cloudformation", cat:"govern", aws:"AWS CloudFormation", azure:"ARM Templates / Bicep", gcp:"Infrastructure Manager" },
+    { id:"cloudtrail", cat:"govern", aws:"AWS CloudTrail", azure:"Azure Activity Log", gcp:"Cloud Audit Logs" },
+    { id:"cloudwatchSvc", cat:"govern", aws:"Amazon CloudWatch", azure:"Azure Monitor", gcp:"Cloud Monitoring" },
+    { id:"health", cat:"govern", aws:"AWS Health Dashboard", azure:"Azure Service Health", gcp:"Personalized Service Health" },
+    { id:"config", cat:"govern", aws:"AWS Config", azure:"Azure Policy", gcp:"Cloud Asset Inventory" },
+    { id:"trustedadvisor", cat:"govern", aws:"AWS Trusted Advisor", azure:"Azure Advisor", gcp:"Recommender" },
+    { id:"controltower", cat:"govern", aws:"AWS Control Tower", azure:"Azure Landing Zones", gcp:"Cloud Foundation Setup" },
+    { id:"wellarch", cat:"govern", aws:"Well-Architected Framework", azure:"Azure Well-Architected", gcp:"Architecture Framework" },
+    { id:"cli", cat:"govern", aws:"AWS CLI / Tools for PowerShell", azure:"Azure CLI / Az PowerShell", gcp:"gcloud CLI" },
+    { id:"dms", cat:"migrate", aws:"AWS DMS", azure:"Azure Database Migration Service", gcp:"Database Migration Service" },
+    { id:"datasync", cat:"migrate", aws:"AWS DataSync", azure:"AzCopy / Azure File Sync", gcp:"Storage Transfer Service" },
+    { id:"lex", cat:"ai", aws:"Amazon Lex", azure:"Azure AI Bot Service", gcp:"Dialogflow" },
+    { id:"polly", cat:"ai", aws:"Amazon Polly", azure:"Azure AI Speech", gcp:"Cloud Text-to-Speech" },
+    { id:"mq", cat:"ai", aws:"Amazon MQ", azure:"Azure Service Bus", gcp:"Cloud Pub/Sub" },
+    { id:"profservices", cat:"support", aws:"AWS Professional Services", azure:"Microsoft Industry Solutions", gcp:"Google Cloud Consulting" }
+  ];
+  const SERVICE_CATS=["compute","data","network","security","govern","migrate","ai","support"];
+  let svcFilter="";
+  function servicesRender(){
+    const wrap=$("#svcGroups");
+    if(!wrap) return;
+    wrap.innerHTML="";
+    const q=svcFilter.trim().toLowerCase();
+    let shown=0;
+    SERVICE_CATS.forEach(function(cat){
+      const rows=SERVICE_DIRECTORY.filter(function(s){
+        if(s.cat!==cat) return false;
+        if(!q) return true;
+        return (s.aws+" "+s.azure+" "+s.gcp+" "+t("services.items."+s.id)).toLowerCase().indexOf(q)!==-1;
+      });
+      if(!rows.length) return;
+      shown+=rows.length;
+      const group=document.createElement("div");
+      group.className="svc-group";
+      const label=document.createElement("p");
+      label.className="eyebrow accent svc-cat";
+      label.textContent=t("services.cat."+cat);
+      group.appendChild(label);
+      const scroll=document.createElement("div");
+      scroll.className="svc-scroll";
+      const table=document.createElement("table");
+      table.className="svc-table";
+      const thead=document.createElement("thead");
+      const hrow=document.createElement("tr");
+      [["AWS","aws"],["Azure","azure"],["Google Cloud","gcp"],[t("services.colWhat"),null]].forEach(function(col){
+        const th=document.createElement("th");
+        th.textContent=col[0];
+        if(col[1]===providerMode) th.className="svc-active";
+        hrow.appendChild(th);
+      });
+      thead.appendChild(hrow);
+      table.appendChild(thead);
+      const tbody=document.createElement("tbody");
+      rows.forEach(function(s){
+        const tr=document.createElement("tr");
+        [["aws",s.aws],["azure",s.azure],["gcp",s.gcp]].forEach(function(cell){
+          const td=document.createElement("td");
+          td.textContent=cell[1];
+          td.className="svc-name"+(cell[0]===providerMode?" svc-active":"");
+          tr.appendChild(td);
+        });
+        const td=document.createElement("td");
+        td.className="svc-desc";
+        td.textContent=t("services.items."+s.id);
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      scroll.appendChild(table);
+      group.appendChild(scroll);
+      wrap.appendChild(group);
+    });
+    $("#svcEmpty").hidden = shown!==0;
+  }
+  $("#svcSearch").addEventListener("input", function(){ svcFilter=this.value; servicesRender(); });
+
   /* ============ language switching ============ */
   function setLang(lang){
     currentLang=lang;
@@ -11013,6 +11218,7 @@
     s3Render(); s3UpdateStats();
     lambdaRenderPool(); lambdaUpdateStats();
     cwRenderSpark(); cwUpdateStats();
+    servicesRender();
     applyProviderTitles();
   }
   $("#langEnBtn").addEventListener("click", function(){ setLang("en"); });
@@ -11034,6 +11240,7 @@
       $("#"+id).classList.toggle("active", $("#"+id).dataset.provider===provider);
     });
     applyProviderTitles();
+    servicesRender();
     // Each provider's quest has its own step ids and content, so leftover
     // progress from another provider can't carry over meaningfully — reset.
     QUEST_KEYS.forEach(function(key){

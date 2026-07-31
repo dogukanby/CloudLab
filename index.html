@@ -41,6 +41,7 @@
   <symbol id="ic-secrets" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="15.5" r="1.3" fill="currentColor"/></symbol>
   <symbol id="ic-capstone1" viewBox="0 0 24 24"><path d="M12 4 21 19H3L12 4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 10.5v3.5M12 16.8h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
   <symbol id="ic-capstone2" viewBox="0 0 24 24"><path d="M10 14 14 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="3.5" y="12.5" width="6" height="6" rx="2" transform="rotate(-45 6.5 15.5)" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="14.5" y="5.5" width="6" height="6" rx="2" transform="rotate(-45 17.5 8.5)" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="ic-services" viewBox="0 0 24 24"><path d="M12 6.2C10.2 4.7 7.7 4.2 4 4.2v13.6c3.7 0 6.2.5 8 2 1.8-1.5 4.3-2 8-2V4.2c-3.7 0-6.2.5-8 2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 6.2v13.6" stroke="currentColor" stroke-width="1.6"/></symbol>
 </svg>
 
 <button type="button" class="sidenav-backdrop" id="sidenavBackdrop" aria-hidden="true" tabindex="-1"></button>
@@ -48,7 +49,7 @@
 <nav class="sidenav" id="sidenav" aria-label="Modules">
   <div class="sidenav-head">
     <span class="wordmark"><span class="dot"></span><span data-i18n="common.wordmark">Systems Console</span></span>
-    <span class="version-tag" id="versionTag">v1.7.0</span>
+    <span class="version-tag" id="versionTag">v1.8.0</span>
     <button type="button" class="sidenav-close" id="sidenavClose" data-i18n-aria="common.closeMenu" aria-label="Close menu">✕</button>
   </div>
   <div class="sidenav-links">
@@ -75,6 +76,8 @@
     <div class="sidenav-divider" role="separator"></div>
     <a href="#capstone1"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-capstone1"></use></svg><span data-i18n="common.nav.capstone1">20 Capstone: Outage</span></a>
     <a href="#capstone2"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-capstone2"></use></svg><span data-i18n="common.nav.capstone2">21 Capstone: Exposure</span></a>
+    <div class="sidenav-divider" role="separator"></div>
+    <a href="#services"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-services"></use></svg><span data-i18n="common.nav.services">22 Service directory</span></a>
   </div>
 </nav>
 
@@ -106,7 +109,9 @@
 
   <!-- MODULE 00 — WHAT IS THE CLOUD -->
   <section class="panel" id="cloud101">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-cloud101"></use></svg></span>
       <span class="mod-id" data-i18n="cloud101.modId">MODULE 00</span>
       <h2 data-i18n="cloud101.title">What Is "The Cloud," Really?</h2>
     </header>
@@ -131,7 +136,9 @@
 
   <!-- MODULE 01 — AUTH -->
   <section class="panel" id="auth">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-auth"></use></svg></span>
       <span class="mod-id" data-i18n="auth.modId">MODULE 01</span>
       <h2 data-i18n="auth.title">Signing In: Federated &amp; Passwordless</h2>
       <span class="status-pill good" id="authStatus">SIGNED OUT</span>
@@ -180,7 +187,9 @@
 
   <!-- MODULE 02 — IAM -->
   <section class="panel" id="iam">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-iam"></use></svg></span>
       <span class="mod-id" data-i18n="iam.modId">MODULE 02</span>
       <h2 data-i18n="iam.title">IAM: Permissions &amp; Least Privilege</h2>
       <span class="status-pill good" id="iamStatus">LEAST PRIVILEGE</span>
@@ -233,7 +242,9 @@
 
   <!-- MODULE 03 — VPC -->
   <section class="panel" id="vpc">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-vpc"></use></svg></span>
       <span class="mod-id" data-i18n="vpc.modId">MODULE 03</span>
       <h2 data-i18n="vpc.title">VPC: Networks &amp; Security Groups</h2>
       <span class="status-pill good" id="vpcStatus">LOCKED DOWN</span>
@@ -294,7 +305,9 @@
 
   <!-- MODULE 04 — EC2 -->
   <section class="panel" id="ec2">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-ec2"></use></svg></span>
       <span class="mod-id" data-i18n="ec2.modId">MODULE 04</span>
       <h2 data-i18n="ec2.title">EC2: Instances &amp; Idle Cost</h2>
       <span class="status-pill good" id="ec2Status">RIGHT-SIZED</span>
@@ -347,7 +360,9 @@
 
   <!-- MODULE 05 — S3 -->
   <section class="panel" id="s3">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-s3"></use></svg></span>
       <span class="mod-id" data-i18n="s3.modId">MODULE 05</span>
       <h2 data-i18n="s3.title">S3: Object Storage &amp; Versioning</h2>
       <span class="status-pill good" id="s3Status">SECURE</span>
@@ -397,7 +412,9 @@
 
   <!-- MODULE 06 — LAMBDA -->
   <section class="panel" id="lambda">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-lambda"></use></svg></span>
       <span class="mod-id" data-i18n="lambda.modId">MODULE 06</span>
       <h2 data-i18n="lambda.title">Lambda: Serverless &amp; Cold Starts</h2>
       <span class="status-pill warn" id="lambdaStatus">POOL COLD</span>
@@ -445,7 +462,9 @@
 
   <!-- MODULE 07 — LOAD BALANCING -->
   <section class="panel" id="lb">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-lb"></use></svg></span>
       <span class="mod-id" data-i18n="lb.modId">MODULE 07</span>
       <h2 data-i18n="lb.title">Load Balancing &amp; Auto-Scaling</h2>
       <span class="status-pill good" id="lbStatus">STABLE</span>
@@ -504,7 +523,9 @@
 
   <!-- MODULE 08 — ELASTIC BEANSTALK -->
   <section class="panel" id="beanstalk">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-beanstalk"></use></svg></span>
       <span class="mod-id" data-i18n="beanstalk.modId">MODULE 08</span>
       <h2 data-i18n="beanstalk.title">Elastic Beanstalk: Deploys &amp; Rollback</h2>
       <span class="status-pill good" id="beanstalkStatus">OK</span>
@@ -549,7 +570,9 @@
 
   <!-- MODULE 09 — ROUTE 53 -->
   <section class="panel" id="route53">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-route53"></use></svg></span>
       <span class="mod-id" data-i18n="route53.modId">MODULE 09</span>
       <h2 data-i18n="route53.title">Route 53: DNS Routing Policies</h2>
       <span class="status-pill good" id="route53Status">HEALTHY</span>
@@ -611,7 +634,9 @@
 
   <!-- MODULE 10 — CACHING & CDN -->
   <section class="panel" id="cache">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-cache"></use></svg></span>
       <span class="mod-id" data-i18n="cache.modId">MODULE 10</span>
       <h2 data-i18n="cache.title">Caching &amp; CDN</h2>
       <span class="status-pill warn" id="cacheStatus">WARMING</span>
@@ -692,7 +717,9 @@
 
   <!-- MODULE 11 — CONSISTENCY -->
   <section class="panel" id="consistency">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-consistency"></use></svg></span>
       <span class="mod-id" data-i18n="consistency.modId">MODULE 11</span>
       <h2 data-i18n="consistency.title">Distributed Consistency</h2>
       <span class="status-pill good" id="consStatus">CONSISTENT</span>
@@ -747,7 +774,9 @@
 
   <!-- MODULE 12 — FAULT TOLERANCE & FAILOVER -->
   <section class="panel" id="failover">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-failover"></use></svg></span>
       <span class="mod-id" data-i18n="failover.modId">MODULE 12</span>
       <h2 data-i18n="failover.title">Fault Tolerance &amp; Failover</h2>
       <span class="status-pill good" id="foStatus">HEALTHY</span>
@@ -794,7 +823,9 @@
 
   <!-- MODULE 13 — SNS -->
   <section class="panel" id="sns">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-sns"></use></svg></span>
       <span class="mod-id" data-i18n="sns.modId">MODULE 13</span>
       <h2 data-i18n="sns.title">SNS: One Event, Many Subscribers</h2>
       <span class="status-pill good" id="snsStatus">FANNING OUT</span>
@@ -843,7 +874,9 @@
 
   <!-- MODULE 14 — CLOUDWATCH -->
   <section class="panel" id="cloudwatch">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-cloudwatch"></use></svg></span>
       <span class="mod-id" data-i18n="cloudwatch.modId">MODULE 14</span>
       <h2 data-i18n="cloudwatch.title">CloudWatch: Monitoring &amp; Alarms</h2>
       <span class="status-pill good" id="cloudwatchStatus">OK</span>
@@ -893,7 +926,9 @@
 
   <!-- MODULE 15 — SNOWBALL EDGE -->
   <section class="panel" id="snowball">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-snowball"></use></svg></span>
       <span class="mod-id" data-i18n="snowball.modId">MODULE 15</span>
       <h2 data-i18n="snowball.title">Snowball Edge: When the Network Loses</h2>
       <span class="status-pill good" id="snowballStatus">NETWORK WINS</span>
@@ -949,7 +984,9 @@
 
   <!-- MODULE 16 — DATABASES -->
   <section class="panel" id="database">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-database"></use></svg></span>
       <span class="mod-id" data-i18n="database.modId">MODULE 16</span>
       <h2 data-i18n="database.title">Databases: Replicas, Multi-AZ &amp; Failover</h2>
       <span class="status-pill good" id="databaseStatus">HEALTHY</span>
@@ -999,7 +1036,9 @@
 
   <!-- MODULE 17 — CONTAINERS -->
   <section class="panel" id="containers">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-containers"></use></svg></span>
       <span class="mod-id" data-i18n="containers.modId">MODULE 17</span>
       <h2 data-i18n="containers.title">Containers &amp; Orchestration</h2>
       <span class="status-pill good" id="containersStatus">ALL TASKS HEALTHY</span>
@@ -1050,7 +1089,9 @@
 
   <!-- MODULE 18 — CI/CD -->
   <section class="panel" id="cicd">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-cicd"></use></svg></span>
       <span class="mod-id" data-i18n="cicd.modId">MODULE 18</span>
       <h2 data-i18n="cicd.title">CI/CD: Pipelines &amp; Deploy Gates</h2>
       <span class="status-pill good" id="cicdStatus">IDLE</span>
@@ -1102,7 +1143,9 @@
 
   <!-- MODULE 19 — SECRETS & ENCRYPTION -->
   <section class="panel" id="secrets">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-secrets"></use></svg></span>
       <span class="mod-id" data-i18n="secrets.modId">MODULE 19</span>
       <h2 data-i18n="secrets.title">Secrets &amp; Encryption (KMS)</h2>
       <span class="status-pill good" id="secretsStatus">KEY CURRENT</span>
@@ -1161,7 +1204,9 @@
 
   <!-- MODULE 20 — CAPSTONE 1 -->
   <section class="panel" id="capstone1">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-capstone1"></use></svg></span>
       <span class="mod-id" data-i18n="capstone1.modId">MODULE 20</span>
       <h2 data-i18n="capstone1.title">Capstone: A Friday-Night Outage</h2>
     </header>
@@ -1172,13 +1217,31 @@
 
   <!-- MODULE 21 — CAPSTONE 2 -->
   <section class="panel" id="capstone2">
+    <div class="panel-glow" aria-hidden="true"></div>
     <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-capstone2"></use></svg></span>
       <span class="mod-id" data-i18n="capstone2.modId">MODULE 21</span>
       <h2 data-i18n="capstone2.title">Capstone: A Data Exposure Chain</h2>
     </header>
     <p class="dek" data-i18n="capstone2.dek">A pentest just found a path from a low-privilege laptop to every object in a production bucket.</p>
     <div class="analogy"><p class="eyebrow accent" data-i18n="common.analogyLabel">IN PLAIN TERMS</p><p data-i18n="capstone2.analogy">It's not one unlocked door.</p></div>
     <div class="quest-mount" id="quest-mount-capstone2"></div>
+  </section>
+
+  <!-- MODULE 22 — SERVICE DIRECTORY -->
+  <section class="panel" id="services">
+    <div class="panel-glow" aria-hidden="true"></div>
+    <header class="panel-head">
+      <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-services"></use></svg></span>
+      <span class="mod-id" data-i18n="services.modId">MODULE 22</span>
+      <h2 data-i18n="services.title">Service Directory: One Cheat Sheet, Three Clouds</h2>
+    </header>
+    <p class="dek" data-i18n="services.dek">Every headline service in one line each — what it does, and what the same thing is called on AWS, Azure, and Google Cloud. The provider toggle up top highlights your column.</p>
+    <div class="svc-controls">
+      <input type="search" id="svcSearch" class="svc-search" data-i18n-placeholder="services.searchPh" placeholder='Filter services — try "SQL", "DDoS", "warehouse"…' autocomplete="off" spellcheck="false">
+    </div>
+    <div class="svc-groups" id="svcGroups"></div>
+    <p class="svc-empty" id="svcEmpty" hidden data-i18n="services.noResults">No service matches that search.</p>
   </section>
 
 

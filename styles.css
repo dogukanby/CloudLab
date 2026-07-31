@@ -23,6 +23,7 @@
   --ease-in-out:cubic-bezier(0.77,0,0.175,1);
   --press-scale:0.97;
   --sidenav-w:238px;
+  --glow-opacity:0.14;
 }
 @media (prefers-color-scheme: dark){
   :root{
@@ -42,6 +43,7 @@
     --grid-line:rgba(231,236,243,0.045);
     --bg-translucent:rgba(10,13,19,0.86);
     --shadow:0 1px 2px rgba(0,0,0,0.35), 0 14px 34px rgba(0,0,0,0.38);
+    --glow-opacity:0.30;
   }
 }
 :root[data-theme="dark"]{
@@ -52,6 +54,7 @@
   --good:#57d977; --warn:#ffb648; --bad:#ff5c66;
   --grid-line:rgba(231,236,243,0.045); --bg-translucent:rgba(10,13,19,0.86);
   --shadow:0 1px 2px rgba(0,0,0,0.35), 0 14px 34px rgba(0,0,0,0.38);
+  --glow-opacity:0.30;
 }
 :root[data-theme="light"]{
   --bg:#c5cbd1; --bg-panel:#d7dce0; --bg-panel-2:#cbd1d6;
@@ -61,6 +64,7 @@
   --good:#1c8a41; --warn:#a8690a; --bad:#c93a45;
   --grid-line:rgba(20,30,45,0.08); --bg-translucent:rgba(197,203,209,0.88);
   --shadow:0 1px 2px rgba(20,30,45,0.12), 0 10px 26px rgba(20,30,45,0.10);
+  --glow-opacity:0.14;
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
@@ -135,14 +139,25 @@ a:hover{ color:var(--ink); }
 .totop-fab.visible:active{ transform:translateY(0) scale(var(--press-scale)); }
 .totop-fab:hover{ color:var(--accent); border-color:var(--accent); }
 @media (max-width:480px){ .totop-fab{ right:16px; bottom:76px; width:40px; height:40px; } }
+@media (max-width:480px){ .panel-icon{ width:32px; height:32px; border-radius:9px; } .panel-icon svg{ width:17px; height:17px; } }
 
 .intro{ padding:44px 0 30px; max-width:640px; }
 .intro h1{ font-family:var(--font-display); font-weight:800; text-transform:uppercase; letter-spacing:-0.01em; font-stretch:condensed; font-size:clamp(1.6rem,1.25rem + 2vw,2.4rem); line-height:1.05; text-wrap:balance; margin:0 0 14px; }
 .intro p{ color:var(--ink-dim); font-size:1rem; margin:0; max-width:56ch; }
 .intro .meta{ margin-top:16px; font-family:var(--font-mono); font-size:0.72rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.05em; }
 
-.panel{ background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:26px; box-shadow:var(--shadow); scroll-margin-top:70px; overflow:hidden; }
+.panel{ position:relative; background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:26px; box-shadow:var(--shadow); scroll-margin-top:70px; overflow:hidden; }
+.panel-glow{ position:absolute; z-index:-1; top:-90px; right:-60px; width:280px; height:280px; border-radius:50%; background:var(--accent); opacity:var(--glow-opacity); filter:blur(70px); pointer-events:none; }
+.panel:nth-of-type(8n+2) .panel-glow{ filter:blur(70px) hue-rotate(45deg); }
+.panel:nth-of-type(8n+3) .panel-glow{ filter:blur(70px) hue-rotate(90deg); }
+.panel:nth-of-type(8n+4) .panel-glow{ filter:blur(70px) hue-rotate(135deg); }
+.panel:nth-of-type(8n+5) .panel-glow{ filter:blur(70px) hue-rotate(180deg); }
+.panel:nth-of-type(8n+6) .panel-glow{ filter:blur(70px) hue-rotate(225deg); }
+.panel:nth-of-type(8n+7) .panel-glow{ filter:blur(70px) hue-rotate(270deg); }
+.panel:nth-of-type(8n+8) .panel-glow{ filter:blur(70px) hue-rotate(315deg); }
 .panel-head{ display:flex; align-items:center; gap:14px; padding:18px 22px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.panel-icon{ display:flex; align-items:center; justify-content:center; flex:none; width:38px; height:38px; border-radius:10px; background:var(--accent-soft); color:var(--accent); }
+.panel-icon svg{ width:20px; height:20px; }
 .mod-id{ font-family:var(--font-mono); font-size:0.7rem; color:var(--ink-faint); letter-spacing:0.06em; }
 .panel-head h2{ font-family:var(--font-display); font-weight:800; text-transform:uppercase; letter-spacing:-0.005em; font-size:clamp(1rem,0.9rem + 0.5vw,1.25rem); margin:0; flex:1; min-width:200px; }
 .status-pill{ font-family:var(--font-mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.04em; padding:4px 10px; border-radius:999px; border:1px solid currentColor; white-space:nowrap; transition:color 200ms ease; }
@@ -394,6 +409,23 @@ select, .btn{ font-size:0.82rem; padding:8px 10px; border-radius:var(--radius); 
 .quest-api-row .btn{ font-size:0.72rem; padding:6px 12px; }
 .quest-footer{ margin-top:16px; display:flex; flex-direction:column; align-items:flex-start; gap:10px; }
 .quest-complete-note{ max-width:70ch; margin:0; font-size:0.85rem; color:var(--good); line-height:1.6; }
+
+/* module 22 — service directory */
+.svc-controls{ padding:16px 22px 0; }
+.svc-search{ width:100%; max-width:420px; padding:9px 12px; font:inherit; font-size:0.88rem; color:var(--ink); background:var(--bg-panel-2); border:1px solid var(--border-strong); border-radius:6px; }
+.svc-search:focus{ border-color:var(--accent); outline:none; }
+.svc-groups{ padding:8px 22px 22px; display:flex; flex-direction:column; gap:24px; }
+.svc-cat{ margin:0 0 8px; }
+.svc-scroll{ overflow-x:auto; border:1px solid var(--border); border-radius:6px; }
+.svc-table{ width:100%; min-width:660px; border-collapse:collapse; font-size:0.85rem; }
+.svc-table th{ text-align:left; font-family:var(--font-mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint); padding:9px 12px; border-bottom:1px solid var(--border-strong); background:var(--bg-panel-2); white-space:nowrap; }
+.svc-table td{ padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+.svc-table tbody tr:last-child td{ border-bottom:none; }
+.svc-name{ font-weight:600; white-space:nowrap; }
+.svc-desc{ color:var(--ink-dim); min-width:280px; }
+.svc-table .svc-active{ background:var(--accent-soft); }
+.svc-table th.svc-active{ color:var(--accent); }
+.svc-empty{ padding:0 22px 22px; margin:0; color:var(--ink-dim); font-size:0.9rem; }
 
 /* ask the console — chat widget */
 .chat-fab{ position:fixed; right:20px; bottom:20px; z-index:30; width:52px; height:52px; padding:0; border-radius:50%; border:1px solid var(--border-strong); background:var(--accent); color:var(--bg-panel); cursor:pointer; box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; transition:box-shadow 160ms ease, filter 160ms ease; }
