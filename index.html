@@ -88,19 +88,19 @@
     <div class="sidenav-divider" role="separator"></div>
     <a href="#services"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-services"></use></svg><span data-i18n="common.nav.services">22 Service directory</span></a>
     <p class="sidenav-cat" data-i18n="common.navCat.security">Security</p>
-    <a href="#threat"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-threat"></use></svg><span data-i18n="common.nav.threat">23 Threat detection</span></a>
-    <a href="#edge"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-edge"></use></svg><span data-i18n="common.nav.edge">24 WAF &amp; DDoS</span></a>
-    <a href="#identity"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-identity"></use></svg><span data-i18n="common.nav.identity">25 Identity &amp; access</span></a>
-    <a href="#certs"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-certs"></use></svg><span data-i18n="common.nav.certs">26 Certs &amp; PII</span></a>
+    <a href="#threat"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-threat"></use></svg><span data-i18n="common.nav.threat">23 GuardDuty &amp; Inspector</span></a>
+    <a href="#edge"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-edge"></use></svg><span data-i18n="common.nav.edge">24 WAF &amp; Shield</span></a>
+    <a href="#identity"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-identity"></use></svg><span data-i18n="common.nav.identity">25 STS &amp; Cognito</span></a>
+    <a href="#certs"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-certs"></use></svg><span data-i18n="common.nav.certs">26 ACM &amp; Macie</span></a>
     <p class="sidenav-cat" data-i18n="common.navCat.data">Data &amp; analytics</p>
-    <a href="#analytics"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-analytics"></use></svg><span data-i18n="common.nav.analytics">27 Data &amp; analytics</span></a>
+    <a href="#analytics"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-analytics"></use></svg><span data-i18n="common.nav.analytics">27 Redshift &amp; Athena</span></a>
     <p class="sidenav-cat" data-i18n="common.navCat.connect">Hybrid &amp; migration</p>
-    <a href="#hybrid"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-hybrid"></use></svg><span data-i18n="common.nav.hybrid">28 Hybrid &amp; migration</span></a>
+    <a href="#hybrid"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-hybrid"></use></svg><span data-i18n="common.nav.hybrid">28 Direct Connect &amp; DMS</span></a>
     <p class="sidenav-cat" data-i18n="common.navCat.ops">Automation &amp; governance</p>
-    <a href="#iac"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-iac"></use></svg><span data-i18n="common.nav.iac">29 Infrastructure as code</span></a>
-    <a href="#govern"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-govern"></use></svg><span data-i18n="common.nav.govern">30 Governance &amp; cost</span></a>
+    <a href="#iac"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-iac"></use></svg><span data-i18n="common.nav.iac">29 CloudFormation</span></a>
+    <a href="#govern"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-govern"></use></svg><span data-i18n="common.nav.govern">30 Trusted Advisor</span></a>
     <p class="sidenav-cat" data-i18n="common.navCat.ai">AI &amp; integration</p>
-    <a href="#aiint"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-aiint"></use></svg><span data-i18n="common.nav.aiint">31 AI &amp; integration</span></a>
+    <a href="#aiint"><svg class="sidenav-icon" aria-hidden="true"><use href="#ic-aiint"></use></svg><span data-i18n="common.nav.aiint">31 Lex, Polly &amp; MQ</span></a>
   </div>
 </nav>
 
@@ -1273,7 +1273,7 @@
     <header class="panel-head">
       <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-threat"></use></svg></span>
       <span class="mod-id" data-i18n="threat.modId">MODULE 23</span>
-      <h2 data-i18n="threat.title">Threat Detection: GuardDuty, Inspector &amp; Security Hub</h2>
+      <h2 data-i18n="threat.title">GuardDuty &amp; Inspector: Threat Detection</h2>
       <span class="status-pill good" id="threatStatus">SECURE</span>
     </header>
     <p class="dek" data-i18n="threat.dek">Nobody watches dashboards all night.</p>
@@ -1321,7 +1321,7 @@
     <header class="panel-head">
       <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-edge"></use></svg></span>
       <span class="mod-id" data-i18n="edge.modId">MODULE 24</span>
-      <h2 data-i18n="edge.title">Edge Protection: WAF &amp; DDoS</h2>
+      <h2 data-i18n="edge.title">WAF &amp; Shield: Attacks at the Edge</h2>
       <span class="status-pill good" id="edgeStatus">PROTECTED</span>
     </header>
     <p class="dek" data-i18n="edge.dek">Attacks arrive as ordinary-looking web requests.</p>
@@ -1376,7 +1376,7 @@
     <header class="panel-head">
       <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-identity"></use></svg></span>
       <span class="mod-id" data-i18n="identity.modId">MODULE 25</span>
-      <h2 data-i18n="identity.title">Identity: Temporary Credentials &amp; SSO</h2>
+      <h2 data-i18n="identity.title">STS &amp; Cognito: Temporary Credentials &amp; SSO</h2>
       <span class="status-pill good" id="idStatus">SHORT-LIVED</span>
     </header>
     <p class="dek" data-i18n="identity.dek">The safest credential is one that stops working on its own.</p>
@@ -1429,7 +1429,7 @@
     <header class="panel-head">
       <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-certs"></use></svg></span>
       <span class="mod-id" data-i18n="certs.modId">MODULE 26</span>
-      <h2 data-i18n="certs.title">Certificates &amp; Finding Sensitive Data</h2>
+      <h2 data-i18n="certs.title">ACM &amp; Macie: Certificates &amp; Sensitive Data</h2>
       <span class="status-pill good" id="certStatus">VALID</span>
     </header>
     <p class="dek" data-i18n="certs.dek">Two quiet failures: a certificate nobody renewed, and personal data nobody knew was there.</p>
@@ -1482,7 +1482,7 @@
     <header class="panel-head">
       <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-analytics"></use></svg></span>
       <span class="mod-id" data-i18n="analytics.modId">MODULE 27</span>
-      <h2 data-i18n="analytics.title">Pick the Right Data Store</h2>
+      <h2 data-i18n="analytics.title">Redshift, DynamoDB &amp; Athena: Pick the Right Data Store</h2>
       <span class="status-pill warn" id="analyticsStatus">CHOOSING</span>
     </header>
     <p class="dek" data-i18n="analytics.dek">There is no best database — only the right one for each question.</p>
@@ -1525,7 +1525,7 @@
     <header class="panel-head">
       <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-hybrid"></use></svg></span>
       <span class="mod-id" data-i18n="hybrid.modId">MODULE 28</span>
-      <h2 data-i18n="hybrid.title">Hybrid Cloud &amp; Getting Data There</h2>
+      <h2 data-i18n="hybrid.title">Direct Connect, Outposts &amp; DMS: Hybrid &amp; Migration</h2>
       <span class="status-pill warn" id="hybridStatus">PLANNING</span>
     </header>
     <p class="dek" data-i18n="hybrid.dek">Five ways to connect a building to a cloud — each one right for exactly one situation.</p>
@@ -1568,7 +1568,7 @@
     <header class="panel-head">
       <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-iac"></use></svg></span>
       <span class="mod-id" data-i18n="iac.modId">MODULE 29</span>
-      <h2 data-i18n="iac.title">Infrastructure as Code</h2>
+      <h2 data-i18n="iac.title">CloudFormation: Infrastructure as Code</h2>
       <span class="status-pill good" id="iacStatus">IN SYNC</span>
     </header>
     <p class="dek" data-i18n="iac.dek">Clicking creates a snowflake; a template creates the same environment every single time.</p>
@@ -1619,7 +1619,7 @@
     <header class="panel-head">
       <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-govern"></use></svg></span>
       <span class="mod-id" data-i18n="govern.modId">MODULE 30</span>
-      <h2 data-i18n="govern.title">Governance &amp; the Bill</h2>
+      <h2 data-i18n="govern.title">Trusted Advisor &amp; Spot: Governance &amp; the Bill</h2>
       <span class="status-pill warn" id="governStatus">UNREVIEWED</span>
     </header>
     <p class="dek" data-i18n="govern.dek">Most cloud waste and cloud risk is invisible until something goes looking for it.</p>
@@ -1665,7 +1665,7 @@
     <header class="panel-head">
       <span class="panel-icon" aria-hidden="true"><svg><use href="#ic-aiint"></use></svg></span>
       <span class="mod-id" data-i18n="aiint.modId">MODULE 31</span>
-      <h2 data-i18n="aiint.title">AI Services &amp; App Integration</h2>
+      <h2 data-i18n="aiint.title">Lex, Polly &amp; MQ: AI &amp; App Integration</h2>
       <span class="status-pill good" id="aiintStatus">DECOUPLED</span>
     </header>
     <p class="dek" data-i18n="aiint.dek">A bot that understands intent, a voice that reads text aloud, and a queue that keeps orders safe when a worker dies.</p>

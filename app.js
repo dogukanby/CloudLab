@@ -12,7 +12,7 @@
     en: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS", capstone1:"20 Capstone: Outage", capstone2:"21 Capstone: Exposure", services:"22 Service directory", threat:"23 Threat detection", edge:"24 WAF & DDoS", identity:"25 Identity & access", certs:"26 Certs & PII", analytics:"27 Data & analytics", hybrid:"28 Hybrid & migration", iac:"29 Infrastructure as code", govern:"30 Governance & cost", aiint:"31 AI & integration" },
+        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS", capstone1:"20 Capstone: Outage", capstone2:"21 Capstone: Exposure", services:"22 Service directory", threat:"23 GuardDuty & Inspector", edge:"24 WAF & Shield", identity:"25 STS & Cognito", certs:"26 ACM & Macie", analytics:"27 Redshift & Athena", hybrid:"28 Direct Connect & DMS", iac:"29 CloudFormation", govern:"30 Trusted Advisor", aiint:"31 Lex, Polly & MQ" },
         navCat:{ security:"Security", data:"Data & analytics", connect:"Hybrid & migration", ops:"Automation & governance", ai:"AI & integration" },
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"CloudLab",
@@ -6265,8 +6265,8 @@
         }
       },
       threat:{
-        modId:"MODULE 23", title:"Threat Detection: GuardDuty, Inspector & Security Hub",
-        titleAzure:"Threat Detection: Microsoft Defender for Cloud", titleGcp:"Threat Detection: Security Command Center",
+        modId:"MODULE 23", title:"GuardDuty & Inspector: Threat Detection",
+        titleAzure:"Defender for Cloud: Threat Detection", titleGcp:"Security Command Center: Threat Detection",
         dek:"Nobody watches dashboards all night — so a detector watches the account's behavior, a scanner checks what's patchable, and one screen collects everything they find.",
         analogy:"It's a burglar alarm (GuardDuty — someone's moving inside the house), a home inspector (Inspector — this window's lock is broken and here's the list), and the wall of monitors at the security desk where all of it lands (Security Hub). The alarm doesn't fix anything — it makes sure a human looks.",
         keyBtn:"Simulate: leaked key used", mineBtn:"Simulate: crypto-mining", scanBtn:"Run Inspector scan", resolveBtn:"Investigate & resolve oldest",
@@ -6296,8 +6296,8 @@
         }
       },
       edge:{
-        modId:"MODULE 24", title:"Edge Protection: WAF & DDoS",
-        titleAzure:"Edge Protection: Azure WAF & DDoS Protection", titleGcp:"Edge Protection: Cloud Armor",
+        modId:"MODULE 24", title:"WAF & Shield: Attacks at the Edge",
+        titleAzure:"Azure WAF & DDoS Protection: Attacks at the Edge", titleGcp:"Cloud Armor: Attacks at the Edge",
         dek:"Attacks arrive as ordinary-looking web requests — one crafted to trick your database, or ten thousand a second meant to bury you. Both get stopped at the door, or not at all.",
         analogy:"The WAF is the bouncer reading every ID at the door — it spots the fake (a request whose 'name' is actually a database command) and turns it away. DDoS protection is crowd control out on the street: when ten thousand people show up at once just to jam the entrance, it absorbs the crush before the door even feels it.",
         siteLabel:"shop.example.com", loadLabel:"Site load",
@@ -6326,8 +6326,8 @@
         }
       },
       identity:{
-        modId:"MODULE 25", title:"Identity: STS, Identity Center & Cognito",
-        titleAzure:"Identity: Entra ID Tokens & SSO", titleGcp:"Identity: Cloud Identity & Federation",
+        modId:"MODULE 25", title:"STS & Cognito: Temporary Credentials & SSO",
+        titleAzure:"Entra ID: Temporary Credentials & SSO", titleGcp:"Cloud Identity: Temporary Credentials & SSO",
         dek:"The safest credential is one that stops working on its own — a leaked key that expired an hour ago is a souvenir, not a breach.",
         analogy:"A hotel keycard that dies at checkout versus a metal key that opens the door forever. Lose the keycard on the last day and nobody cares; lose the metal key and the hotel changes the lock. STS hands out keycards. Long-term access keys are metal keys.",
         acctDev:"Dev account", acctStaging:"Staging account", acctProd:"Prod account",
@@ -6357,8 +6357,8 @@
         }
       },
       certs:{
-        modId:"MODULE 26", title:"Certificates & Finding Sensitive Data",
-        titleAzure:"Certificates & Sensitive Data: Key Vault & Purview", titleGcp:"Certificates & Sensitive Data: Certificate Manager & DLP",
+        modId:"MODULE 26", title:"ACM & Macie: Certificates & Sensitive Data",
+        titleAzure:"Key Vault & Purview: Certificates & Sensitive Data", titleGcp:"Certificate Manager & DLP: Certificates & Sensitive Data",
         dek:"Two quiet failures with loud endings: a certificate nobody renewed, and personal data sitting in a bucket nobody knew about.",
         analogy:"A passport that expires while you're mid-trip — nothing 'broke,' but suddenly nothing lets you through. And a filing cabinet where someone shoved photocopies of customer IDs into an unmarked folder: the data isn't leaked yet, but nobody guarding the cabinet knows it's there to guard.",
         daysLabel:"days until expiry",
@@ -6387,8 +6387,8 @@
         }
       },
       analytics:{
-        modId:"MODULE 27", title:"Pick the Right Data Store",
-        titleAzure:"Pick the Right Data Store (Synapse, Cosmos DB & Power BI)", titleGcp:"Pick the Right Data Store (BigQuery, Firestore & Looker)",
+        modId:"MODULE 27", title:"Redshift, DynamoDB & Athena: Pick the Right Data Store",
+        titleAzure:"Synapse & Cosmos DB: Pick the Right Data Store", titleGcp:"BigQuery & Firestore: Pick the Right Data Store",
         dek:"There is no best database — only the right one for each question. Five real workloads, five tools; every mismatch has a reason it hurts.",
         analogy:"A filing cabinet for grabbing one folder fast (key-value), a warehouse where forklifts count every box overnight (analytics), a corkboard of photos connected by string (graph), a librarian who answers questions about boxes without unpacking them (SQL-on-files), and the person who turns it all into charts for the boss (BI).",
         tryStep1:"Click a workload on the left, then click the store you'd run it on.",
@@ -6431,8 +6431,8 @@
         status:{ choosing:"CHOOSING", done:"ALL MATCHED" }
       },
       hybrid:{
-        modId:"MODULE 28", title:"Hybrid Cloud & Getting Data There",
-        titleAzure:"Hybrid & Migration: ExpressRoute & Azure Local", titleGcp:"Hybrid & Migration: Interconnect & Distributed Cloud",
+        modId:"MODULE 28", title:"Direct Connect, Outposts & DMS: Hybrid & Migration",
+        titleAzure:"ExpressRoute & Azure Local: Hybrid & Migration", titleGcp:"Interconnect & Distributed Cloud: Hybrid & Migration",
         dek:"Five ways to connect a building to a cloud — each one right for exactly one situation, and expensive or slow in all the others.",
         analogy:"A secure courier over public roads (VPN), a private rail line you lease (Direct Connect), a branch of the factory built inside your own warehouse (Outposts), a moving company that keeps your shop open during the move (DMS), and a nightly shuttle running the same route on schedule (DataSync).",
         tryStep1:"Click a situation on the left, then the connection or tool that fits it.",
@@ -6475,8 +6475,8 @@
         status:{ planning:"PLANNING", done:"ALL CONNECTED" }
       },
       iac:{
-        modId:"MODULE 29", title:"Infrastructure as Code",
-        titleAzure:"Infrastructure as Code: ARM & Bicep", titleGcp:"Infrastructure as Code: Infrastructure Manager",
+        modId:"MODULE 29", title:"CloudFormation: Infrastructure as Code",
+        titleAzure:"ARM & Bicep: Infrastructure as Code", titleGcp:"Infrastructure Manager: Infrastructure as Code",
         dek:"Clicking creates a snowflake — unique, undocumented, and impossible to rebuild under pressure. A template creates the same environment every single time, and can prove when reality has drifted from it.",
         analogy:"Cooking from memory versus cooking from a written recipe. From memory, Tuesday's soup never quite matches Monday's, and when the chef is sick nobody can make it at all. The recipe isn't fancier cooking — it's the guarantee that anyone can produce the same dish, and the standard you check against when something tastes off.",
         manualLabel:"BUILT BY HAND", templateLabel:"FROM TEMPLATE",
@@ -6507,8 +6507,8 @@
         }
       },
       govern:{
-        modId:"MODULE 30", title:"Governance & the Bill",
-        titleAzure:"Governance & the Bill: Azure Advisor & Policy", titleGcp:"Governance & the Bill: Recommender & Org Policy",
+        modId:"MODULE 30", title:"Trusted Advisor & Spot: Governance & the Bill",
+        titleAzure:"Azure Advisor: Governance & the Bill", titleGcp:"Recommender: Governance & the Bill",
         dek:"Most cloud waste and most cloud risk share one property: they're invisible until something goes looking. So the providers built things that go looking.",
         analogy:"A home energy audit that also checks whether you locked the doors: the auditor walks the house, finds the fridge running in the empty garage, the window painted open, the spare key under the mat — and hands you a list sorted by what it costs you.",
         scanBtn:"Run advisor scan", spotLabel:"Run batch fleet on Spot instances",
@@ -6541,8 +6541,8 @@
         }
       },
       aiint:{
-        modId:"MODULE 31", title:"AI Services & App Integration",
-        titleAzure:"AI & Integration: Bot Service, AI Speech & Service Bus", titleGcp:"AI & Integration: Dialogflow, Text-to-Speech & Pub/Sub",
+        modId:"MODULE 31", title:"Lex, Polly & MQ: AI & App Integration",
+        titleAzure:"Bot Service, AI Speech & Service Bus: AI & App Integration", titleGcp:"Dialogflow, TTS & Pub/Sub: AI & App Integration",
         dek:"A bot that turns a sentence into a structured command, a voice that reads text aloud, and a queue that keeps orders safe while the worker that processes them is dead.",
         analogy:"A receptionist who hears \"table for four tonight?\" and writes down {book, 4, tonight} (Lex), a narrator who reads any page aloud (Polly), and the inbox tray between two desks — if the second desk is empty for an hour, work piles up in the tray instead of on the floor (MQ).",
         botLabel:"CHATBOT — INTENT DETECTION", botPh:"e.g. book a table for 4 tonight", botBtn:"Send",
@@ -6591,7 +6591,7 @@
     tr: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS", capstone1:"20 Final Görev: Kesinti", capstone2:"21 Final Görev: Sızıntı", services:"22 Servis rehberi", threat:"23 Tehdit algılama", edge:"24 WAF ve DDoS", identity:"25 Kimlik ve erişim", certs:"26 Sertifikalar ve PII", analytics:"27 Veri ve analitik", hybrid:"28 Hibrit ve taşıma", iac:"29 Kod olarak altyapı", govern:"30 Yönetişim ve maliyet", aiint:"31 YZ ve entegrasyon" },
+        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS", capstone1:"20 Final Görev: Kesinti", capstone2:"21 Final Görev: Sızıntı", services:"22 Servis rehberi", threat:"23 GuardDuty ve Inspector", edge:"24 WAF ve Shield", identity:"25 STS ve Cognito", certs:"26 ACM ve Macie", analytics:"27 Redshift ve Athena", hybrid:"28 Direct Connect ve DMS", iac:"29 CloudFormation", govern:"30 Trusted Advisor", aiint:"31 Lex, Polly ve MQ" },
         navCat:{ security:"Güvenlik", data:"Veri ve analitik", connect:"Hibrit ve taşıma", ops:"Otomasyon ve yönetişim", ai:"YZ ve entegrasyon" },
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"CloudLab",
@@ -12844,8 +12844,8 @@
         }
       },
       threat:{
-        modId:"MODÜL 23", title:"Tehdit Algılama: GuardDuty, Inspector ve Security Hub",
-        titleAzure:"Tehdit Algılama: Microsoft Defender for Cloud", titleGcp:"Tehdit Algılama: Security Command Center",
+        modId:"MODÜL 23", title:"GuardDuty ve Inspector: Tehdit Algılama",
+        titleAzure:"Defender for Cloud: Tehdit Algılama", titleGcp:"Security Command Center: Tehdit Algılama",
         dek:"Kimse bütün gece panoları izlemez — bu yüzden bir dedektör hesabın davranışını izler, bir tarayıcı yamalanabilecekleri kontrol eder ve tek ekran ikisinin de bulduklarını toplar.",
         analogy:"Bir hırsız alarmı (GuardDuty — evin içinde biri dolaşıyor), bir yapı denetçisi (Inspector — şu pencerenin kilidi bozuk, işte liste) ve hepsinin düştüğü güvenlik masasındaki monitör duvarı (Security Hub). Alarm hiçbir şeyi düzeltmez — bir insanın bakmasını garanti eder.",
         keyBtn:"Simüle et: sızmış anahtar kullanıldı", mineBtn:"Simüle et: kripto madenciliği", scanBtn:"Inspector taraması çalıştır", resolveBtn:"En eskiyi incele ve çöz",
@@ -12875,8 +12875,8 @@
         }
       },
       edge:{
-        modId:"MODÜL 24", title:"Uç Koruması: WAF ve DDoS",
-        titleAzure:"Uç Koruması: Azure WAF ve DDoS Protection", titleGcp:"Uç Koruması: Cloud Armor",
+        modId:"MODÜL 24", title:"WAF ve Shield: Uçtaki Saldırılar",
+        titleAzure:"Azure WAF ve DDoS Protection: Uçtaki Saldırılar", titleGcp:"Cloud Armor: Uçtaki Saldırılar",
         dek:"Saldırılar sıradan görünümlü web istekleri olarak gelir — biri veritabanını kandırmak için el yapımı, ya da sizi gömmek için saniyede on bin tane. İkisi de ya kapıda durdurulur ya da hiç durdurulamaz.",
         analogy:"WAF kapıda her kimliği okuyan fedaidir — sahteyi (adı aslında bir veritabanı komutu olan isteği) yakalar ve geri çevirir. DDoS koruması sokaktaki kalabalık kontrolüdür: sırf girişi tıkamak için aynı anda on bin kişi gelirse, izdiham kapıya değmeden emilir.",
         siteLabel:"shop.example.com", loadLabel:"Site yükü",
@@ -12905,8 +12905,8 @@
         }
       },
       identity:{
-        modId:"MODÜL 25", title:"Kimlik: STS, Identity Center ve Cognito",
-        titleAzure:"Kimlik: Entra ID Jetonları ve SSO", titleGcp:"Kimlik: Cloud Identity ve Federasyon",
+        modId:"MODÜL 25", title:"STS ve Cognito: Geçici Kimlikler ve SSO",
+        titleAzure:"Entra ID: Geçici Kimlikler ve SSO", titleGcp:"Cloud Identity: Geçici Kimlikler ve SSO",
         dek:"En güvenli kimlik bilgisi, kendi kendine çalışmayı bırakandır — bir saat önce süresi dolmuş sızmış bir anahtar ihlal değil, hatıradır.",
         analogy:"Çıkışta ölen bir otel kartı ile kapıyı sonsuza dek açan metal anahtar. Kartı son gün kaybet, kimsenin umurunda olmaz; metal anahtarı kaybet, otel kilidi değiştirir. STS otel kartı dağıtır. Kalıcı erişim anahtarları metal anahtardır.",
         acctDev:"Dev hesabı", acctStaging:"Staging hesabı", acctProd:"Prod hesabı",
@@ -12936,8 +12936,8 @@
         }
       },
       certs:{
-        modId:"MODÜL 26", title:"Sertifikalar ve Hassas Veriyi Bulmak",
-        titleAzure:"Sertifikalar ve Hassas Veri: Key Vault ve Purview", titleGcp:"Sertifikalar ve Hassas Veri: Certificate Manager ve DLP",
+        modId:"MODÜL 26", title:"ACM ve Macie: Sertifikalar ve Hassas Veri",
+        titleAzure:"Key Vault ve Purview: Sertifikalar ve Hassas Veri", titleGcp:"Certificate Manager ve DLP: Sertifikalar ve Hassas Veri",
         dek:"Sonu gürültülü iki sessiz arıza: kimsenin yenilemediği bir sertifika ve kimsenin varlığını bilmediği bir kovada duran kişisel veriler.",
         analogy:"Yolculuğun ortasında süresi dolan bir pasaport — hiçbir şey \"bozulmadı\" ama artık hiçbir yerden geçemiyorsun. Ve birinin müşteri kimlik fotokopilerini etiketsiz bir klasöre tıktığı dosya dolabı: veri henüz sızmadı, ama dolabı koruyan hiç kimse orada korunacak bir şey olduğunu bilmiyor.",
         daysLabel:"gün sonra süresi doluyor",
@@ -12966,8 +12966,8 @@
         }
       },
       analytics:{
-        modId:"MODÜL 27", title:"Doğru Veri Deposunu Seç",
-        titleAzure:"Doğru Veri Deposunu Seç (Synapse, Cosmos DB ve Power BI)", titleGcp:"Doğru Veri Deposunu Seç (BigQuery, Firestore ve Looker)",
+        modId:"MODÜL 27", title:"Redshift, DynamoDB ve Athena: Doğru Veri Deposunu Seç",
+        titleAzure:"Synapse ve Cosmos DB: Doğru Veri Deposunu Seç", titleGcp:"BigQuery ve Firestore: Doğru Veri Deposunu Seç",
         dek:"En iyi veritabanı yoktur — her soru için doğru olan vardır. Beş gerçek iş yükü, beş araç; her yanlış eşleşmenin canını yakan bir sebebi var.",
         analogy:"Tek klasörü hızla çekmek için dosya dolabı (anahtar-değer), forkliftlerin her kutuyu gece saydığı depo (analitik), iplerle bağlı fotoğraf panosu (graf), kutuları açmadan sorulara cevap veren kütüphaneci (dosya üstünde SQL) ve hepsini patrona grafiğe çeviren kişi (BI).",
         tryStep1:"Solda bir iş yüküne, sonra onu koşturacağın depoya tıkla.",
@@ -13010,8 +13010,8 @@
         status:{ choosing:"SEÇİLİYOR", done:"HEPSİ EŞLEŞTİ" }
       },
       hybrid:{
-        modId:"MODÜL 28", title:"Hibrit Bulut ve Veriyi Oraya Taşımak",
-        titleAzure:"Hibrit ve Taşıma: ExpressRoute ve Azure Local", titleGcp:"Hibrit ve Taşıma: Interconnect ve Distributed Cloud",
+        modId:"MODÜL 28", title:"Direct Connect, Outposts ve DMS: Hibrit ve Taşıma",
+        titleAzure:"ExpressRoute ve Azure Local: Hibrit ve Taşıma", titleGcp:"Interconnect ve Distributed Cloud: Hibrit ve Taşıma",
         dek:"Bir binayı buluta bağlamanın beş yolu — her biri tam olarak tek bir durum için doğru, diğerlerinde ya pahalı ya yavaş.",
         analogy:"Halka açık yollarda güvenli bir kurye (VPN), kiraladığın özel demiryolu (Direct Connect), kendi deponun içine kurulmuş fabrika şubesi (Outposts), taşınma sırasında dükkânı açık tutan nakliye şirketi (DMS) ve her gece aynı rotayı tarifeyle koşan servis aracı (DataSync).",
         tryStep1:"Solda bir duruma, sonra ona uyan bağlantı ya da araca tıkla.",
@@ -13054,8 +13054,8 @@
         status:{ planning:"PLANLANIYOR", done:"HEPSİ BAĞLANDI" }
       },
       iac:{
-        modId:"MODÜL 29", title:"Kod Olarak Altyapı",
-        titleAzure:"Kod Olarak Altyapı: ARM ve Bicep", titleGcp:"Kod Olarak Altyapı: Infrastructure Manager",
+        modId:"MODÜL 29", title:"CloudFormation: Kod Olarak Altyapı",
+        titleAzure:"ARM ve Bicep: Kod Olarak Altyapı", titleGcp:"Infrastructure Manager: Kod Olarak Altyapı",
         dek:"Tıklamak kar tanesi üretir — benzersiz, belgesiz ve baskı altında yeniden kurulamaz. Şablon ise her seferinde aynı ortamı üretir ve gerçekliğin ondan ne zaman saptığını kanıtlayabilir.",
         analogy:"Ezberden yemek yapmak ile yazılı tariften yemek yapmak. Ezberden, salı günkü çorba pazartesininkini hiç tutmaz; şef hastalanınca da kimse yapamaz. Tarif daha süslü yemek değildir — herkesin aynı yemeği çıkarabileceğinin garantisi ve tadı bozulduğunda karşılaştıracağın standarttır.",
         manualLabel:"ELLE KURULDU", templateLabel:"ŞABLONDAN",
@@ -13086,8 +13086,8 @@
         }
       },
       govern:{
-        modId:"MODÜL 30", title:"Yönetişim ve Fatura",
-        titleAzure:"Yönetişim ve Fatura: Azure Advisor ve Policy", titleGcp:"Yönetişim ve Fatura: Recommender ve Org Policy",
+        modId:"MODÜL 30", title:"Trusted Advisor ve Spot: Yönetişim ve Fatura",
+        titleAzure:"Azure Advisor: Yönetişim ve Fatura", titleGcp:"Recommender: Yönetişim ve Fatura",
         dek:"Bulut israfının ve bulut riskinin çoğu aynı özelliği taşır: biri bakmaya gidene kadar görünmezler. Sağlayıcılar da bakmaya giden şeyler yaptı.",
         analogy:"Kapıları kilitleyip kilitlemediğini de kontrol eden bir ev enerji denetimi: denetçi evi gezer, boş garajda çalışan buzdolabını, boyayla açık kalmış pencereyi, paspasın altındaki yedek anahtarı bulur — ve sana maliyetine göre sıralanmış bir liste verir.",
         scanBtn:"Danışman taraması çalıştır", spotLabel:"Toplu işleri Spot sunucularda çalıştır",
@@ -13120,8 +13120,8 @@
         }
       },
       aiint:{
-        modId:"MODÜL 31", title:"Yapay Zekâ Servisleri ve Uygulama Entegrasyonu",
-        titleAzure:"YZ ve Entegrasyon: Bot Service, AI Speech ve Service Bus", titleGcp:"YZ ve Entegrasyon: Dialogflow, Text-to-Speech ve Pub/Sub",
+        modId:"MODÜL 31", title:"Lex, Polly ve MQ: YZ ve Uygulama Entegrasyonu",
+        titleAzure:"Bot Service, AI Speech ve Service Bus: YZ ve Uygulama Entegrasyonu", titleGcp:"Dialogflow, TTS ve Pub/Sub: YZ ve Uygulama Entegrasyonu",
         dek:"Cümleyi yapılandırılmış komuta çeviren bir bot, metni sesli okuyan bir ses ve işleyen çalışan ölmüşken siparişleri güvende tutan bir kuyruk.",
         analogy:"\"Bu akşama dörtlük masa?\" cümlesini duyup {rezervasyon, 4, bu akşam} diye not alan resepsiyonist (Lex), her sayfayı sesli okuyan anlatıcı (Polly) ve iki masa arasındaki evrak tepsisi — ikinci masa bir saat boşsa iş yere değil tepsiye birikir (MQ).",
         botLabel:"SOHBET BOTU — NİYET TESPİTİ", botPh:"örn. bu akşam 4 kişilik masa ayır", botBtn:"Gönder",
