@@ -130,6 +130,20 @@
     <div class="meta" data-i18n="intro.meta">20 modules · 19 incident-response quests · runs entirely in your browser</div>
   </div>
 
+  <div class="progress-card" id="progressCard">
+    <div class="progress-head">
+      <p class="eyebrow accent" data-i18n="progress.label">YOUR PROGRESS</p>
+      <button type="button" class="btn progress-reset" id="progressResetBtn" data-i18n="progress.resetBtn">Clear progress</button>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar"><span id="progressBar"></span></div><span class="progress-pct" id="progressPct">0%</span></div>
+    <p class="progress-summary" id="progressSummary">No quests completed yet.</p>
+    <div class="progress-tiers">
+      <div class="progress-tier"><span class="progress-tier-label" data-i18n="progress.easyDone">Easy solved</span><span class="progress-tier-value" id="progressEasy">0 / 0</span></div>
+      <div class="progress-tier"><span class="progress-tier-label" data-i18n="progress.hardDone">Hard solved</span><span class="progress-tier-value" id="progressHard">0 / 0</span></div>
+      <div class="progress-tier"><span class="progress-tier-label" data-i18n="progress.providersLabel">Providers covered</span><span class="progress-tier-value" id="progressProviders">0 / 3</span></div>
+    </div>
+  </div>
+
   <!-- MODULE 00 — WHAT IS THE CLOUD -->
   <section class="panel" id="cloud101">
     <div class="panel-glow" aria-hidden="true"></div>

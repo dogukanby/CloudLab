@@ -49,6 +49,14 @@
         p:"Twenty small, live simulations of the mechanisms that keep large systems running, plus two capstone incidents that tie several of them together — no real servers behind any of it, just the logic. Turn the dials and watch what actually happens under load, under a network partition, under a cache miss, under a failure.",
         meta:"29 modules · 28 incident-response quests · 47-service directory · runs entirely in your browser"
       },
+      progress:{
+        label:"Your progress",
+        resetBtn:"Clear progress",
+        confirmReset:"Clear all recorded quest progress? This can't be undone.",
+        easyDone:"Easy solved", hardDone:"Hard solved", providersLabel:"Providers covered",
+        none:"No quests solved on {provider} yet — finish one and it's remembered here, even after you close the app.",
+        summary:"{done} of {total} quests fully solved on {provider} at Hard. Progress is saved on this device."
+      },
       lb:{
         modId:"MODULE 07", title:"Load Balancing & Auto-Scaling",
         titleAzure:"Azure Load Balancer: Load Balancing & Auto-Scaling", titleGcp:"Cloud Load Balancing: Load Balancing & Auto-Scaling",
@@ -6629,6 +6637,14 @@
         title:"Bulut sistemleri, parçalarına ayrıldı",
         p:"Büyük sistemleri ayakta tutan mekanizmaların yirmi küçük, canlı simülasyonu, ve bunlardan birkaçını bir araya getiren iki final görev olayı — arkasında gerçek sunucu yok, sadece mantık. Kadranları çevirin ve yük altında, bir ağ bölünmesinde, bir önbellek ıskalamasında, bir arızada gerçekte ne olduğunu izleyin.",
         meta:"29 modül · 28 olay müdahale görevi · 47 servislik rehber · tamamen tarayıcınızda çalışır"
+      },
+      progress:{
+        label:"İlerlemen",
+        resetBtn:"İlerlemeyi sil",
+        confirmReset:"Kayıtlı tüm görev ilerlemesi silinsin mi? Bu geri alınamaz.",
+        easyDone:"Kolay çözülen", hardDone:"Zor çözülen", providersLabel:"Kapsanan sağlayıcı",
+        none:"{provider} üzerinde henüz görev çözülmedi — birini bitir, uygulamayı kapatsan bile burada hatırlanır.",
+        summary:"{provider} üzerinde {total} görevin {done} tanesi Zor seviyede tamamen çözüldü. İlerleme bu cihazda saklanıyor."
       },
       lb:{
         modId:"MODÜL 07", title:"Yük Dengeleme ve Otomatik Ölçekleme",
@@ -13234,6 +13250,68 @@
     }
   }
 
+  /* ============ progress tracking ============ */
+  // A quest counts as solved for one (quest, provider, tier) combination the
+  // moment its action button reports success. Stored flat so adding modules
+  // later never invalidates what someone has already earned.
+  const PROGRESS_KEY="csc-progress";
+  let progress={};
+  function progressLoad(){
+    try{ progress=JSON.parse(localStorage.getItem(PROGRESS_KEY)||"{}") || {}; }
+    catch(e){ progress={}; }
+    if(typeof progress!=="object" || progress===null) progress={};
+  }
+  function progressSave(){
+    try{ localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress)); }catch(e){}
+  }
+  function progressId(key, prov, tier){ return key+"|"+prov+"|"+tier; }
+  function progressHas(key, prov, tier){ return !!progress[progressId(key, prov, tier)]; }
+  function progressMark(key, prov, tier){
+    const id=progressId(key, prov, tier);
+    if(progress[id]) return false;
+    progress[id]=Date.now();
+    progressSave();
+    return true;
+  }
+  function progressQuestKeys(){
+    return QUEST_KEYS.filter(function(k){ return !!document.getElementById("quest-mount-"+k); });
+  }
+  function progressRender(){
+    const card=$("#progressCard");
+    if(!card) return;
+    const keys=progressQuestKeys();
+    const total=keys.length;
+    let easy=0, hard=0;
+    keys.forEach(function(k){
+      if(progressHas(k, providerMode, "easy")) easy++;
+      if(progressHas(k, providerMode, "hard")) hard++;
+    });
+    const provsCovered=["aws","azure","gcp"].filter(function(p){
+      return keys.some(function(k){ return progressHas(k,p,"easy") || progressHas(k,p,"hard"); });
+    }).length;
+    // Hard implies the full challenge; each quest contributes half for easy and
+    // half for hard so the bar reflects real depth, not just breadth.
+    const pct = total ? Math.round(((easy+hard)/(total*2))*100) : 0;
+    $("#progressBar").style.width=pct+"%";
+    $("#progressPct").textContent=pct+"%";
+    $("#progressEasy").textContent=easy+" / "+total;
+    $("#progressHard").textContent=hard+" / "+total;
+    $("#progressProviders").textContent=provsCovered+" / 3";
+    const provName = providerMode==="aws" ? "AWS" : providerMode==="azure" ? "Azure" : "Google Cloud";
+    $("#progressSummary").textContent = (easy+hard)===0
+      ? t("progress.none",{provider:provName})
+      : t("progress.summary",{done:hard, total:total, provider:provName});
+    sidenavLinks.forEach(function(link){
+      const mod=(link.getAttribute("href")||"").slice(1);
+      const hasQuest = keys.indexOf(mod)!==-1;
+      const done = hasQuest && progressHas(mod, providerMode, "hard");
+      const partial = hasQuest && !done && progressHas(mod, providerMode, "easy");
+      link.classList.toggle("q-done", done);
+      link.classList.toggle("q-partial", partial);
+    });
+  }
+  progressLoad();
+
   /* ============ theme ============ */
   function updateThemeButton(){
     const key = themeMode==="light" ? "common.themeLight" : themeMode==="dark" ? "common.themeDark" : "common.themeAuto";
@@ -14261,6 +14339,10 @@
     const state=questState[key];
     const missing=questFirstMissing(key);
     state.actionResult = missing ? { kind:"missing", stepId:missing.id } : { kind:"success" };
+    if(!missing){
+      progressMark(key, providerMode, state.tier);
+      progressRender();
+    }
     questRender(key);
   }
   function questResetOne(key){
@@ -16220,6 +16302,7 @@
     governRender(); governUpdateStats();
     aiintUpdateStats();
     applyProviderTitles();
+    progressRender();
   }
   $("#langEnBtn").addEventListener("click", function(){ setLang("en"); });
   $("#langTrBtn").addEventListener("click", function(){ setLang("tr"); });
@@ -16258,6 +16341,7 @@
     });
     applyProviderTitles();
     servicesRender();
+    progressRender();
     analyticsGame.render();
     hybridGame.render();
     // Each provider's quest has its own step ids and content, so leftover
@@ -16265,6 +16349,18 @@
     QUEST_KEYS.forEach(function(key){
       if(questState[key]) questResetOne(key);
     });
+  }
+  $("#progressResetBtn").addEventListener("click", function(){
+    if(!w_confirm(t("progress.confirmReset"))) return;
+    progress={};
+    progressSave();
+    progressRender();
+  });
+  function w_confirm(msg){
+    // window.confirm is unavailable in some embedded runtimes; treating a
+    // missing dialog as "yes" would silently wipe progress, so default to no.
+    if(typeof window.confirm!=="function") return false;
+    return window.confirm(msg);
   }
   $("#providerAwsBtn").addEventListener("click", function(){ setProvider("aws"); });
   $("#providerAzureBtn").addEventListener("click", function(){ setProvider("azure"); });

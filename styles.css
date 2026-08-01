@@ -427,6 +427,28 @@ select, .btn{ font-size:0.82rem; padding:8px 10px; border-radius:var(--radius); 
 .svc-table th.svc-active{ color:var(--accent); }
 .svc-empty{ padding:0 22px 22px; margin:0; color:var(--ink-dim); font-size:0.9rem; }
 
+/* progress card + sidebar completion marks */
+.progress-card{ background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 22px; margin-bottom:26px; display:flex; flex-direction:column; gap:12px; }
+.progress-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.progress-head .eyebrow{ margin:0; }
+.progress-reset{ font-size:0.7rem; padding:5px 10px; }
+.progress-bar-wrap{ display:flex; align-items:center; gap:12px; }
+.progress-bar{ flex:1; height:8px; border-radius:4px; background:var(--border); overflow:hidden; }
+.progress-bar > span{ display:block; height:100%; width:0%; background:var(--accent); border-radius:4px; }
+@media (prefers-reduced-motion:no-preference){ .progress-bar > span{ transition:width 420ms var(--ease-out); } }
+.progress-pct{ font-family:var(--font-mono); font-size:0.8rem; color:var(--accent); flex:none; font-variant-numeric:tabular-nums; }
+.progress-summary{ margin:0; font-size:0.88rem; color:var(--ink-dim); }
+.progress-tiers{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+@media (max-width:560px){ .progress-tiers{ grid-template-columns:1fr; } }
+.progress-tier{ border:1px solid var(--border); border-radius:var(--radius); background:var(--bg-panel-2); padding:8px 12px; display:flex; flex-direction:column; gap:2px; }
+.progress-tier-label{ font-family:var(--font-mono); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint); }
+.progress-tier-value{ font-family:var(--font-display); font-weight:800; font-size:1.05rem; font-variant-numeric:tabular-nums; }
+.sidenav-links a{ position:relative; }
+.sidenav-links a.q-done::after,
+.sidenav-links a.q-partial::after{ content:"✓"; position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:0.72rem; line-height:1; }
+.sidenav-links a.q-done::after{ color:var(--good); }
+.sidenav-links a.q-partial::after{ color:var(--ink-faint); }
+
 /* modules 23-31 — shared pieces */
 .sidenav-cat{ margin:12px 0 2px; padding:0 14px; font-family:var(--font-mono); font-size:0.62rem; letter-spacing:0.09em; text-transform:uppercase; color:var(--ink-faint); }
 .finding-list{ display:flex; flex-direction:column; gap:10px; }
