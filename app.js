@@ -3553,7 +3553,8 @@
                 prompt:"What do you do with the AdministratorAccess grant the audit just turned up?",
                 options:[
                   { key:"leave", label:"Leave it — the key is already deactivated", correct:false, feedback:"The key being dead doesn't remove the policy it attached. The account is still carrying a privilege escalation nobody authorized." },
-                  { key:"detach", label:"Detach AdministratorAccess from the role immediately", correct:true, feedback:"Removed — the unauthorized privilege escalation the audit found is gone." }
+                  { key:"detach", label:"Detach AdministratorAccess from the role immediately", correct:true, feedback:"Removed — the unauthorized privilege escalation the audit found is gone." },
+                  { key:"narrow", label:"Narrow it to read-only admin and keep it attached for emergencies", correct:false, feedback:"A standing broad grant is exactly what the audit flagged. Emergencies are served by a break-glass role that pages when assumed, not by leaving privilege attached permanently." }
                 ],
                 errorText:"The attacker's self-granted AdministratorAccess policy is still attached — the key is dead, but the door it propped open isn't shut."
               },
@@ -3612,7 +3613,8 @@
                 prompt:"What do you do with the Owner role assignment the audit just turned up?",
                 options:[
                   { key:"leave", label:"Leave it — the secret is already deleted", correct:false, feedback:"The secret being dead doesn't remove the role assignment it created. The subscription is still carrying a privilege escalation nobody authorized." },
-                  { key:"remove", label:"Remove the Owner role assignment immediately", correct:true, feedback:"Removed — the unauthorized privilege escalation the audit found is gone." }
+                  { key:"remove", label:"Remove the Owner role assignment immediately", correct:true, feedback:"Removed — the unauthorized privilege escalation the audit found is gone." },
+                  { key:"narrow", label:"Narrow it to read-only admin and keep it attached for emergencies", correct:false, feedback:"A standing broad grant is exactly what the audit flagged. Emergencies are served by a break-glass role that pages when assumed, not by leaving privilege attached permanently." }
                 ],
                 errorText:"The attacker's self-granted Owner role assignment is still active — the secret is dead, but the door it propped open isn't shut."
               },
@@ -3671,7 +3673,8 @@
                 prompt:"What do you do with the roles/owner binding the audit just turned up?",
                 options:[
                   { key:"leave", label:"Leave it — the key is already deleted", correct:false, feedback:"The key being dead doesn't remove the IAM binding it created. The project is still carrying a privilege escalation nobody authorized." },
-                  { key:"remove", label:"Remove the roles/owner binding immediately", correct:true, feedback:"Removed — the unauthorized privilege escalation the audit found is gone." }
+                  { key:"remove", label:"Remove the roles/owner binding immediately", correct:true, feedback:"Removed — the unauthorized privilege escalation the audit found is gone." },
+                  { key:"narrow", label:"Narrow it to read-only admin and keep it attached for emergencies", correct:false, feedback:"A standing broad grant is exactly what the audit flagged. Emergencies are served by a break-glass role that pages when assumed, not by leaving privilege attached permanently." }
                 ],
                 errorText:"The attacker's self-granted roles/owner binding is still active — the key is dead, but the door it propped open isn't shut."
               },
@@ -4296,7 +4299,8 @@
                 prompt:"Choose the missing-data behavior:",
                 options:[
                   { key:"ok", label:"Treat missing data as OK", correct:false, feedback:"That's exactly what let this fail silently for six hours — if the agent stops reporting entirely, this setting assumes everything's fine." },
-                  { key:"breaching", label:"Treat missing data as breaching", correct:true, feedback:"Now silence itself counts as a problem, not a reason to stay quiet." }
+                  { key:"breaching", label:"Treat missing data as breaching", correct:true, feedback:"Now silence itself counts as a problem, not a reason to stay quiet." },
+                  { key:"ignore", label:"Treat missing data as ignore — hold the alarm in its current state", correct:false, feedback:"This is a real setting, and here it's the worst one: the agent died while the alarm sat in OK, so it stays OK forever and the outage is invisible." }
                 ],
                 errorText:"Missing data is still treated as \"OK\" — an agent that stops reporting entirely would still page no one."
               },
@@ -4355,7 +4359,8 @@
                 prompt:"Choose the missing-data behavior:",
                 options:[
                   { key:"ignore", label:"Ignore missing data (treat as healthy)", correct:false, feedback:"That's exactly what let this fail silently for six hours — if the agent stops reporting entirely, this setting assumes everything's fine." },
-                  { key:"breach", label:"Treat missing data as a breach", correct:true, feedback:"Now silence itself counts as a problem, not a reason to stay quiet." }
+                  { key:"breach", label:"Treat missing data as a breach", correct:true, feedback:"Now silence itself counts as a problem, not a reason to stay quiet." },
+                  { key:"moreperiods", label:"Require more evaluation periods before the alarm may change state", correct:false, feedback:"With a dead agent no further data points ever arrive, so demanding more of them guarantees the alarm never decides anything at all." }
                 ],
                 errorText:"Missing data is still ignored — an agent that stops reporting entirely would still page no one."
               },
@@ -4414,7 +4419,8 @@
                 prompt:"Choose the missing-data behavior:",
                 options:[
                   { key:"ok", label:"Don't notify on missing data", correct:false, feedback:"That's exactly what let this fail silently for six hours — if the agent stops reporting entirely, this setting assumes everything's fine." },
-                  { key:"notify", label:"Notify when data stops arriving", correct:true, feedback:"Now silence itself counts as a problem, not a reason to stay quiet." }
+                  { key:"notify", label:"Notify when data stops arriving", correct:true, feedback:"Now silence itself counts as a problem, not a reason to stay quiet." },
+                  { key:"ignore", label:"Treat missing data as ignore — hold the alarm in its current state", correct:false, feedback:"This is a real setting, and here it's the worst one: the agent died while the alarm sat in OK, so it stays OK forever and the outage is invisible." }
                 ],
                 errorText:"Missing data still isn't configured to notify anyone — an agent that stops reporting entirely would still page no one."
               },
@@ -4475,7 +4481,8 @@
                 prompt:"Where should the app's connection string point now?",
                 options:[
                   { key:"old", label:"Leave it — the old primary's endpoint will start working again", correct:false, feedback:"It won't. The old primary is gone, and its endpoint doesn't get reassigned to anything." },
-                  { key:"new", label:"Update it to the promoted instance's own endpoint", correct:true, feedback:"A promoted read replica gets its own new endpoint — it doesn't inherit the old primary's. Updated." }
+                  { key:"new", label:"Update it to the promoted instance's own endpoint", correct:true, feedback:"A promoted read replica gets its own new endpoint — it doesn't inherit the old primary's. Updated." },
+                  { key:"replica", label:"Point it at a read-replica endpoint — it has the same data", correct:false, feedback:"A replica holds the same rows and refuses every write. Checkout would read fine and fail on the first order." }
                 ],
                 errorText:"Error: could not connect to server — the application is still pointed at an endpoint with nothing behind it."
               },
@@ -4534,7 +4541,8 @@
                 prompt:"Where should the app's connection string point now?",
                 options:[
                   { key:"old", label:"Leave it — the old server's name will start working again", correct:false, feedback:"It won't. The old server is gone, and its name doesn't get reassigned to anything." },
-                  { key:"new", label:"Update it to the promoted server's own server name", correct:true, feedback:"A promoted read replica gets its own unique server name — it doesn't inherit the old primary's. Updated." }
+                  { key:"new", label:"Update it to the promoted server's own server name", correct:true, feedback:"A promoted read replica gets its own unique server name — it doesn't inherit the old primary's. Updated." },
+                  { key:"replica", label:"Point it at a read-replica endpoint — it has the same data", correct:false, feedback:"A replica holds the same rows and refuses every write. Checkout would read fine and fail on the first order." }
                 ],
                 errorText:"Error: could not connect to server — the application is still pointed at a server name with nothing behind it."
               },
@@ -4593,7 +4601,8 @@
                 prompt:"Where should the app's connection string point now?",
                 options:[
                   { key:"old", label:"Leave it — the old primary's connection name will start working again", correct:false, feedback:"It won't. The old primary is gone, and its connection name doesn't get reassigned to anything." },
-                  { key:"new", label:"Update it to the promoted instance's own connection name", correct:true, feedback:"A promoted read replica gets its own new instance connection name — it doesn't inherit the old primary's. Updated." }
+                  { key:"new", label:"Update it to the promoted instance's own connection name", correct:true, feedback:"A promoted read replica gets its own new instance connection name — it doesn't inherit the old primary's. Updated." },
+                  { key:"replica", label:"Point it at a read-replica endpoint — it has the same data", correct:false, feedback:"A replica holds the same rows and refuses every write. Checkout would read fine and fail on the first order." }
                 ],
                 errorText:"Error: could not connect to server — the application is still pointed at a connection name with nothing behind it."
               },
@@ -4634,7 +4643,8 @@
                 prompt:"Which service event tells you this is the deploy, not something else?",
                 options:[
                   { key:"scale", label:"\"service X has begun draining connections on 1 tasks\"", correct:false, feedback:"That's routine — a normal part of any deployment, healthy or not. Keep looking." },
-                  { key:"stopped", label:"\"task Y (essential container Z) stopped: HealthCheck failed\", repeated across the new revision's tasks", correct:true, feedback:"That's it — the new revision's tasks are the ones failing, over and over." }
+                  { key:"stopped", label:"\"task Y (essential container Z) stopped: HealthCheck failed\", repeated across the new revision's tasks", correct:true, feedback:"That's it — the new revision's tasks are the ones failing, over and over." },
+                  { key:"steady", label:"\"service X has reached a steady state\"", correct:false, feedback:"That's the success message — it's what the service emits when a deployment settled correctly. Seeing it would argue against this being the deploy." }
                 ],
                 errorText:"You reacted without confirming the new revision is actually what's failing — worth ten seconds before touching a live deployment."
               },
@@ -4693,7 +4703,8 @@
                 prompt:"Which pod event tells you this is the deploy, not something else?",
                 options:[
                   { key:"scheduled", label:"\"Successfully assigned pod to node\"", correct:false, feedback:"That's routine — a normal part of any deployment, healthy or not. Keep looking." },
-                  { key:"crashloop", label:"\"Back-off restarting failed container\", repeated across the new revision's pods", correct:true, feedback:"That's it — the new revision's pods are the ones failing, over and over." }
+                  { key:"crashloop", label:"\"Back-off restarting failed container\", repeated across the new revision's pods", correct:true, feedback:"That's it — the new revision's pods are the ones failing, over and over." },
+                  { key:"steady", label:"\"service X has reached a steady state\"", correct:false, feedback:"That's the success message — it's what the service emits when a deployment settled correctly. Seeing it would argue against this being the deploy." }
                 ],
                 errorText:"You reacted without confirming the new revision is actually what's failing — worth ten seconds before touching a live deployment."
               },
@@ -4752,7 +4763,8 @@
                 prompt:"Which pod event tells you this is the deploy, not something else?",
                 options:[
                   { key:"scheduled", label:"\"Successfully assigned pod to node\"", correct:false, feedback:"That's routine — a normal part of any deployment, healthy or not. Keep looking." },
-                  { key:"crashloop", label:"\"CrashLoopBackOff\", repeated across the new revision's pods", correct:true, feedback:"That's it — the new revision's pods are the ones failing, over and over." }
+                  { key:"crashloop", label:"\"CrashLoopBackOff\", repeated across the new revision's pods", correct:true, feedback:"That's it — the new revision's pods are the ones failing, over and over." },
+                  { key:"steady", label:"\"service X has reached a steady state\"", correct:false, feedback:"That's the success message — it's what the service emits when a deployment settled correctly. Seeing it would argue against this being the deploy." }
                 ],
                 errorText:"You reacted without confirming the new revision is actually what's failing — worth ten seconds before touching a live deployment."
               },
@@ -4813,7 +4825,8 @@
                 prompt:"Which log pattern actually points to metadata credential theft?",
                 options:[
                   { key:"login", label:"A successful SSH login from the office IP range", correct:false, feedback:"That's expected, routine access. Not this." },
-                  { key:"ssrf", label:"Repeated app requests to 169.254.169.254 followed by AssumeRole calls from an unfamiliar external IP", correct:true, feedback:"That's the pattern — the app fetched the role's credentials off the metadata service, and now they're being used from somewhere that isn't this instance." }
+                  { key:"ssrf", label:"Repeated app requests to 169.254.169.254 followed by AssumeRole calls from an unfamiliar external IP", correct:true, feedback:"That's the pattern — the app fetched the role's credentials off the metadata service, and now they're being used from somewhere that isn't this instance." },
+                  { key:"outbound", label:"A spike in outbound traffic from the instance to a storage endpoint", correct:false, feedback:"Consistent with exfiltration and with a dozen harmless things — a backup job looks identical. It doesn't establish that credentials were taken from the metadata service." }
                 ],
                 errorText:"You haven't confirmed this is actually metadata credential theft — worth confirming before quarantining anything."
               },
@@ -4872,7 +4885,8 @@
                 prompt:"Which log pattern actually points to metadata token theft?",
                 options:[
                   { key:"signin", label:"A routine interactive sign-in from a recognized device", correct:false, feedback:"That's expected, routine access. Not this." },
-                  { key:"ssrf", label:"Repeated app requests to 169.254.169.254 with a Metadata: true header, followed by resource access from an unfamiliar external IP", correct:true, feedback:"That's the pattern — the app fetched the identity's token off the metadata service, and now it's being used from somewhere that isn't this VM." }
+                  { key:"ssrf", label:"Repeated app requests to 169.254.169.254 with a Metadata: true header, followed by resource access from an unfamiliar external IP", correct:true, feedback:"That's the pattern — the app fetched the identity's token off the metadata service, and now it's being used from somewhere that isn't this VM." },
+                  { key:"outbound", label:"A spike in outbound traffic from the instance to a storage endpoint", correct:false, feedback:"Consistent with exfiltration and with a dozen harmless things — a backup job looks identical. It doesn't establish that credentials were taken from the metadata service." }
                 ],
                 errorText:"You haven't confirmed this is actually metadata token theft — worth confirming before quarantining anything."
               },
@@ -4931,7 +4945,8 @@
                 prompt:"Which log pattern actually points to metadata token theft?",
                 options:[
                   { key:"routine", label:"A routine instances.get call from the deployment pipeline", correct:false, feedback:"That's expected, routine access. Not this." },
-                  { key:"ssrf", label:"Repeated app requests to metadata.google.internal for service-accounts/default/token, followed by API calls from an unfamiliar external IP", correct:true, feedback:"That's the pattern — the app fetched the service account's token off the metadata server, and now it's being used from somewhere that isn't this instance." }
+                  { key:"ssrf", label:"Repeated app requests to metadata.google.internal for service-accounts/default/token, followed by API calls from an unfamiliar external IP", correct:true, feedback:"That's the pattern — the app fetched the service account's token off the metadata server, and now it's being used from somewhere that isn't this instance." },
+                  { key:"outbound", label:"A spike in outbound traffic from the instance to a storage endpoint", correct:false, feedback:"Consistent with exfiltration and with a dozen harmless things — a backup job looks identical. It doesn't establish that credentials were taken from the metadata service." }
                 ],
                 errorText:"You haven't confirmed this is actually metadata token theft — worth confirming before quarantining anything."
               },
@@ -4992,7 +5007,8 @@
                 prompt:"Which CloudWatch metric actually confirms it?",
                 options:[
                   { key:"duration", label:"Duration", correct:false, feedback:"Duration tells you how long invocations take, not why some are being rejected outright." },
-                  { key:"throttles", label:"Throttles", correct:true, feedback:"That's it — a nonzero Throttles count means invocations are being rejected before they even run." }
+                  { key:"throttles", label:"Throttles", correct:true, feedback:"That's it — a nonzero Throttles count means invocations are being rejected before they even run." },
+                  { key:"concurrent", label:"ConcurrentExecutions", correct:false, feedback:"It tells you how many ran at once, not how many were turned away. It flattens at the ceiling — which looks healthy right when requests are being rejected." }
                 ],
                 errorText:"You reacted without confirming this is actually a concurrency/throttling problem."
               },
@@ -5051,7 +5067,8 @@
                 prompt:"Which metric actually confirms it?",
                 options:[
                   { key:"duration", label:"Average execution time", correct:false, feedback:"Execution time tells you how long each run takes, not why the backlog is growing." },
-                  { key:"queuelength", label:"Storage queue message count", correct:true, feedback:"That's it — a steadily growing queue length means the function can't keep up with the arrival rate." }
+                  { key:"queuelength", label:"Storage queue message count", correct:true, feedback:"That's it — a steadily growing queue length means the function can't keep up with the arrival rate." },
+                  { key:"concurrent", label:"ConcurrentExecutions", correct:false, feedback:"It tells you how many ran at once, not how many were turned away. It flattens at the ceiling — which looks healthy right when requests are being rejected." }
                 ],
                 errorText:"You reacted without confirming this is actually a throughput problem."
               },
@@ -5110,7 +5127,8 @@
                 prompt:"Which metric actually confirms it?",
                 options:[
                   { key:"duration", label:"Execution time", correct:false, feedback:"Execution time tells you how long each run takes, not why the backlog is growing." },
-                  { key:"oldest", label:"Oldest unacked message age", correct:true, feedback:"That's it — a steadily growing oldest-unacked age means messages are arriving faster than the function can process them." }
+                  { key:"oldest", label:"Oldest unacked message age", correct:true, feedback:"That's it — a steadily growing oldest-unacked age means messages are arriving faster than the function can process them." },
+                  { key:"concurrent", label:"ConcurrentExecutions", correct:false, feedback:"It tells you how many ran at once, not how many were turned away. It flattens at the ceiling — which looks healthy right when requests are being rejected." }
                 ],
                 errorText:"You reacted without confirming this is actually a throughput problem."
               },
@@ -5191,7 +5209,8 @@
                 prompt:"What else about the health check is too aggressive?",
                 options:[
                   { key:"tighten", label:"Lower the unhealthy threshold so bad instances are caught even faster", correct:false, feedback:"That makes the spiral worse, not better — instances get killed on even less evidence." },
-                  { key:"raise", label:"Raise the unhealthy threshold so it takes more consecutive failures to condemn an instance", correct:true, feedback:"Raised — a single slow response no longer dooms an otherwise-fine instance." }
+                  { key:"raise", label:"Raise the unhealthy threshold so it takes more consecutive failures to condemn an instance", correct:true, feedback:"Raised — a single slow response no longer dooms an otherwise-fine instance." },
+                  { key:"interval", label:"Shorten the health-check interval so problems are spotted sooner", correct:false, feedback:"That accelerates exactly the behaviour that caused the outage: more frequent probes condemn a briefly-slow instance even faster." }
                 ],
                 errorText:"The unhealthy threshold is still tight enough that ordinary startup jitter can condemn a healthy instance."
               },
@@ -5250,7 +5269,8 @@
                 prompt:"What else about the health probe is too aggressive?",
                 options:[
                   { key:"tighten", label:"Lower the unhealthy threshold so bad instances are caught even faster", correct:false, feedback:"That makes the spiral worse, not better — instances get removed on even less evidence." },
-                  { key:"raise", label:"Raise the unhealthy threshold so it takes more consecutive failures to condemn an instance", correct:true, feedback:"Raised — a single slow response no longer dooms an otherwise-fine instance." }
+                  { key:"raise", label:"Raise the unhealthy threshold so it takes more consecutive failures to condemn an instance", correct:true, feedback:"Raised — a single slow response no longer dooms an otherwise-fine instance." },
+                  { key:"interval", label:"Shorten the health-check interval so problems are spotted sooner", correct:false, feedback:"That accelerates exactly the behaviour that caused the outage: more frequent probes condemn a briefly-slow instance even faster." }
                 ],
                 errorText:"The unhealthy threshold is still tight enough that ordinary startup jitter can condemn a healthy instance."
               },
@@ -5309,7 +5329,8 @@
                 prompt:"What else about the health check is too aggressive?",
                 options:[
                   { key:"tighten", label:"Lower the unhealthy threshold so bad instances are caught even faster", correct:false, feedback:"That makes the spiral worse, not better — instances get recreated on even less evidence." },
-                  { key:"raise", label:"Raise the unhealthy threshold so it takes more consecutive failures to condemn an instance", correct:true, feedback:"Raised — a single slow response no longer dooms an otherwise-fine instance." }
+                  { key:"raise", label:"Raise the unhealthy threshold so it takes more consecutive failures to condemn an instance", correct:true, feedback:"Raised — a single slow response no longer dooms an otherwise-fine instance." },
+                  { key:"interval", label:"Shorten the health-check interval so problems are spotted sooner", correct:false, feedback:"That accelerates exactly the behaviour that caused the outage: more frequent probes condemn a briefly-slow instance even faster." }
                 ],
                 errorText:"The unhealthy threshold is still tight enough that ordinary startup jitter can condemn a healthy instance."
               },
@@ -5537,7 +5558,8 @@
                 prompt:"What about the exposure that's already live?",
                 options:[
                   { key:"wait", label:"Wait for the cached copies to expire naturally", correct:false, feedback:"Every minute those entries sit in cache is another minute the wrong person could load someone else's data." },
-                  { key:"invalidate", label:"Invalidate the cached entries for this path right now", correct:true, feedback:"Invalidated — the exposure stops immediately instead of trailing off over the rest of the TTL." }
+                  { key:"invalidate", label:"Invalidate the cached entries for this path right now", correct:true, feedback:"Invalidated — the exposure stops immediately instead of trailing off over the rest of the TTL." },
+                  { key:"rotate", label:"Change the origin path so the old cached copies point at nothing", correct:false, feedback:"The edge doesn't re-check the origin for content it already holds. Those cached copies keep being served from the edge until they expire." }
                 ],
                 errorText:"The cached copies from before the fix are still live and could still be served."
               },
@@ -5596,7 +5618,8 @@
                 prompt:"What about the exposure that's already live?",
                 options:[
                   { key:"wait", label:"Wait for the cached copies to expire naturally", correct:false, feedback:"Every minute those entries sit in cache is another minute the wrong person could load someone else's data." },
-                  { key:"purge", label:"Purge the cached content for this path right now", correct:true, feedback:"Purged — the exposure stops immediately instead of trailing off over the rest of the TTL." }
+                  { key:"purge", label:"Purge the cached content for this path right now", correct:true, feedback:"Purged — the exposure stops immediately instead of trailing off over the rest of the TTL." },
+                  { key:"rotate", label:"Change the origin path so the old cached copies point at nothing", correct:false, feedback:"The edge doesn't re-check the origin for content it already holds. Those cached copies keep being served from the edge until they expire." }
                 ],
                 errorText:"The cached copies from before the fix are still live and could still be served."
               },
@@ -5655,7 +5678,8 @@
                 prompt:"What about the exposure that's already live?",
                 options:[
                   { key:"wait", label:"Wait for the cached copies to expire naturally", correct:false, feedback:"Every minute those entries sit in cache is another minute the wrong person could load someone else's data." },
-                  { key:"invalidate", label:"Invalidate the cached content for this path right now", correct:true, feedback:"Invalidated — the exposure stops immediately instead of trailing off over the rest of the TTL." }
+                  { key:"invalidate", label:"Invalidate the cached content for this path right now", correct:true, feedback:"Invalidated — the exposure stops immediately instead of trailing off over the rest of the TTL." },
+                  { key:"rotate", label:"Change the origin path so the old cached copies point at nothing", correct:false, feedback:"The edge doesn't re-check the origin for content it already holds. Those cached copies keep being served from the edge until they expire." }
                 ],
                 errorText:"The cached copies from before the fix are still live and could still be served."
               },
@@ -5712,7 +5736,8 @@
                 prompt:"What actually stops this from silently happening again?",
                 options:[
                   { key:"lww", label:"Nothing — keep relying on last-writer-wins", correct:false, feedback:"That's what silently lost this write in the first place. It'll do the same thing to the next one." },
-                  { key:"conditional", label:"Add a conditional write / version check in the app so a conflicting update is rejected instead of silently overwritten", correct:true, feedback:"Added — the next conflicting write gets caught and surfaced to the app instead of vanishing without a trace." }
+                  { key:"conditional", label:"Add a conditional write / version check in the app so a conflicting update is rejected instead of silently overwritten", correct:true, feedback:"Added — the next conflicting write gets caught and surfaced to the app instead of vanishing without a trace." },
+                  { key:"faster", label:"Speed up replication so writes converge before anyone can conflict", correct:false, feedback:"Faster replication narrows the window; it never closes it. Two writes inside the remaining gap still silently overwrite each other." }
                 ],
                 errorText:"The next conflicting write between these two regions will be silently resolved by timestamp again, exactly like this one was."
               },
@@ -5767,7 +5792,8 @@
                 prompt:"What actually stops this from silently happening again?",
                 options:[
                   { key:"lww", label:"Nothing — keep the default last-write-wins policy", correct:false, feedback:"That's what silently lost this write in the first place. It'll do the same thing to the next one." },
-                  { key:"custom", label:"Register a custom conflict resolution procedure for this container", correct:true, feedback:"Registered — the next conflict runs through actual merge logic instead of a coin flip based on timestamp." }
+                  { key:"custom", label:"Register a custom conflict resolution procedure for this container", correct:true, feedback:"Registered — the next conflict runs through actual merge logic instead of a coin flip based on timestamp." },
+                  { key:"faster", label:"Speed up replication so writes converge before anyone can conflict", correct:false, feedback:"Faster replication narrows the window; it never closes it. Two writes inside the remaining gap still silently overwrite each other." }
                 ],
                 errorText:"The next conflicting write between these two regions will be silently resolved by timestamp again, exactly like this one was."
               },
@@ -5822,7 +5848,8 @@
                 prompt:"What actually stops this from silently happening again?",
                 options:[
                   { key:"lww", label:"Nothing — keep relying on last-write-wins", correct:false, feedback:"That's what silently lost this write in the first place. It'll do the same thing to the next one." },
-                  { key:"precondition", label:"Add a precondition check in the app's transaction so a conflicting update is rejected instead of silently overwritten", correct:true, feedback:"Added — the next conflicting write gets caught and surfaced to the app instead of vanishing without a trace." }
+                  { key:"precondition", label:"Add a precondition check in the app's transaction so a conflicting update is rejected instead of silently overwritten", correct:true, feedback:"Added — the next conflicting write gets caught and surfaced to the app instead of vanishing without a trace." },
+                  { key:"faster", label:"Speed up replication so writes converge before anyone can conflict", correct:false, feedback:"Faster replication narrows the window; it never closes it. Two writes inside the remaining gap still silently overwrite each other." }
                 ],
                 errorText:"The next conflicting write between these two regions will be silently resolved by timestamp again, exactly like this one was."
               },
@@ -5873,7 +5900,8 @@
                 prompt:"What actually guarantees quorum is always decidable?",
                 options:[
                   { key:"morenodes2az", label:"Add more nodes, but keep them split across just the same two Availability Zones", correct:false, feedback:"More nodes across only two zones can still tie exactly down the middle — the number of zones is the problem, not the node count alone." },
-                  { key:"threeaz", label:"Spread an odd number of nodes across three Availability Zones", correct:true, feedback:"With three zones, any single zone's isolation always leaves the other two zones holding a clear majority — a tie becomes impossible." }
+                  { key:"threeaz", label:"Spread an odd number of nodes across three Availability Zones", correct:true, feedback:"With three zones, any single zone's isolation always leaves the other two zones holding a clear majority — a tie becomes impossible." },
+                  { key:"weighted", label:"Give one zone's node a double vote so ties can always be broken", correct:false, feedback:"Now that node is the election. Lose the zone holding it and the cluster can't form a majority at all — you've concentrated the risk you were trying to spread." }
                 ],
                 errorText:"The cluster still can't guarantee a clear majority survives a single zone's isolation."
               },
@@ -5927,7 +5955,8 @@
                 prompt:"What actually guarantees quorum is always decidable?",
                 options:[
                   { key:"morenodes2az", label:"Add more nodes, but keep them split across just the same two Availability Zones", correct:false, feedback:"More nodes across only two zones can still tie exactly down the middle — the number of zones is the problem, not the node count alone." },
-                  { key:"threeaz", label:"Spread an odd number of nodes across three Availability Zones", correct:true, feedback:"With three zones, any single zone's isolation always leaves the other two zones holding a clear majority — a tie becomes impossible." }
+                  { key:"threeaz", label:"Spread an odd number of nodes across three Availability Zones", correct:true, feedback:"With three zones, any single zone's isolation always leaves the other two zones holding a clear majority — a tie becomes impossible." },
+                  { key:"weighted", label:"Give one zone's node a double vote so ties can always be broken", correct:false, feedback:"Now that node is the election. Lose the zone holding it and the cluster can't form a majority at all — you've concentrated the risk you were trying to spread." }
                 ],
                 errorText:"The cluster still can't guarantee a clear majority survives a single zone's isolation."
               },
@@ -5981,7 +6010,8 @@
                 prompt:"What actually guarantees quorum is always decidable?",
                 options:[
                   { key:"morenodes2az", label:"Add more nodes, but keep them split across just the same two zones", correct:false, feedback:"More nodes across only two zones can still tie exactly down the middle — the number of zones is the problem, not the node count alone." },
-                  { key:"threeaz", label:"Spread an odd number of nodes across three zones", correct:true, feedback:"With three zones, any single zone's isolation always leaves the other two zones holding a clear majority — a tie becomes impossible." }
+                  { key:"threeaz", label:"Spread an odd number of nodes across three zones", correct:true, feedback:"With three zones, any single zone's isolation always leaves the other two zones holding a clear majority — a tie becomes impossible." },
+                  { key:"weighted", label:"Give one zone's node a double vote so ties can always be broken", correct:false, feedback:"Now that node is the election. Lose the zone holding it and the cluster can't form a majority at all — you've concentrated the risk you were trying to spread." }
                 ],
                 errorText:"The cluster still can't guarantee a clear majority survives a single zone's isolation."
               },
@@ -6047,7 +6077,8 @@
                 prompt:"What happens to a message SNS can't deliver after retrying?",
                 options:[
                   { key:"forever", label:"Nothing to worry about — SNS retries a failed delivery forever", correct:false, feedback:"It doesn't. SNS retries on a finite backoff schedule, and without a dead-letter queue configured, a message that still fails after that is just dropped." },
-                  { key:"dlq", label:"Configure a dead-letter queue for this subscription", correct:true, feedback:"Configured — a message that can't be delivered after retrying now lands somewhere visible instead of vanishing." }
+                  { key:"dlq", label:"Configure a dead-letter queue for this subscription", correct:true, feedback:"Configured — a message that can't be delivered after retrying now lands somewhere visible instead of vanishing." },
+                  { key:"retrylonger", label:"Extend the retry policy so delivery is attempted for a full 24 hours", correct:false, feedback:"Retrying longer helps a subscriber that's briefly down and changes nothing for one that's genuinely broken — at the end of the window the message is still discarded." }
                 ],
                 errorText:"There's still no dead-letter queue on this subscription — a message that fails delivery after retrying just disappears, exactly like the ones that already did."
               },
@@ -6106,7 +6137,8 @@
                 prompt:"What happens to a message that keeps failing delivery?",
                 options:[
                   { key:"forever", label:"Nothing to worry about — Service Bus retries a failed delivery forever", correct:false, feedback:"It doesn't. After the max delivery count is exceeded, the message is dead-lettered — and if nobody's watching the dead-letter sub-queue, it just sits there unnoticed." },
-                  { key:"monitor", label:"Add monitoring on this subscription's dead-letter sub-queue", correct:true, feedback:"Configured — a message that can't be delivered now lands somewhere visible instead of sitting unnoticed." }
+                  { key:"monitor", label:"Add monitoring on this subscription's dead-letter sub-queue", correct:true, feedback:"Configured — a message that can't be delivered now lands somewhere visible instead of sitting unnoticed." },
+                  { key:"retrylonger", label:"Extend the retry policy so delivery is attempted for a full 24 hours", correct:false, feedback:"Retrying longer helps a subscriber that's briefly down and changes nothing for one that's genuinely broken — at the end of the window the message is still discarded." }
                 ],
                 errorText:"There's still no visibility into this subscription's dead-letter sub-queue — a message that fails delivery just piles up unseen, exactly like the ones that already did."
               },
@@ -6165,7 +6197,8 @@
                 prompt:"What happens to a message that keeps failing delivery?",
                 options:[
                   { key:"forever", label:"Nothing to worry about — Pub/Sub retries a failed delivery forever", correct:false, feedback:"It doesn't. Past the subscription's retry limit, a message without a dead-letter topic configured is just dropped." },
-                  { key:"dlt", label:"Configure a dead-letter topic for this subscription", correct:true, feedback:"Configured — a message that can't be delivered after retrying now lands somewhere visible instead of vanishing." }
+                  { key:"dlt", label:"Configure a dead-letter topic for this subscription", correct:true, feedback:"Configured — a message that can't be delivered after retrying now lands somewhere visible instead of vanishing." },
+                  { key:"retrylonger", label:"Extend the retry policy so delivery is attempted for a full 24 hours", correct:false, feedback:"Retrying longer helps a subscriber that's briefly down and changes nothing for one that's genuinely broken — at the end of the window the message is still discarded." }
                 ],
                 errorText:"There's still no dead-letter topic on this subscription — a message that fails delivery after retrying just disappears, exactly like the ones that already did."
               },
@@ -6216,7 +6249,8 @@
                 prompt:"Each Snowball Edge Storage Optimized device holds about 80TB usable. How many does 250TB need?",
                 options:[
                   { key:"one", label:"1 device — just refill it between trips", correct:false, feedback:"One device holds roughly a third of this dataset — refilling and reshipping it three times would blow well past the 2-week deadline." },
-                  { key:"four", label:"4 devices, run in parallel", correct:true, feedback:"Four devices covers the full 250TB with room to spare, and running them in parallel keeps the whole migration inside the deadline." }
+                  { key:"four", label:"4 devices, run in parallel", correct:true, feedback:"Four devices covers the full 250TB with room to spare, and running them in parallel keeps the whole migration inside the deadline." },
+                  { key:"three", label:"3 devices — 3 × 80TB is 240TB, close enough", correct:false, feedback:"It isn't: 240TB leaves 10TB with nowhere to go, and finding out at the end of a copy means an extra shipping round the deadline can't absorb." }
                 ],
                 errorText:"The device count on order doesn't actually cover 250TB — some of this data has nowhere to go yet."
               },
@@ -6270,7 +6304,8 @@
                 prompt:"Each Data Box device holds about 80TB usable. How many does 250TB need?",
                 options:[
                   { key:"one", label:"1 device — just refill it between trips", correct:false, feedback:"One device holds roughly a third of this dataset — refilling and reshipping it three times would blow well past the 2-week deadline." },
-                  { key:"four", label:"4 devices, run in parallel", correct:true, feedback:"Four devices covers the full 250TB with room to spare, and running them in parallel keeps the whole migration inside the deadline." }
+                  { key:"four", label:"4 devices, run in parallel", correct:true, feedback:"Four devices covers the full 250TB with room to spare, and running them in parallel keeps the whole migration inside the deadline." },
+                  { key:"three", label:"3 devices — 3 × 80TB is 240TB, close enough", correct:false, feedback:"It isn't: 240TB leaves 10TB with nowhere to go, and finding out at the end of a copy means an extra shipping round the deadline can't absorb." }
                 ],
                 errorText:"The device count on order doesn't actually cover 250TB — some of this data has nowhere to go yet."
               },
@@ -6324,7 +6359,8 @@
                 prompt:"Each Transfer Appliance holds about 100TB usable. How many does 250TB need?",
                 options:[
                   { key:"one", label:"1 device — just refill it between trips", correct:false, feedback:"One device holds well under half of this dataset — refilling and reshipping it multiple times would blow well past the 2-week deadline." },
-                  { key:"three", label:"3 devices, run in parallel", correct:true, feedback:"Three devices covers the full 250TB with room to spare, and running them in parallel keeps the whole migration inside the deadline." }
+                  { key:"three", label:"3 devices, run in parallel", correct:true, feedback:"Three devices covers the full 250TB with room to spare, and running them in parallel keeps the whole migration inside the deadline." },
+                  { key:"tworefill", label:"2 devices — 2 × 100TB is 200TB, then refill one for the remainder", correct:false, feedback:"That last 50TB costs a full extra shipping round trip, which is precisely the delay a 2-week deadline cannot absorb." }
                 ],
                 errorText:"The device count on order doesn't actually cover 250TB — some of this data has nowhere to go yet."
               },
@@ -6370,7 +6406,8 @@
                 prompt:"What does the failure pattern look like?",
                 options:[
                   { key:"consistent", label:"It fails the same way, every single run, on this exact change", correct:false, feedback:"A failure that's 100% reproducible on this change isn't flaky — that's a real regression, and retrying won't fix it." },
-                  { key:"intermittent", label:"It fails maybe 1 in 5 runs, on unrelated changes too, with a timing-related error", correct:true, feedback:"That pattern — intermittent, unrelated to the actual change, timing-related — is the signature of real flakiness, not a regression." }
+                  { key:"intermittent", label:"It fails maybe 1 in 5 runs, on unrelated changes too, with a timing-related error", correct:true, feedback:"That pattern — intermittent, unrelated to the actual change, timing-related — is the signature of real flakiness, not a regression." },
+                  { key:"runner", label:"It has failed on every run since the CI runner image was updated last week", correct:false, feedback:"That would be a deterministic environment break — real, but a different bug with a different fix. The failures here are intermittent and hit unrelated changes." }
                 ],
                 errorText:"Nobody's confirmed this is actually flaky rather than a real regression — retrying past a real regression would ship the bug."
               },
@@ -6429,7 +6466,8 @@
                 prompt:"What does the failure pattern look like?",
                 options:[
                   { key:"consistent", label:"It fails the same way, every single run, on this exact change", correct:false, feedback:"A failure that's 100% reproducible on this change isn't flaky — that's a real regression, and retrying won't fix it." },
-                  { key:"intermittent", label:"It fails maybe 1 in 5 runs, on unrelated changes too, with a timing-related error", correct:true, feedback:"That pattern — intermittent, unrelated to the actual change, timing-related — is the signature of real flakiness, not a regression." }
+                  { key:"intermittent", label:"It fails maybe 1 in 5 runs, on unrelated changes too, with a timing-related error", correct:true, feedback:"That pattern — intermittent, unrelated to the actual change, timing-related — is the signature of real flakiness, not a regression." },
+                  { key:"runner", label:"It has failed on every run since the CI runner image was updated last week", correct:false, feedback:"That would be a deterministic environment break — real, but a different bug with a different fix. The failures here are intermittent and hit unrelated changes." }
                 ],
                 errorText:"Nobody's confirmed this is actually flaky rather than a real regression — retrying past a real regression would ship the bug."
               },
@@ -6488,7 +6526,8 @@
                 prompt:"What does the failure pattern look like?",
                 options:[
                   { key:"consistent", label:"It fails the same way, every single run, on this exact change", correct:false, feedback:"A failure that's 100% reproducible on this change isn't flaky — that's a real regression, and retrying won't fix it." },
-                  { key:"intermittent", label:"It fails maybe 1 in 5 runs, on unrelated changes too, with a timing-related error", correct:true, feedback:"That pattern — intermittent, unrelated to the actual change, timing-related — is the signature of real flakiness, not a regression." }
+                  { key:"intermittent", label:"It fails maybe 1 in 5 runs, on unrelated changes too, with a timing-related error", correct:true, feedback:"That pattern — intermittent, unrelated to the actual change, timing-related — is the signature of real flakiness, not a regression." },
+                  { key:"runner", label:"It has failed on every run since the CI runner image was updated last week", correct:false, feedback:"That would be a deterministic environment break — real, but a different bug with a different fix. The failures here are intermittent and hit unrelated changes." }
                 ],
                 errorText:"Nobody's confirmed this is actually flaky rather than a real regression — retrying past a real regression would ship the bug."
               },
@@ -6549,7 +6588,8 @@
                 prompt:"What does CloudTrail show for this key in the window before deactivation?",
                 options:[
                   { key:"onlydev", label:"Only API calls from the developer's known IP address", correct:false, feedback:"That's just the developer's own normal usage — not what you're checking for." },
-                  { key:"unfamiliar", label:"A burst of ListBuckets and GetObject calls from an IP that's never used this key before", correct:true, feedback:"That's evidence the key was actually found and used by someone else before you deactivated it — this is no longer just a close call." }
+                  { key:"unfamiliar", label:"A burst of ListBuckets and GetObject calls from an IP that's never used this key before", correct:true, feedback:"That's evidence the key was actually found and used by someone else before you deactivated it — this is no longer just a close call." },
+                  { key:"none", label:"No calls at all — the key was never actually used", correct:false, feedback:"That's the answer everyone hopes for, and it's the one that ends an investigation too early. A leaked key with no usage still needs the blast radius confirmed, not assumed." }
                 ],
                 errorText:"Nobody's actually confirmed whether this key was used by anyone besides the developer — that changes how big a deal this is."
               },
@@ -6608,7 +6648,8 @@
                 prompt:"What does the sign-in log show for this service principal in the window before deletion?",
                 options:[
                   { key:"onlydev", label:"Only token requests from the developer's known IP address", correct:false, feedback:"That's just the developer's own normal usage — not what you're checking for." },
-                  { key:"unfamiliar", label:"A burst of token requests and resource access from an IP that's never used this identity before", correct:true, feedback:"That's evidence the secret was actually found and used by someone else before you deleted it — this is no longer just a close call." }
+                  { key:"unfamiliar", label:"A burst of token requests and resource access from an IP that's never used this identity before", correct:true, feedback:"That's evidence the secret was actually found and used by someone else before you deleted it — this is no longer just a close call." },
+                  { key:"none", label:"No calls at all — the key was never actually used", correct:false, feedback:"That's the answer everyone hopes for, and it's the one that ends an investigation too early. A leaked key with no usage still needs the blast radius confirmed, not assumed." }
                 ],
                 errorText:"Nobody's actually confirmed whether this secret was used by anyone besides the developer — that changes how big a deal this is."
               },
@@ -6667,7 +6708,8 @@
                 prompt:"What do the Cloud Audit Logs show for this key in the window before deletion?",
                 options:[
                   { key:"onlydev", label:"Only API calls from the developer's known IP address", correct:false, feedback:"That's just the developer's own normal usage — not what you're checking for." },
-                  { key:"unfamiliar", label:"A burst of API calls from an IP that's never used this key before", correct:true, feedback:"That's evidence the key was actually found and used by someone else before you deleted it — this is no longer just a close call." }
+                  { key:"unfamiliar", label:"A burst of API calls from an IP that's never used this key before", correct:true, feedback:"That's evidence the key was actually found and used by someone else before you deleted it — this is no longer just a close call." },
+                  { key:"none", label:"No calls at all — the key was never actually used", correct:false, feedback:"That's the answer everyone hopes for, and it's the one that ends an investigation too early. A leaked key with no usage still needs the blast radius confirmed, not assumed." }
                 ],
                 errorText:"Nobody's actually confirmed whether this key was used by anyone besides the developer — that changes how big a deal this is."
               },
@@ -6748,7 +6790,8 @@
                 prompt:"What's really wrong with how the group decides to scale?",
                 options:[
                   { key:"maxcap", label:"Its maximum capacity is set too low — just raise the cap", correct:false, feedback:"Raising the cap just means more instances opening more doomed connections, faster. The cap was never the problem." },
-                  { key:"metric", label:"It's scaling on CPU utilization, which never moved — it should scale on request latency or count instead", correct:true, feedback:"That's the real problem — the group has been blind this whole time. A metric that actually reflects load lets it react to what's really happening instead of a flat CPU graph." }
+                  { key:"metric", label:"It's scaling on CPU utilization, which never moved — it should scale on request latency or count instead", correct:true, feedback:"That's the real problem — the group has been blind this whole time. A metric that actually reflects load lets it react to what's really happening instead of a flat CPU graph." },
+                  { key:"cooldown", label:"Its cooldown window is too long, so it waits too long between scaling actions", correct:false, feedback:"Cooldown tuning matters when the group is scaling for the right reason. This one is watching a metric that never moved, so a shorter cooldown just means reacting sooner to nothing." }
                 ],
                 errorText:"The scaling policy is still watching a metric that never once reflected this incident."
               },
@@ -6807,7 +6850,8 @@
                 prompt:"What's really wrong with how the scale set decides to scale?",
                 options:[
                   { key:"maxcap", label:"Its maximum instance count is set too low — just raise the cap", correct:false, feedback:"Raising the cap just means more instances opening more doomed connections, faster. The cap was never the problem." },
-                  { key:"metric", label:"It's scaling on CPU percentage, which never moved — it should scale on request latency or count instead", correct:true, feedback:"That's the real problem — the scale set has been blind this whole time. A metric that actually reflects load lets it react to what's really happening instead of a flat CPU graph." }
+                  { key:"metric", label:"It's scaling on CPU percentage, which never moved — it should scale on request latency or count instead", correct:true, feedback:"That's the real problem — the scale set has been blind this whole time. A metric that actually reflects load lets it react to what's really happening instead of a flat CPU graph." },
+                  { key:"cooldown", label:"Its cooldown window is too long, so it waits too long between scaling actions", correct:false, feedback:"Cooldown tuning matters when the group is scaling for the right reason. This one is watching a metric that never moved, so a shorter cooldown just means reacting sooner to nothing." }
                 ],
                 errorText:"The scaling rule is still watching a metric that never once reflected this incident."
               },
@@ -6866,7 +6910,8 @@
                 prompt:"What's really wrong with how the group decides to scale?",
                 options:[
                   { key:"maxcap", label:"Its maximum size is set too low — just raise the cap", correct:false, feedback:"Raising the cap just means more instances opening more doomed connections, faster. The cap was never the problem." },
-                  { key:"metric", label:"It's scaling on CPU utilization, which never moved — it should scale on a load-balancer-reported request metric instead", correct:true, feedback:"That's the real problem — the group has been blind this whole time. A metric that actually reflects load lets it react to what's really happening instead of a flat CPU graph." }
+                  { key:"metric", label:"It's scaling on CPU utilization, which never moved — it should scale on a load-balancer-reported request metric instead", correct:true, feedback:"That's the real problem — the group has been blind this whole time. A metric that actually reflects load lets it react to what's really happening instead of a flat CPU graph." },
+                  { key:"cooldown", label:"Its cooldown window is too long, so it waits too long between scaling actions", correct:false, feedback:"Cooldown tuning matters when the group is scaling for the right reason. This one is watching a metric that never moved, so a shorter cooldown just means reacting sooner to nothing." }
                 ],
                 errorText:"The autoscaling policy is still watching a metric that never once reflected this incident."
               },
@@ -6907,7 +6952,8 @@
                 prompt:"Which statement is the actual problem?",
                 options:[
                   { key:"decoy", label:"A statement granting read access to the security team's IAM role", correct:false, feedback:"That's a normal, scoped grant to actual employees. Not this." },
-                  { key:"public", label:"A statement granting s3:GetObject to Principal: *", correct:true, feedback:"That's it — Principal: * means anyone on the internet, authenticated or not." }
+                  { key:"public", label:"A statement granting s3:GetObject to Principal: *", correct:true, feedback:"That's it — Principal: * means anyone on the internet, authenticated or not." },
+                  { key:"partner", label:"A statement granting s3:PutObject to a named partner account's role", correct:false, feedback:"Write access sounds alarming and this one is scoped to a specific principal you chose to trust. It's reviewable; it isn't what made the bucket world-readable." }
                 ],
                 errorText:"You haven't actually identified which bucket policy statement is causing the exposure yet."
               },
@@ -6966,7 +7012,8 @@
                 prompt:"Which setting is the actual problem?",
                 options:[
                   { key:"decoy", label:"A private container storing internal build artifacts", correct:false, feedback:"That container is already private and unrelated. Not this." },
-                  { key:"public", label:"A container with its public access level set to \"Container\"", correct:true, feedback:"That's it — \"Container\" access level means anyone with the URL can list and read every blob inside, authenticated or not." }
+                  { key:"public", label:"A container with its public access level set to \"Container\"", correct:true, feedback:"That's it — \"Container\" access level means anyone with the URL can list and read every blob inside, authenticated or not." },
+                  { key:"partner", label:"A statement granting s3:PutObject to a named partner account's role", correct:false, feedback:"Write access sounds alarming and this one is scoped to a specific principal you chose to trust. It's reviewable; it isn't what made the bucket world-readable." }
                 ],
                 errorText:"You haven't actually identified which container's access level is causing the exposure yet."
               },
@@ -7025,7 +7072,8 @@
                 prompt:"Which binding is the actual problem?",
                 options:[
                   { key:"decoy", label:"A binding granting roles/storage.objectViewer to the project-owners group", correct:false, feedback:"That's a normal, scoped grant to actual employees. Not this." },
-                  { key:"public", label:"A binding granting roles/storage.objectViewer to allUsers", correct:true, feedback:"That's it — allUsers means anyone on the internet, authenticated or not." }
+                  { key:"public", label:"A binding granting roles/storage.objectViewer to allUsers", correct:true, feedback:"That's it — allUsers means anyone on the internet, authenticated or not." },
+                  { key:"partner", label:"A statement granting s3:PutObject to a named partner account's role", correct:false, feedback:"Write access sounds alarming and this one is scoped to a specific principal you chose to trust. It's reviewable; it isn't what made the bucket world-readable." }
                 ],
                 errorText:"You haven't actually identified which IAM binding is causing the exposure yet."
               },
@@ -11123,7 +11171,8 @@
                 prompt:"Denetimin ortaya çıkardığı AdministratorAccess yetkisiyle ne yapıyorsunuz?",
                 options:[
                   { key:"leave", label:"Bırakın — anahtar zaten devre dışı", correct:false, feedback:"Anahtarın ölü olması eklediği politikayı kaldırmaz. Hesap hâlâ kimsenin onaylamadığı bir yetki yükseltmesini taşıyor." },
-                  { key:"detach", label:"AdministratorAccess'i rolden hemen kaldır", correct:true, feedback:"Kaldırıldı — denetimin bulduğu yetkisiz yetki yükseltmesi gitti." }
+                  { key:"detach", label:"AdministratorAccess'i rolden hemen kaldır", correct:true, feedback:"Kaldırıldı — denetimin bulduğu yetkisiz yetki yükseltmesi gitti." },
+                  { key:"narrow", label:"Salt-okunur yöneticiye daralt ve acil durumlar için bağlı bırak", correct:false, feedback:"Denetimin işaretlediği şey tam da kalıcı geniş yetki. Acil durumlar, üstlenildiğinde nöbetçiyi çağıran bir break-glass rolüyle karşılanır; yetkiyi kalıcı bağlı bırakarak değil." }
                 ],
                 errorText:"Saldırganın kendine verdiği AdministratorAccess politikası hâlâ ekli — anahtar ölü, ama açık bıraktığı kapı kapalı değil."
               },
@@ -11182,7 +11231,8 @@
                 prompt:"Denetimin ortaya çıkardığı Sahip rol atamasıyla ne yapıyorsunuz?",
                 options:[
                   { key:"leave", label:"Bırakın — sır zaten silindi", correct:false, feedback:"Sırrın ölü olması oluşturduğu rol atamasını kaldırmaz. Abonelik hâlâ kimsenin onaylamadığı bir yetki yükseltmesini taşıyor." },
-                  { key:"remove", label:"Sahip rol atamasını hemen kaldır", correct:true, feedback:"Kaldırıldı — denetimin bulduğu yetkisiz yetki yükseltmesi gitti." }
+                  { key:"remove", label:"Sahip rol atamasını hemen kaldır", correct:true, feedback:"Kaldırıldı — denetimin bulduğu yetkisiz yetki yükseltmesi gitti." },
+                  { key:"narrow", label:"Salt-okunur yöneticiye daralt ve acil durumlar için bağlı bırak", correct:false, feedback:"Denetimin işaretlediği şey tam da kalıcı geniş yetki. Acil durumlar, üstlenildiğinde nöbetçiyi çağıran bir break-glass rolüyle karşılanır; yetkiyi kalıcı bağlı bırakarak değil." }
                 ],
                 errorText:"Saldırganın kendine verdiği Sahip rol ataması hâlâ aktif — sır ölü, ama açık bıraktığı kapı kapalı değil."
               },
@@ -11241,7 +11291,8 @@
                 prompt:"Denetimin ortaya çıkardığı roles/owner bağlamasıyla ne yapıyorsunuz?",
                 options:[
                   { key:"leave", label:"Bırakın — anahtar zaten silindi", correct:false, feedback:"Anahtarın ölü olması oluşturduğu IAM bağlamasını kaldırmaz. Proje hâlâ kimsenin onaylamadığı bir yetki yükseltmesini taşıyor." },
-                  { key:"remove", label:"roles/owner bağlamasını hemen kaldır", correct:true, feedback:"Kaldırıldı — denetimin bulduğu yetkisiz yetki yükseltmesi gitti." }
+                  { key:"remove", label:"roles/owner bağlamasını hemen kaldır", correct:true, feedback:"Kaldırıldı — denetimin bulduğu yetkisiz yetki yükseltmesi gitti." },
+                  { key:"narrow", label:"Salt-okunur yöneticiye daralt ve acil durumlar için bağlı bırak", correct:false, feedback:"Denetimin işaretlediği şey tam da kalıcı geniş yetki. Acil durumlar, üstlenildiğinde nöbetçiyi çağıran bir break-glass rolüyle karşılanır; yetkiyi kalıcı bağlı bırakarak değil." }
                 ],
                 errorText:"Saldırganın kendine verdiği roles/owner bağlaması hâlâ aktif — anahtar ölü, ama açık bıraktığı kapı kapalı değil."
               },
@@ -11866,7 +11917,8 @@
                 prompt:"Eksik veri davranışını seçin:",
                 options:[
                   { key:"ok", label:"Eksik veriyi TAMAM olarak ele al", correct:false, feedback:"Bunun altı saat sessizce başarısız olmasına izin veren tam olarak bu — ajan tamamen rapor vermeyi bırakırsa, bu ayar her şeyin yolunda olduğunu varsayar." },
-                  { key:"breaching", label:"Eksik veriyi ihlal olarak ele al", correct:true, feedback:"Artık sessizliğin kendisi de sessiz kalmak için bir sebep değil, bir sorun sayılıyor." }
+                  { key:"breaching", label:"Eksik veriyi ihlal olarak ele al", correct:true, feedback:"Artık sessizliğin kendisi de sessiz kalmak için bir sebep değil, bir sorun sayılıyor." },
+                  { key:"ignore", label:"Eksik veriyi yok say — alarmı mevcut durumunda tut", correct:false, feedback:"Bu gerçek bir ayar ve burada en kötüsü: alarm OK'teyken ajan öldü, yani sonsuza dek OK kalır ve kesinti görünmez olur." }
                 ],
                 errorText:"Eksik veri hâlâ \"TAMAM\" olarak ele alınıyor — rapor vermeyi tamamen bırakan bir ajan yine de kimseyi çağırmaz."
               },
@@ -11925,7 +11977,8 @@
                 prompt:"Eksik veri davranışını seçin:",
                 options:[
                   { key:"ignore", label:"Eksik veriyi yok say (sağlıklı olarak ele al)", correct:false, feedback:"Bunun altı saat sessizce başarısız olmasına izin veren tam olarak bu — ajan tamamen rapor vermeyi bırakırsa, bu ayar her şeyin yolunda olduğunu varsayar." },
-                  { key:"breach", label:"Eksik veriyi ihlal olarak ele al", correct:true, feedback:"Artık sessizliğin kendisi de sessiz kalmak için bir sebep değil, bir sorun sayılıyor." }
+                  { key:"breach", label:"Eksik veriyi ihlal olarak ele al", correct:true, feedback:"Artık sessizliğin kendisi de sessiz kalmak için bir sebep değil, bir sorun sayılıyor." },
+                  { key:"moreperiods", label:"Alarm durum değiştirmeden önce daha çok değerlendirme dönemi iste", correct:false, feedback:"Ajan öldüğü için hiç yeni veri noktası gelmeyecek; daha fazlasını istemek alarmın hiçbir zaman karar vermemesini garantiler." }
                 ],
                 errorText:"Eksik veri hâlâ yok sayılıyor — rapor vermeyi tamamen bırakan bir ajan yine de kimseyi çağırmaz."
               },
@@ -11984,7 +12037,8 @@
                 prompt:"Eksik veri davranışını seçin:",
                 options:[
                   { key:"ok", label:"Eksik veride bildirim gönderme", correct:false, feedback:"Bunun altı saat sessizce başarısız olmasına izin veren tam olarak bu — ajan tamamen rapor vermeyi bırakırsa, bu ayar her şeyin yolunda olduğunu varsayar." },
-                  { key:"notify", label:"Veri gelmeyi durdurduğunda bildir", correct:true, feedback:"Artık sessizliğin kendisi de sessiz kalmak için bir sebep değil, bir sorun sayılıyor." }
+                  { key:"notify", label:"Veri gelmeyi durdurduğunda bildir", correct:true, feedback:"Artık sessizliğin kendisi de sessiz kalmak için bir sebep değil, bir sorun sayılıyor." },
+                  { key:"ignore", label:"Eksik veriyi yok say — alarmı mevcut durumunda tut", correct:false, feedback:"Bu gerçek bir ayar ve burada en kötüsü: alarm OK'teyken ajan öldü, yani sonsuza dek OK kalır ve kesinti görünmez olur." }
                 ],
                 errorText:"Eksik veri hâlâ kimseyi bilgilendirecek şekilde yapılandırılmamış — rapor vermeyi tamamen bırakan bir ajan yine de kimseyi çağırmaz."
               },
@@ -12045,7 +12099,8 @@
                 prompt:"Uygulamanın bağlantı dizesi şimdi nereyi işaret etmeli?",
                 options:[
                   { key:"old", label:"Bırakın — eski ana sunucunun uç noktası tekrar çalışmaya başlar", correct:false, feedback:"Başlamaz. Eski ana sunucu gitti, ve uç noktası hiçbir şeye yeniden atanmıyor." },
-                  { key:"new", label:"Terfi ettirilen örneğin kendi uç noktasına güncelleyin", correct:true, feedback:"Terfi ettirilen bir okuma replikası kendi yeni uç noktasını alır — eski ana sunucununkini devralmaz. Güncellendi." }
+                  { key:"new", label:"Terfi ettirilen örneğin kendi uç noktasına güncelleyin", correct:true, feedback:"Terfi ettirilen bir okuma replikası kendi yeni uç noktasını alır — eski ana sunucununkini devralmaz. Güncellendi." },
+                  { key:"replica", label:"Bir okuma replikası uç noktasına yönlendir — aynı veriye sahip", correct:false, feedback:"Replika aynı satırları tutar ve her yazmayı reddeder. Ödeme okuyabilir ama ilk siparişte çöker." }
                 ],
                 errorText:"Hata: sunucuya bağlanılamadı — uygulama hâlâ arkasında hiçbir şey olmayan bir uç noktayı işaret ediyor."
               },
@@ -12104,7 +12159,8 @@
                 prompt:"Uygulamanın bağlantı dizesi şimdi nereyi işaret etmeli?",
                 options:[
                   { key:"old", label:"Bırakın — eski sunucunun adı tekrar çalışmaya başlar", correct:false, feedback:"Başlamaz. Eski sunucu gitti, ve adı hiçbir şeye yeniden atanmıyor." },
-                  { key:"new", label:"Terfi ettirilen sunucunun kendi sunucu adına güncelleyin", correct:true, feedback:"Terfi ettirilen bir okuma replikası kendi benzersiz sunucu adını alır — eski ana sunucununkini devralmaz. Güncellendi." }
+                  { key:"new", label:"Terfi ettirilen sunucunun kendi sunucu adına güncelleyin", correct:true, feedback:"Terfi ettirilen bir okuma replikası kendi benzersiz sunucu adını alır — eski ana sunucununkini devralmaz. Güncellendi." },
+                  { key:"replica", label:"Bir okuma replikası uç noktasına yönlendir — aynı veriye sahip", correct:false, feedback:"Replika aynı satırları tutar ve her yazmayı reddeder. Ödeme okuyabilir ama ilk siparişte çöker." }
                 ],
                 errorText:"Hata: sunucuya bağlanılamadı — uygulama hâlâ arkasında hiçbir şey olmayan bir sunucu adını işaret ediyor."
               },
@@ -12163,7 +12219,8 @@
                 prompt:"Uygulamanın bağlantı dizesi şimdi nereyi işaret etmeli?",
                 options:[
                   { key:"old", label:"Bırakın — eski ana sunucunun bağlantı adı tekrar çalışmaya başlar", correct:false, feedback:"Başlamaz. Eski ana sunucu gitti, ve bağlantı adı hiçbir şeye yeniden atanmıyor." },
-                  { key:"new", label:"Terfi ettirilen örneğin kendi bağlantı adına güncelleyin", correct:true, feedback:"Terfi ettirilen bir okuma replikası kendi yeni örnek bağlantı adını alır — eski ana sunucununkini devralmaz. Güncellendi." }
+                  { key:"new", label:"Terfi ettirilen örneğin kendi bağlantı adına güncelleyin", correct:true, feedback:"Terfi ettirilen bir okuma replikası kendi yeni örnek bağlantı adını alır — eski ana sunucununkini devralmaz. Güncellendi." },
+                  { key:"replica", label:"Bir okuma replikası uç noktasına yönlendir — aynı veriye sahip", correct:false, feedback:"Replika aynı satırları tutar ve her yazmayı reddeder. Ödeme okuyabilir ama ilk siparişte çöker." }
                 ],
                 errorText:"Hata: sunucuya bağlanılamadı — uygulama hâlâ arkasında hiçbir şey olmayan bir bağlantı adını işaret ediyor."
               },
@@ -12204,7 +12261,8 @@
                 prompt:"Hangi servis olayı bunun başka bir şey değil, dağıtım olduğunu söylüyor?",
                 options:[
                   { key:"scale", label:"\"service X has begun draining connections on 1 tasks\"", correct:false, feedback:"Bu rutin — sağlıklı olsun olmasın her dağıtımın normal bir parçası. Aramaya devam edin." },
-                  { key:"stopped", label:"Yeni sürümün görevleri genelinde tekrarlanan \"task Y (essential container Z) stopped: HealthCheck failed\"", correct:true, feedback:"İşte bu — başarısız olan yeni sürümün görevleri, tekrar tekrar." }
+                  { key:"stopped", label:"Yeni sürümün görevleri genelinde tekrarlanan \"task Y (essential container Z) stopped: HealthCheck failed\"", correct:true, feedback:"İşte bu — başarısız olan yeni sürümün görevleri, tekrar tekrar." },
+                  { key:"steady", label:"\"service X kararlı duruma ulaştı\"", correct:false, feedback:"Bu başarı mesajı — dağıtım düzgün oturduğunda üretilir. Onu görmek, sorunun dağıtım olmadığını gösterirdi." }
                 ],
                 errorText:"Yeni sürümün gerçekten başarısız olan şey olduğunu doğrulamadan tepki verdiniz — canlı bir dağıtıma dokunmadan önce on saniyeye değer."
               },
@@ -12263,7 +12321,8 @@
                 prompt:"Hangi pod olayı bunun başka bir şey değil, dağıtım olduğunu söylüyor?",
                 options:[
                   { key:"scheduled", label:"\"Successfully assigned pod to node\"", correct:false, feedback:"Bu rutin — sağlıklı olsun olmasın her dağıtımın normal bir parçası. Aramaya devam edin." },
-                  { key:"crashloop", label:"Yeni sürümün pod'ları genelinde tekrarlanan \"Back-off restarting failed container\"", correct:true, feedback:"İşte bu — başarısız olan yeni sürümün pod'ları, tekrar tekrar." }
+                  { key:"crashloop", label:"Yeni sürümün pod'ları genelinde tekrarlanan \"Back-off restarting failed container\"", correct:true, feedback:"İşte bu — başarısız olan yeni sürümün pod'ları, tekrar tekrar." },
+                  { key:"steady", label:"\"service X kararlı duruma ulaştı\"", correct:false, feedback:"Bu başarı mesajı — dağıtım düzgün oturduğunda üretilir. Onu görmek, sorunun dağıtım olmadığını gösterirdi." }
                 ],
                 errorText:"Yeni sürümün gerçekten başarısız olan şey olduğunu doğrulamadan tepki verdiniz — canlı bir dağıtıma dokunmadan önce on saniyeye değer."
               },
@@ -12322,7 +12381,8 @@
                 prompt:"Hangi pod olayı bunun başka bir şey değil, dağıtım olduğunu söylüyor?",
                 options:[
                   { key:"scheduled", label:"\"Successfully assigned pod to node\"", correct:false, feedback:"Bu rutin — sağlıklı olsun olmasın her dağıtımın normal bir parçası. Aramaya devam edin." },
-                  { key:"crashloop", label:"Yeni sürümün pod'ları genelinde tekrarlanan \"CrashLoopBackOff\"", correct:true, feedback:"İşte bu — başarısız olan yeni sürümün pod'ları, tekrar tekrar." }
+                  { key:"crashloop", label:"Yeni sürümün pod'ları genelinde tekrarlanan \"CrashLoopBackOff\"", correct:true, feedback:"İşte bu — başarısız olan yeni sürümün pod'ları, tekrar tekrar." },
+                  { key:"steady", label:"\"service X kararlı duruma ulaştı\"", correct:false, feedback:"Bu başarı mesajı — dağıtım düzgün oturduğunda üretilir. Onu görmek, sorunun dağıtım olmadığını gösterirdi." }
                 ],
                 errorText:"Yeni sürümün gerçekten başarısız olan şey olduğunu doğrulamadan tepki verdiniz — canlı bir dağıtıma dokunmadan önce on saniyeye değer."
               },
@@ -12383,7 +12443,8 @@
                 prompt:"Hangi günlük deseni gerçekten meta veri kimlik bilgisi hırsızlığına işaret ediyor?",
                 options:[
                   { key:"login", label:"Ofis IP aralığından başarılı bir SSH girişi", correct:false, feedback:"Bu beklenen, rutin bir erişim. Bu değil." },
-                  { key:"ssrf", label:"169.254.169.254'e tekrarlanan uygulama istekleri, ardından tanınmayan harici bir IP'den AssumeRole çağrıları", correct:true, feedback:"İşte bu desen — uygulama rolün kimlik bilgilerini meta veri servisinden çekti, ve şimdi bu örnek olmayan bir yerden kullanılıyorlar." }
+                  { key:"ssrf", label:"169.254.169.254'e tekrarlanan uygulama istekleri, ardından tanınmayan harici bir IP'den AssumeRole çağrıları", correct:true, feedback:"İşte bu desen — uygulama rolün kimlik bilgilerini meta veri servisinden çekti, ve şimdi bu örnek olmayan bir yerden kullanılıyorlar." },
+                  { key:"outbound", label:"Sunucudan bir depolama uç noktasına giden trafikte ani artış", correct:false, feedback:"Hem sızdırmayla hem de bir düzine zararsız şeyle uyumlu — bir yedekleme işi birebir aynı görünür. Kimlik bilgilerinin metadata servisinden alındığını kanıtlamaz." }
                 ],
                 errorText:"Bunun gerçekten meta veri kimlik bilgisi hırsızlığı olduğunu doğrulamadınız — herhangi bir şeyi karantinaya almadan önce doğrulamaya değer."
               },
@@ -12442,7 +12503,8 @@
                 prompt:"Hangi günlük deseni gerçekten meta veri jetonu hırsızlığına işaret ediyor?",
                 options:[
                   { key:"signin", label:"Tanınan bir cihazdan rutin bir etkileşimli giriş", correct:false, feedback:"Bu beklenen, rutin bir erişim. Bu değil." },
-                  { key:"ssrf", label:"Metadata: true başlığıyla 169.254.169.254'e tekrarlanan uygulama istekleri, ardından tanınmayan harici bir IP'den kaynak erişimi", correct:true, feedback:"İşte bu desen — uygulama kimliğin jetonunu meta veri servisinden çekti, ve şimdi bu VM olmayan bir yerden kullanılıyor." }
+                  { key:"ssrf", label:"Metadata: true başlığıyla 169.254.169.254'e tekrarlanan uygulama istekleri, ardından tanınmayan harici bir IP'den kaynak erişimi", correct:true, feedback:"İşte bu desen — uygulama kimliğin jetonunu meta veri servisinden çekti, ve şimdi bu VM olmayan bir yerden kullanılıyor." },
+                  { key:"outbound", label:"Sunucudan bir depolama uç noktasına giden trafikte ani artış", correct:false, feedback:"Hem sızdırmayla hem de bir düzine zararsız şeyle uyumlu — bir yedekleme işi birebir aynı görünür. Kimlik bilgilerinin metadata servisinden alındığını kanıtlamaz." }
                 ],
                 errorText:"Bunun gerçekten meta veri jetonu hırsızlığı olduğunu doğrulamadınız — herhangi bir şeyi karantinaya almadan önce doğrulamaya değer."
               },
@@ -12501,7 +12563,8 @@
                 prompt:"Hangi günlük deseni gerçekten meta veri jetonu hırsızlığına işaret ediyor?",
                 options:[
                   { key:"routine", label:"Dağıtım pipeline'ından rutin bir instances.get çağrısı", correct:false, feedback:"Bu beklenen, rutin bir erişim. Bu değil." },
-                  { key:"ssrf", label:"metadata.google.internal'a service-accounts/default/token için tekrarlanan uygulama istekleri, ardından tanınmayan harici bir IP'den API çağrıları", correct:true, feedback:"İşte bu desen — uygulama hizmet hesabının jetonunu meta veri sunucusundan çekti, ve şimdi bu örnek olmayan bir yerden kullanılıyor." }
+                  { key:"ssrf", label:"metadata.google.internal'a service-accounts/default/token için tekrarlanan uygulama istekleri, ardından tanınmayan harici bir IP'den API çağrıları", correct:true, feedback:"İşte bu desen — uygulama hizmet hesabının jetonunu meta veri sunucusundan çekti, ve şimdi bu örnek olmayan bir yerden kullanılıyor." },
+                  { key:"outbound", label:"Sunucudan bir depolama uç noktasına giden trafikte ani artış", correct:false, feedback:"Hem sızdırmayla hem de bir düzine zararsız şeyle uyumlu — bir yedekleme işi birebir aynı görünür. Kimlik bilgilerinin metadata servisinden alındığını kanıtlamaz." }
                 ],
                 errorText:"Bunun gerçekten meta veri jetonu hırsızlığı olduğunu doğrulamadınız — herhangi bir şeyi karantinaya almadan önce doğrulamaya değer."
               },
@@ -12562,7 +12625,8 @@
                 prompt:"Hangi CloudWatch metriği bunu gerçekten doğruluyor?",
                 options:[
                   { key:"duration", label:"Duration", correct:false, feedback:"Duration çağrıların ne kadar sürdüğünü söyler, bazılarının neden doğrudan reddedildiğini değil." },
-                  { key:"throttles", label:"Throttles", correct:true, feedback:"İşte bu — sıfırdan farklı bir Throttles sayısı, çağrıların hiç çalışmadan reddedildiği anlamına gelir." }
+                  { key:"throttles", label:"Throttles", correct:true, feedback:"İşte bu — sıfırdan farklı bir Throttles sayısı, çağrıların hiç çalışmadan reddedildiği anlamına gelir." },
+                  { key:"concurrent", label:"ConcurrentExecutions", correct:false, feedback:"Aynı anda kaçının çalıştığını söyler, kaçının geri çevrildiğini değil. Tavanda düzleşir — yani istekler reddedilirken sağlıklı görünür." }
                 ],
                 errorText:"Bunun gerçekten bir eşzamanlılık/kısıtlama sorunu olduğunu doğrulamadan tepki verdiniz."
               },
@@ -12621,7 +12685,8 @@
                 prompt:"Hangi metrik bunu gerçekten doğruluyor?",
                 options:[
                   { key:"duration", label:"Ortalama çalışma süresi", correct:false, feedback:"Çalışma süresi her çalışmanın ne kadar sürdüğünü söyler, birikimin neden büyüdüğünü değil." },
-                  { key:"queuelength", label:"Storage kuyruğu mesaj sayısı", correct:true, feedback:"İşte bu — istikrarlı biçimde büyüyen bir kuyruk uzunluğu, fonksiyonun geliş hızına yetişemediği anlamına gelir." }
+                  { key:"queuelength", label:"Storage kuyruğu mesaj sayısı", correct:true, feedback:"İşte bu — istikrarlı biçimde büyüyen bir kuyruk uzunluğu, fonksiyonun geliş hızına yetişemediği anlamına gelir." },
+                  { key:"concurrent", label:"ConcurrentExecutions", correct:false, feedback:"Aynı anda kaçının çalıştığını söyler, kaçının geri çevrildiğini değil. Tavanda düzleşir — yani istekler reddedilirken sağlıklı görünür." }
                 ],
                 errorText:"Bunun gerçekten bir verimlilik sorunu olduğunu doğrulamadan tepki verdiniz."
               },
@@ -12680,7 +12745,8 @@
                 prompt:"Hangi metrik bunu gerçekten doğruluyor?",
                 options:[
                   { key:"duration", label:"Çalışma süresi", correct:false, feedback:"Çalışma süresi her çalışmanın ne kadar sürdüğünü söyler, birikimin neden büyüdüğünü değil." },
-                  { key:"oldest", label:"En eski onaylanmamış mesajın yaşı", correct:true, feedback:"İşte bu — istikrarlı biçimde büyüyen bir en-eski-onaylanmamış yaşı, mesajların fonksiyonun işleyebildiğinden daha hızlı geldiği anlamına gelir." }
+                  { key:"oldest", label:"En eski onaylanmamış mesajın yaşı", correct:true, feedback:"İşte bu — istikrarlı biçimde büyüyen bir en-eski-onaylanmamış yaşı, mesajların fonksiyonun işleyebildiğinden daha hızlı geldiği anlamına gelir." },
+                  { key:"concurrent", label:"ConcurrentExecutions", correct:false, feedback:"Aynı anda kaçının çalıştığını söyler, kaçının geri çevrildiğini değil. Tavanda düzleşir — yani istekler reddedilirken sağlıklı görünür." }
                 ],
                 errorText:"Bunun gerçekten bir verimlilik sorunu olduğunu doğrulamadan tepki verdiniz."
               },
@@ -12761,7 +12827,8 @@
                 prompt:"Sağlık kontrolünde başka ne çok agresif?",
                 options:[
                   { key:"tighten", label:"Sağlıksız eşiğini düşürerek kötü örnekleri daha da hızlı yakala", correct:false, feedback:"Bu sarmalı daha da kötüleştirir — örnekler daha da az kanıtla öldürülür." },
-                  { key:"raise", label:"Bir örneği mahkum etmek için daha fazla ardışık başarısızlık gerekecek şekilde sağlıksız eşiğini yükselt", correct:true, feedback:"Yükseltildi — tek bir yavaş yanıt artık aksi halde sorunsuz bir örneği mahkum etmiyor." }
+                  { key:"raise", label:"Bir örneği mahkum etmek için daha fazla ardışık başarısızlık gerekecek şekilde sağlıksız eşiğini yükselt", correct:true, feedback:"Yükseltildi — tek bir yavaş yanıt artık aksi halde sorunsuz bir örneği mahkum etmiyor." },
+                  { key:"interval", label:"Sağlık kontrolü aralığını kısalt ki sorunlar daha erken görülsün", correct:false, feedback:"Bu, kesintiye sebep olan davranışı hızlandırır: daha sık yoklama, kısa süre yavaşlayan bir sunucuyu daha da çabuk mahkûm eder." }
                 ],
                 errorText:"Sağlıksız eşiği hâlâ o kadar sıkı ki sıradan başlangıç titremesi bile sağlıklı bir örneği mahkum edebiliyor."
               },
@@ -12820,7 +12887,8 @@
                 prompt:"Sağlık probunda başka ne çok agresif?",
                 options:[
                   { key:"tighten", label:"Sağlıksız eşiğini düşürerek kötü örnekleri daha da hızlı yakala", correct:false, feedback:"Bu sarmalı daha da kötüleştirir — örnekler daha da az kanıtla kaldırılır." },
-                  { key:"raise", label:"Bir örneği mahkum etmek için daha fazla ardışık başarısızlık gerekecek şekilde sağlıksız eşiğini yükselt", correct:true, feedback:"Yükseltildi — tek bir yavaş yanıt artık aksi halde sorunsuz bir örneği mahkum etmiyor." }
+                  { key:"raise", label:"Bir örneği mahkum etmek için daha fazla ardışık başarısızlık gerekecek şekilde sağlıksız eşiğini yükselt", correct:true, feedback:"Yükseltildi — tek bir yavaş yanıt artık aksi halde sorunsuz bir örneği mahkum etmiyor." },
+                  { key:"interval", label:"Sağlık kontrolü aralığını kısalt ki sorunlar daha erken görülsün", correct:false, feedback:"Bu, kesintiye sebep olan davranışı hızlandırır: daha sık yoklama, kısa süre yavaşlayan bir sunucuyu daha da çabuk mahkûm eder." }
                 ],
                 errorText:"Sağlıksız eşiği hâlâ o kadar sıkı ki sıradan başlangıç titremesi bile sağlıklı bir örneği mahkum edebiliyor."
               },
@@ -12879,7 +12947,8 @@
                 prompt:"Sağlık kontrolünde başka ne çok agresif?",
                 options:[
                   { key:"tighten", label:"Sağlıksız eşiğini düşürerek kötü örnekleri daha da hızlı yakala", correct:false, feedback:"Bu sarmalı daha da kötüleştirir — örnekler daha da az kanıtla yeniden oluşturulur." },
-                  { key:"raise", label:"Bir örneği mahkum etmek için daha fazla ardışık başarısızlık gerekecek şekilde sağlıksız eşiğini yükselt", correct:true, feedback:"Yükseltildi — tek bir yavaş yanıt artık aksi halde sorunsuz bir örneği mahkum etmiyor." }
+                  { key:"raise", label:"Bir örneği mahkum etmek için daha fazla ardışık başarısızlık gerekecek şekilde sağlıksız eşiğini yükselt", correct:true, feedback:"Yükseltildi — tek bir yavaş yanıt artık aksi halde sorunsuz bir örneği mahkum etmiyor." },
+                  { key:"interval", label:"Sağlık kontrolü aralığını kısalt ki sorunlar daha erken görülsün", correct:false, feedback:"Bu, kesintiye sebep olan davranışı hızlandırır: daha sık yoklama, kısa süre yavaşlayan bir sunucuyu daha da çabuk mahkûm eder." }
                 ],
                 errorText:"Sağlıksız eşiği hâlâ o kadar sıkı ki sıradan başlangıç titremesi bile sağlıklı bir örneği mahkum edebiliyor."
               },
@@ -13107,7 +13176,8 @@
                 prompt:"Zaten canlı olan sızıntı hakkında ne yapılmalı?",
                 options:[
                   { key:"wait", label:"Önbelleğe alınmış kopyaların kendiliğinden süresinin dolmasını bekle", correct:false, feedback:"Bu girdilerin önbellekte oturduğu her dakika, yanlış kişinin başka birinin verisini yükleyebileceği bir dakika daha demek." },
-                  { key:"invalidate", label:"Bu yol için önbelleğe alınmış girdileri hemen geçersiz kıl", correct:true, feedback:"Geçersiz kılındı — sızıntı, kalan TTL süresince azalarak devam etmek yerine hemen duruyor." }
+                  { key:"invalidate", label:"Bu yol için önbelleğe alınmış girdileri hemen geçersiz kıl", correct:true, feedback:"Geçersiz kılındı — sızıntı, kalan TTL süresince azalarak devam etmek yerine hemen duruyor." },
+                  { key:"rotate", label:"Kaynak yolunu değiştir ki eski önbellek kopyaları hiçbir şeye işaret etmesin", correct:false, feedback:"Uç, elinde tuttuğu içerik için kaynağı yeniden sorgulamaz. O kopyalar süresi dolana kadar uçtan sunulmaya devam eder." }
                 ],
                 errorText:"Düzeltmeden önceki önbelleğe alınmış kopyalar hâlâ canlı ve hâlâ sunulabilir."
               },
@@ -13166,7 +13236,8 @@
                 prompt:"Zaten canlı olan sızıntı hakkında ne yapılmalı?",
                 options:[
                   { key:"wait", label:"Önbelleğe alınmış kopyaların kendiliğinden süresinin dolmasını bekle", correct:false, feedback:"Bu girdilerin önbellekte oturduğu her dakika, yanlış kişinin başka birinin verisini yükleyebileceği bir dakika daha demek." },
-                  { key:"purge", label:"Bu yol için önbelleğe alınmış içeriği hemen temizle (purge)", correct:true, feedback:"Temizlendi — sızıntı, kalan TTL süresince azalarak devam etmek yerine hemen duruyor." }
+                  { key:"purge", label:"Bu yol için önbelleğe alınmış içeriği hemen temizle (purge)", correct:true, feedback:"Temizlendi — sızıntı, kalan TTL süresince azalarak devam etmek yerine hemen duruyor." },
+                  { key:"rotate", label:"Kaynak yolunu değiştir ki eski önbellek kopyaları hiçbir şeye işaret etmesin", correct:false, feedback:"Uç, elinde tuttuğu içerik için kaynağı yeniden sorgulamaz. O kopyalar süresi dolana kadar uçtan sunulmaya devam eder." }
                 ],
                 errorText:"Düzeltmeden önceki önbelleğe alınmış kopyalar hâlâ canlı ve hâlâ sunulabilir."
               },
@@ -13225,7 +13296,8 @@
                 prompt:"Zaten canlı olan sızıntı hakkında ne yapılmalı?",
                 options:[
                   { key:"wait", label:"Önbelleğe alınmış kopyaların kendiliğinden süresinin dolmasını bekle", correct:false, feedback:"Bu girdilerin önbellekte oturduğu her dakika, yanlış kişinin başka birinin verisini yükleyebileceği bir dakika daha demek." },
-                  { key:"invalidate", label:"Bu yol için önbelleğe alınmış içeriği hemen geçersiz kıl", correct:true, feedback:"Geçersiz kılındı — sızıntı, kalan TTL süresince azalarak devam etmek yerine hemen duruyor." }
+                  { key:"invalidate", label:"Bu yol için önbelleğe alınmış içeriği hemen geçersiz kıl", correct:true, feedback:"Geçersiz kılındı — sızıntı, kalan TTL süresince azalarak devam etmek yerine hemen duruyor." },
+                  { key:"rotate", label:"Kaynak yolunu değiştir ki eski önbellek kopyaları hiçbir şeye işaret etmesin", correct:false, feedback:"Uç, elinde tuttuğu içerik için kaynağı yeniden sorgulamaz. O kopyalar süresi dolana kadar uçtan sunulmaya devam eder." }
                 ],
                 errorText:"Düzeltmeden önceki önbelleğe alınmış kopyalar hâlâ canlı ve hâlâ sunulabilir."
               },
@@ -13282,7 +13354,8 @@
                 prompt:"Bunun sessizce tekrar olmasını gerçekte ne durdurur?",
                 options:[
                   { key:"lww", label:"Hiçbir şey — son-yazan-kazanır'a güvenmeye devam et", correct:false, feedback:"Bu yazmayı ilk etapta sessizce kaybettiren şey tam olarak bu. Bir sonrakine de aynısını yapacak." },
-                  { key:"conditional", label:"Çakışan bir güncellemenin sessizce üzerine yazılmak yerine reddedilmesi için uygulamada koşullu bir yazma / sürüm kontrolü ekle", correct:true, feedback:"Eklendi — bir sonraki çakışan yazma iz bırakmadan kaybolmak yerine yakalanıp uygulamaya bildiriliyor." }
+                  { key:"conditional", label:"Çakışan bir güncellemenin sessizce üzerine yazılmak yerine reddedilmesi için uygulamada koşullu bir yazma / sürüm kontrolü ekle", correct:true, feedback:"Eklendi — bir sonraki çakışan yazma iz bırakmadan kaybolmak yerine yakalanıp uygulamaya bildiriliyor." },
+                  { key:"faster", label:"Replikasyonu hızlandır ki yazmalar kimse çakışamadan yakınsasın", correct:false, feedback:"Daha hızlı replikasyon pencereyi daraltır, asla kapatmaz. Kalan boşluktaki iki yazma yine sessizce birbirini ezer." }
                 ],
                 errorText:"Bu iki bölge arasındaki bir sonraki çakışan yazma, tıpkı bunun gibi yine sessizce zaman damgasına göre çözülecek."
               },
@@ -13337,7 +13410,8 @@
                 prompt:"Bunun sessizce tekrar olmasını gerçekte ne durdurur?",
                 options:[
                   { key:"lww", label:"Hiçbir şey — varsayılan son-yazan-kazanır politikasını koru", correct:false, feedback:"Bu yazmayı ilk etapta sessizce kaybettiren şey tam olarak bu. Bir sonrakine de aynısını yapacak." },
-                  { key:"custom", label:"Bu konteyner için özel bir çakışma çözümü yordamı kaydet", correct:true, feedback:"Kaydedildi — bir sonraki çakışma zaman damgasına dayalı bir yazı tura yerine gerçek bir birleştirme mantığından geçiyor." }
+                  { key:"custom", label:"Bu konteyner için özel bir çakışma çözümü yordamı kaydet", correct:true, feedback:"Kaydedildi — bir sonraki çakışma zaman damgasına dayalı bir yazı tura yerine gerçek bir birleştirme mantığından geçiyor." },
+                  { key:"faster", label:"Replikasyonu hızlandır ki yazmalar kimse çakışamadan yakınsasın", correct:false, feedback:"Daha hızlı replikasyon pencereyi daraltır, asla kapatmaz. Kalan boşluktaki iki yazma yine sessizce birbirini ezer." }
                 ],
                 errorText:"Bu iki bölge arasındaki bir sonraki çakışan yazma, tıpkı bunun gibi yine sessizce zaman damgasına göre çözülecek."
               },
@@ -13392,7 +13466,8 @@
                 prompt:"Bunun sessizce tekrar olmasını gerçekte ne durdurur?",
                 options:[
                   { key:"lww", label:"Hiçbir şey — son-yazan-kazanır'a güvenmeye devam et", correct:false, feedback:"Bu yazmayı ilk etapta sessizce kaybettiren şey tam olarak bu. Bir sonrakine de aynısını yapacak." },
-                  { key:"precondition", label:"Çakışan bir güncellemenin sessizce üzerine yazılmak yerine reddedilmesi için uygulamanın işleminde bir ön koşul kontrolü ekle", correct:true, feedback:"Eklendi — bir sonraki çakışan yazma iz bırakmadan kaybolmak yerine yakalanıp uygulamaya bildiriliyor." }
+                  { key:"precondition", label:"Çakışan bir güncellemenin sessizce üzerine yazılmak yerine reddedilmesi için uygulamanın işleminde bir ön koşul kontrolü ekle", correct:true, feedback:"Eklendi — bir sonraki çakışan yazma iz bırakmadan kaybolmak yerine yakalanıp uygulamaya bildiriliyor." },
+                  { key:"faster", label:"Replikasyonu hızlandır ki yazmalar kimse çakışamadan yakınsasın", correct:false, feedback:"Daha hızlı replikasyon pencereyi daraltır, asla kapatmaz. Kalan boşluktaki iki yazma yine sessizce birbirini ezer." }
                 ],
                 errorText:"Bu iki bölge arasındaki bir sonraki çakışan yazma, tıpkı bunun gibi yine sessizce zaman damgasına göre çözülecek."
               },
@@ -13443,7 +13518,8 @@
                 prompt:"Çoğunluğun her zaman belirlenebilir olmasını gerçekte ne garanti eder?",
                 options:[
                   { key:"morenodes2az", label:"Daha fazla düğüm ekle, ama onları aynı iki Kullanılabilirlik Bölgesine bölünmüş tut", correct:false, feedback:"Sadece iki bölgeye yayılmış daha fazla düğüm hâlâ tam ortadan berabere kalabilir — sorun bölge sayısı, tek başına düğüm sayısı değil." },
-                  { key:"threeaz", label:"Tek sayıda düğümü üç Kullanılabilirlik Bölgesine yay", correct:true, feedback:"Üç bölgeyle, herhangi bir tek bölgenin izole olması her zaman diğer iki bölgeyi net bir çoğunlukla bırakır — bir berabere imkansız hale gelir." }
+                  { key:"threeaz", label:"Tek sayıda düğümü üç Kullanılabilirlik Bölgesine yay", correct:true, feedback:"Üç bölgeyle, herhangi bir tek bölgenin izole olması her zaman diğer iki bölgeyi net bir çoğunlukla bırakır — bir berabere imkansız hale gelir." },
+                  { key:"weighted", label:"Bir bölgedeki düğüme çift oy ver ki eşitlik hep bozulabilsin", correct:false, feedback:"Artık seçim o düğümün kendisi. Onu barındıran bölgeyi kaybedersen küme hiç çoğunluk kuramaz — dağıtmaya çalıştığın riski yoğunlaştırmış olursun." }
                 ],
                 errorText:"Küme hâlâ tek bir bölgenin izolasyonundan net bir çoğunluğun hayatta kalacağını garanti edemiyor."
               },
@@ -13497,7 +13573,8 @@
                 prompt:"Çoğunluğun her zaman belirlenebilir olmasını gerçekte ne garanti eder?",
                 options:[
                   { key:"morenodes2az", label:"Daha fazla düğüm ekle, ama onları aynı iki Kullanılabilirlik Bölgesine bölünmüş tut", correct:false, feedback:"Sadece iki bölgeye yayılmış daha fazla düğüm hâlâ tam ortadan berabere kalabilir — sorun bölge sayısı, tek başına düğüm sayısı değil." },
-                  { key:"threeaz", label:"Tek sayıda düğümü üç Kullanılabilirlik Bölgesine yay", correct:true, feedback:"Üç bölgeyle, herhangi bir tek bölgenin izole olması her zaman diğer iki bölgeyi net bir çoğunlukla bırakır — bir berabere imkansız hale gelir." }
+                  { key:"threeaz", label:"Tek sayıda düğümü üç Kullanılabilirlik Bölgesine yay", correct:true, feedback:"Üç bölgeyle, herhangi bir tek bölgenin izole olması her zaman diğer iki bölgeyi net bir çoğunlukla bırakır — bir berabere imkansız hale gelir." },
+                  { key:"weighted", label:"Bir bölgedeki düğüme çift oy ver ki eşitlik hep bozulabilsin", correct:false, feedback:"Artık seçim o düğümün kendisi. Onu barındıran bölgeyi kaybedersen küme hiç çoğunluk kuramaz — dağıtmaya çalıştığın riski yoğunlaştırmış olursun." }
                 ],
                 errorText:"Küme hâlâ tek bir bölgenin izolasyonundan net bir çoğunluğun hayatta kalacağını garanti edemiyor."
               },
@@ -13551,7 +13628,8 @@
                 prompt:"Çoğunluğun her zaman belirlenebilir olmasını gerçekte ne garanti eder?",
                 options:[
                   { key:"morenodes2az", label:"Daha fazla düğüm ekle, ama onları aynı iki bölgeye bölünmüş tut", correct:false, feedback:"Sadece iki bölgeye yayılmış daha fazla düğüm hâlâ tam ortadan berabere kalabilir — sorun bölge sayısı, tek başına düğüm sayısı değil." },
-                  { key:"threeaz", label:"Tek sayıda düğümü üç bölgeye yay", correct:true, feedback:"Üç bölgeyle, herhangi bir tek bölgenin izole olması her zaman diğer iki bölgeyi net bir çoğunlukla bırakır — bir berabere imkansız hale gelir." }
+                  { key:"threeaz", label:"Tek sayıda düğümü üç bölgeye yay", correct:true, feedback:"Üç bölgeyle, herhangi bir tek bölgenin izole olması her zaman diğer iki bölgeyi net bir çoğunlukla bırakır — bir berabere imkansız hale gelir." },
+                  { key:"weighted", label:"Bir bölgedeki düğüme çift oy ver ki eşitlik hep bozulabilsin", correct:false, feedback:"Artık seçim o düğümün kendisi. Onu barındıran bölgeyi kaybedersen küme hiç çoğunluk kuramaz — dağıtmaya çalıştığın riski yoğunlaştırmış olursun." }
                 ],
                 errorText:"Küme hâlâ tek bir bölgenin izolasyonundan net bir çoğunluğun hayatta kalacağını garanti edemiyor."
               },
@@ -13617,7 +13695,8 @@
                 prompt:"SNS'in tekrar denedikten sonra hâlâ teslim edemediği bir mesaja ne olur?",
                 options:[
                   { key:"forever", label:"Endişelenecek bir şey yok — SNS başarısız bir teslimi sonsuza kadar tekrar dener", correct:false, feedback:"Denemez. SNS sınırlı bir geri çekilme (backoff) programında tekrar dener, ve bir ölü mektup kuyruğu yapılandırılmadıysa, bundan sonra hâlâ başarısız olan bir mesaj sadece düşürülür." },
-                  { key:"dlq", label:"Bu abonelik için bir ölü mektup kuyruğu yapılandır", correct:true, feedback:"Yapılandırıldı — tekrar denemeden sonra teslim edilemeyen bir mesaj artık yok olmak yerine görünür bir yere düşüyor." }
+                  { key:"dlq", label:"Bu abonelik için bir ölü mektup kuyruğu yapılandır", correct:true, feedback:"Yapılandırıldı — tekrar denemeden sonra teslim edilemeyen bir mesaj artık yok olmak yerine görünür bir yere düşüyor." },
+                  { key:"retrylonger", label:"Yeniden deneme politikasını uzat ki teslimat tam 24 saat denensin", correct:false, feedback:"Uzun deneme, kısa süre kapalı olan bir aboneye yarar; gerçekten bozuk olan için hiçbir şey değiştirmez — pencere bitince mesaj yine atılır." }
                 ],
                 errorText:"Bu abonelikte hâlâ bir ölü mektup kuyruğu yok — tekrar denemeden sonra teslim başarısız olan bir mesaj, zaten olanlar gibi sadece kayboluyor."
               },
@@ -13676,7 +13755,8 @@
                 prompt:"Sürekli teslim başarısız olan bir mesaja ne olur?",
                 options:[
                   { key:"forever", label:"Endişelenecek bir şey yok — Service Bus başarısız bir teslimi sonsuza kadar tekrar dener", correct:false, feedback:"Denemez. Azami teslim sayısı aşıldıktan sonra mesaj ölü mektuplanır — ve kimse ölü mektup alt kuyruğunu izlemiyorsa, orada fark edilmeden oturur." },
-                  { key:"monitor", label:"Bu aboneliğin ölü mektup alt kuyruğu üzerinde izleme ekle", correct:true, feedback:"Yapılandırıldı — teslim edilemeyen bir mesaj artık fark edilmeden oturmak yerine görünür bir yere düşüyor." }
+                  { key:"monitor", label:"Bu aboneliğin ölü mektup alt kuyruğu üzerinde izleme ekle", correct:true, feedback:"Yapılandırıldı — teslim edilemeyen bir mesaj artık fark edilmeden oturmak yerine görünür bir yere düşüyor." },
+                  { key:"retrylonger", label:"Yeniden deneme politikasını uzat ki teslimat tam 24 saat denensin", correct:false, feedback:"Uzun deneme, kısa süre kapalı olan bir aboneye yarar; gerçekten bozuk olan için hiçbir şey değiştirmez — pencere bitince mesaj yine atılır." }
                 ],
                 errorText:"Bu aboneliğin ölü mektup alt kuyruğuna hâlâ hiçbir görünürlük yok — teslim başarısız olan bir mesaj, zaten olanlar gibi sadece görünmeden birikiyor."
               },
@@ -13735,7 +13815,8 @@
                 prompt:"Sürekli teslim başarısız olan bir mesaja ne olur?",
                 options:[
                   { key:"forever", label:"Endişelenecek bir şey yok — Pub/Sub başarısız bir teslimi sonsuza kadar tekrar dener", correct:false, feedback:"Denemez. Aboneliğin tekrar deneme sınırının ötesinde, bir ölü mektup konusu yapılandırılmamış bir mesaj sadece düşürülür." },
-                  { key:"dlt", label:"Bu abonelik için bir ölü mektup konusu yapılandır", correct:true, feedback:"Yapılandırıldı — tekrar denemeden sonra teslim edilemeyen bir mesaj artık yok olmak yerine görünür bir yere düşüyor." }
+                  { key:"dlt", label:"Bu abonelik için bir ölü mektup konusu yapılandır", correct:true, feedback:"Yapılandırıldı — tekrar denemeden sonra teslim edilemeyen bir mesaj artık yok olmak yerine görünür bir yere düşüyor." },
+                  { key:"retrylonger", label:"Yeniden deneme politikasını uzat ki teslimat tam 24 saat denensin", correct:false, feedback:"Uzun deneme, kısa süre kapalı olan bir aboneye yarar; gerçekten bozuk olan için hiçbir şey değiştirmez — pencere bitince mesaj yine atılır." }
                 ],
                 errorText:"Bu abonelikte hâlâ bir ölü mektup konusu yok — tekrar denemeden sonra teslim başarısız olan bir mesaj, zaten olanlar gibi sadece kayboluyor."
               },
@@ -13786,7 +13867,8 @@
                 prompt:"Her Snowball Edge Storage Optimized cihazı kullanılabilir yaklaşık 80TB tutuyor. 250TB kaç tane gerektirir?",
                 options:[
                   { key:"one", label:"1 cihaz — seferler arasında sadece yeniden doldur", correct:false, feedback:"Bir cihaz bu veri setinin kabaca üçte birini tutuyor — üç kez doldurup yeniden göndermek 2 haftalık son tarihi fazlasıyla geçerdi." },
-                  { key:"four", label:"4 cihaz, paralel çalıştır", correct:true, feedback:"Dört cihaz tam 250TB'ı fazlasıyla karşılıyor, ve paralel çalıştırmak tüm göçü son tarih içinde tutuyor." }
+                  { key:"four", label:"4 cihaz, paralel çalıştır", correct:true, feedback:"Dört cihaz tam 250TB'ı fazlasıyla karşılıyor, ve paralel çalıştırmak tüm göçü son tarih içinde tutuyor." },
+                  { key:"three", label:"3 cihaz — 3 × 80TB = 240TB, yeterince yakın", correct:false, feedback:"Değil: 240TB, 10TB'ı ortada bırakır ve bunu kopyalamanın sonunda öğrenmek, son tarihin kaldıramayacağı fazladan bir kargo turu demektir." }
                 ],
                 errorText:"Sipariş edilen cihaz sayısı 250TB'ın tamamını gerçekten karşılamıyor — bu verinin bir kısmının gidecek yeri yok."
               },
@@ -13840,7 +13922,8 @@
                 prompt:"Her Data Box cihazı kullanılabilir yaklaşık 80TB tutuyor. 250TB kaç tane gerektirir?",
                 options:[
                   { key:"one", label:"1 cihaz — seferler arasında sadece yeniden doldur", correct:false, feedback:"Bir cihaz bu veri setinin kabaca üçte birini tutuyor — üç kez doldurup yeniden göndermek 2 haftalık son tarihi fazlasıyla geçerdi." },
-                  { key:"four", label:"4 cihaz, paralel çalıştır", correct:true, feedback:"Dört cihaz tam 250TB'ı fazlasıyla karşılıyor, ve paralel çalıştırmak tüm göçü son tarih içinde tutuyor." }
+                  { key:"four", label:"4 cihaz, paralel çalıştır", correct:true, feedback:"Dört cihaz tam 250TB'ı fazlasıyla karşılıyor, ve paralel çalıştırmak tüm göçü son tarih içinde tutuyor." },
+                  { key:"three", label:"3 cihaz — 3 × 80TB = 240TB, yeterince yakın", correct:false, feedback:"Değil: 240TB, 10TB'ı ortada bırakır ve bunu kopyalamanın sonunda öğrenmek, son tarihin kaldıramayacağı fazladan bir kargo turu demektir." }
                 ],
                 errorText:"Sipariş edilen cihaz sayısı 250TB'ın tamamını gerçekten karşılamıyor — bu verinin bir kısmının gidecek yeri yok."
               },
@@ -13894,7 +13977,8 @@
                 prompt:"Her Transfer Appliance kullanılabilir yaklaşık 100TB tutuyor. 250TB kaç tane gerektirir?",
                 options:[
                   { key:"one", label:"1 cihaz — seferler arasında sadece yeniden doldur", correct:false, feedback:"Bir cihaz bu veri setinin yarısından az bir kısmını tutuyor — birden çok kez doldurup yeniden göndermek 2 haftalık son tarihi fazlasıyla geçerdi." },
-                  { key:"three", label:"3 cihaz, paralel çalıştır", correct:true, feedback:"Üç cihaz tam 250TB'ı fazlasıyla karşılıyor, ve paralel çalıştırmak tüm göçü son tarih içinde tutuyor." }
+                  { key:"three", label:"3 cihaz, paralel çalıştır", correct:true, feedback:"Üç cihaz tam 250TB'ı fazlasıyla karşılıyor, ve paralel çalıştırmak tüm göçü son tarih içinde tutuyor." },
+                  { key:"tworefill", label:"2 cihaz — 2 × 100TB = 200TB, sonra kalanı için birini yeniden doldur", correct:false, feedback:"O son 50TB tam bir kargo gidiş-dönüşüne mal olur; 2 haftalık son tarihin kaldıramayacağı gecikme tam da budur." }
                 ],
                 errorText:"Sipariş edilen cihaz sayısı 250TB'ın tamamını gerçekten karşılamıyor — bu verinin bir kısmının gidecek yeri yok."
               },
@@ -13940,7 +14024,8 @@
                 prompt:"Başarısızlık deseni neye benziyor?",
                 options:[
                   { key:"consistent", label:"Her tek çalıştırmada, bu değişiklikte, tam olarak aynı şekilde başarısız oluyor", correct:false, feedback:"Bu değişiklikte %100 tekrarlanabilir bir başarısızlık kararsız değildir — bu gerçek bir gerilemedir, ve yeniden denemek onu düzeltmez." },
-                  { key:"intermittent", label:"5 çalıştırmadan yaklaşık 1'inde, ilgisiz değişikliklerde de, zamanlamayla ilgili bir hatayla başarısız oluyor", correct:true, feedback:"Bu desen — aralıklı, gerçek değişiklikle ilgisiz, zamanlamayla ilgili — gerçek bir gerilemenin değil, gerçek kararsızlığın imzasıdır." }
+                  { key:"intermittent", label:"5 çalıştırmadan yaklaşık 1'inde, ilgisiz değişikliklerde de, zamanlamayla ilgili bir hatayla başarısız oluyor", correct:true, feedback:"Bu desen — aralıklı, gerçek değişiklikle ilgisiz, zamanlamayla ilgili — gerçek bir gerilemenin değil, gerçek kararsızlığın imzasıdır." },
+                  { key:"runner", label:"Geçen hafta CI çalıştırıcı imajı güncellendiğinden beri her koşuda hata veriyor", correct:false, feedback:"Bu belirlenimci bir ortam bozulması olurdu — gerçek, ama farklı çözümü olan farklı bir hata. Buradaki hatalar aralıklı ve alakasız değişikliklere de vuruyor." }
                 ],
                 errorText:"Kimse bunun gerçekten kararsız olduğunu, gerçek bir gerileme olmadığını doğrulamadı — gerçek bir gerilemenin ötesinde yeniden denemek hatayı gönderirdi."
               },
@@ -13999,7 +14084,8 @@
                 prompt:"Başarısızlık deseni neye benziyor?",
                 options:[
                   { key:"consistent", label:"Her tek çalıştırmada, bu değişiklikte, tam olarak aynı şekilde başarısız oluyor", correct:false, feedback:"Bu değişiklikte %100 tekrarlanabilir bir başarısızlık kararsız değildir — bu gerçek bir gerilemedir, ve yeniden denemek onu düzeltmez." },
-                  { key:"intermittent", label:"5 çalıştırmadan yaklaşık 1'inde, ilgisiz değişikliklerde de, zamanlamayla ilgili bir hatayla başarısız oluyor", correct:true, feedback:"Bu desen — aralıklı, gerçek değişiklikle ilgisiz, zamanlamayla ilgili — gerçek bir gerilemenin değil, gerçek kararsızlığın imzasıdır." }
+                  { key:"intermittent", label:"5 çalıştırmadan yaklaşık 1'inde, ilgisiz değişikliklerde de, zamanlamayla ilgili bir hatayla başarısız oluyor", correct:true, feedback:"Bu desen — aralıklı, gerçek değişiklikle ilgisiz, zamanlamayla ilgili — gerçek bir gerilemenin değil, gerçek kararsızlığın imzasıdır." },
+                  { key:"runner", label:"Geçen hafta CI çalıştırıcı imajı güncellendiğinden beri her koşuda hata veriyor", correct:false, feedback:"Bu belirlenimci bir ortam bozulması olurdu — gerçek, ama farklı çözümü olan farklı bir hata. Buradaki hatalar aralıklı ve alakasız değişikliklere de vuruyor." }
                 ],
                 errorText:"Kimse bunun gerçekten kararsız olduğunu, gerçek bir gerileme olmadığını doğrulamadı — gerçek bir gerilemenin ötesinde yeniden denemek hatayı gönderirdi."
               },
@@ -14058,7 +14144,8 @@
                 prompt:"Başarısızlık deseni neye benziyor?",
                 options:[
                   { key:"consistent", label:"Her tek çalıştırmada, bu değişiklikte, tam olarak aynı şekilde başarısız oluyor", correct:false, feedback:"Bu değişiklikte %100 tekrarlanabilir bir başarısızlık kararsız değildir — bu gerçek bir gerilemedir, ve yeniden denemek onu düzeltmez." },
-                  { key:"intermittent", label:"5 çalıştırmadan yaklaşık 1'inde, ilgisiz değişikliklerde de, zamanlamayla ilgili bir hatayla başarısız oluyor", correct:true, feedback:"Bu desen — aralıklı, gerçek değişiklikle ilgisiz, zamanlamayla ilgili — gerçek bir gerilemenin değil, gerçek kararsızlığın imzasıdır." }
+                  { key:"intermittent", label:"5 çalıştırmadan yaklaşık 1'inde, ilgisiz değişikliklerde de, zamanlamayla ilgili bir hatayla başarısız oluyor", correct:true, feedback:"Bu desen — aralıklı, gerçek değişiklikle ilgisiz, zamanlamayla ilgili — gerçek bir gerilemenin değil, gerçek kararsızlığın imzasıdır." },
+                  { key:"runner", label:"Geçen hafta CI çalıştırıcı imajı güncellendiğinden beri her koşuda hata veriyor", correct:false, feedback:"Bu belirlenimci bir ortam bozulması olurdu — gerçek, ama farklı çözümü olan farklı bir hata. Buradaki hatalar aralıklı ve alakasız değişikliklere de vuruyor." }
                 ],
                 errorText:"Kimse bunun gerçekten kararsız olduğunu, gerçek bir gerileme olmadığını doğrulamadı — gerçek bir gerilemenin ötesinde yeniden denemek hatayı gönderirdi."
               },
@@ -14119,7 +14206,8 @@
                 prompt:"CloudTrail, devre dışı bırakmadan önceki pencerede bu anahtar için ne gösteriyor?",
                 options:[
                   { key:"onlydev", label:"Sadece geliştiricinin bilinen IP adresinden API çağrıları", correct:false, feedback:"Bu sadece geliştiricinin kendi normal kullanımı — aradığınız şey bu değil." },
-                  { key:"unfamiliar", label:"Bu anahtarı daha önce hiç kullanmamış bir IP'den bir dizi ListBuckets ve GetObject çağrısı", correct:true, feedback:"Bu, anahtarın siz devre dışı bırakmadan önce gerçekten başkası tarafından bulunup kullanıldığının kanıtı — bu artık sadece ucu ucuna bir durum değil." }
+                  { key:"unfamiliar", label:"Bu anahtarı daha önce hiç kullanmamış bir IP'den bir dizi ListBuckets ve GetObject çağrısı", correct:true, feedback:"Bu, anahtarın siz devre dışı bırakmadan önce gerçekten başkası tarafından bulunup kullanıldığının kanıtı — bu artık sadece ucu ucuna bir durum değil." },
+                  { key:"none", label:"Hiç çağrı yok — anahtar aslında hiç kullanılmamış", correct:false, feedback:"Herkesin umduğu cevap ve soruşturmayı erken bitiren cevap. Kullanılmamış görünen sızmış bir anahtarda bile etki alanı varsayılmaz, doğrulanır." }
                 ],
                 errorText:"Kimse bu anahtarın geliştirici dışında biri tarafından kullanılıp kullanılmadığını gerçekten doğrulamadı — bu, bunun ne kadar büyük bir sorun olduğunu değiştirir."
               },
@@ -14178,7 +14266,8 @@
                 prompt:"Oturum açma günlüğü, silmeden önceki pencerede bu hizmet sorumlusu için ne gösteriyor?",
                 options:[
                   { key:"onlydev", label:"Sadece geliştiricinin bilinen IP adresinden jeton istekleri", correct:false, feedback:"Bu sadece geliştiricinin kendi normal kullanımı — aradığınız şey bu değil." },
-                  { key:"unfamiliar", label:"Bu kimliği daha önce hiç kullanmamış bir IP'den bir dizi jeton isteği ve kaynak erişimi", correct:true, feedback:"Bu, sırrın siz silmeden önce gerçekten başkası tarafından bulunup kullanıldığının kanıtı — bu artık sadece ucu ucuna bir durum değil." }
+                  { key:"unfamiliar", label:"Bu kimliği daha önce hiç kullanmamış bir IP'den bir dizi jeton isteği ve kaynak erişimi", correct:true, feedback:"Bu, sırrın siz silmeden önce gerçekten başkası tarafından bulunup kullanıldığının kanıtı — bu artık sadece ucu ucuna bir durum değil." },
+                  { key:"none", label:"Hiç çağrı yok — anahtar aslında hiç kullanılmamış", correct:false, feedback:"Herkesin umduğu cevap ve soruşturmayı erken bitiren cevap. Kullanılmamış görünen sızmış bir anahtarda bile etki alanı varsayılmaz, doğrulanır." }
                 ],
                 errorText:"Kimse bu sırrın geliştirici dışında biri tarafından kullanılıp kullanılmadığını gerçekten doğrulamadı — bu, bunun ne kadar büyük bir sorun olduğunu değiştirir."
               },
@@ -14237,7 +14326,8 @@
                 prompt:"Cloud Denetim Günlükleri, silmeden önceki pencerede bu anahtar için ne gösteriyor?",
                 options:[
                   { key:"onlydev", label:"Sadece geliştiricinin bilinen IP adresinden API çağrıları", correct:false, feedback:"Bu sadece geliştiricinin kendi normal kullanımı — aradığınız şey bu değil." },
-                  { key:"unfamiliar", label:"Bu anahtarı daha önce hiç kullanmamış bir IP'den bir dizi API çağrısı", correct:true, feedback:"Bu, anahtarın siz silmeden önce gerçekten başkası tarafından bulunup kullanıldığının kanıtı — bu artık sadece ucu ucuna bir durum değil." }
+                  { key:"unfamiliar", label:"Bu anahtarı daha önce hiç kullanmamış bir IP'den bir dizi API çağrısı", correct:true, feedback:"Bu, anahtarın siz silmeden önce gerçekten başkası tarafından bulunup kullanıldığının kanıtı — bu artık sadece ucu ucuna bir durum değil." },
+                  { key:"none", label:"Hiç çağrı yok — anahtar aslında hiç kullanılmamış", correct:false, feedback:"Herkesin umduğu cevap ve soruşturmayı erken bitiren cevap. Kullanılmamış görünen sızmış bir anahtarda bile etki alanı varsayılmaz, doğrulanır." }
                 ],
                 errorText:"Kimse bu anahtarın geliştirici dışında biri tarafından kullanılıp kullanılmadığını gerçekten doğrulamadı — bu, bunun ne kadar büyük bir sorun olduğunu değiştirir."
               },
@@ -14318,7 +14408,8 @@
                 prompt:"Grubun ölçeklendirme kararında gerçekten yanlış olan ne?",
                 options:[
                   { key:"maxcap", label:"Azami kapasitesi çok düşük ayarlanmış — sadece tavanı yükselt", correct:false, feedback:"Tavanı yükseltmek, daha fazla örneğin daha fazla mahkum bağlantı açması, sadece daha hızlı demek. Tavan hiçbir zaman sorun değildi." },
-                  { key:"metric", label:"CPU kullanımına göre ölçekleniyor, ki bu hiç hareket etmedi — bunun yerine istek gecikmesine ya da sayısına göre ölçeklenmeli", correct:true, feedback:"Gerçek sorun bu — grup bu süre boyunca kördü. Yükü gerçekten yansıtan bir metrik, düz bir CPU grafiği yerine gerçekte olana tepki vermesini sağlar." }
+                  { key:"metric", label:"CPU kullanımına göre ölçekleniyor, ki bu hiç hareket etmedi — bunun yerine istek gecikmesine ya da sayısına göre ölçeklenmeli", correct:true, feedback:"Gerçek sorun bu — grup bu süre boyunca kördü. Yükü gerçekten yansıtan bir metrik, düz bir CPU grafiği yerine gerçekte olana tepki vermesini sağlar." },
+                  { key:"cooldown", label:"Bekleme süresi çok uzun, bu yüzden ölçekleme adımları arasında fazla bekliyor", correct:false, feedback:"Bekleme ayarı, grup doğru sebeple ölçekleniyorsa önemlidir. Buradaki, hiç kıpırdamayan bir metriği izliyor; kısa bekleme sadece hiçbir şeye daha erken tepki vermek demek." }
                 ],
                 errorText:"Ölçeklendirme politikası hâlâ bu olayı hiç yansıtmamış bir metriği izliyor."
               },
@@ -14377,7 +14468,8 @@
                 prompt:"Ölçek kümesinin ölçeklendirme kararında gerçekten yanlış olan ne?",
                 options:[
                   { key:"maxcap", label:"Azami örnek sayısı çok düşük ayarlanmış — sadece tavanı yükselt", correct:false, feedback:"Tavanı yükseltmek, daha fazla örneğin daha fazla mahkum bağlantı açması, sadece daha hızlı demek. Tavan hiçbir zaman sorun değildi." },
-                  { key:"metric", label:"CPU yüzdesine göre ölçekleniyor, ki bu hiç hareket etmedi — bunun yerine istek gecikmesine ya da sayısına göre ölçeklenmeli", correct:true, feedback:"Gerçek sorun bu — ölçek kümesi bu süre boyunca kördü. Yükü gerçekten yansıtan bir metrik, düz bir CPU grafiği yerine gerçekte olana tepki vermesini sağlar." }
+                  { key:"metric", label:"CPU yüzdesine göre ölçekleniyor, ki bu hiç hareket etmedi — bunun yerine istek gecikmesine ya da sayısına göre ölçeklenmeli", correct:true, feedback:"Gerçek sorun bu — ölçek kümesi bu süre boyunca kördü. Yükü gerçekten yansıtan bir metrik, düz bir CPU grafiği yerine gerçekte olana tepki vermesini sağlar." },
+                  { key:"cooldown", label:"Bekleme süresi çok uzun, bu yüzden ölçekleme adımları arasında fazla bekliyor", correct:false, feedback:"Bekleme ayarı, grup doğru sebeple ölçekleniyorsa önemlidir. Buradaki, hiç kıpırdamayan bir metriği izliyor; kısa bekleme sadece hiçbir şeye daha erken tepki vermek demek." }
                 ],
                 errorText:"Ölçeklendirme kuralı hâlâ bu olayı hiç yansıtmamış bir metriği izliyor."
               },
@@ -14436,7 +14528,8 @@
                 prompt:"Grubun ölçeklendirme kararında gerçekten yanlış olan ne?",
                 options:[
                   { key:"maxcap", label:"Azami boyutu çok düşük ayarlanmış — sadece tavanı yükselt", correct:false, feedback:"Tavanı yükseltmek, daha fazla örneğin daha fazla mahkum bağlantı açması, sadece daha hızlı demek. Tavan hiçbir zaman sorun değildi." },
-                  { key:"metric", label:"CPU kullanımına göre ölçekleniyor, ki bu hiç hareket etmedi — bunun yerine bir yük dengeleyicinin bildirdiği istek metriğine göre ölçeklenmeli", correct:true, feedback:"Gerçek sorun bu — grup bu süre boyunca kördü. Yükü gerçekten yansıtan bir metrik, düz bir CPU grafiği yerine gerçekte olana tepki vermesini sağlar." }
+                  { key:"metric", label:"CPU kullanımına göre ölçekleniyor, ki bu hiç hareket etmedi — bunun yerine bir yük dengeleyicinin bildirdiği istek metriğine göre ölçeklenmeli", correct:true, feedback:"Gerçek sorun bu — grup bu süre boyunca kördü. Yükü gerçekten yansıtan bir metrik, düz bir CPU grafiği yerine gerçekte olana tepki vermesini sağlar." },
+                  { key:"cooldown", label:"Bekleme süresi çok uzun, bu yüzden ölçekleme adımları arasında fazla bekliyor", correct:false, feedback:"Bekleme ayarı, grup doğru sebeple ölçekleniyorsa önemlidir. Buradaki, hiç kıpırdamayan bir metriği izliyor; kısa bekleme sadece hiçbir şeye daha erken tepki vermek demek." }
                 ],
                 errorText:"Otomatik ölçeklendirme politikası hâlâ bu olayı hiç yansıtmamış bir metriği izliyor."
               },
@@ -14477,7 +14570,8 @@
                 prompt:"Gerçek sorun hangi ifade?",
                 options:[
                   { key:"decoy", label:"Güvenlik ekibinin IAM rolüne okuma erişimi veren bir ifade", correct:false, feedback:"Bu, gerçek çalışanlara verilmiş normal, kapsamlı bir izin. Bu değil." },
-                  { key:"public", label:"Principal: *'a s3:GetObject veren bir ifade", correct:true, feedback:"İşte bu — Principal: *, kimlik doğrulanmış olsun olmasın internetteki herkes demek." }
+                  { key:"public", label:"Principal: *'a s3:GetObject veren bir ifade", correct:true, feedback:"İşte bu — Principal: *, kimlik doğrulanmış olsun olmasın internetteki herkes demek." },
+                  { key:"partner", label:"Adı belirtilmiş bir iş ortağı hesabının rolüne s3:PutObject veren ifade", correct:false, feedback:"Yazma erişimi kulağa endişe verici gelir ve bu, güvenmeyi seçtiğin belirli bir kimliğe kapsanmış. Gözden geçirilebilir; kovayı herkese okunur yapan bu değil." }
                 ],
                 errorText:"Hangi kova politikası ifadesinin sızıntıya sebep olduğunu henüz gerçekten belirlemediniz."
               },
@@ -14536,7 +14630,8 @@
                 prompt:"Gerçek sorun hangi ayar?",
                 options:[
                   { key:"decoy", label:"Dahili derleme çıktılarını saklayan özel bir konteyner", correct:false, feedback:"O konteyner zaten özel ve ilgisiz. Bu değil." },
-                  { key:"public", label:"Herkese açık erişim düzeyi \"Konteyner\" olarak ayarlanmış bir konteyner", correct:true, feedback:"İşte bu — \"Konteyner\" erişim düzeyi, URL'yi bilen herkesin kimlik doğrulanmış olsun olmasın içindeki her blob'u listeleyip okuyabileceği anlamına gelir." }
+                  { key:"public", label:"Herkese açık erişim düzeyi \"Konteyner\" olarak ayarlanmış bir konteyner", correct:true, feedback:"İşte bu — \"Konteyner\" erişim düzeyi, URL'yi bilen herkesin kimlik doğrulanmış olsun olmasın içindeki her blob'u listeleyip okuyabileceği anlamına gelir." },
+                  { key:"partner", label:"Adı belirtilmiş bir iş ortağı hesabının rolüne s3:PutObject veren ifade", correct:false, feedback:"Yazma erişimi kulağa endişe verici gelir ve bu, güvenmeyi seçtiğin belirli bir kimliğe kapsanmış. Gözden geçirilebilir; kovayı herkese okunur yapan bu değil." }
                 ],
                 errorText:"Hangi konteynerin erişim düzeyinin sızıntıya sebep olduğunu henüz gerçekten belirlemediniz."
               },
@@ -14595,7 +14690,8 @@
                 prompt:"Gerçek sorun hangi bağlama?",
                 options:[
                   { key:"decoy", label:"project-owners grubuna roles/storage.objectViewer veren bir bağlama", correct:false, feedback:"Bu, gerçek çalışanlara verilmiş normal, kapsamlı bir izin. Bu değil." },
-                  { key:"public", label:"allUsers'a roles/storage.objectViewer veren bir bağlama", correct:true, feedback:"İşte bu — allUsers, kimlik doğrulanmış olsun olmasın internetteki herkes demek." }
+                  { key:"public", label:"allUsers'a roles/storage.objectViewer veren bir bağlama", correct:true, feedback:"İşte bu — allUsers, kimlik doğrulanmış olsun olmasın internetteki herkes demek." },
+                  { key:"partner", label:"Adı belirtilmiş bir iş ortağı hesabının rolüne s3:PutObject veren ifade", correct:false, feedback:"Yazma erişimi kulağa endişe verici gelir ve bu, güvenmeyi seçtiğin belirli bir kimliğe kapsanmış. Gözden geçirilebilir; kovayı herkese okunur yapan bu değil." }
                 ],
                 errorText:"Hangi IAM bağlamasının sızıntıya sebep olduğunu henüz gerçekten belirlemediniz."
               },
@@ -16243,7 +16339,22 @@
   let questEls={};
 
   function questInitState(){
-    return { tier:"easy", completedSteps:new Set(), expandedStep:null, stepFeedback:{}, actionResult:null };
+    // optionOrder is decided once per step and then kept, so buttons don't
+    // reshuffle under the cursor on every re-render — but it is rebuilt on
+    // reset, so practising the same quest twice isn't positional memory.
+    return { tier:"easy", completedSteps:new Set(), expandedStep:null, stepFeedback:{}, actionResult:null, optionOrder:{} };
+  }
+  function questOptionOrder(state, step){
+    if(!state.optionOrder) state.optionOrder={};
+    const cached=state.optionOrder[step.id];
+    if(cached && cached.length===step.options.length) return cached;
+    const keys=step.options.map(function(o){ return o.key; });
+    for(let i=keys.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      const tmp=keys[i]; keys[i]=keys[j]; keys[j]=tmp;
+    }
+    state.optionOrder[step.id]=keys;
+    return keys;
   }
   function questVisibleSteps(data, tier){
     return tier==="hard" ? data.hardSteps : data.easySteps;
@@ -16400,7 +16511,10 @@
       wrap.appendChild(prompt);
     }
     if(step.type==="choice"){
-      step.options.forEach(function(opt){
+      const order=questOptionOrder(state, step);
+      const ordered=order.map(function(k){ return step.options.find(function(o){ return o.key===k; }); })
+        .filter(Boolean);
+      (ordered.length===step.options.length ? ordered : step.options).forEach(function(opt){
         const ob=document.createElement("button");
         ob.type="button"; ob.className="quest-option-btn";
         ob.textContent=opt.label;
