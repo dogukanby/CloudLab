@@ -12,10 +12,10 @@
     en: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS", capstone1:"20 Capstone: Outage", capstone2:"21 Capstone: Exposure", services:"22 Service directory", threat:"23 GuardDuty & Inspector", edge:"24 WAF & Shield", identity:"25 STS & Cognito", certs:"26 ACM & Macie", analytics:"27 Redshift & Athena", hybrid:"28 Direct Connect & DMS", iac:"29 CloudFormation", govern:"30 Trusted Advisor", aiint:"31 Lex, Polly & MQ" },
+        nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS", capstone1:"20 Capstone: Outage", capstone2:"21 Capstone: Exposure", services:"22 Service directory", threat:"23 GuardDuty & Inspector", edge:"24 WAF & Shield", identity:"25 STS & Cognito", certs:"26 ACM & Macie", analytics:"27 Redshift & Athena", hybrid:"28 Direct Connect & DMS", iac:"29 CloudFormation", govern:"30 Trusted Advisor", aiint:"31 Lex, Polly & MQ", shared:"32 Shared responsibility", dr:"33 Disaster recovery", pricing:"34 Pricing & the bill", cidr:"35 CIDR & subnets" },
         navAzure:{ iam:"02 Entra ID", vpc:"03 Virtual Network", ec2:"04 Virtual Machines", s3:"05 Blob Storage", lambda:"06 Azure Functions", beanstalk:"08 App Service", route53:"09 Azure DNS", sns:"13 Event Grid", cloudwatch:"14 Azure Monitor", snowball:"15 Data Box", secrets:"19 Key Vault", threat:"23 Defender for Cloud", edge:"24 Azure WAF & DDoS", identity:"25 Entra ID & SSO", certs:"26 Key Vault & Purview", analytics:"27 Synapse & Cosmos DB", hybrid:"28 ExpressRoute & DMS", iac:"29 ARM & Bicep", govern:"30 Azure Advisor", aiint:"31 Bot Service & Service Bus" },
         navGcp:{ iam:"02 Cloud IAM", ec2:"04 Compute Engine", s3:"05 Cloud Storage", lambda:"06 Cloud Functions", beanstalk:"08 App Engine", route53:"09 Cloud DNS", sns:"13 Pub/Sub", cloudwatch:"14 Cloud Monitoring", snowball:"15 Transfer Appliance", secrets:"19 Cloud KMS", threat:"23 Security Command Center", edge:"24 Cloud Armor", identity:"25 Cloud Identity", certs:"26 Cert Manager & DLP", analytics:"27 BigQuery & Firestore", hybrid:"28 Interconnect & DMS", iac:"29 Infrastructure Manager", govern:"30 Recommender", aiint:"31 Dialogflow & Pub/Sub" },
-        navCat:{ security:"Security", data:"Data & analytics", connect:"Hybrid & migration", ops:"Automation & governance", ai:"AI & integration" },
+        navCat:{ security:"Security", data:"Data & analytics", connect:"Hybrid & migration", ops:"Automation & governance", ai:"AI & integration", foundations:"Foundations & practice" },
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"CloudLab",
         statusChanged:"status → {status}",
@@ -47,7 +47,7 @@
       intro:{
         title:"Cloud systems, taken apart",
         p:"Twenty small, live simulations of the mechanisms that keep large systems running, plus two capstone incidents that tie several of them together — no real servers behind any of it, just the logic. Turn the dials and watch what actually happens under load, under a network partition, under a cache miss, under a failure.",
-        meta:"29 modules · 28 incident-response quests · 47-service directory · runs entirely in your browser"
+        meta:"33 modules · 32 incident-response quests · 47-service directory · runs entirely in your browser"
       },
       progress:{
         label:"Your progress",
@@ -636,6 +636,851 @@
         easyLabel:"Easy", hardLabel:"Hard",
         resetBtn:"Reset quest",
         completeNote:"Every decision above mirrors a real one — this is genuinely what responding to this would look like.",
+        shared:{
+          aws:{
+            title:"The auditor asks who is responsible for what",
+            scenario:"A customer's security questionnaire has landed. It asks, service by service, who secures what — and the last team answered \"AWS handles security\" to nearly every question. That answer is about to fail the audit.",
+            consoleLabel:"Shared Responsibility Review (simulated)",
+            actionBtn:"Submit the questionnaire",
+            successText:"Every line correctly attributed — and the two items that were genuinely yours are now actually fixed, not just documented.",
+            easySteps:[
+              { id:"e-model", type:"choice",
+                label:"Classify what you actually rent",
+                prompt:"Your app runs on EC2 instances you launched and patch yourself. Which service model is that?",
+                options:[
+                  { key:"saas", label:"SaaS — you're consuming finished software", correct:false, feedback:"SaaS means someone else runs the whole application, like Gmail. You're running your own code on your own instances." },
+                  { key:"iaas", label:"IaaS — you rent the machine and manage everything above it", correct:true, feedback:"Right. AWS provides the hardware, hypervisor and facility; the OS, patches, code, config and data are yours." },
+                  { key:"paas", label:"PaaS — you deploy code and the platform runs it", correct:false, feedback:"That would be Beanstalk or App Runner, where you never touch the OS. Here you launched and patch the instances yourself." }
+                ],
+                errorText:"Until you can name the service model, you cannot say where the responsibility line falls."
+              },
+              { id:"e-os", type:"choice",
+                label:"Answer the OS patching question",
+                prompt:"\"Who applies operating-system security patches to your EC2 instances?\"",
+                options:[
+                  { key:"aws", label:"AWS — they maintain the infrastructure", correct:false, feedback:"This is the single most common wrong answer in cloud. AWS patches the hypervisor and the host; the guest OS inside your instance is entirely yours." },
+                  { key:"us", label:"We do — the guest OS is on our side of the line", correct:true, feedback:"Correct. If you can SSH into it, you patch it. AWS never touches the inside of your instance." },
+                  { key:"shared", label:"It's shared — both parties patch it together", correct:false, feedback:"There's no joint ownership of a single layer. Each layer belongs to exactly one party; 'shared responsibility' means the stack is split, not that layers are co-owned." }
+                ],
+                errorText:"The questionnaire still claims AWS patches your operating systems. An auditor will fail that line."
+              },
+              { id:"e-submit", type:"action",
+                label:"Correct the answers and attach the evidence",
+                actionLabel:"Correct the questionnaire", loadingLabel:"Updating…", doneLabel:"Answers corrected and mapped to the published responsibility matrix.", loadingMs:600,
+                errorText:"The questionnaire still goes out with the wrong attribution on every line."
+              }
+            ],
+            hardSteps:[
+              { id:"h-mixed", type:"choice",
+                label:"Handle the estate that isn't all one model",
+                prompt:"The estate is EC2 (IaaS), Lambda and RDS (PaaS-like managed services), and Microsoft 365 (SaaS). How should the questionnaire treat them?",
+                options:[
+                  { key:"one", label:"Answer once for the whole estate — pick the most common model", correct:false, feedback:"Averaging the models produces an answer that's wrong for every service in the list. Responsibility is per service, always." },
+                  { key:"per", label:"Answer per service, because the line sits at a different height for each", correct:true, feedback:"Exactly. You patch the EC2 guest OS; AWS patches the Lambda runtime and the RDS engine; Microsoft patches all of 365. Same account, three different lines." },
+                  { key:"strict", label:"Answer as if everything were IaaS — it's the safest over-claim", correct:false, feedback:"Claiming you patch the RDS engine or the Lambda runtime is claiming a control you cannot actually perform, which is worse than under-claiming." }
+                ],
+                errorText:"One blanket answer is being given for services whose responsibility lines are genuinely different."
+              },
+              { id:"h-managed", type:"choice",
+                label:"Answer the trickiest line: managed database encryption",
+                prompt:"\"Who is responsible for encrypting data at rest in RDS?\"",
+                options:[
+                  { key:"aws", label:"AWS — RDS is a managed service, so encryption is handled", correct:false, feedback:"AWS provides the encryption capability, but it is off unless you enable it at creation. A managed service offering a control doesn't mean the control is on." },
+                  { key:"us", label:"We are — AWS supplies the mechanism, we must choose to turn it on and manage the key policy", correct:true, feedback:"This is the distinction that catches people: the provider gives you the lock, you decide whether to use it and who holds the key." },
+                  { key:"nobody", label:"Nobody — data in a private subnet doesn't need encryption at rest", correct:false, feedback:"Network isolation and encryption at rest defend different things; a stolen snapshot or disk doesn't care which subnet it came from." }
+                ],
+                errorText:"The encryption line is still attributed to AWS, so nobody on your side owns turning it on."
+              },
+              { id:"h-always", type:"choice",
+                label:"Name what never moves",
+                prompt:"Across on-prem, IaaS, PaaS and SaaS, which responsibility is yours in every single model?",
+                options:[
+                  { key:"os", label:"Operating system patching", correct:false, feedback:"Yours on-prem and on IaaS, but the provider's on PaaS and SaaS. It moves." },
+                  { key:"data", label:"Your data and who you grant access to it", correct:true, feedback:"This is the whole point of the model. Even in pure SaaS, the provider cannot know which employee should see which record — the classification and the access list are permanently yours." },
+                  { key:"network", label:"Network and firewall configuration", correct:false, feedback:"Yours on IaaS, but on SaaS you typically get no network layer to configure at all. It moves." }
+                ],
+                errorText:"The answer still implies some models leave you with nothing to secure — no model does that."
+              },
+              { id:"h-fix", type:"action",
+                label:"Fix the two findings that turned out to be yours",
+                actionLabel:"Enable RDS encryption & tighten access", loadingLabel:"Applying…", doneLabel:"Encryption enabled on a re-created instance, access list reviewed and cut to what each role needs.", loadingMs:750,
+                errorText:"You've correctly identified two gaps as yours and then left both of them open."
+              }
+            ]
+          },
+          azure:{
+            title:"The auditor asks who is responsible for what",
+            scenario:"A customer's security questionnaire has landed. It asks, service by service, who secures what — and the last team answered \"Microsoft handles security\" to nearly every question. That answer is about to fail the audit.",
+            consoleLabel:"Shared Responsibility Review (simulated)",
+            actionBtn:"Submit the questionnaire",
+            successText:"Every line correctly attributed — and the two items that were genuinely yours are now actually fixed, not just documented.",
+            easySteps:[
+              { id:"e-model", type:"choice",
+                label:"Classify what you actually rent",
+                prompt:"Your app runs on Azure Virtual Machines you created and patch yourself. Which service model is that?",
+                options:[
+                  { key:"saas", label:"SaaS — you're consuming finished software", correct:false, feedback:"SaaS means someone else runs the whole application, like Microsoft 365. You're running your own code on your own VMs." },
+                  { key:"iaas", label:"IaaS — you rent the machine and manage everything above it", correct:true, feedback:"Right. Microsoft provides the hardware, hypervisor and facility; the OS, patches, code, config and data are yours." },
+                  { key:"paas", label:"PaaS — you deploy code and the platform runs it", correct:false, feedback:"That would be App Service, where you never touch the OS. Here you created and patch the VMs yourself." }
+                ],
+                errorText:"Until you can name the service model, you cannot say where the responsibility line falls."
+              },
+              { id:"e-os", type:"choice",
+                label:"Answer the OS patching question",
+                prompt:"\"Who applies operating-system security patches to your virtual machines?\"",
+                options:[
+                  { key:"ms", label:"Microsoft — they maintain the infrastructure", correct:false, feedback:"This is the single most common wrong answer in cloud. Microsoft patches the hypervisor and the host; the guest OS inside your VM is entirely yours." },
+                  { key:"us", label:"We do — the guest OS is on our side of the line", correct:true, feedback:"Correct. If you can RDP into it, you patch it. Microsoft never touches the inside of your VM." },
+                  { key:"shared", label:"It's shared — both parties patch it together", correct:false, feedback:"There's no joint ownership of a single layer. Each layer belongs to exactly one party; 'shared responsibility' means the stack is split, not that layers are co-owned." }
+                ],
+                errorText:"The questionnaire still claims Microsoft patches your operating systems. An auditor will fail that line."
+              },
+              { id:"e-submit", type:"action",
+                label:"Correct the answers and attach the evidence",
+                actionLabel:"Correct the questionnaire", loadingLabel:"Updating…", doneLabel:"Answers corrected and mapped to the published responsibility matrix.", loadingMs:600,
+                errorText:"The questionnaire still goes out with the wrong attribution on every line."
+              }
+            ],
+            hardSteps:[
+              { id:"h-mixed", type:"choice",
+                label:"Handle the estate that isn't all one model",
+                prompt:"The estate is Virtual Machines (IaaS), Functions and Azure SQL (PaaS), and Microsoft 365 (SaaS). How should the questionnaire treat them?",
+                options:[
+                  { key:"one", label:"Answer once for the whole estate — pick the most common model", correct:false, feedback:"Averaging the models produces an answer that's wrong for every service in the list. Responsibility is per service, always." },
+                  { key:"per", label:"Answer per service, because the line sits at a different height for each", correct:true, feedback:"Exactly. You patch the VM guest OS; Microsoft patches the Functions runtime and the SQL engine; Microsoft patches all of 365. Same tenant, three different lines." },
+                  { key:"strict", label:"Answer as if everything were IaaS — it's the safest over-claim", correct:false, feedback:"Claiming you patch the Azure SQL engine or the Functions runtime is claiming a control you cannot actually perform, which is worse than under-claiming." }
+                ],
+                errorText:"One blanket answer is being given for services whose responsibility lines are genuinely different."
+              },
+              { id:"h-managed", type:"choice",
+                label:"Answer the trickiest line: managed database encryption",
+                prompt:"\"Who is responsible for encrypting data at rest in Azure SQL Database?\"",
+                options:[
+                  { key:"ms", label:"Microsoft — it's a managed service, so encryption is handled", correct:false, feedback:"Microsoft provides the encryption capability and a platform-managed key, but key policy, customer-managed keys and who can read the data remain your decisions." },
+                  { key:"us", label:"We are — Microsoft supplies the mechanism, we must own the key policy and access", correct:true, feedback:"This is the distinction that catches people: the provider gives you the lock, you decide how it's keyed and who holds it." },
+                  { key:"nobody", label:"Nobody — data behind a private endpoint doesn't need encryption at rest", correct:false, feedback:"Network isolation and encryption at rest defend different things; a stolen backup doesn't care which endpoint it came from." }
+                ],
+                errorText:"The encryption line is still attributed entirely to Microsoft, so nobody on your side owns the key policy."
+              },
+              { id:"h-always", type:"choice",
+                label:"Name what never moves",
+                prompt:"Across on-prem, IaaS, PaaS and SaaS, which responsibility is yours in every single model?",
+                options:[
+                  { key:"os", label:"Operating system patching", correct:false, feedback:"Yours on-prem and on IaaS, but Microsoft's on PaaS and SaaS. It moves." },
+                  { key:"data", label:"Your data and who you grant access to it", correct:true, feedback:"This is the whole point of the model. Even in pure SaaS, Microsoft cannot know which employee should see which record — the classification and the access list are permanently yours." },
+                  { key:"network", label:"Network and firewall configuration", correct:false, feedback:"Yours on IaaS, but on SaaS you typically get no network layer to configure at all. It moves." }
+                ],
+                errorText:"The answer still implies some models leave you with nothing to secure — no model does that."
+              },
+              { id:"h-fix", type:"action",
+                label:"Fix the two findings that turned out to be yours",
+                actionLabel:"Set customer-managed keys & tighten access", loadingLabel:"Applying…", doneLabel:"Customer-managed key configured in Key Vault, access reviewed and cut to what each role needs.", loadingMs:750,
+                errorText:"You've correctly identified two gaps as yours and then left both of them open."
+              }
+            ]
+          },
+          gcp:{
+            title:"The auditor asks who is responsible for what",
+            scenario:"A customer's security questionnaire has landed. It asks, service by service, who secures what — and the last team answered \"Google handles security\" to nearly every question. That answer is about to fail the audit.",
+            consoleLabel:"Shared Responsibility Review (simulated)",
+            actionBtn:"Submit the questionnaire",
+            successText:"Every line correctly attributed — and the two items that were genuinely yours are now actually fixed, not just documented.",
+            easySteps:[
+              { id:"e-model", type:"choice",
+                label:"Classify what you actually rent",
+                prompt:"Your app runs on Compute Engine instances you created and patch yourself. Which service model is that?",
+                options:[
+                  { key:"saas", label:"SaaS — you're consuming finished software", correct:false, feedback:"SaaS means someone else runs the whole application, like Google Workspace. You're running your own code on your own instances." },
+                  { key:"iaas", label:"IaaS — you rent the machine and manage everything above it", correct:true, feedback:"Right. Google provides the hardware, hypervisor and facility; the OS, patches, code, config and data are yours." },
+                  { key:"paas", label:"PaaS — you deploy code and the platform runs it", correct:false, feedback:"That would be App Engine or Cloud Run, where you never touch the OS. Here you created and patch the instances yourself." }
+                ],
+                errorText:"Until you can name the service model, you cannot say where the responsibility line falls."
+              },
+              { id:"e-os", type:"choice",
+                label:"Answer the OS patching question",
+                prompt:"\"Who applies operating-system security patches to your Compute Engine instances?\"",
+                options:[
+                  { key:"google", label:"Google — they maintain the infrastructure", correct:false, feedback:"This is the single most common wrong answer in cloud. Google patches the hypervisor and the host; the guest OS inside your instance is entirely yours." },
+                  { key:"us", label:"We do — the guest OS is on our side of the line", correct:true, feedback:"Correct. If you can SSH into it, you patch it. Google never touches the inside of your instance." },
+                  { key:"shared", label:"It's shared — both parties patch it together", correct:false, feedback:"There's no joint ownership of a single layer. Each layer belongs to exactly one party; 'shared responsibility' means the stack is split, not that layers are co-owned." }
+                ],
+                errorText:"The questionnaire still claims Google patches your operating systems. An auditor will fail that line."
+              },
+              { id:"e-submit", type:"action",
+                label:"Correct the answers and attach the evidence",
+                actionLabel:"Correct the questionnaire", loadingLabel:"Updating…", doneLabel:"Answers corrected and mapped to the published responsibility matrix.", loadingMs:600,
+                errorText:"The questionnaire still goes out with the wrong attribution on every line."
+              }
+            ],
+            hardSteps:[
+              { id:"h-mixed", type:"choice",
+                label:"Handle the estate that isn't all one model",
+                prompt:"The estate is Compute Engine (IaaS), Cloud Run and Cloud SQL (PaaS-like managed services), and Google Workspace (SaaS). How should the questionnaire treat them?",
+                options:[
+                  { key:"one", label:"Answer once for the whole estate — pick the most common model", correct:false, feedback:"Averaging the models produces an answer that's wrong for every service in the list. Responsibility is per service, always." },
+                  { key:"per", label:"Answer per service, because the line sits at a different height for each", correct:true, feedback:"Exactly. You patch the Compute Engine guest OS; Google patches the Cloud Run runtime and the Cloud SQL engine; Google patches all of Workspace. Same project, three different lines." },
+                  { key:"strict", label:"Answer as if everything were IaaS — it's the safest over-claim", correct:false, feedback:"Claiming you patch the Cloud SQL engine or the Cloud Run runtime is claiming a control you cannot actually perform, which is worse than under-claiming." }
+                ],
+                errorText:"One blanket answer is being given for services whose responsibility lines are genuinely different."
+              },
+              { id:"h-managed", type:"choice",
+                label:"Answer the trickiest line: managed database encryption",
+                prompt:"\"Who is responsible for encrypting data at rest in Cloud SQL?\"",
+                options:[
+                  { key:"google", label:"Google — it's a managed service and encryption is on by default", correct:false, feedback:"Google does encrypt at rest by default, which is why this one traps people: the mechanism is theirs, but key management choices and who can read the data are still yours." },
+                  { key:"us", label:"Shared in practice — Google encrypts by default, but the key policy and access are ours to own", correct:true, feedback:"Exactly the nuance an auditor is testing: default encryption doesn't transfer responsibility for CMEK decisions or for who holds read access." },
+                  { key:"nobody", label:"Nobody — data on a private IP doesn't need encryption at rest", correct:false, feedback:"Network isolation and encryption at rest defend different things; a stolen backup doesn't care which IP range it came from." }
+                ],
+                errorText:"The encryption line is still attributed entirely to Google, so nobody on your side owns key policy or access."
+              },
+              { id:"h-always", type:"choice",
+                label:"Name what never moves",
+                prompt:"Across on-prem, IaaS, PaaS and SaaS, which responsibility is yours in every single model?",
+                options:[
+                  { key:"os", label:"Operating system patching", correct:false, feedback:"Yours on-prem and on IaaS, but Google's on PaaS and SaaS. It moves." },
+                  { key:"data", label:"Your data and who you grant access to it", correct:true, feedback:"This is the whole point of the model. Even in pure SaaS, Google cannot know which employee should see which record — the classification and the access list are permanently yours." },
+                  { key:"network", label:"Network and firewall configuration", correct:false, feedback:"Yours on IaaS, but on SaaS you typically get no network layer to configure at all. It moves." }
+                ],
+                errorText:"The answer still implies some models leave you with nothing to secure — no model does that."
+              },
+              { id:"h-fix", type:"action",
+                label:"Fix the two findings that turned out to be yours",
+                actionLabel:"Set CMEK & tighten access", loadingLabel:"Applying…", doneLabel:"Customer-managed encryption key configured, IAM bindings reviewed and cut to what each role needs.", loadingMs:750,
+                errorText:"You've correctly identified two gaps as yours and then left both of them open."
+              }
+            ]
+          }
+        },
+        dr:{
+          aws:{
+            title:"The board wants a four-hour recovery guarantee",
+            scenario:"After a competitor's week-long outage, the board asks a simple question: if our primary region disappeared right now, how long until we're serving customers again, and how much data would we lose? Nobody can answer. The current plan is nightly backups to the same region.",
+            consoleLabel:"DR Planning Console (simulated)",
+            actionBtn:"Sign off the DR plan",
+            successText:"A tested plan with a number attached: recovery inside the four-hour target, a data-loss window the business has actually agreed to, and a restore that has been proven to work.",
+            easySteps:[
+              { id:"e-terms", type:"choice",
+                label:"Answer the board's two questions correctly",
+                prompt:"They asked \"how long until we're back\" and \"how much data would we lose\". What are those two numbers called?",
+                options:[
+                  { key:"swap", label:"RPO for downtime, RTO for data loss", correct:false, feedback:"Swapped. RTO is Time — how long until you're Operating again. RPO is the Point in time your data snaps back to." },
+                  { key:"right", label:"RTO for downtime, RPO for data loss", correct:true, feedback:"Correct. RTO = Recovery Time Objective (how long you're down). RPO = Recovery Point Objective (how much data you lose)." },
+                  { key:"sla", label:"Both are covered by the provider's SLA", correct:false, feedback:"An SLA is the provider's promise about their service, often with a credit attached. It says nothing about how fast your architecture recovers." }
+                ],
+                errorText:"The plan can't state a target it hasn't defined."
+              },
+              { id:"e-offsite", type:"choice",
+                label:"Fix the flaw in the current plan",
+                prompt:"Backups run nightly to S3 in the same region as production. What's wrong with that?",
+                options:[
+                  { key:"slow", label:"Nothing structural — nightly is just too infrequent", correct:false, feedback:"Frequency is a real issue, but it's the second one. A regional failure takes the backup with it no matter how often it runs." },
+                  { key:"region", label:"A regional failure destroys production and the backup together", correct:true, feedback:"Exactly — the OVHcloud lesson. A copy that shares a failure domain with the original is not a recovery plan." },
+                  { key:"cost", label:"It's too expensive to keep nightly backups", correct:false, feedback:"Backups are among the cheapest things in cloud. Cost isn't what's broken here." }
+                ],
+                errorText:"The only backup still lives in the region you're planning to lose."
+              },
+              { id:"e-replicate", type:"action",
+                label:"Get a copy out of the region",
+                actionLabel:"Enable cross-region replication", loadingLabel:"Configuring…", doneLabel:"Backups now replicate to a second region automatically — the copy survives the original.", loadingMs:700,
+                errorText:"Everything you'd need to recover with is still inside the single region that just failed."
+              }
+            ],
+            hardSteps:[
+              { id:"h-strategy", type:"choice",
+                label:"Choose a strategy that actually hits four hours",
+                prompt:"The target is RTO under 4 hours at a sane cost. Which strategy fits?",
+                options:[
+                  { key:"backup", label:"Backup & restore from the replicated copy", correct:false, feedback:"Rebuilding an entire environment and restoring from backup realistically runs 8+ hours. It's the cheapest option and it misses the target." },
+                  { key:"pilot", label:"Pilot light — database replicating continuously, servers pre-built but switched off", correct:true, feedback:"Data is already there and current, so recovery is starting instances and shifting DNS: tens of minutes, comfortably inside four hours, without paying for a full running duplicate." },
+                  { key:"multi", label:"Multi-site active/active across two regions", correct:false, feedback:"It hits the target spectacularly, at roughly double your infrastructure bill. Correct engineering, wrong economics for a four-hour requirement." }
+                ],
+                errorText:"The chosen strategy either misses the four-hour target or buys far more than the target requires."
+              },
+              { id:"h-rpo", type:"choice",
+                label:"Set the data-loss window the business can live with",
+                prompt:"Finance says losing more than a few minutes of orders is unacceptable. What does that require?",
+                options:[
+                  { key:"nightly", label:"Keep nightly snapshots — restore the most recent one", correct:false, feedback:"That's an RPO of up to 24 hours. A failure at 5pm loses a full day of orders, which finance has just ruled out." },
+                  { key:"continuous", label:"Continuous replication of the database to the standby region", correct:true, feedback:"Continuous replication keeps the RPO at seconds-to-minutes, which is what 'a few minutes of orders' actually demands." },
+                  { key:"hourly", label:"Hourly snapshots", correct:false, feedback:"Better, but still up to 60 minutes of lost orders — an order of magnitude outside what finance specified." }
+                ],
+                errorText:"The data-loss window on paper is far wider than the one the business agreed to."
+              },
+              { id:"h-test", type:"choice",
+                label:"Answer the question that decides whether any of this is real",
+                prompt:"The plan is written and the replication is running. What makes it a plan rather than a hope?",
+                options:[
+                  { key:"doc", label:"A documented runbook everyone has read", correct:false, feedback:"Unrehearsed runbooks fail on contact: expired credentials, missing DNS permissions, a dependency nobody wrote down. Reading isn't proof." },
+                  { key:"drill", label:"A scheduled failover drill that actually promotes the standby and serves traffic", correct:true, feedback:"The only evidence that a recovery works is a recovery that worked. Untested restores are the most common way DR plans fail on the day." },
+                  { key:"monitor", label:"Monitoring that alerts when replication lags", correct:false, feedback:"Necessary and not sufficient — it tells you the copy is current, not that you can actually run on it." }
+                ],
+                errorText:"Nothing has ever been failed over, so the four-hour number is an estimate, not a measurement."
+              },
+              { id:"h-drill", type:"action",
+                label:"Run the drill and record the real numbers",
+                actionLabel:"Execute failover drill", loadingLabel:"Failing over…", doneLabel:"Standby promoted and served live traffic in 38 minutes with 45 seconds of data loss — both inside target, both now measured rather than guessed.", loadingMs:900,
+                errorText:"The plan is signed off on numbers nobody has ever verified under failure."
+              }
+            ]
+          },
+          azure:{
+            title:"The board wants a four-hour recovery guarantee",
+            scenario:"After a competitor's week-long outage, the board asks a simple question: if our primary region disappeared right now, how long until we're serving customers again, and how much data would we lose? Nobody can answer. The current plan is nightly backups to the same region.",
+            consoleLabel:"Azure Site Recovery Planning (simulated)",
+            actionBtn:"Sign off the DR plan",
+            successText:"A tested plan with a number attached: recovery inside the four-hour target, a data-loss window the business has actually agreed to, and a restore that has been proven to work.",
+            easySteps:[
+              { id:"e-terms", type:"choice",
+                label:"Answer the board's two questions correctly",
+                prompt:"They asked \"how long until we're back\" and \"how much data would we lose\". What are those two numbers called?",
+                options:[
+                  { key:"swap", label:"RPO for downtime, RTO for data loss", correct:false, feedback:"Swapped. RTO is Time — how long until you're Operating again. RPO is the Point in time your data snaps back to." },
+                  { key:"right", label:"RTO for downtime, RPO for data loss", correct:true, feedback:"Correct. RTO = Recovery Time Objective (how long you're down). RPO = Recovery Point Objective (how much data you lose)." },
+                  { key:"sla", label:"Both are covered by the provider's SLA", correct:false, feedback:"An SLA is the provider's promise about their service, often with a credit attached. It says nothing about how fast your architecture recovers." }
+                ],
+                errorText:"The plan can't state a target it hasn't defined."
+              },
+              { id:"e-offsite", type:"choice",
+                label:"Fix the flaw in the current plan",
+                prompt:"Backups run nightly to a storage account in the same region as production. What's wrong with that?",
+                options:[
+                  { key:"slow", label:"Nothing structural — nightly is just too infrequent", correct:false, feedback:"Frequency is a real issue, but it's the second one. A regional failure takes the backup with it no matter how often it runs." },
+                  { key:"region", label:"A regional failure destroys production and the backup together", correct:true, feedback:"Exactly — the OVHcloud lesson. A copy that shares a failure domain with the original is not a recovery plan." },
+                  { key:"cost", label:"It's too expensive to keep nightly backups", correct:false, feedback:"Backups are among the cheapest things in cloud. Cost isn't what's broken here." }
+                ],
+                errorText:"The only backup still lives in the region you're planning to lose."
+              },
+              { id:"e-replicate", type:"action",
+                label:"Get a copy out of the region",
+                actionLabel:"Enable geo-redundant replication", loadingLabel:"Configuring…", doneLabel:"Backups now replicate to a paired region automatically — the copy survives the original.", loadingMs:700,
+                errorText:"Everything you'd need to recover with is still inside the single region that just failed."
+              }
+            ],
+            hardSteps:[
+              { id:"h-strategy", type:"choice",
+                label:"Choose a strategy that actually hits four hours",
+                prompt:"The target is RTO under 4 hours at a sane cost. Which strategy fits?",
+                options:[
+                  { key:"backup", label:"Backup & restore from the geo-redundant copy", correct:false, feedback:"Rebuilding an entire environment and restoring from backup realistically runs 8+ hours. It's the cheapest option and it misses the target." },
+                  { key:"pilot", label:"Pilot light — database geo-replicating continuously, VMs pre-built but deallocated", correct:true, feedback:"Data is already there and current, so recovery is starting VMs and shifting traffic: tens of minutes, comfortably inside four hours, without paying for a full running duplicate." },
+                  { key:"multi", label:"Multi-site active/active across two regions", correct:false, feedback:"It hits the target spectacularly, at roughly double your infrastructure bill. Correct engineering, wrong economics for a four-hour requirement." }
+                ],
+                errorText:"The chosen strategy either misses the four-hour target or buys far more than the target requires."
+              },
+              { id:"h-rpo", type:"choice",
+                label:"Set the data-loss window the business can live with",
+                prompt:"Finance says losing more than a few minutes of orders is unacceptable. What does that require?",
+                options:[
+                  { key:"nightly", label:"Keep nightly snapshots — restore the most recent one", correct:false, feedback:"That's an RPO of up to 24 hours. A failure at 5pm loses a full day of orders, which finance has just ruled out." },
+                  { key:"continuous", label:"Active geo-replication of the database to the secondary region", correct:true, feedback:"Continuous geo-replication keeps the RPO at seconds-to-minutes, which is what 'a few minutes of orders' actually demands." },
+                  { key:"hourly", label:"Hourly snapshots", correct:false, feedback:"Better, but still up to 60 minutes of lost orders — an order of magnitude outside what finance specified." }
+                ],
+                errorText:"The data-loss window on paper is far wider than the one the business agreed to."
+              },
+              { id:"h-test", type:"choice",
+                label:"Answer the question that decides whether any of this is real",
+                prompt:"The plan is written and the replication is running. What makes it a plan rather than a hope?",
+                options:[
+                  { key:"doc", label:"A documented runbook everyone has read", correct:false, feedback:"Unrehearsed runbooks fail on contact: expired credentials, missing DNS permissions, a dependency nobody wrote down. Reading isn't proof." },
+                  { key:"drill", label:"A scheduled test failover that actually promotes the secondary and serves traffic", correct:true, feedback:"The only evidence that a recovery works is a recovery that worked. Untested restores are the most common way DR plans fail on the day." },
+                  { key:"monitor", label:"Monitoring that alerts when replication lags", correct:false, feedback:"Necessary and not sufficient — it tells you the copy is current, not that you can actually run on it." }
+                ],
+                errorText:"Nothing has ever been failed over, so the four-hour number is an estimate, not a measurement."
+              },
+              { id:"h-drill", type:"action",
+                label:"Run the drill and record the real numbers",
+                actionLabel:"Execute test failover", loadingLabel:"Failing over…", doneLabel:"Secondary promoted and served live traffic in 38 minutes with 45 seconds of data loss — both inside target, both now measured rather than guessed.", loadingMs:900,
+                errorText:"The plan is signed off on numbers nobody has ever verified under failure."
+              }
+            ]
+          },
+          gcp:{
+            title:"The board wants a four-hour recovery guarantee",
+            scenario:"After a competitor's week-long outage, the board asks a simple question: if our primary region disappeared right now, how long until we're serving customers again, and how much data would we lose? Nobody can answer. The current plan is nightly backups to the same region.",
+            consoleLabel:"DR Planning Console (simulated)",
+            actionBtn:"Sign off the DR plan",
+            successText:"A tested plan with a number attached: recovery inside the four-hour target, a data-loss window the business has actually agreed to, and a restore that has been proven to work.",
+            easySteps:[
+              { id:"e-terms", type:"choice",
+                label:"Answer the board's two questions correctly",
+                prompt:"They asked \"how long until we're back\" and \"how much data would we lose\". What are those two numbers called?",
+                options:[
+                  { key:"swap", label:"RPO for downtime, RTO for data loss", correct:false, feedback:"Swapped. RTO is Time — how long until you're Operating again. RPO is the Point in time your data snaps back to." },
+                  { key:"right", label:"RTO for downtime, RPO for data loss", correct:true, feedback:"Correct. RTO = Recovery Time Objective (how long you're down). RPO = Recovery Point Objective (how much data you lose)." },
+                  { key:"sla", label:"Both are covered by the provider's SLA", correct:false, feedback:"An SLA is the provider's promise about their service, often with a credit attached. It says nothing about how fast your architecture recovers." }
+                ],
+                errorText:"The plan can't state a target it hasn't defined."
+              },
+              { id:"e-offsite", type:"choice",
+                label:"Fix the flaw in the current plan",
+                prompt:"Backups run nightly to a Cloud Storage bucket in the same region as production. What's wrong with that?",
+                options:[
+                  { key:"slow", label:"Nothing structural — nightly is just too infrequent", correct:false, feedback:"Frequency is a real issue, but it's the second one. A regional failure takes the backup with it no matter how often it runs." },
+                  { key:"region", label:"A regional failure destroys production and the backup together", correct:true, feedback:"Exactly — the OVHcloud lesson. A copy that shares a failure domain with the original is not a recovery plan." },
+                  { key:"cost", label:"It's too expensive to keep nightly backups", correct:false, feedback:"Backups are among the cheapest things in cloud. Cost isn't what's broken here." }
+                ],
+                errorText:"The only backup still lives in the region you're planning to lose."
+              },
+              { id:"e-replicate", type:"action",
+                label:"Get a copy out of the region",
+                actionLabel:"Switch to a multi-region bucket", loadingLabel:"Configuring…", doneLabel:"Backups now live in a multi-region bucket automatically — the copy survives the original.", loadingMs:700,
+                errorText:"Everything you'd need to recover with is still inside the single region that just failed."
+              }
+            ],
+            hardSteps:[
+              { id:"h-strategy", type:"choice",
+                label:"Choose a strategy that actually hits four hours",
+                prompt:"The target is RTO under 4 hours at a sane cost. Which strategy fits?",
+                options:[
+                  { key:"backup", label:"Backup & restore from the multi-region copy", correct:false, feedback:"Rebuilding an entire environment and restoring from backup realistically runs 8+ hours. It's the cheapest option and it misses the target." },
+                  { key:"pilot", label:"Pilot light — Cloud SQL replicating continuously, instance templates ready but nothing running", correct:true, feedback:"Data is already there and current, so recovery is starting instances and shifting traffic: tens of minutes, comfortably inside four hours, without paying for a full running duplicate." },
+                  { key:"multi", label:"Multi-site active/active across two regions", correct:false, feedback:"It hits the target spectacularly, at roughly double your infrastructure bill. Correct engineering, wrong economics for a four-hour requirement." }
+                ],
+                errorText:"The chosen strategy either misses the four-hour target or buys far more than the target requires."
+              },
+              { id:"h-rpo", type:"choice",
+                label:"Set the data-loss window the business can live with",
+                prompt:"Finance says losing more than a few minutes of orders is unacceptable. What does that require?",
+                options:[
+                  { key:"nightly", label:"Keep nightly snapshots — restore the most recent one", correct:false, feedback:"That's an RPO of up to 24 hours. A failure at 5pm loses a full day of orders, which finance has just ruled out." },
+                  { key:"continuous", label:"A cross-region read replica kept continuously in sync", correct:true, feedback:"Continuous replication keeps the RPO at seconds-to-minutes, which is what 'a few minutes of orders' actually demands." },
+                  { key:"hourly", label:"Hourly snapshots", correct:false, feedback:"Better, but still up to 60 minutes of lost orders — an order of magnitude outside what finance specified." }
+                ],
+                errorText:"The data-loss window on paper is far wider than the one the business agreed to."
+              },
+              { id:"h-test", type:"choice",
+                label:"Answer the question that decides whether any of this is real",
+                prompt:"The plan is written and the replication is running. What makes it a plan rather than a hope?",
+                options:[
+                  { key:"doc", label:"A documented runbook everyone has read", correct:false, feedback:"Unrehearsed runbooks fail on contact: expired credentials, missing DNS permissions, a dependency nobody wrote down. Reading isn't proof." },
+                  { key:"drill", label:"A scheduled drill that actually promotes the replica and serves traffic", correct:true, feedback:"The only evidence that a recovery works is a recovery that worked. Untested restores are the most common way DR plans fail on the day." },
+                  { key:"monitor", label:"Monitoring that alerts when replication lags", correct:false, feedback:"Necessary and not sufficient — it tells you the copy is current, not that you can actually run on it." }
+                ],
+                errorText:"Nothing has ever been failed over, so the four-hour number is an estimate, not a measurement."
+              },
+              { id:"h-drill", type:"action",
+                label:"Run the drill and record the real numbers",
+                actionLabel:"Execute failover drill", loadingLabel:"Failing over…", doneLabel:"Replica promoted and served live traffic in 38 minutes with 45 seconds of data loss — both inside target, both now measured rather than guessed.", loadingMs:900,
+                errorText:"The plan is signed off on numbers nobody has ever verified under failure."
+              }
+            ]
+          }
+        },
+        pricing:{
+          aws:{
+            title:"The bill tripled and nobody changed the servers",
+            scenario:"Traffic grew 20% this quarter. The bill grew 210%. The instance count is identical to last quarter, and the team that owns the service swears nothing was deployed.",
+            consoleLabel:"Cost Explorer (simulated)",
+            actionBtn:"Present the cost analysis",
+            successText:"The real driver identified, the architecture changed to address it, and a guardrail in place so the next one is caught in days rather than at quarter end.",
+            easySteps:[
+              { id:"e-find", type:"choice",
+                label:"Find what actually grew",
+                prompt:"Compute is flat and storage is up slightly. The service added a video preview feature last quarter. Where would you look first?",
+                options:[
+                  { key:"compute", label:"Instance pricing — AWS must have raised prices", correct:false, feedback:"Provider list prices trend down, not up, and a price change would show as a rate change rather than a usage change." },
+                  { key:"egress", label:"Data transfer out — a video feature means far more data leaving the network", correct:true, feedback:"Exactly. Video is the classic egress amplifier: same servers, same storage, vastly more bytes shipped to users." },
+                  { key:"support", label:"The support plan tier", correct:false, feedback:"Support is a percentage of spend, so it grows with the bill — it's a symptom of the increase, not the cause." }
+                ],
+                errorText:"The investigation is still looking at the lines that didn't change."
+              },
+              { id:"e-confirm", type:"action",
+                label:"Confirm it in the billing data",
+                actionLabel:"Group costs by usage type", loadingLabel:"Querying…", doneLabel:"Confirmed: DataTransfer-Out-Bytes is now 71% of the bill, up from 9% last quarter.", loadingMs:700,
+                errorText:"The theory is plausible and unproven — the analysis needs the actual usage-type breakdown."
+              },
+              { id:"e-fix", type:"action",
+                label:"Put the videos behind a CDN",
+                actionLabel:"Serve media via CloudFront", loadingLabel:"Deploying…", doneLabel:"Media now served from edge caches: origin egress dropped sharply and CDN delivery is billed at a lower rate.", loadingMs:700,
+                errorText:"Every video byte still leaves the origin at full egress rates, on every single view."
+              }
+            ],
+            hardSteps:[
+              { id:"h-direction", type:"choice",
+                label:"Explain the asymmetry to the team",
+                prompt:"An engineer asks why uploading the videos was free but serving them is expensive. What's the answer?",
+                options:[
+                  { key:"size", label:"Uploads are smaller than downloads on average", correct:false, feedback:"Size isn't the mechanism — a 4GB upload is still free while 4GB of downloads is billed." },
+                  { key:"asym", label:"Ingress is free on every major provider; egress is billed per GB", correct:true, feedback:"Right, and it's deliberate: getting data in is frictionless, getting it out costs. That asymmetry is also the shape of vendor lock-in." },
+                  { key:"cache", label:"Uploads are cached and downloads aren't", correct:false, feedback:"Caching affects how often you pay, not whether the direction is billable at all." }
+                ],
+                errorText:"The team still doesn't understand why the same bytes cost differently depending on direction."
+              },
+              { id:"h-discount", type:"choice",
+                label:"Decide whether a commitment helps here",
+                prompt:"Finance suggests a 1-year Reserved Instance commitment to cut the bill. Does that address this problem?",
+                options:[
+                  { key:"yes", label:"Yes — a commitment discount applies across the bill", correct:false, feedback:"Reserved and committed-use discounts apply to compute, not to data transfer. The line that tripled is untouched by them." },
+                  { key:"no", label:"No — commitments discount compute, and compute isn't what grew", correct:true, feedback:"Exactly. Buying a compute discount to fix an egress problem locks in spend for a year and leaves the actual driver at full price." },
+                  { key:"spot", label:"No, but Spot instances would fix it instead", correct:false, feedback:"Spot is also a compute discount. Cheaper servers still pay full price for every byte they send out." }
+                ],
+                errorText:"A year-long commitment is about to be signed against a line item it cannot discount."
+              },
+              { id:"h-guard", type:"choice",
+                label:"Make sure the next one is caught in days",
+                prompt:"This took a full quarter to notice. What actually shortens that?",
+                options:[
+                  { key:"monthly", label:"A monthly cost review meeting", correct:false, feedback:"Better than quarterly, and still up to 30 days of unnoticed burn — this is the same failure mode with a shorter fuse." },
+                  { key:"anomaly", label:"Budget alerts plus anomaly detection that pages on unusual spend patterns", correct:true, feedback:"Automated detection flags a change in days without waiting for anyone to open a dashboard, which is the only thing that reliably shortens the gap." },
+                  { key:"tag", label:"Tag every resource by team", correct:false, feedback:"Tagging tells you who owns a cost once you're already looking — valuable, but it doesn't make anyone look sooner." }
+                ],
+                errorText:"Nothing is watching spend continuously, so the next surprise also waits for quarter end."
+              },
+              { id:"h-present", type:"action",
+                label:"Present the analysis with the numbers",
+                actionLabel:"Publish cost analysis", loadingLabel:"Compiling…", doneLabel:"Driver identified, CDN saving projected, commitment correctly declined, and anomaly alerts live.", loadingMs:800,
+                errorText:"The findings exist but nobody has been shown the number or the fix."
+              }
+            ]
+          },
+          azure:{
+            title:"The bill tripled and nobody changed the servers",
+            scenario:"Traffic grew 20% this quarter. The bill grew 210%. The VM count is identical to last quarter, and the team that owns the service swears nothing was deployed.",
+            consoleLabel:"Cost Management + Billing (simulated)",
+            actionBtn:"Present the cost analysis",
+            successText:"The real driver identified, the architecture changed to address it, and a guardrail in place so the next one is caught in days rather than at quarter end.",
+            easySteps:[
+              { id:"e-find", type:"choice",
+                label:"Find what actually grew",
+                prompt:"Compute is flat and storage is up slightly. The service added a video preview feature last quarter. Where would you look first?",
+                options:[
+                  { key:"compute", label:"VM pricing — Microsoft must have raised prices", correct:false, feedback:"Provider list prices trend down, not up, and a price change would show as a rate change rather than a usage change." },
+                  { key:"egress", label:"Data transfer out — a video feature means far more data leaving the network", correct:true, feedback:"Exactly. Video is the classic egress amplifier: same servers, same storage, vastly more bytes shipped to users." },
+                  { key:"support", label:"The support plan tier", correct:false, feedback:"Support is a percentage of spend, so it grows with the bill — it's a symptom of the increase, not the cause." }
+                ],
+                errorText:"The investigation is still looking at the lines that didn't change."
+              },
+              { id:"e-confirm", type:"action",
+                label:"Confirm it in the billing data",
+                actionLabel:"Group costs by meter", loadingLabel:"Querying…", doneLabel:"Confirmed: outbound data transfer is now 71% of the bill, up from 9% last quarter.", loadingMs:700,
+                errorText:"The theory is plausible and unproven — the analysis needs the actual meter breakdown."
+              },
+              { id:"e-fix", type:"action",
+                label:"Put the videos behind a CDN",
+                actionLabel:"Serve media via Azure Front Door", loadingLabel:"Deploying…", doneLabel:"Media now served from edge caches: origin egress dropped sharply and CDN delivery is billed at a lower rate.", loadingMs:700,
+                errorText:"Every video byte still leaves the origin at full egress rates, on every single view."
+              }
+            ],
+            hardSteps:[
+              { id:"h-direction", type:"choice",
+                label:"Explain the asymmetry to the team",
+                prompt:"An engineer asks why uploading the videos was free but serving them is expensive. What's the answer?",
+                options:[
+                  { key:"size", label:"Uploads are smaller than downloads on average", correct:false, feedback:"Size isn't the mechanism — a 4GB upload is still free while 4GB of downloads is billed." },
+                  { key:"asym", label:"Ingress is free on every major provider; egress is billed per GB", correct:true, feedback:"Right, and it's deliberate: getting data in is frictionless, getting it out costs. That asymmetry is also the shape of vendor lock-in." },
+                  { key:"cache", label:"Uploads are cached and downloads aren't", correct:false, feedback:"Caching affects how often you pay, not whether the direction is billable at all." }
+                ],
+                errorText:"The team still doesn't understand why the same bytes cost differently depending on direction."
+              },
+              { id:"h-discount", type:"choice",
+                label:"Decide whether a commitment helps here",
+                prompt:"Finance suggests 1-year Reserved VM Instances to cut the bill. Does that address this problem?",
+                options:[
+                  { key:"yes", label:"Yes — a commitment discount applies across the bill", correct:false, feedback:"Reservations and savings plans apply to compute, not to data transfer. The line that tripled is untouched by them." },
+                  { key:"no", label:"No — commitments discount compute, and compute isn't what grew", correct:true, feedback:"Exactly. Buying a compute discount to fix an egress problem locks in spend for a year and leaves the actual driver at full price." },
+                  { key:"spot", label:"No, but Spot VMs would fix it instead", correct:false, feedback:"Spot is also a compute discount. Cheaper VMs still pay full price for every byte they send out." }
+                ],
+                errorText:"A year-long commitment is about to be signed against a line item it cannot discount."
+              },
+              { id:"h-guard", type:"choice",
+                label:"Make sure the next one is caught in days",
+                prompt:"This took a full quarter to notice. What actually shortens that?",
+                options:[
+                  { key:"monthly", label:"A monthly cost review meeting", correct:false, feedback:"Better than quarterly, and still up to 30 days of unnoticed burn — this is the same failure mode with a shorter fuse." },
+                  { key:"anomaly", label:"Budget alerts plus anomaly detection that pages on unusual spend patterns", correct:true, feedback:"Automated detection flags a change in days without waiting for anyone to open a dashboard, which is the only thing that reliably shortens the gap." },
+                  { key:"tag", label:"Tag every resource by team", correct:false, feedback:"Tagging tells you who owns a cost once you're already looking — valuable, but it doesn't make anyone look sooner." }
+                ],
+                errorText:"Nothing is watching spend continuously, so the next surprise also waits for quarter end."
+              },
+              { id:"h-present", type:"action",
+                label:"Present the analysis with the numbers",
+                actionLabel:"Publish cost analysis", loadingLabel:"Compiling…", doneLabel:"Driver identified, CDN saving projected, commitment correctly declined, and anomaly alerts live.", loadingMs:800,
+                errorText:"The findings exist but nobody has been shown the number or the fix."
+              }
+            ]
+          },
+          gcp:{
+            title:"The bill tripled and nobody changed the servers",
+            scenario:"Traffic grew 20% this quarter. The bill grew 210%. The instance count is identical to last quarter, and the team that owns the service swears nothing was deployed.",
+            consoleLabel:"Cloud Billing Reports (simulated)",
+            actionBtn:"Present the cost analysis",
+            successText:"The real driver identified, the architecture changed to address it, and a guardrail in place so the next one is caught in days rather than at quarter end.",
+            easySteps:[
+              { id:"e-find", type:"choice",
+                label:"Find what actually grew",
+                prompt:"Compute is flat and storage is up slightly. The service added a video preview feature last quarter. Where would you look first?",
+                options:[
+                  { key:"compute", label:"Instance pricing — Google must have raised prices", correct:false, feedback:"Provider list prices trend down, not up, and a price change would show as a rate change rather than a usage change." },
+                  { key:"egress", label:"Network egress — a video feature means far more data leaving the network", correct:true, feedback:"Exactly. Video is the classic egress amplifier: same servers, same storage, vastly more bytes shipped to users." },
+                  { key:"support", label:"The support plan tier", correct:false, feedback:"Support is a percentage of spend, so it grows with the bill — it's a symptom of the increase, not the cause." }
+                ],
+                errorText:"The investigation is still looking at the lines that didn't change."
+              },
+              { id:"e-confirm", type:"action",
+                label:"Confirm it in the billing data",
+                actionLabel:"Group costs by SKU", loadingLabel:"Querying…", doneLabel:"Confirmed: network egress SKUs are now 71% of the bill, up from 9% last quarter.", loadingMs:700,
+                errorText:"The theory is plausible and unproven — the analysis needs the actual SKU breakdown."
+              },
+              { id:"e-fix", type:"action",
+                label:"Put the videos behind a CDN",
+                actionLabel:"Serve media via Cloud CDN", loadingLabel:"Deploying…", doneLabel:"Media now served from edge caches: origin egress dropped sharply and CDN delivery is billed at a lower rate.", loadingMs:700,
+                errorText:"Every video byte still leaves the origin at full egress rates, on every single view."
+              }
+            ],
+            hardSteps:[
+              { id:"h-direction", type:"choice",
+                label:"Explain the asymmetry to the team",
+                prompt:"An engineer asks why uploading the videos was free but serving them is expensive. What's the answer?",
+                options:[
+                  { key:"size", label:"Uploads are smaller than downloads on average", correct:false, feedback:"Size isn't the mechanism — a 4GB upload is still free while 4GB of downloads is billed." },
+                  { key:"asym", label:"Ingress is free on every major provider; egress is billed per GB", correct:true, feedback:"Right, and it's deliberate: getting data in is frictionless, getting it out costs. That asymmetry is also the shape of vendor lock-in." },
+                  { key:"cache", label:"Uploads are cached and downloads aren't", correct:false, feedback:"Caching affects how often you pay, not whether the direction is billable at all." }
+                ],
+                errorText:"The team still doesn't understand why the same bytes cost differently depending on direction."
+              },
+              { id:"h-discount", type:"choice",
+                label:"Decide whether a commitment helps here",
+                prompt:"Finance suggests a 1-year committed use discount to cut the bill. Does that address this problem?",
+                options:[
+                  { key:"yes", label:"Yes — a commitment discount applies across the bill", correct:false, feedback:"Committed use discounts apply to compute (vCPU and memory), not to network egress. The line that tripled is untouched by them." },
+                  { key:"no", label:"No — commitments discount compute, and compute isn't what grew", correct:true, feedback:"Exactly. Buying a compute discount to fix an egress problem locks in spend for a year and leaves the actual driver at full price." },
+                  { key:"spot", label:"No, but Spot VMs would fix it instead", correct:false, feedback:"Spot is also a compute discount. Cheaper VMs still pay full price for every byte they send out." }
+                ],
+                errorText:"A year-long commitment is about to be signed against a line item it cannot discount."
+              },
+              { id:"h-guard", type:"choice",
+                label:"Make sure the next one is caught in days",
+                prompt:"This took a full quarter to notice. What actually shortens that?",
+                options:[
+                  { key:"monthly", label:"A monthly cost review meeting", correct:false, feedback:"Better than quarterly, and still up to 30 days of unnoticed burn — this is the same failure mode with a shorter fuse." },
+                  { key:"anomaly", label:"Budget alerts plus anomaly detection that pages on unusual spend patterns", correct:true, feedback:"Automated detection flags a change in days without waiting for anyone to open a dashboard, which is the only thing that reliably shortens the gap." },
+                  { key:"tag", label:"Label every resource by team", correct:false, feedback:"Labels tell you who owns a cost once you're already looking — valuable, but they don't make anyone look sooner." }
+                ],
+                errorText:"Nothing is watching spend continuously, so the next surprise also waits for quarter end."
+              },
+              { id:"h-present", type:"action",
+                label:"Present the analysis with the numbers",
+                actionLabel:"Publish cost analysis", loadingLabel:"Compiling…", doneLabel:"Driver identified, CDN saving projected, commitment correctly declined, and anomaly alerts live.", loadingMs:800,
+                errorText:"The findings exist but nobody has been shown the number or the fix."
+              }
+            ]
+          }
+        },
+        cidr:{
+          aws:{
+            title:"Two VPCs that can never be joined",
+            scenario:"The company just acquired a smaller competitor. Both networks need to talk. Both were built on 10.0.0.0/16. The peering request fails immediately, and re-addressing a live production network is now on the table.",
+            consoleLabel:"VPC Console (simulated)",
+            actionBtn:"Approve the network plan",
+            successText:"Overlap resolved without re-addressing production, and an allocation plan in place so no future team can create this again.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Explain why peering was rejected",
+                prompt:"Both VPCs use 10.0.0.0/16. Why can't they simply be peered?",
+                options:[
+                  { key:"limit", label:"AWS limits how many VPCs can be peered together", correct:false, feedback:"Peering limits exist but are far higher than two, and the error here is about addressing, not quotas." },
+                  { key:"overlap", label:"An address like 10.0.3.7 would exist on both sides, so routing is ambiguous", correct:true, feedback:"Exactly. A router needs one destination per address; identical ranges make that impossible, which is why overlapping CIDRs are rejected outright." },
+                  { key:"region", label:"The VPCs are in different regions", correct:false, feedback:"Cross-region peering is supported. Identical address space is not." }
+                ],
+                errorText:"The rejection still looks like a quota or permissions problem rather than an addressing one."
+              },
+              { id:"e-size", type:"choice",
+                label:"Size the replacement block",
+                prompt:"The acquired company needs room for about 800 hosts across several subnets. Which block is the sensible choice?",
+                options:[
+                  { key:"24", label:"10.50.0.0/24 — 251 usable addresses", correct:false, feedback:"That's smaller than the requirement before you've split it into a single subnet. You'd be re-addressing again within months." },
+                  { key:"22", label:"10.50.0.0/22 — about 1,000 addresses, room to split into four /24s", correct:true, feedback:"Fits the requirement with headroom and divides cleanly into subnets per availability zone. Sizing with slack is the whole discipline." },
+                  { key:"8", label:"10.0.0.0/8 — take the entire private range", correct:false, feedback:"Claiming the whole 10.x space guarantees a collision with the next acquisition or partner VPN. Big is not the same as safe." }
+                ],
+                errorText:"The proposed block either can't hold the hosts or swallows address space other networks will need."
+              },
+              { id:"e-apply", type:"action",
+                label:"Re-address the smaller network into the new block",
+                actionLabel:"Migrate to 10.50.0.0/22", loadingLabel:"Migrating…", doneLabel:"Acquired VPC re-addressed into a non-overlapping block and peering established.", loadingMs:800,
+                errorText:"Both networks still claim the same addresses, so nothing can route between them."
+              }
+            ],
+            hardSteps:[
+              { id:"h-avoid", type:"choice",
+                label:"Avoid re-addressing production if you can",
+                prompt:"Re-addressing the acquired network means downtime the business hasn't approved. What's the pragmatic alternative for the services that must talk today?",
+                options:[
+                  { key:"force", label:"Force the peering through with a static route", correct:false, feedback:"There is no route that resolves genuine ambiguity — the same address cannot mean two machines on one routing table." },
+                  { key:"nat", label:"Put a NAT layer between them so each side sees the other through non-overlapping addresses", correct:true, feedback:"Translation is the standard escape hatch: it buys working connectivity today while the proper re-addressing happens on a planned schedule." },
+                  { key:"vpn", label:"Use a VPN instead of peering", correct:false, feedback:"A VPN carries the same packets with the same addresses — the overlap follows you into the tunnel." }
+                ],
+                errorText:"The plan still requires an unapproved outage before any two services can talk."
+              },
+              { id:"h-subnet", type:"choice",
+                label:"Split the new block correctly",
+                prompt:"You need one subnet per availability zone across three AZs, inside 10.50.0.0/22. What's the clean split?",
+                options:[
+                  { key:"three24", label:"Three /24s, leaving a fourth /24 spare", correct:true, feedback:"A /22 is exactly four /24s. Three in use and one held back is the standard pattern — the spare absorbs the fourth AZ or a future tier." },
+                  { key:"three23", label:"Three /23s", correct:false, feedback:"Three /23s need more space than a /22 contains — that's 1,536 addresses in a 1,024-address block." },
+                  { key:"one22", label:"One /22 subnet spanning all three AZs", correct:false, feedback:"A subnet lives in exactly one availability zone. One subnet across three AZs isn't a thing you can create." }
+                ],
+                errorText:"The subnet plan either doesn't fit the block or can't be created across availability zones."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Stop this from recurring",
+                prompt:"Two teams independently picked 10.0.0.0/16 because it's the default-looking choice. What prevents the third occurrence?",
+                options:[
+                  { key:"doc", label:"Document the recommended ranges in the wiki", correct:false, feedback:"The teams who caused this weren't defying a policy — they were unaware of one. A wiki page is not a control." },
+                  { key:"ipam", label:"A central address-allocation registry that hands out blocks, enforced in the account pipeline", correct:true, feedback:"Allocation from one authority makes overlap structurally impossible rather than merely discouraged, and enforcing it at provisioning time catches it before anything is built." },
+                  { key:"big", label:"Standardise on 10.0.0.0/8 for everyone", correct:false, feedback:"One giant shared block makes collisions more likely, not less — everyone is now carving from the same space with no coordinator." }
+                ],
+                errorText:"Nothing stops the next team from picking 10.0.0.0/16 exactly as the first two did."
+              },
+              { id:"h-plan", type:"action",
+                label:"Publish the allocation plan",
+                actionLabel:"Register blocks in IPAM", loadingLabel:"Registering…", doneLabel:"Every existing network registered, new ranges reserved per business unit, and provisioning now refuses unregistered CIDRs.", loadingMs:800,
+                errorText:"The immediate overlap is solved and the practice that caused it is unchanged."
+              }
+            ]
+          },
+          azure:{
+            title:"Two VNets that can never be joined",
+            scenario:"The company just acquired a smaller competitor. Both networks need to talk. Both were built on 10.0.0.0/16. The peering request fails immediately, and re-addressing a live production network is now on the table.",
+            consoleLabel:"Virtual Network Console (simulated)",
+            actionBtn:"Approve the network plan",
+            successText:"Overlap resolved without re-addressing production, and an allocation plan in place so no future team can create this again.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Explain why peering was rejected",
+                prompt:"Both VNets use 10.0.0.0/16. Why can't they simply be peered?",
+                options:[
+                  { key:"limit", label:"Azure limits how many VNets can be peered together", correct:false, feedback:"Peering limits exist but are far higher than two, and the error here is about addressing, not quotas." },
+                  { key:"overlap", label:"An address like 10.0.3.7 would exist on both sides, so routing is ambiguous", correct:true, feedback:"Exactly. A router needs one destination per address; identical ranges make that impossible, which is why overlapping address spaces are rejected outright." },
+                  { key:"region", label:"The VNets are in different regions", correct:false, feedback:"Global VNet peering is supported. Identical address space is not." }
+                ],
+                errorText:"The rejection still looks like a quota or permissions problem rather than an addressing one."
+              },
+              { id:"e-size", type:"choice",
+                label:"Size the replacement block",
+                prompt:"The acquired company needs room for about 800 hosts across several subnets. Which block is the sensible choice?",
+                options:[
+                  { key:"24", label:"10.50.0.0/24 — around 250 usable addresses", correct:false, feedback:"That's smaller than the requirement before you've split it into a single subnet. You'd be re-addressing again within months." },
+                  { key:"22", label:"10.50.0.0/22 — about 1,000 addresses, room to split into four /24s", correct:true, feedback:"Fits the requirement with headroom and divides cleanly into subnets. Sizing with slack is the whole discipline." },
+                  { key:"8", label:"10.0.0.0/8 — take the entire private range", correct:false, feedback:"Claiming the whole 10.x space guarantees a collision with the next acquisition or partner VPN. Big is not the same as safe." }
+                ],
+                errorText:"The proposed block either can't hold the hosts or swallows address space other networks will need."
+              },
+              { id:"e-apply", type:"action",
+                label:"Re-address the smaller network into the new block",
+                actionLabel:"Migrate to 10.50.0.0/22", loadingLabel:"Migrating…", doneLabel:"Acquired VNet re-addressed into a non-overlapping block and peering established.", loadingMs:800,
+                errorText:"Both networks still claim the same addresses, so nothing can route between them."
+              }
+            ],
+            hardSteps:[
+              { id:"h-avoid", type:"choice",
+                label:"Avoid re-addressing production if you can",
+                prompt:"Re-addressing the acquired network means downtime the business hasn't approved. What's the pragmatic alternative for the services that must talk today?",
+                options:[
+                  { key:"force", label:"Force the peering through with a user-defined route", correct:false, feedback:"There is no route that resolves genuine ambiguity — the same address cannot mean two machines on one routing table." },
+                  { key:"nat", label:"Put a NAT layer between them so each side sees the other through non-overlapping addresses", correct:true, feedback:"Translation is the standard escape hatch: it buys working connectivity today while the proper re-addressing happens on a planned schedule." },
+                  { key:"vpn", label:"Use a VPN gateway instead of peering", correct:false, feedback:"A VPN carries the same packets with the same addresses — the overlap follows you into the tunnel." }
+                ],
+                errorText:"The plan still requires an unapproved outage before any two services can talk."
+              },
+              { id:"h-subnet", type:"choice",
+                label:"Split the new block correctly",
+                prompt:"You need one subnet per availability zone across three zones, inside 10.50.0.0/22. What's the clean split?",
+                options:[
+                  { key:"three24", label:"Three /24s, leaving a fourth /24 spare", correct:true, feedback:"A /22 is exactly four /24s. Three in use and one held back is the standard pattern — the spare absorbs a fourth zone or a future tier." },
+                  { key:"three23", label:"Three /23s", correct:false, feedback:"Three /23s need more space than a /22 contains — that's 1,536 addresses in a 1,024-address block." },
+                  { key:"one22", label:"One /22 subnet spanning all three zones", correct:false, feedback:"Azure reserves five addresses per subnet and subnets are regional, but the real problem is that a single subnet can't be your zone-isolation boundary — you need one per zone for zonal separation." }
+                ],
+                errorText:"The subnet plan either doesn't fit the block or gives you no zone separation."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Stop this from recurring",
+                prompt:"Two teams independently picked 10.0.0.0/16 because it's the default-looking choice. What prevents the third occurrence?",
+                options:[
+                  { key:"doc", label:"Document the recommended ranges in the wiki", correct:false, feedback:"The teams who caused this weren't defying a policy — they were unaware of one. A wiki page is not a control." },
+                  { key:"ipam", label:"A central address-allocation registry that hands out blocks, enforced by Azure Policy at deployment", correct:true, feedback:"Allocation from one authority makes overlap structurally impossible rather than merely discouraged, and enforcing it at deployment catches it before anything is built." },
+                  { key:"big", label:"Standardise on 10.0.0.0/8 for everyone", correct:false, feedback:"One giant shared block makes collisions more likely, not less — everyone is now carving from the same space with no coordinator." }
+                ],
+                errorText:"Nothing stops the next team from picking 10.0.0.0/16 exactly as the first two did."
+              },
+              { id:"h-plan", type:"action",
+                label:"Publish the allocation plan",
+                actionLabel:"Register blocks centrally", loadingLabel:"Registering…", doneLabel:"Every existing network registered, new ranges reserved per business unit, and deployment now refuses unregistered address spaces.", loadingMs:800,
+                errorText:"The immediate overlap is solved and the practice that caused it is unchanged."
+              }
+            ]
+          },
+          gcp:{
+            title:"Two VPC networks that can never be joined",
+            scenario:"The company just acquired a smaller competitor. Both networks need to talk. Both were built on 10.0.0.0/16. The peering request fails immediately, and re-addressing a live production network is now on the table.",
+            consoleLabel:"VPC Network Console (simulated)",
+            actionBtn:"Approve the network plan",
+            successText:"Overlap resolved without re-addressing production, and an allocation plan in place so no future team can create this again.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Explain why peering was rejected",
+                prompt:"Both networks use 10.0.0.0/16. Why can't they simply be peered?",
+                options:[
+                  { key:"limit", label:"Google limits how many networks can be peered together", correct:false, feedback:"Peering limits exist but are far higher than two, and the error here is about addressing, not quotas." },
+                  { key:"overlap", label:"An address like 10.0.3.7 would exist on both sides, so routing is ambiguous", correct:true, feedback:"Exactly. A router needs one destination per address; identical ranges make that impossible, which is why VPC peering rejects overlapping subnets outright." },
+                  { key:"region", label:"The networks are in different regions", correct:false, feedback:"VPC networks are global and cross-region peering is supported. Identical address space is not." }
+                ],
+                errorText:"The rejection still looks like a quota or permissions problem rather than an addressing one."
+              },
+              { id:"e-size", type:"choice",
+                label:"Size the replacement block",
+                prompt:"The acquired company needs room for about 800 hosts across several subnets. Which block is the sensible choice?",
+                options:[
+                  { key:"24", label:"10.50.0.0/24 — around 250 usable addresses", correct:false, feedback:"That's smaller than the requirement before you've split it into a single subnet. You'd be re-addressing again within months." },
+                  { key:"22", label:"10.50.0.0/22 — about 1,000 addresses, room to split into four /24s", correct:true, feedback:"Fits the requirement with headroom and divides cleanly into subnets per region. Sizing with slack is the whole discipline." },
+                  { key:"8", label:"10.0.0.0/8 — take the entire private range", correct:false, feedback:"Claiming the whole 10.x space guarantees a collision with the next acquisition or partner VPN. Big is not the same as safe." }
+                ],
+                errorText:"The proposed block either can't hold the hosts or swallows address space other networks will need."
+              },
+              { id:"e-apply", type:"action",
+                label:"Re-address the smaller network into the new block",
+                actionLabel:"Migrate to 10.50.0.0/22", loadingLabel:"Migrating…", doneLabel:"Acquired network re-addressed into a non-overlapping block and peering established.", loadingMs:800,
+                errorText:"Both networks still claim the same addresses, so nothing can route between them."
+              }
+            ],
+            hardSteps:[
+              { id:"h-avoid", type:"choice",
+                label:"Avoid re-addressing production if you can",
+                prompt:"Re-addressing the acquired network means downtime the business hasn't approved. What's the pragmatic alternative for the services that must talk today?",
+                options:[
+                  { key:"force", label:"Force the peering through with a custom static route", correct:false, feedback:"There is no route that resolves genuine ambiguity — the same address cannot mean two machines on one routing table." },
+                  { key:"nat", label:"Put a NAT layer between them so each side sees the other through non-overlapping addresses", correct:true, feedback:"Translation is the standard escape hatch: it buys working connectivity today while the proper re-addressing happens on a planned schedule." },
+                  { key:"vpn", label:"Use Cloud VPN instead of peering", correct:false, feedback:"A VPN carries the same packets with the same addresses — the overlap follows you into the tunnel." }
+                ],
+                errorText:"The plan still requires an unapproved outage before any two services can talk."
+              },
+              { id:"h-subnet", type:"choice",
+                label:"Split the new block correctly",
+                prompt:"You need separate subnets for three regions inside 10.50.0.0/22. What's the clean split?",
+                options:[
+                  { key:"three24", label:"Three /24s, leaving a fourth /24 spare", correct:true, feedback:"A /22 is exactly four /24s. Three in use and one held back is the standard pattern — the spare absorbs a fourth region or a future tier." },
+                  { key:"three23", label:"Three /23s", correct:false, feedback:"Three /23s need more space than a /22 contains — that's 1,536 addresses in a 1,024-address block." },
+                  { key:"one22", label:"One /22 subnet used by all three regions", correct:false, feedback:"A subnet belongs to exactly one region. Three regions need three subnets, whatever their size." }
+                ],
+                errorText:"The subnet plan either doesn't fit the block or can't span the regions you need."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Stop this from recurring",
+                prompt:"Two teams independently picked 10.0.0.0/16 because it's the default-looking choice. What prevents the third occurrence?",
+                options:[
+                  { key:"doc", label:"Document the recommended ranges in the wiki", correct:false, feedback:"The teams who caused this weren't defying a policy — they were unaware of one. A wiki page is not a control." },
+                  { key:"ipam", label:"A central address-allocation registry that hands out blocks, enforced by Organization Policy at creation", correct:true, feedback:"Allocation from one authority makes overlap structurally impossible rather than merely discouraged, and enforcing it at creation catches it before anything is built." },
+                  { key:"big", label:"Standardise on 10.0.0.0/8 for everyone", correct:false, feedback:"One giant shared block makes collisions more likely, not less — everyone is now carving from the same space with no coordinator." }
+                ],
+                errorText:"Nothing stops the next team from picking 10.0.0.0/16 exactly as the first two did."
+              },
+              { id:"h-plan", type:"action",
+                label:"Publish the allocation plan",
+                actionLabel:"Register blocks centrally", loadingLabel:"Registering…", doneLabel:"Every existing network registered, new ranges reserved per business unit, and creation now refuses unregistered CIDRs.", loadingMs:800,
+                errorText:"The immediate overlap is solved and the practice that caused it is unchanged."
+              }
+            ]
+          }
+        },
         iac:{
           aws:{
             title:"Prod doesn't match staging, and nobody knows why",
@@ -6218,6 +7063,7 @@
         dek:"Every headline service in one line each — what it does, and what the same thing is called on AWS, Azure, and Google Cloud. The provider toggle up top highlights your column.",
         searchPh:"Filter services — try \"SQL\", \"DDoS\", \"warehouse\"…",
         colWhat:"What it does",
+        learnIn:"Learn it in {module} →",
         noResults:"No service matches that search.",
         cat:{
           compute:"Compute & Deployment", data:"Data & Analytics", network:"Networking & Delivery",
@@ -6585,6 +7431,141 @@
           drainedDone:"queue drained — every order survived the outage"
         }
       },
+      shared:{
+        modId:"MODULE 32", title:"Shared Responsibility: Who Secures What",
+        titleAzure:"Shared Responsibility on Azure: Who Secures What", titleGcp:"Shared Responsibility on Google Cloud: Who Secures What",
+        dek:"The line between what the provider secures and what you secure moves depending on what you rent — and almost every cloud breach happens on the customer's side of it.",
+        analogy:"Renting a car, taking a taxi, or riding a bus. In a rental car you drive, fuel it, and park it legally — the company only guarantees the car works. In a taxi someone else drives, but you still choose the destination. On a bus, the route, the driver, and the schedule are all decided for you; you just pick a seat and mind your own bag. Your bag is your data — it's yours in all three.",
+        modelOnprem:"On-premises", modelIaas:"IaaS", modelPaas:"PaaS", modelSaas:"SaaS",
+        checkBtn:"Check my answers", revealBtn:"Show the correct split", clearBtn:"Clear",
+        statAssigned:"Layers assigned", statCorrect:"Correct", statYours:"Yours to secure", statModel:"Service model",
+        youLabel:"You", providerLabel:"Provider",
+        examples:{
+          onprem:"Your own servers, in your own building — nothing is rented.",
+          iaas:"Rent the machine: EC2, Azure Virtual Machines, Compute Engine.",
+          paas:"Rent the platform: Elastic Beanstalk, App Service, App Engine.",
+          saas:"Rent the finished software: Gmail, Microsoft 365, Salesforce."
+        },
+        layers:{
+          data:"Your data", access:"Who can log in (identity & access)", appcode:"Application code",
+          netcfg:"Network & firewall configuration", os:"Operating system & patching",
+          virt:"Virtualization / hypervisor", hardware:"Physical servers & storage", facility:"Data centre building & power"
+        },
+        note:"This is the actual model every provider publishes, and the exam phrasing is worth memorising: the provider is responsible for security OF the cloud (the hardware, the facilities, the hypervisor, the managed service itself); you are responsible for security IN the cloud (your data, your access control, your configuration, and — depending on the model — your OS and code). Two things never move no matter what you rent: your data and who you grant access to. Every major cloud breach in this app's case studies lives on the customer side of that line.",
+        tryStep1:"Assign each layer to You or the Provider under IaaS, then check your answers.",
+        tryStep2:"Switch to PaaS and then SaaS — watch the line climb and your responsibilities shrink.",
+        tryStep3:"Notice the two layers that stay yours in every single model.",
+        incident:{
+          meta:"Capital One · July 2019",
+          body:"An attacker exploited a misconfigured web application firewall in Capital One's AWS environment and read the credentials it held, then used them to download data on roughly 100 million people. AWS's infrastructure was never breached — the hardware, hypervisor, and S3 service all did exactly what they were built to do. The failure was entirely on the customer's side of the shared responsibility line: a firewall rule and an over-permissive role. Capital One paid an $80 million regulatory fine and settled for $190 million. Nobody fined AWS, because nothing AWS was responsible for had failed."
+        },
+        status:{ unassigned:"UNASSIGNED", partial:"IN PROGRESS", perfect:"ALL CORRECT", wrong:"SOME WRONG" },
+        log:{
+          init:"pick a service model, then assign every layer",
+          model:"service model → {model}",
+          assigned:"{layer} → {who}",
+          score:"{correct} of {total} correct",
+          perfect:"every layer correct for {model}",
+          revealed:"correct split revealed for {model}",
+          cleared:"assignments cleared"
+        }
+      },
+      dr:{
+        modId:"MODULE 33", title:"Disaster Recovery: RTO, RPO & What It Costs",
+        titleAzure:"Disaster Recovery on Azure: RTO, RPO & What It Costs", titleGcp:"Disaster Recovery on Google Cloud: RTO, RPO & What It Costs",
+        dek:"Every recovery plan is a purchase. You are buying back two things — minutes of downtime (RTO) and minutes of lost data (RPO) — and the price rises steeply as both approach zero.",
+        analogy:"A spare tyre in the boot, a second car in the garage, or a second car already running with the engine warm and a driver in it. The spare is cheap but you're changing it by the roadside for an hour. The warm car costs you a whole second car, every month, forever — and you're moving again in seconds. Neither is 'right'; it depends what an hour of standing still costs you.",
+        recoveryLabel:"Recovery",
+        failBtn:"Destroy the primary region", resetBtn:"Restore & reset",
+        statRto:"RTO — downtime", statRpo:"RPO — data lost", statCost:"Monthly cost", statOrders:"Orders lost",
+        strategies:{
+          backup:{ name:"Backup & Restore", desc:"Nightly backups to object storage. When the region dies you rebuild everything from scratch and restore the last backup." },
+          pilot:{ name:"Pilot Light", desc:"Database replicates continuously to a second region; servers exist as templates but are switched off. You start them when needed." },
+          warm:{ name:"Warm Standby", desc:"A scaled-down but running copy of the whole stack in a second region. You scale it up and send traffic there." },
+          multi:{ name:"Multi-Site Active/Active", desc:"Both regions serve live traffic all the time. Losing one removes capacity, not availability." }
+        },
+        note:"These four strategies are the standard ladder, and the trade is always the same: cost scales with how much idle capacity you're willing to pay for. Backup & restore is nearly free but measured in hours; multi-site costs roughly double your infrastructure and is measured in seconds. RTO is how long you're down; RPO is how far back your data snaps to — a nightly backup means an RPO of up to 24 hours, which is a business decision, not a technical one. The one thing that ruins any of them is never testing the restore.",
+        tryStep1:"Pick each strategy and compare its RTO, RPO and monthly cost before anything breaks.",
+        tryStep2:"Destroy the region and watch the recovery clock run in real time.",
+        tryStep3:"Note how many orders each strategy loses — that number is the RPO in money.",
+        incident:{
+          meta:"OVHcloud · March 2021",
+          body:"A fire destroyed OVHcloud's SBG2 data centre in Strasbourg and damaged the building next to it, taking around 3.6 million websites offline. Many recovered within days. Many never recovered at all — customers discovered that their backups had been stored in the same facility as the servers they were backing up, so the fire consumed the original and the copy together. Off-site is not a detail of a backup strategy; it is the strategy. A backup that shares a building with production is a copy, not a plan."
+        },
+        status:{ healthy:"HEALTHY", down:"REGION DOWN", recovering:"RECOVERING", recovered:"RECOVERED" },
+        log:{
+          init:"primary region healthy — pick a DR strategy",
+          picked:"strategy → {name} (RTO {rto}, RPO {rpo}, {cost}/mo)",
+          none:"pick a strategy first",
+          fail:"PRIMARY REGION LOST — recovery started under {name}",
+          progress:"{elapsed} elapsed…",
+          restored:"service restored after {rto} — {orders} orders lost to the {rpo} RPO window",
+          reset:"primary region rebuilt — back to healthy"
+        }
+      },
+      pricing:{
+        modId:"MODULE 34", title:"Pricing: Where the Bill Actually Comes From",
+        titleAzure:"Azure Pricing: Where the Bill Actually Comes From", titleGcp:"Google Cloud Pricing: Where the Bill Actually Comes From",
+        dek:"Compute is the line everyone watches. It is rarely the line that surprises them — that one is usually the cost of sending data back out.",
+        analogy:"A warehouse that charges almost nothing to store your boxes, nothing at all to accept deliveries, and a fee for every box that leaves. Nobody reads that last clause when they sign, and it's the one that shows up on the invoice.",
+        totalLabel:"Estimated monthly bill",
+        instancesLabel:"Instances", hoursLabel:"Hours per day each runs", storageLabel:"Storage (GB)",
+        egressLabel:"Data sent to the internet (GB/mo)", purchaseLabel:"Purchase option",
+        optOnDemand:"On-Demand", optReserved:"Reserved / 1-yr commit (−40%)", optSpot:"Spot (−70%, interruptible)",
+        statBiggest:"Biggest line item", statEgressShare:"Egress share of bill", statAnnual:"Per year", statIdle:"Wasted on idle",
+        lineCompute:"Compute", lineStorage:"Storage", lineEgress:"Egress", lineIngress:"Ingress (inbound)", lineRequests:"Requests & ops",
+        note:"The numbers here are simplified but the shape is real. Compute bills per second while running, which is why an instance idling nights and weekends wastes about 76% of its cost. Storage is cheap per GB and grows quietly forever. Ingress — data coming in — is free on every major provider. Egress is not, and it is the line that turns a video or download-heavy product into an expensive one. Reserved instances and committed-use discounts trade flexibility for roughly 40% off; Spot trades reliability for up to 90% off. Neither discount touches egress.",
+        tryStep1:"Set 4 instances at 24 hours and note the compute line — that's the number people plan around.",
+        tryStep2:"Now drag egress up past 10,000 GB and watch which line takes over the bill.",
+        tryStep3:"Switch to Reserved and then Spot — see how much of the bill a discount can and cannot reach.",
+        incident:{
+          meta:"Pinterest · 2016",
+          body:"Pinterest committed to a large multi-year cloud contract sized for the growth it expected, then reported roughly $20 million in charges tied to that commitment when actual usage came in under plan. It's the trap on the other side of discounts: reserved capacity and committed-use contracts are genuinely cheaper per unit, but you have bought the units whether you use them or not. A commitment is a forecast with a penalty attached, which is why the standard advice is to commit only to your reliable baseline and leave the spiky part on-demand."
+        },
+        status:{ estimating:"ESTIMATING", egressHeavy:"EGRESS-DOMINATED", idleHeavy:"PAYING FOR IDLE" },
+        log:{
+          init:"pricing model loaded — drag the sliders",
+          egressWarn:"egress is now the biggest line on this bill",
+          idleWarn:"instances idle {hours}h/day — {pct}% of compute spend buys nothing",
+          purchase:"purchase option → {opt}"
+        }
+      },
+      cidr:{
+        modId:"MODULE 35", title:"CIDR & Subnets: The Maths Behind a VPC",
+        titleAzure:"CIDR & Subnets: The Maths Behind a VNet", titleGcp:"CIDR & Subnets: The Maths Behind a VPC Network",
+        dek:"Every VPC starts with a block of addresses and a decision about how to cut it up. Get it wrong and you find out months later, when there is no room left for a subnet you now need.",
+        analogy:"A street of house numbers. /24 gives you one street of 256 houses; /16 gives you a whole district of 65,536. The smaller the number after the slash, the bigger the territory — which feels backwards until you realise the number counts how many digits are locked, not how many are free.",
+        rangeLabel:"Range", hostsLabel:"Usable hosts", maskLabel:"Subnet mask",
+        quizLabel:"Practice",
+        prefixLabel:"Prefix length /", testLabel:"Is this address inside the block?",
+        testBtn:"Test address", nextBtn:"New practice question",
+        statInside:"Address test", statSubnets:"Fits /24 subnets", statScore:"Practice score", statStreak:"Streak",
+        inside:"INSIDE", outside:"OUTSIDE", invalidIp:"NOT AN IP",
+        note:"A /n prefix locks the first n bits, leaving 32−n bits free for hosts, so the block holds 2^(32−n) addresses. Cloud providers reserve a few of those in every subnet — AWS takes five (network, VPC router, DNS, future use, broadcast), so a /24 gives you 251 usable addresses rather than 254. Two rules save real projects: never pick a block that overlaps a network you might one day peer or connect by VPN (10.0.0.0/16 is the most-collided block on earth), and always leave room, because a VPC's CIDR is painful to change once workloads live in it.",
+        tryStep1:"Drag the prefix from /16 to /24 and watch the usable host count collapse.",
+        tryStep2:"Test 10.0.42.7 at /16, then again at /24 — same address, different answer.",
+        tryStep3:"Work through the practice questions until the streak counter climbs.",
+        incident:{
+          meta:"The overlap problem · everywhere, constantly",
+          body:"There is no single famous outage for this one, because it happens quietly to almost every company that grows. Two teams each build a VPC using the default-looking 10.0.0.0/16. Years later the company wants to peer them — or acquires a company that did the same thing — and discovers the two networks cannot be connected, because an address like 10.0.3.7 now means two different machines. The fix is re-addressing a live production network, which is the sort of migration that consumes quarters. Ten minutes of address planning at the start prevents it entirely.",
+        },
+        status:{ ready:"READY", inside:"ADDRESS INSIDE", outside:"ADDRESS OUTSIDE" },
+        q:{
+          hosts:"How many usable host addresses does {cidr} give you on this provider?",
+          contains:"Does {ip} fall inside {cidr}?",
+          split:"How many /{sub} subnets fit inside {cidr}?",
+          bigger:"Which block contains more addresses?",
+          yes:"Yes", no:"No"
+        },
+        log:{
+          init:"CIDR calculator ready",
+          prefix:"block → {cidr} ({hosts} usable hosts)",
+          test:"{ip} is {verdict} {cidr}",
+          bad:"that isn't a valid IPv4 address",
+          right:"correct — {why}",
+          wrong:"not quite — {why}"
+        }
+      },
       chat:{
         title:"Ask the Console", fabAria:"Ask a question", closeAria:"Close",
         setupIntro:"This runs entirely in your browser through Groq's free API — nothing is sent anywhere except directly to Groq. Paste your own key to turn it on; it's saved only on this device, never on any server.",
@@ -6601,10 +7582,10 @@
     tr: {
       common: {
         wordmark:"CloudLab",
-        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS", capstone1:"20 Final Görev: Kesinti", capstone2:"21 Final Görev: Sızıntı", services:"22 Servis rehberi", threat:"23 GuardDuty ve Inspector", edge:"24 WAF ve Shield", identity:"25 STS ve Cognito", certs:"26 ACM ve Macie", analytics:"27 Redshift ve Athena", hybrid:"28 Direct Connect ve DMS", iac:"29 CloudFormation", govern:"30 Trusted Advisor", aiint:"31 Lex, Polly ve MQ" },
+        nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS", capstone1:"20 Final Görev: Kesinti", capstone2:"21 Final Görev: Sızıntı", services:"22 Servis rehberi", threat:"23 GuardDuty ve Inspector", edge:"24 WAF ve Shield", identity:"25 STS ve Cognito", certs:"26 ACM ve Macie", analytics:"27 Redshift ve Athena", hybrid:"28 Direct Connect ve DMS", iac:"29 CloudFormation", govern:"30 Trusted Advisor", aiint:"31 Lex, Polly ve MQ", shared:"32 Paylaşılan sorumluluk", dr:"33 Felaket kurtarma", pricing:"34 Fiyatlandırma", cidr:"35 CIDR ve alt ağlar" },
         navAzure:{ iam:"02 Entra ID", vpc:"03 Sanal Ağ", ec2:"04 Sanal Makineler", s3:"05 Blob Depolama", lambda:"06 Azure Functions", beanstalk:"08 App Service", route53:"09 Azure DNS", sns:"13 Event Grid", cloudwatch:"14 Azure Monitor", snowball:"15 Data Box", secrets:"19 Key Vault", threat:"23 Defender for Cloud", edge:"24 Azure WAF ve DDoS", identity:"25 Entra ID ve SSO", certs:"26 Key Vault ve Purview", analytics:"27 Synapse ve Cosmos DB", hybrid:"28 ExpressRoute ve DMS", iac:"29 ARM ve Bicep", govern:"30 Azure Advisor", aiint:"31 Bot Service ve Service Bus" },
         navGcp:{ iam:"02 Cloud IAM", ec2:"04 Compute Engine", s3:"05 Cloud Storage", lambda:"06 Cloud Functions", beanstalk:"08 App Engine", route53:"09 Cloud DNS", sns:"13 Pub/Sub", cloudwatch:"14 Cloud Monitoring", snowball:"15 Transfer Appliance", secrets:"19 Cloud KMS", threat:"23 Security Command Center", edge:"24 Cloud Armor", identity:"25 Cloud Identity", certs:"26 Cert Manager ve DLP", analytics:"27 BigQuery ve Firestore", hybrid:"28 Interconnect ve DMS", iac:"29 Infrastructure Manager", govern:"30 Recommender", aiint:"31 Dialogflow ve Pub/Sub" },
-        navCat:{ security:"Güvenlik", data:"Veri ve analitik", connect:"Hibrit ve taşıma", ops:"Otomasyon ve yönetişim", ai:"YZ ve entegrasyon" },
+        navCat:{ security:"Güvenlik", data:"Veri ve analitik", connect:"Hibrit ve taşıma", ops:"Otomasyon ve yönetişim", ai:"YZ ve entegrasyon", foundations:"Temeller ve alıştırma" },
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"CloudLab",
         statusChanged:"durum → {status}",
@@ -6636,7 +7617,7 @@
       intro:{
         title:"Bulut sistemleri, parçalarına ayrıldı",
         p:"Büyük sistemleri ayakta tutan mekanizmaların yirmi küçük, canlı simülasyonu, ve bunlardan birkaçını bir araya getiren iki final görev olayı — arkasında gerçek sunucu yok, sadece mantık. Kadranları çevirin ve yük altında, bir ağ bölünmesinde, bir önbellek ıskalamasında, bir arızada gerçekte ne olduğunu izleyin.",
-        meta:"29 modül · 28 olay müdahale görevi · 47 servislik rehber · tamamen tarayıcınızda çalışır"
+        meta:"33 modül · 32 olay müdahale görevi · 47 servislik rehber · tamamen tarayıcınızda çalışır"
       },
       progress:{
         label:"İlerlemen",
@@ -7225,6 +8206,851 @@
         easyLabel:"Kolay", hardLabel:"Zor",
         resetBtn:"Görevi sıfırla",
         completeNote:"Yukarıdaki her karar gerçek bir kararı yansıtıyor — buna gerçekte böyle yanıt verilirdi.",
+        shared:{
+          aws:{
+            title:"Denetçi neyin sorumlusunun kim olduğunu soruyor",
+            scenario:"Bir müşterinin güvenlik anketi geldi. Servis servis neyi kimin güvenceye aldığını soruyor — ve önceki ekip neredeyse her soruya \"güvenliği AWS hallediyor\" yazmış. Bu cevap denetimden kalmak üzere.",
+            consoleLabel:"Paylaşılan Sorumluluk İncelemesi (simüle)",
+            actionBtn:"Anketi gönder",
+            successText:"Her satır doğru atfedildi — ve gerçekten sana ait olan iki madde artık yalnız belgelenmiş değil, fiilen düzeltilmiş durumda.",
+            easySteps:[
+              { id:"e-model", type:"choice",
+                label:"Gerçekte ne kiraladığını sınıflandır",
+                prompt:"Uygulaman, kendi başlattığın ve kendi yamaladığın EC2 sunucularında çalışıyor. Bu hangi servis modeli?",
+                options:[
+                  { key:"saas", label:"SaaS — bitmiş bir yazılım tüketiyorsun", correct:false, feedback:"SaaS, tüm uygulamayı başkasının çalıştırmasıdır; Gmail gibi. Sen kendi kodunu kendi sunucularında çalıştırıyorsun." },
+                  { key:"iaas", label:"IaaS — makineyi kiralar, üstündeki her şeyi sen yönetirsin", correct:true, feedback:"Doğru. AWS donanımı, hipervizörü ve tesisi sağlar; işletim sistemi, yamalar, kod, yapılandırma ve veri senindir." },
+                  { key:"paas", label:"PaaS — kodu dağıtırsın, platform çalıştırır", correct:false, feedback:"O, işletim sistemine hiç dokunmadığın Beanstalk ya da App Runner olurdu. Burada sunucuları sen başlattın ve sen yamalıyorsun." }
+                ],
+                errorText:"Servis modelini adlandıramadan sorumluluk çizgisinin nereye düştüğünü söyleyemezsin."
+              },
+              { id:"e-os", type:"choice",
+                label:"İşletim sistemi yaması sorusunu cevapla",
+                prompt:"\"EC2 sunucularınızın işletim sistemi güvenlik yamalarını kim uyguluyor?\"",
+                options:[
+                  { key:"aws", label:"AWS — altyapıyı onlar bakımda tutuyor", correct:false, feedback:"Bulutta en sık verilen yanlış cevap budur. AWS hipervizörü ve ana makineyi yamalar; sunucunun içindeki konuk işletim sistemi tamamen senindir." },
+                  { key:"us", label:"Biz — konuk işletim sistemi çizginin bizim tarafımızda", correct:true, feedback:"Doğru. SSH ile girebiliyorsan yamasını sen atarsın. AWS sunucunun içine asla dokunmaz." },
+                  { key:"shared", label:"Paylaşılıyor — iki taraf birlikte yamalıyor", correct:false, feedback:"Tek bir katmanın ortak sahipliği diye bir şey yok. Her katman tam olarak bir tarafa aittir; 'paylaşılan sorumluluk' yığının bölündüğü anlamına gelir, katmanların ortak sahiplendiği değil." }
+                ],
+                errorText:"Anket hâlâ işletim sistemlerini AWS'nin yamaladığını iddia ediyor. Denetçi o satırdan bırakır."
+              },
+              { id:"e-submit", type:"action",
+                label:"Cevapları düzelt ve kanıtı ekle",
+                actionLabel:"Anketi düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Cevaplar düzeltildi ve yayınlanmış sorumluluk matrisiyle eşlendi.", loadingMs:600,
+                errorText:"Anket hâlâ her satırda yanlış atıfla gidiyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-mixed", type:"choice",
+                label:"Tek modelden ibaret olmayan ortamı ele al",
+                prompt:"Ortamda EC2 (IaaS), Lambda ve RDS (PaaS benzeri yönetilen servisler) ve Microsoft 365 (SaaS) var. Anket bunları nasıl ele almalı?",
+                options:[
+                  { key:"one", label:"Tüm ortam için tek cevap ver — en yaygın modeli seç", correct:false, feedback:"Modellerin ortalamasını almak, listedeki her servis için yanlış olan bir cevap üretir. Sorumluluk her zaman servis bazındadır." },
+                  { key:"per", label:"Servis bazında cevapla, çünkü çizgi her biri için farklı yükseklikte", correct:true, feedback:"Aynen. EC2 konuk işletim sistemini sen yamalarsın; Lambda çalışma zamanını ve RDS motorunu AWS yamalar; 365'in tamamını Microsoft yamalar. Aynı hesap, üç farklı çizgi." },
+                  { key:"strict", label:"Her şey IaaS'mış gibi cevapla — fazla iddia etmek en güvenlisi", correct:false, feedback:"RDS motorunu ya da Lambda çalışma zamanını yamaladığını iddia etmek, fiilen uygulayamadığın bir kontrolü iddia etmektir; bu az iddia etmekten kötüdür." }
+                ],
+                errorText:"Sorumluluk çizgileri gerçekten farklı olan servisler için tek bir toptan cevap veriliyor."
+              },
+              { id:"h-managed", type:"choice",
+                label:"En çetrefilli satırı cevapla: yönetilen veritabanı şifrelemesi",
+                prompt:"\"RDS'te durağan verinin şifrelenmesinden kim sorumlu?\"",
+                options:[
+                  { key:"aws", label:"AWS — RDS yönetilen bir servis, şifreleme hallediliyor", correct:false, feedback:"AWS şifreleme yeteneğini sağlar ama oluşturma anında sen açmazsan kapalıdır. Yönetilen bir servisin kontrolü sunması, kontrolün açık olduğu anlamına gelmez." },
+                  { key:"us", label:"Biz — AWS mekanizmayı verir, açmayı seçmek ve anahtar politikasını yönetmek bizde", correct:true, feedback:"İnsanları yakalayan ayrım bu: sağlayıcı sana kilidi verir, kullanıp kullanmayacağına ve anahtarı kimin tutacağına sen karar verirsin." },
+                  { key:"nobody", label:"Kimse — özel alt ağdaki veri durağan şifreleme gerektirmez", correct:false, feedback:"Ağ yalıtımı ile durağan şifreleme farklı şeyleri savunur; çalınan bir anlık görüntü hangi alt ağdan geldiğini umursamaz." }
+                ],
+                errorText:"Şifreleme satırı hâlâ AWS'ye atfediliyor, yani sizin tarafta açmayı kimse sahiplenmiyor."
+              },
+              { id:"h-always", type:"choice",
+                label:"Asla yer değiştirmeyeni adlandır",
+                prompt:"Şirket içi, IaaS, PaaS ve SaaS'ta hangi sorumluluk her modelde sana ait?",
+                options:[
+                  { key:"os", label:"İşletim sistemi yaması", correct:false, feedback:"Şirket içinde ve IaaS'ta senin, ama PaaS ve SaaS'ta sağlayıcının. Yer değiştiriyor." },
+                  { key:"data", label:"Verilerin ve onlara kime erişim verdiğin", correct:true, feedback:"Modelin bütün amacı bu. Saf SaaS'ta bile sağlayıcı hangi çalışanın hangi kaydı görmesi gerektiğini bilemez — sınıflandırma ve erişim listesi kalıcı olarak senindir." },
+                  { key:"network", label:"Ağ ve güvenlik duvarı yapılandırması", correct:false, feedback:"IaaS'ta senin, ama SaaS'ta genelde yapılandıracağın bir ağ katmanı hiç verilmez. Yer değiştiriyor." }
+                ],
+                errorText:"Cevap hâlâ bazı modellerin sana güvenceleyecek hiçbir şey bırakmadığını ima ediyor — hiçbir model bunu yapmaz."
+              },
+              { id:"h-fix", type:"action",
+                label:"Sana ait çıkan iki bulguyu düzelt",
+                actionLabel:"RDS şifrelemesini aç ve erişimi daralt", loadingLabel:"Uygulanıyor…", doneLabel:"Yeniden oluşturulan sunucuda şifreleme açıldı, erişim listesi gözden geçirilip her rolün ihtiyacına indirildi.", loadingMs:750,
+                errorText:"İki açığı doğru şekilde kendine ait saptadın ve ikisini de açık bıraktın."
+              }
+            ]
+          },
+          azure:{
+            title:"Denetçi neyin sorumlusunun kim olduğunu soruyor",
+            scenario:"Bir müşterinin güvenlik anketi geldi. Servis servis neyi kimin güvenceye aldığını soruyor — ve önceki ekip neredeyse her soruya \"güvenliği Microsoft hallediyor\" yazmış. Bu cevap denetimden kalmak üzere.",
+            consoleLabel:"Paylaşılan Sorumluluk İncelemesi (simüle)",
+            actionBtn:"Anketi gönder",
+            successText:"Her satır doğru atfedildi — ve gerçekten sana ait olan iki madde artık yalnız belgelenmiş değil, fiilen düzeltilmiş durumda.",
+            easySteps:[
+              { id:"e-model", type:"choice",
+                label:"Gerçekte ne kiraladığını sınıflandır",
+                prompt:"Uygulaman, kendi oluşturduğun ve kendi yamaladığın Azure Sanal Makinelerinde çalışıyor. Bu hangi servis modeli?",
+                options:[
+                  { key:"saas", label:"SaaS — bitmiş bir yazılım tüketiyorsun", correct:false, feedback:"SaaS, tüm uygulamayı başkasının çalıştırmasıdır; Microsoft 365 gibi. Sen kendi kodunu kendi VM'lerinde çalıştırıyorsun." },
+                  { key:"iaas", label:"IaaS — makineyi kiralar, üstündeki her şeyi sen yönetirsin", correct:true, feedback:"Doğru. Microsoft donanımı, hipervizörü ve tesisi sağlar; işletim sistemi, yamalar, kod, yapılandırma ve veri senindir." },
+                  { key:"paas", label:"PaaS — kodu dağıtırsın, platform çalıştırır", correct:false, feedback:"O, işletim sistemine hiç dokunmadığın App Service olurdu. Burada VM'leri sen oluşturdun ve sen yamalıyorsun." }
+                ],
+                errorText:"Servis modelini adlandıramadan sorumluluk çizgisinin nereye düştüğünü söyleyemezsin."
+              },
+              { id:"e-os", type:"choice",
+                label:"İşletim sistemi yaması sorusunu cevapla",
+                prompt:"\"Sanal makinelerinizin işletim sistemi güvenlik yamalarını kim uyguluyor?\"",
+                options:[
+                  { key:"ms", label:"Microsoft — altyapıyı onlar bakımda tutuyor", correct:false, feedback:"Bulutta en sık verilen yanlış cevap budur. Microsoft hipervizörü ve ana makineyi yamalar; VM'in içindeki konuk işletim sistemi tamamen senindir." },
+                  { key:"us", label:"Biz — konuk işletim sistemi çizginin bizim tarafımızda", correct:true, feedback:"Doğru. RDP ile girebiliyorsan yamasını sen atarsın. Microsoft VM'inin içine asla dokunmaz." },
+                  { key:"shared", label:"Paylaşılıyor — iki taraf birlikte yamalıyor", correct:false, feedback:"Tek bir katmanın ortak sahipliği diye bir şey yok. Her katman tam olarak bir tarafa aittir; 'paylaşılan sorumluluk' yığının bölündüğü anlamına gelir." }
+                ],
+                errorText:"Anket hâlâ işletim sistemlerini Microsoft'un yamaladığını iddia ediyor. Denetçi o satırdan bırakır."
+              },
+              { id:"e-submit", type:"action",
+                label:"Cevapları düzelt ve kanıtı ekle",
+                actionLabel:"Anketi düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Cevaplar düzeltildi ve yayınlanmış sorumluluk matrisiyle eşlendi.", loadingMs:600,
+                errorText:"Anket hâlâ her satırda yanlış atıfla gidiyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-mixed", type:"choice",
+                label:"Tek modelden ibaret olmayan ortamı ele al",
+                prompt:"Ortamda Sanal Makineler (IaaS), Functions ve Azure SQL (PaaS) ve Microsoft 365 (SaaS) var. Anket bunları nasıl ele almalı?",
+                options:[
+                  { key:"one", label:"Tüm ortam için tek cevap ver — en yaygın modeli seç", correct:false, feedback:"Modellerin ortalamasını almak, listedeki her servis için yanlış olan bir cevap üretir. Sorumluluk her zaman servis bazındadır." },
+                  { key:"per", label:"Servis bazında cevapla, çünkü çizgi her biri için farklı yükseklikte", correct:true, feedback:"Aynen. VM konuk işletim sistemini sen yamalarsın; Functions çalışma zamanını ve SQL motorunu Microsoft yamalar; 365'in tamamını Microsoft yamalar. Aynı kiracı, üç farklı çizgi." },
+                  { key:"strict", label:"Her şey IaaS'mış gibi cevapla — fazla iddia etmek en güvenlisi", correct:false, feedback:"Azure SQL motorunu ya da Functions çalışma zamanını yamaladığını iddia etmek, fiilen uygulayamadığın bir kontrolü iddia etmektir." }
+                ],
+                errorText:"Sorumluluk çizgileri gerçekten farklı olan servisler için tek bir toptan cevap veriliyor."
+              },
+              { id:"h-managed", type:"choice",
+                label:"En çetrefilli satırı cevapla: yönetilen veritabanı şifrelemesi",
+                prompt:"\"Azure SQL Database'de durağan verinin şifrelenmesinden kim sorumlu?\"",
+                options:[
+                  { key:"ms", label:"Microsoft — yönetilen bir servis, şifreleme hallediliyor", correct:false, feedback:"Microsoft şifreleme yeteneğini ve platform yönetimli bir anahtarı sağlar, ama anahtar politikası, müşteri yönetimli anahtarlar ve veriyi kimin okuyabileceği senin kararlarındır." },
+                  { key:"us", label:"Biz — Microsoft mekanizmayı verir, anahtar politikasını ve erişimi biz sahipleniriz", correct:true, feedback:"İnsanları yakalayan ayrım bu: sağlayıcı sana kilidi verir, nasıl anahtarlanacağına ve kimin tutacağına sen karar verirsin." },
+                  { key:"nobody", label:"Kimse — özel uç noktanın arkasındaki veri durağan şifreleme gerektirmez", correct:false, feedback:"Ağ yalıtımı ile durağan şifreleme farklı şeyleri savunur; çalınan bir yedek hangi uç noktadan geldiğini umursamaz." }
+                ],
+                errorText:"Şifreleme satırı hâlâ tamamen Microsoft'a atfediliyor, yani anahtar politikasını sizin tarafta kimse sahiplenmiyor."
+              },
+              { id:"h-always", type:"choice",
+                label:"Asla yer değiştirmeyeni adlandır",
+                prompt:"Şirket içi, IaaS, PaaS ve SaaS'ta hangi sorumluluk her modelde sana ait?",
+                options:[
+                  { key:"os", label:"İşletim sistemi yaması", correct:false, feedback:"Şirket içinde ve IaaS'ta senin, ama PaaS ve SaaS'ta Microsoft'un. Yer değiştiriyor." },
+                  { key:"data", label:"Verilerin ve onlara kime erişim verdiğin", correct:true, feedback:"Modelin bütün amacı bu. Saf SaaS'ta bile Microsoft hangi çalışanın hangi kaydı görmesi gerektiğini bilemez — sınıflandırma ve erişim listesi kalıcı olarak senindir." },
+                  { key:"network", label:"Ağ ve güvenlik duvarı yapılandırması", correct:false, feedback:"IaaS'ta senin, ama SaaS'ta genelde yapılandıracağın bir ağ katmanı hiç verilmez. Yer değiştiriyor." }
+                ],
+                errorText:"Cevap hâlâ bazı modellerin sana güvenceleyecek hiçbir şey bırakmadığını ima ediyor — hiçbir model bunu yapmaz."
+              },
+              { id:"h-fix", type:"action",
+                label:"Sana ait çıkan iki bulguyu düzelt",
+                actionLabel:"Müşteri yönetimli anahtar ayarla ve erişimi daralt", loadingLabel:"Uygulanıyor…", doneLabel:"Key Vault'ta müşteri yönetimli anahtar yapılandırıldı, erişim gözden geçirilip her rolün ihtiyacına indirildi.", loadingMs:750,
+                errorText:"İki açığı doğru şekilde kendine ait saptadın ve ikisini de açık bıraktın."
+              }
+            ]
+          },
+          gcp:{
+            title:"Denetçi neyin sorumlusunun kim olduğunu soruyor",
+            scenario:"Bir müşterinin güvenlik anketi geldi. Servis servis neyi kimin güvenceye aldığını soruyor — ve önceki ekip neredeyse her soruya \"güvenliği Google hallediyor\" yazmış. Bu cevap denetimden kalmak üzere.",
+            consoleLabel:"Paylaşılan Sorumluluk İncelemesi (simüle)",
+            actionBtn:"Anketi gönder",
+            successText:"Her satır doğru atfedildi — ve gerçekten sana ait olan iki madde artık yalnız belgelenmiş değil, fiilen düzeltilmiş durumda.",
+            easySteps:[
+              { id:"e-model", type:"choice",
+                label:"Gerçekte ne kiraladığını sınıflandır",
+                prompt:"Uygulaman, kendi oluşturduğun ve kendi yamaladığın Compute Engine sunucularında çalışıyor. Bu hangi servis modeli?",
+                options:[
+                  { key:"saas", label:"SaaS — bitmiş bir yazılım tüketiyorsun", correct:false, feedback:"SaaS, tüm uygulamayı başkasının çalıştırmasıdır; Google Workspace gibi. Sen kendi kodunu kendi sunucularında çalıştırıyorsun." },
+                  { key:"iaas", label:"IaaS — makineyi kiralar, üstündeki her şeyi sen yönetirsin", correct:true, feedback:"Doğru. Google donanımı, hipervizörü ve tesisi sağlar; işletim sistemi, yamalar, kod, yapılandırma ve veri senindir." },
+                  { key:"paas", label:"PaaS — kodu dağıtırsın, platform çalıştırır", correct:false, feedback:"O, işletim sistemine hiç dokunmadığın App Engine ya da Cloud Run olurdu. Burada sunucuları sen oluşturdun ve sen yamalıyorsun." }
+                ],
+                errorText:"Servis modelini adlandıramadan sorumluluk çizgisinin nereye düştüğünü söyleyemezsin."
+              },
+              { id:"e-os", type:"choice",
+                label:"İşletim sistemi yaması sorusunu cevapla",
+                prompt:"\"Compute Engine sunucularınızın işletim sistemi güvenlik yamalarını kim uyguluyor?\"",
+                options:[
+                  { key:"google", label:"Google — altyapıyı onlar bakımda tutuyor", correct:false, feedback:"Bulutta en sık verilen yanlış cevap budur. Google hipervizörü ve ana makineyi yamalar; sunucunun içindeki konuk işletim sistemi tamamen senindir." },
+                  { key:"us", label:"Biz — konuk işletim sistemi çizginin bizim tarafımızda", correct:true, feedback:"Doğru. SSH ile girebiliyorsan yamasını sen atarsın. Google sunucunun içine asla dokunmaz." },
+                  { key:"shared", label:"Paylaşılıyor — iki taraf birlikte yamalıyor", correct:false, feedback:"Tek bir katmanın ortak sahipliği diye bir şey yok. Her katman tam olarak bir tarafa aittir; 'paylaşılan sorumluluk' yığının bölündüğü anlamına gelir." }
+                ],
+                errorText:"Anket hâlâ işletim sistemlerini Google'ın yamaladığını iddia ediyor. Denetçi o satırdan bırakır."
+              },
+              { id:"e-submit", type:"action",
+                label:"Cevapları düzelt ve kanıtı ekle",
+                actionLabel:"Anketi düzelt", loadingLabel:"Güncelleniyor…", doneLabel:"Cevaplar düzeltildi ve yayınlanmış sorumluluk matrisiyle eşlendi.", loadingMs:600,
+                errorText:"Anket hâlâ her satırda yanlış atıfla gidiyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-mixed", type:"choice",
+                label:"Tek modelden ibaret olmayan ortamı ele al",
+                prompt:"Ortamda Compute Engine (IaaS), Cloud Run ve Cloud SQL (PaaS benzeri yönetilen servisler) ve Google Workspace (SaaS) var. Anket bunları nasıl ele almalı?",
+                options:[
+                  { key:"one", label:"Tüm ortam için tek cevap ver — en yaygın modeli seç", correct:false, feedback:"Modellerin ortalamasını almak, listedeki her servis için yanlış olan bir cevap üretir. Sorumluluk her zaman servis bazındadır." },
+                  { key:"per", label:"Servis bazında cevapla, çünkü çizgi her biri için farklı yükseklikte", correct:true, feedback:"Aynen. Compute Engine konuk işletim sistemini sen yamalarsın; Cloud Run çalışma zamanını ve Cloud SQL motorunu Google yamalar; Workspace'in tamamını Google yamalar. Aynı proje, üç farklı çizgi." },
+                  { key:"strict", label:"Her şey IaaS'mış gibi cevapla — fazla iddia etmek en güvenlisi", correct:false, feedback:"Cloud SQL motorunu ya da Cloud Run çalışma zamanını yamaladığını iddia etmek, fiilen uygulayamadığın bir kontrolü iddia etmektir." }
+                ],
+                errorText:"Sorumluluk çizgileri gerçekten farklı olan servisler için tek bir toptan cevap veriliyor."
+              },
+              { id:"h-managed", type:"choice",
+                label:"En çetrefilli satırı cevapla: yönetilen veritabanı şifrelemesi",
+                prompt:"\"Cloud SQL'de durağan verinin şifrelenmesinden kim sorumlu?\"",
+                options:[
+                  { key:"google", label:"Google — yönetilen bir servis ve şifreleme varsayılan olarak açık", correct:false, feedback:"Google gerçekten varsayılan olarak durağan şifreler; bu yüzden bu soru insanları tuzağa düşürür: mekanizma onların, ama anahtar yönetimi kararları ve veriyi kimin okuyabileceği hâlâ senin." },
+                  { key:"us", label:"Pratikte paylaşımlı — Google varsayılan şifreler, ama anahtar politikası ve erişim bizim", correct:true, feedback:"Denetçinin sınadığı nüans tam bu: varsayılan şifreleme, CMEK kararlarının ya da okuma erişiminin sorumluluğunu devretmez." },
+                  { key:"nobody", label:"Kimse — özel IP'deki veri durağan şifreleme gerektirmez", correct:false, feedback:"Ağ yalıtımı ile durağan şifreleme farklı şeyleri savunur; çalınan bir yedek hangi IP aralığından geldiğini umursamaz." }
+                ],
+                errorText:"Şifreleme satırı hâlâ tamamen Google'a atfediliyor, yani anahtar politikasını ve erişimi sizin tarafta kimse sahiplenmiyor."
+              },
+              { id:"h-always", type:"choice",
+                label:"Asla yer değiştirmeyeni adlandır",
+                prompt:"Şirket içi, IaaS, PaaS ve SaaS'ta hangi sorumluluk her modelde sana ait?",
+                options:[
+                  { key:"os", label:"İşletim sistemi yaması", correct:false, feedback:"Şirket içinde ve IaaS'ta senin, ama PaaS ve SaaS'ta Google'ın. Yer değiştiriyor." },
+                  { key:"data", label:"Verilerin ve onlara kime erişim verdiğin", correct:true, feedback:"Modelin bütün amacı bu. Saf SaaS'ta bile Google hangi çalışanın hangi kaydı görmesi gerektiğini bilemez — sınıflandırma ve erişim listesi kalıcı olarak senindir." },
+                  { key:"network", label:"Ağ ve güvenlik duvarı yapılandırması", correct:false, feedback:"IaaS'ta senin, ama SaaS'ta genelde yapılandıracağın bir ağ katmanı hiç verilmez. Yer değiştiriyor." }
+                ],
+                errorText:"Cevap hâlâ bazı modellerin sana güvenceleyecek hiçbir şey bırakmadığını ima ediyor — hiçbir model bunu yapmaz."
+              },
+              { id:"h-fix", type:"action",
+                label:"Sana ait çıkan iki bulguyu düzelt",
+                actionLabel:"CMEK ayarla ve erişimi daralt", loadingLabel:"Uygulanıyor…", doneLabel:"Müşteri yönetimli şifreleme anahtarı yapılandırıldı, IAM bağlamaları gözden geçirilip her rolün ihtiyacına indirildi.", loadingMs:750,
+                errorText:"İki açığı doğru şekilde kendine ait saptadın ve ikisini de açık bıraktın."
+              }
+            ]
+          }
+        },
+        dr:{
+          aws:{
+            title:"Yönetim kurulu dört saatlik kurtarma garantisi istiyor",
+            scenario:"Bir rakibin bir haftalık kesintisinden sonra yönetim kurulu basit bir soru soruyor: birincil bölgemiz şu anda yok olsa, müşterilere yeniden hizmet vermemiz ne kadar sürer ve ne kadar veri kaybederiz? Kimse cevaplayamıyor. Mevcut plan, aynı bölgeye gecelik yedek.",
+            consoleLabel:"FK Planlama Konsolu (simüle)",
+            actionBtn:"FK planını onayla",
+            successText:"Sayısı olan, test edilmiş bir plan: dört saatlik hedefin içinde kurtarma, işin fiilen kabul ettiği bir veri kaybı penceresi ve çalıştığı kanıtlanmış bir geri yükleme.",
+            easySteps:[
+              { id:"e-terms", type:"choice",
+                label:"Kurulun iki sorusunu doğru cevapla",
+                prompt:"\"Ne zaman döneriz\" ve \"ne kadar veri kaybederiz\" diye sordular. Bu iki sayının adı ne?",
+                options:[
+                  { key:"swap", label:"Kesinti için RPO, veri kaybı için RTO", correct:false, feedback:"Ters. RTO Zamandır — ne zaman yeniden çalışır hâle geldiğin. RPO ise verinin geri sıçradığı andır." },
+                  { key:"right", label:"Kesinti için RTO, veri kaybı için RPO", correct:true, feedback:"Doğru. RTO = Kurtarma Zaman Hedefi (ne kadar kapalısın). RPO = Kurtarma Noktası Hedefi (ne kadar veri kaybedersin)." },
+                  { key:"sla", label:"İkisi de sağlayıcının SLA'sında kapsanır", correct:false, feedback:"SLA, sağlayıcının kendi servisi hakkındaki, genelde bir krediye bağlı sözüdür. Senin mimarinin ne kadar hızlı toparlandığı hakkında hiçbir şey söylemez." }
+                ],
+                errorText:"Plan, tanımlamadığı bir hedefi ifade edemez."
+              },
+              { id:"e-offsite", type:"choice",
+                label:"Mevcut plandaki kusuru düzelt",
+                prompt:"Yedekler her gece üretimle aynı bölgedeki S3'e alınıyor. Bunun nesi yanlış?",
+                options:[
+                  { key:"slow", label:"Yapısal bir sorun yok — sadece gecelik olması seyrek", correct:false, feedback:"Sıklık gerçek bir sorun ama ikinci sırada. Bölgesel bir arıza, ne sıklıkta çalışırsa çalışsın yedeği de beraberinde götürür." },
+                  { key:"region", label:"Bölgesel bir arıza üretimi ve yedeği birlikte yok eder", correct:true, feedback:"Aynen — OVHcloud dersi. Orijinaliyle aynı arıza alanını paylaşan bir kopya, kurtarma planı değildir." },
+                  { key:"cost", label:"Gecelik yedek tutmak çok pahalı", correct:false, feedback:"Yedekler buluttaki en ucuz şeylerdendir. Burada bozuk olan maliyet değil." }
+                ],
+                errorText:"Tek yedek hâlâ kaybetmeyi planladığın bölgenin içinde duruyor."
+              },
+              { id:"e-replicate", type:"action",
+                label:"Bir kopyayı bölgenin dışına çıkar",
+                actionLabel:"Bölgeler arası replikasyonu aç", loadingLabel:"Yapılandırılıyor…", doneLabel:"Yedekler artık otomatik olarak ikinci bir bölgeye replike oluyor — kopya orijinalden sağ çıkıyor.", loadingMs:700,
+                errorText:"Kurtarmak için ihtiyacın olan her şey hâlâ az önce arızalanan tek bölgenin içinde."
+              }
+            ],
+            hardSteps:[
+              { id:"h-strategy", type:"choice",
+                label:"Dört saati gerçekten tutturan bir strateji seç",
+                prompt:"Hedef, makul maliyetle 4 saatin altında RTO. Hangi strateji uyar?",
+                options:[
+                  { key:"backup", label:"Replike kopyadan yedekle ve geri yükle", correct:false, feedback:"Tüm bir ortamı yeniden kurup yedekten dönmek gerçekçi olarak 8+ saat sürer. En ucuz seçenektir ve hedefi ıskalar." },
+                  { key:"pilot", label:"Pilot alev — veritabanı sürekli replike, sunucular önceden kurulu ama kapalı", correct:true, feedback:"Veri zaten orada ve güncel; kurtarma sunucuları başlatıp DNS'i çevirmekten ibaret: onlarca dakika, dört saatin rahatça içinde, tam çalışan bir kopyanın parasını ödemeden." },
+                  { key:"multi", label:"İki bölgede çok bölgeli aktif/aktif", correct:false, feedback:"Hedefi fazlasıyla tutturur, karşılığında altyapı faturanı kabaca ikiye katlar. Doğru mühendislik, dört saatlik bir gereksinim için yanlış ekonomi." }
+                ],
+                errorText:"Seçilen strateji ya dört saatlik hedefi ıskalıyor ya da hedefin gerektirdiğinden çok fazlasını satın alıyor."
+              },
+              { id:"h-rpo", type:"choice",
+                label:"İşin kaldırabileceği veri kaybı penceresini belirle",
+                prompt:"Finans, birkaç dakikadan fazla siparişi kaybetmenin kabul edilemez olduğunu söylüyor. Bu ne gerektirir?",
+                options:[
+                  { key:"nightly", label:"Gecelik anlık görüntüleri tut — en sonuncusundan dön", correct:false, feedback:"Bu, 24 saate kadar RPO demektir. 17:00'de yaşanan bir arıza tam bir günlük siparişi kaybettirir; finans bunu az önce eledi." },
+                  { key:"continuous", label:"Veritabanının yedek bölgeye sürekli replikasyonu", correct:true, feedback:"Sürekli replikasyon RPO'yu saniyeler-dakikalar seviyesinde tutar; 'birkaç dakikalık sipariş' tam olarak bunu gerektirir." },
+                  { key:"hourly", label:"Saatlik anlık görüntüler", correct:false, feedback:"Daha iyi, ama yine 60 dakikaya kadar kayıp sipariş — finansın belirlediğinin bir kat ötesi." }
+                ],
+                errorText:"Kâğıttaki veri kaybı penceresi, işin kabul ettiğinden çok daha geniş."
+              },
+              { id:"h-test", type:"choice",
+                label:"Bunun gerçek olup olmadığına karar veren soruyu cevapla",
+                prompt:"Plan yazıldı ve replikasyon çalışıyor. Bunu umut değil plan yapan nedir?",
+                options:[
+                  { key:"doc", label:"Herkesin okuduğu belgelenmiş bir runbook", correct:false, feedback:"Prova edilmemiş runbook'lar temasta çöker: süresi dolmuş kimlik bilgileri, eksik DNS izinleri, kimsenin yazmadığı bir bağımlılık. Okumak kanıt değildir." },
+                  { key:"drill", label:"Yedeği fiilen terfi ettirip trafik sunan planlı bir yük devretme tatbikatı", correct:true, feedback:"Bir kurtarmanın çalıştığının tek kanıtı, çalışmış bir kurtarmadır. Test edilmemiş geri yüklemeler, FK planlarının o gün çökmesinin en yaygın yoludur." },
+                  { key:"monitor", label:"Replikasyon geciktiğinde uyaran izleme", correct:false, feedback:"Gerekli ama yeterli değil — kopyanın güncel olduğunu söyler, üstünde fiilen çalışabileceğini değil." }
+                ],
+                errorText:"Hiçbir zaman yük devretmesi yapılmadı, yani dört saat bir tahmin, ölçüm değil."
+              },
+              { id:"h-drill", type:"action",
+                label:"Tatbikatı koş ve gerçek sayıları kaydet",
+                actionLabel:"Yük devretme tatbikatını uygula", loadingLabel:"Devrediliyor…", doneLabel:"Yedek terfi etti ve 38 dakikada canlı trafik sundu, 45 saniyelik veri kaybıyla — ikisi de hedefin içinde, ikisi de artık tahmin değil ölçüm.", loadingMs:900,
+                errorText:"Plan, kimsenin arıza altında hiç doğrulamadığı sayılarla onaylanıyor."
+              }
+            ]
+          },
+          azure:{
+            title:"Yönetim kurulu dört saatlik kurtarma garantisi istiyor",
+            scenario:"Bir rakibin bir haftalık kesintisinden sonra yönetim kurulu basit bir soru soruyor: birincil bölgemiz şu anda yok olsa, müşterilere yeniden hizmet vermemiz ne kadar sürer ve ne kadar veri kaybederiz? Kimse cevaplayamıyor. Mevcut plan, aynı bölgeye gecelik yedek.",
+            consoleLabel:"Azure Site Recovery Planlama (simüle)",
+            actionBtn:"FK planını onayla",
+            successText:"Sayısı olan, test edilmiş bir plan: dört saatlik hedefin içinde kurtarma, işin fiilen kabul ettiği bir veri kaybı penceresi ve çalıştığı kanıtlanmış bir geri yükleme.",
+            easySteps:[
+              { id:"e-terms", type:"choice",
+                label:"Kurulun iki sorusunu doğru cevapla",
+                prompt:"\"Ne zaman döneriz\" ve \"ne kadar veri kaybederiz\" diye sordular. Bu iki sayının adı ne?",
+                options:[
+                  { key:"swap", label:"Kesinti için RPO, veri kaybı için RTO", correct:false, feedback:"Ters. RTO Zamandır — ne zaman yeniden çalışır hâle geldiğin. RPO ise verinin geri sıçradığı andır." },
+                  { key:"right", label:"Kesinti için RTO, veri kaybı için RPO", correct:true, feedback:"Doğru. RTO = Kurtarma Zaman Hedefi (ne kadar kapalısın). RPO = Kurtarma Noktası Hedefi (ne kadar veri kaybedersin)." },
+                  { key:"sla", label:"İkisi de sağlayıcının SLA'sında kapsanır", correct:false, feedback:"SLA, sağlayıcının kendi servisi hakkındaki sözüdür. Senin mimarinin ne kadar hızlı toparlandığı hakkında hiçbir şey söylemez." }
+                ],
+                errorText:"Plan, tanımlamadığı bir hedefi ifade edemez."
+              },
+              { id:"e-offsite", type:"choice",
+                label:"Mevcut plandaki kusuru düzelt",
+                prompt:"Yedekler her gece üretimle aynı bölgedeki bir depolama hesabına alınıyor. Bunun nesi yanlış?",
+                options:[
+                  { key:"slow", label:"Yapısal bir sorun yok — sadece gecelik olması seyrek", correct:false, feedback:"Sıklık gerçek bir sorun ama ikinci sırada. Bölgesel bir arıza, ne sıklıkta çalışırsa çalışsın yedeği de beraberinde götürür." },
+                  { key:"region", label:"Bölgesel bir arıza üretimi ve yedeği birlikte yok eder", correct:true, feedback:"Aynen — OVHcloud dersi. Orijinaliyle aynı arıza alanını paylaşan bir kopya, kurtarma planı değildir." },
+                  { key:"cost", label:"Gecelik yedek tutmak çok pahalı", correct:false, feedback:"Yedekler buluttaki en ucuz şeylerdendir. Burada bozuk olan maliyet değil." }
+                ],
+                errorText:"Tek yedek hâlâ kaybetmeyi planladığın bölgenin içinde duruyor."
+              },
+              { id:"e-replicate", type:"action",
+                label:"Bir kopyayı bölgenin dışına çıkar",
+                actionLabel:"Coğrafi yedekli replikasyonu aç", loadingLabel:"Yapılandırılıyor…", doneLabel:"Yedekler artık otomatik olarak eşleştirilmiş bir bölgeye replike oluyor — kopya orijinalden sağ çıkıyor.", loadingMs:700,
+                errorText:"Kurtarmak için ihtiyacın olan her şey hâlâ az önce arızalanan tek bölgenin içinde."
+              }
+            ],
+            hardSteps:[
+              { id:"h-strategy", type:"choice",
+                label:"Dört saati gerçekten tutturan bir strateji seç",
+                prompt:"Hedef, makul maliyetle 4 saatin altında RTO. Hangi strateji uyar?",
+                options:[
+                  { key:"backup", label:"Coğrafi yedekli kopyadan yedekle ve geri yükle", correct:false, feedback:"Tüm bir ortamı yeniden kurup yedekten dönmek gerçekçi olarak 8+ saat sürer. En ucuz seçenektir ve hedefi ıskalar." },
+                  { key:"pilot", label:"Pilot alev — veritabanı sürekli coğrafi replike, VM'ler önceden kurulu ama serbest bırakılmış", correct:true, feedback:"Veri zaten orada ve güncel; kurtarma VM'leri başlatıp trafiği çevirmekten ibaret: onlarca dakika, dört saatin rahatça içinde." },
+                  { key:"multi", label:"İki bölgede çok bölgeli aktif/aktif", correct:false, feedback:"Hedefi fazlasıyla tutturur, karşılığında altyapı faturanı kabaca ikiye katlar. Doğru mühendislik, yanlış ekonomi." }
+                ],
+                errorText:"Seçilen strateji ya dört saatlik hedefi ıskalıyor ya da hedefin gerektirdiğinden çok fazlasını satın alıyor."
+              },
+              { id:"h-rpo", type:"choice",
+                label:"İşin kaldırabileceği veri kaybı penceresini belirle",
+                prompt:"Finans, birkaç dakikadan fazla siparişi kaybetmenin kabul edilemez olduğunu söylüyor. Bu ne gerektirir?",
+                options:[
+                  { key:"nightly", label:"Gecelik anlık görüntüleri tut — en sonuncusundan dön", correct:false, feedback:"Bu, 24 saate kadar RPO demektir. 17:00'de yaşanan bir arıza tam bir günlük siparişi kaybettirir." },
+                  { key:"continuous", label:"Veritabanının ikincil bölgeye aktif coğrafi replikasyonu", correct:true, feedback:"Sürekli coğrafi replikasyon RPO'yu saniyeler-dakikalar seviyesinde tutar." },
+                  { key:"hourly", label:"Saatlik anlık görüntüler", correct:false, feedback:"Daha iyi, ama yine 60 dakikaya kadar kayıp sipariş — finansın belirlediğinin bir kat ötesi." }
+                ],
+                errorText:"Kâğıttaki veri kaybı penceresi, işin kabul ettiğinden çok daha geniş."
+              },
+              { id:"h-test", type:"choice",
+                label:"Bunun gerçek olup olmadığına karar veren soruyu cevapla",
+                prompt:"Plan yazıldı ve replikasyon çalışıyor. Bunu umut değil plan yapan nedir?",
+                options:[
+                  { key:"doc", label:"Herkesin okuduğu belgelenmiş bir runbook", correct:false, feedback:"Prova edilmemiş runbook'lar temasta çöker: süresi dolmuş kimlik bilgileri, eksik izinler, kimsenin yazmadığı bir bağımlılık." },
+                  { key:"drill", label:"İkincili fiilen terfi ettirip trafik sunan planlı bir test yük devretmesi", correct:true, feedback:"Bir kurtarmanın çalıştığının tek kanıtı, çalışmış bir kurtarmadır." },
+                  { key:"monitor", label:"Replikasyon geciktiğinde uyaran izleme", correct:false, feedback:"Gerekli ama yeterli değil — kopyanın güncel olduğunu söyler, üstünde fiilen çalışabileceğini değil." }
+                ],
+                errorText:"Hiçbir zaman yük devretmesi yapılmadı, yani dört saat bir tahmin, ölçüm değil."
+              },
+              { id:"h-drill", type:"action",
+                label:"Tatbikatı koş ve gerçek sayıları kaydet",
+                actionLabel:"Test yük devretmesini uygula", loadingLabel:"Devrediliyor…", doneLabel:"İkincil terfi etti ve 38 dakikada canlı trafik sundu, 45 saniyelik veri kaybıyla — ikisi de hedefin içinde, ikisi de artık ölçüm.", loadingMs:900,
+                errorText:"Plan, kimsenin arıza altında hiç doğrulamadığı sayılarla onaylanıyor."
+              }
+            ]
+          },
+          gcp:{
+            title:"Yönetim kurulu dört saatlik kurtarma garantisi istiyor",
+            scenario:"Bir rakibin bir haftalık kesintisinden sonra yönetim kurulu basit bir soru soruyor: birincil bölgemiz şu anda yok olsa, müşterilere yeniden hizmet vermemiz ne kadar sürer ve ne kadar veri kaybederiz? Kimse cevaplayamıyor. Mevcut plan, aynı bölgeye gecelik yedek.",
+            consoleLabel:"FK Planlama Konsolu (simüle)",
+            actionBtn:"FK planını onayla",
+            successText:"Sayısı olan, test edilmiş bir plan: dört saatlik hedefin içinde kurtarma, işin fiilen kabul ettiği bir veri kaybı penceresi ve çalıştığı kanıtlanmış bir geri yükleme.",
+            easySteps:[
+              { id:"e-terms", type:"choice",
+                label:"Kurulun iki sorusunu doğru cevapla",
+                prompt:"\"Ne zaman döneriz\" ve \"ne kadar veri kaybederiz\" diye sordular. Bu iki sayının adı ne?",
+                options:[
+                  { key:"swap", label:"Kesinti için RPO, veri kaybı için RTO", correct:false, feedback:"Ters. RTO Zamandır — ne zaman yeniden çalışır hâle geldiğin. RPO ise verinin geri sıçradığı andır." },
+                  { key:"right", label:"Kesinti için RTO, veri kaybı için RPO", correct:true, feedback:"Doğru. RTO = Kurtarma Zaman Hedefi (ne kadar kapalısın). RPO = Kurtarma Noktası Hedefi (ne kadar veri kaybedersin)." },
+                  { key:"sla", label:"İkisi de sağlayıcının SLA'sında kapsanır", correct:false, feedback:"SLA, sağlayıcının kendi servisi hakkındaki sözüdür. Senin mimarinin ne kadar hızlı toparlandığı hakkında hiçbir şey söylemez." }
+                ],
+                errorText:"Plan, tanımlamadığı bir hedefi ifade edemez."
+              },
+              { id:"e-offsite", type:"choice",
+                label:"Mevcut plandaki kusuru düzelt",
+                prompt:"Yedekler her gece üretimle aynı bölgedeki bir Cloud Storage kovasına alınıyor. Bunun nesi yanlış?",
+                options:[
+                  { key:"slow", label:"Yapısal bir sorun yok — sadece gecelik olması seyrek", correct:false, feedback:"Sıklık gerçek bir sorun ama ikinci sırada. Bölgesel bir arıza, ne sıklıkta çalışırsa çalışsın yedeği de beraberinde götürür." },
+                  { key:"region", label:"Bölgesel bir arıza üretimi ve yedeği birlikte yok eder", correct:true, feedback:"Aynen — OVHcloud dersi. Orijinaliyle aynı arıza alanını paylaşan bir kopya, kurtarma planı değildir." },
+                  { key:"cost", label:"Gecelik yedek tutmak çok pahalı", correct:false, feedback:"Yedekler buluttaki en ucuz şeylerdendir. Burada bozuk olan maliyet değil." }
+                ],
+                errorText:"Tek yedek hâlâ kaybetmeyi planladığın bölgenin içinde duruyor."
+              },
+              { id:"e-replicate", type:"action",
+                label:"Bir kopyayı bölgenin dışına çıkar",
+                actionLabel:"Çok bölgeli kovaya geç", loadingLabel:"Yapılandırılıyor…", doneLabel:"Yedekler artık otomatik olarak çok bölgeli bir kovada — kopya orijinalden sağ çıkıyor.", loadingMs:700,
+                errorText:"Kurtarmak için ihtiyacın olan her şey hâlâ az önce arızalanan tek bölgenin içinde."
+              }
+            ],
+            hardSteps:[
+              { id:"h-strategy", type:"choice",
+                label:"Dört saati gerçekten tutturan bir strateji seç",
+                prompt:"Hedef, makul maliyetle 4 saatin altında RTO. Hangi strateji uyar?",
+                options:[
+                  { key:"backup", label:"Çok bölgeli kopyadan yedekle ve geri yükle", correct:false, feedback:"Tüm bir ortamı yeniden kurup yedekten dönmek gerçekçi olarak 8+ saat sürer. En ucuz seçenektir ve hedefi ıskalar." },
+                  { key:"pilot", label:"Pilot alev — Cloud SQL sürekli replike, sunucu şablonları hazır ama hiçbiri çalışmıyor", correct:true, feedback:"Veri zaten orada ve güncel; kurtarma sunucuları başlatıp trafiği çevirmekten ibaret: onlarca dakika, dört saatin rahatça içinde." },
+                  { key:"multi", label:"İki bölgede çok bölgeli aktif/aktif", correct:false, feedback:"Hedefi fazlasıyla tutturur, karşılığında altyapı faturanı kabaca ikiye katlar. Doğru mühendislik, yanlış ekonomi." }
+                ],
+                errorText:"Seçilen strateji ya dört saatlik hedefi ıskalıyor ya da hedefin gerektirdiğinden çok fazlasını satın alıyor."
+              },
+              { id:"h-rpo", type:"choice",
+                label:"İşin kaldırabileceği veri kaybı penceresini belirle",
+                prompt:"Finans, birkaç dakikadan fazla siparişi kaybetmenin kabul edilemez olduğunu söylüyor. Bu ne gerektirir?",
+                options:[
+                  { key:"nightly", label:"Gecelik anlık görüntüleri tut — en sonuncusundan dön", correct:false, feedback:"Bu, 24 saate kadar RPO demektir. 17:00'de yaşanan bir arıza tam bir günlük siparişi kaybettirir." },
+                  { key:"continuous", label:"Sürekli eşzamanlı tutulan bölgeler arası okuma replikası", correct:true, feedback:"Sürekli replikasyon RPO'yu saniyeler-dakikalar seviyesinde tutar." },
+                  { key:"hourly", label:"Saatlik anlık görüntüler", correct:false, feedback:"Daha iyi, ama yine 60 dakikaya kadar kayıp sipariş — finansın belirlediğinin bir kat ötesi." }
+                ],
+                errorText:"Kâğıttaki veri kaybı penceresi, işin kabul ettiğinden çok daha geniş."
+              },
+              { id:"h-test", type:"choice",
+                label:"Bunun gerçek olup olmadığına karar veren soruyu cevapla",
+                prompt:"Plan yazıldı ve replikasyon çalışıyor. Bunu umut değil plan yapan nedir?",
+                options:[
+                  { key:"doc", label:"Herkesin okuduğu belgelenmiş bir runbook", correct:false, feedback:"Prova edilmemiş runbook'lar temasta çöker: süresi dolmuş kimlik bilgileri, eksik izinler, kimsenin yazmadığı bir bağımlılık." },
+                  { key:"drill", label:"Replikayı fiilen terfi ettirip trafik sunan planlı bir tatbikat", correct:true, feedback:"Bir kurtarmanın çalıştığının tek kanıtı, çalışmış bir kurtarmadır." },
+                  { key:"monitor", label:"Replikasyon geciktiğinde uyaran izleme", correct:false, feedback:"Gerekli ama yeterli değil — kopyanın güncel olduğunu söyler, üstünde fiilen çalışabileceğini değil." }
+                ],
+                errorText:"Hiçbir zaman yük devretmesi yapılmadı, yani dört saat bir tahmin, ölçüm değil."
+              },
+              { id:"h-drill", type:"action",
+                label:"Tatbikatı koş ve gerçek sayıları kaydet",
+                actionLabel:"Yük devretme tatbikatını uygula", loadingLabel:"Devrediliyor…", doneLabel:"Replika terfi etti ve 38 dakikada canlı trafik sundu, 45 saniyelik veri kaybıyla — ikisi de hedefin içinde, ikisi de artık ölçüm.", loadingMs:900,
+                errorText:"Plan, kimsenin arıza altında hiç doğrulamadığı sayılarla onaylanıyor."
+              }
+            ]
+          }
+        },
+        pricing:{
+          aws:{
+            title:"Fatura üçe katlandı ve kimse sunuculara dokunmadı",
+            scenario:"Bu çeyrek trafik %20 büyüdü. Fatura %210 büyüdü. Sunucu sayısı geçen çeyrekle birebir aynı ve servisin sahibi ekip hiçbir şey dağıtmadıklarına yemin ediyor.",
+            consoleLabel:"Cost Explorer (simüle)",
+            actionBtn:"Maliyet analizini sun",
+            successText:"Gerçek etken saptandı, mimari onu çözecek şekilde değiştirildi ve bir sonraki çeyrek sonunda değil günler içinde yakalanacak bir korkuluk kuruldu.",
+            easySteps:[
+              { id:"e-find", type:"choice",
+                label:"Gerçekte neyin büyüdüğünü bul",
+                prompt:"Hesaplama sabit, depolama biraz artmış. Servis geçen çeyrek video önizleme özelliği ekledi. Önce nereye bakarsın?",
+                options:[
+                  { key:"compute", label:"Sunucu fiyatlarına — AWS zam yapmış olmalı", correct:false, feedback:"Sağlayıcı liste fiyatları yukarı değil aşağı gider ve bir fiyat değişikliği kullanım değişimi olarak değil, oran değişimi olarak görünürdü." },
+                  { key:"egress", label:"Dışa veri aktarımına — video özelliği, ağdan çok daha fazla veri çıkması demek", correct:true, feedback:"Aynen. Video klasik egress çarpanıdır: aynı sunucular, aynı depolama, kullanıcılara gönderilen kat kat fazla bayt." },
+                  { key:"support", label:"Destek planı katmanına", correct:false, feedback:"Destek harcamanın bir yüzdesidir, yani faturayla birlikte büyür — artışın sebebi değil belirtisidir." }
+                ],
+                errorText:"İnceleme hâlâ değişmemiş kalemlere bakıyor."
+              },
+              { id:"e-confirm", type:"action",
+                label:"Faturalama verisinde doğrula",
+                actionLabel:"Maliyetleri kullanım tipine göre grupla", loadingLabel:"Sorgulanıyor…", doneLabel:"Doğrulandı: DataTransfer-Out-Bytes artık faturanın %71'i; geçen çeyrek %9'du.", loadingMs:700,
+                errorText:"Teori makul ve kanıtsız — analizin gerçek kullanım tipi dökümüne ihtiyacı var."
+              },
+              { id:"e-fix", type:"action",
+                label:"Videoları bir CDN'in arkasına al",
+                actionLabel:"Medyayı CloudFront ile sun", loadingLabel:"Dağıtılıyor…", doneLabel:"Medya artık uç önbelleklerden sunuluyor: kaynak egress'i keskin düştü ve CDN teslimatı daha düşük oranla faturalanıyor.", loadingMs:700,
+                errorText:"Her video baytı hâlâ her izlemede kaynaktan tam egress fiyatıyla çıkıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-direction", type:"choice",
+                label:"Asimetriyi ekibe açıkla",
+                prompt:"Bir mühendis videoları yüklemenin neden bedava, sunmanın neden pahalı olduğunu soruyor. Cevap ne?",
+                options:[
+                  { key:"size", label:"Yüklemeler ortalamada indirmelerden küçüktür", correct:false, feedback:"Mekanizma boyut değil — 4GB'lık bir yükleme yine bedava, 4GB'lık indirme yine faturalı." },
+                  { key:"asym", label:"Ingress her büyük sağlayıcıda ücretsiz; egress GB başına faturalanır", correct:true, feedback:"Doğru ve bu kasıtlı: veriyi içeri almak sürtünmesiz, dışarı çıkarmak paralıdır. O asimetri aynı zamanda tedarikçi kilidinin şeklidir." },
+                  { key:"cache", label:"Yüklemeler önbelleklenir, indirmeler önbelleklenmez", correct:false, feedback:"Önbellekleme ne sıklıkta ödediğini etkiler, yönün faturalanabilir olup olmadığını değil." }
+                ],
+                errorText:"Ekip hâlâ aynı baytların neden yöne göre farklı fiyatlandığını anlamıyor."
+              },
+              { id:"h-discount", type:"choice",
+                label:"Bir taahhüdün burada işe yarayıp yaramadığına karar ver",
+                prompt:"Finans, faturayı düşürmek için 1 yıllık Ayrılmış Sunucu taahhüdü öneriyor. Bu sorunu çözer mi?",
+                options:[
+                  { key:"yes", label:"Evet — taahhüt indirimi faturanın geneline uygulanır", correct:false, feedback:"Ayrılmış ve taahhütlü kullanım indirimleri hesaplamaya uygulanır, veri aktarımına değil. Üçe katlanan kalem onlardan etkilenmez." },
+                  { key:"no", label:"Hayır — taahhütler hesaplamayı indirir ve büyüyen hesaplama değil", correct:true, feedback:"Aynen. Egress sorununu çözmek için hesaplama indirimi satın almak, harcamayı bir yıllığına kilitler ve asıl etkeni tam fiyatta bırakır." },
+                  { key:"spot", label:"Hayır, ama Spot sunucular bunu çözerdi", correct:false, feedback:"Spot da bir hesaplama indirimidir. Daha ucuz sunucular gönderdikleri her bayt için yine tam fiyat öder." }
+                ],
+                errorText:"İndiremeyeceği bir kaleme karşı bir yıllık taahhüt imzalanmak üzere."
+              },
+              { id:"h-guard", type:"choice",
+                label:"Bir sonrakinin günler içinde yakalanmasını sağla",
+                prompt:"Bunun fark edilmesi tam bir çeyrek sürdü. Bunu gerçekten ne kısaltır?",
+                options:[
+                  { key:"monthly", label:"Aylık maliyet değerlendirme toplantısı", correct:false, feedback:"Üç aylıktan iyi ve yine 30 güne kadar fark edilmemiş yanma — aynı arıza modu, sadece fitili kısa." },
+                  { key:"anomaly", label:"Bütçe uyarıları artı olağandışı harcama desenlerinde çağrı yapan anomali tespiti", correct:true, feedback:"Otomatik tespit, kimsenin panoyu açmasını beklemeden değişimi günler içinde işaretler; aradaki boşluğu güvenilir şekilde kısaltan tek şey budur." },
+                  { key:"tag", label:"Her kaynağı ekibe göre etiketle", correct:false, feedback:"Etiketleme, zaten bakıyorken bir maliyetin sahibini söyler — değerli, ama kimsenin daha erken bakmasını sağlamaz." }
+                ],
+                errorText:"Harcamayı sürekli izleyen hiçbir şey yok, yani bir sonraki sürpriz de çeyrek sonunu bekler."
+              },
+              { id:"h-present", type:"action",
+                label:"Analizi sayılarla sun",
+                actionLabel:"Maliyet analizini yayınla", loadingLabel:"Derleniyor…", doneLabel:"Etken saptandı, CDN tasarrufu öngörüldü, taahhüt doğru şekilde reddedildi ve anomali uyarıları devrede.", loadingMs:800,
+                errorText:"Bulgular var ama kimseye ne sayı ne çözüm gösterildi."
+              }
+            ]
+          },
+          azure:{
+            title:"Fatura üçe katlandı ve kimse sunuculara dokunmadı",
+            scenario:"Bu çeyrek trafik %20 büyüdü. Fatura %210 büyüdü. VM sayısı geçen çeyrekle birebir aynı ve servisin sahibi ekip hiçbir şey dağıtmadıklarına yemin ediyor.",
+            consoleLabel:"Cost Management + Billing (simüle)",
+            actionBtn:"Maliyet analizini sun",
+            successText:"Gerçek etken saptandı, mimari onu çözecek şekilde değiştirildi ve bir sonraki çeyrek sonunda değil günler içinde yakalanacak bir korkuluk kuruldu.",
+            easySteps:[
+              { id:"e-find", type:"choice",
+                label:"Gerçekte neyin büyüdüğünü bul",
+                prompt:"Hesaplama sabit, depolama biraz artmış. Servis geçen çeyrek video önizleme özelliği ekledi. Önce nereye bakarsın?",
+                options:[
+                  { key:"compute", label:"VM fiyatlarına — Microsoft zam yapmış olmalı", correct:false, feedback:"Sağlayıcı liste fiyatları yukarı değil aşağı gider ve bir fiyat değişikliği oran değişimi olarak görünürdü." },
+                  { key:"egress", label:"Dışa veri aktarımına — video özelliği, ağdan çok daha fazla veri çıkması demek", correct:true, feedback:"Aynen. Video klasik egress çarpanıdır: aynı sunucular, aynı depolama, kat kat fazla bayt." },
+                  { key:"support", label:"Destek planı katmanına", correct:false, feedback:"Destek harcamanın bir yüzdesidir — artışın sebebi değil belirtisidir." }
+                ],
+                errorText:"İnceleme hâlâ değişmemiş kalemlere bakıyor."
+              },
+              { id:"e-confirm", type:"action",
+                label:"Faturalama verisinde doğrula",
+                actionLabel:"Maliyetleri sayaca göre grupla", loadingLabel:"Sorgulanıyor…", doneLabel:"Doğrulandı: giden veri aktarımı artık faturanın %71'i; geçen çeyrek %9'du.", loadingMs:700,
+                errorText:"Teori makul ve kanıtsız — analizin gerçek sayaç dökümüne ihtiyacı var."
+              },
+              { id:"e-fix", type:"action",
+                label:"Videoları bir CDN'in arkasına al",
+                actionLabel:"Medyayı Azure Front Door ile sun", loadingLabel:"Dağıtılıyor…", doneLabel:"Medya artık uç önbelleklerden sunuluyor: kaynak egress'i keskin düştü.", loadingMs:700,
+                errorText:"Her video baytı hâlâ her izlemede kaynaktan tam egress fiyatıyla çıkıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-direction", type:"choice",
+                label:"Asimetriyi ekibe açıkla",
+                prompt:"Bir mühendis videoları yüklemenin neden bedava, sunmanın neden pahalı olduğunu soruyor. Cevap ne?",
+                options:[
+                  { key:"size", label:"Yüklemeler ortalamada indirmelerden küçüktür", correct:false, feedback:"Mekanizma boyut değil — 4GB'lık bir yükleme yine bedava, 4GB'lık indirme yine faturalı." },
+                  { key:"asym", label:"Ingress her büyük sağlayıcıda ücretsiz; egress GB başına faturalanır", correct:true, feedback:"Doğru ve bu kasıtlı: veriyi içeri almak sürtünmesiz, dışarı çıkarmak paralıdır." },
+                  { key:"cache", label:"Yüklemeler önbelleklenir, indirmeler önbelleklenmez", correct:false, feedback:"Önbellekleme ne sıklıkta ödediğini etkiler, yönün faturalanabilir olup olmadığını değil." }
+                ],
+                errorText:"Ekip hâlâ aynı baytların neden yöne göre farklı fiyatlandığını anlamıyor."
+              },
+              { id:"h-discount", type:"choice",
+                label:"Bir taahhüdün burada işe yarayıp yaramadığına karar ver",
+                prompt:"Finans, faturayı düşürmek için 1 yıllık Ayrılmış VM Örnekleri öneriyor. Bu sorunu çözer mi?",
+                options:[
+                  { key:"yes", label:"Evet — taahhüt indirimi faturanın geneline uygulanır", correct:false, feedback:"Rezervasyonlar ve tasarruf planları hesaplamaya uygulanır, veri aktarımına değil." },
+                  { key:"no", label:"Hayır — taahhütler hesaplamayı indirir ve büyüyen hesaplama değil", correct:true, feedback:"Aynen. Egress sorununu hesaplama indirimiyle çözmeye çalışmak, harcamayı kilitler ve asıl etkeni tam fiyatta bırakır." },
+                  { key:"spot", label:"Hayır, ama Spot VM'ler bunu çözerdi", correct:false, feedback:"Spot da bir hesaplama indirimidir. Daha ucuz VM'ler gönderdikleri her bayt için yine tam fiyat öder." }
+                ],
+                errorText:"İndiremeyeceği bir kaleme karşı bir yıllık taahhüt imzalanmak üzere."
+              },
+              { id:"h-guard", type:"choice",
+                label:"Bir sonrakinin günler içinde yakalanmasını sağla",
+                prompt:"Bunun fark edilmesi tam bir çeyrek sürdü. Bunu gerçekten ne kısaltır?",
+                options:[
+                  { key:"monthly", label:"Aylık maliyet değerlendirme toplantısı", correct:false, feedback:"Üç aylıktan iyi ve yine 30 güne kadar fark edilmemiş yanma." },
+                  { key:"anomaly", label:"Bütçe uyarıları artı olağandışı harcamada çağrı yapan anomali tespiti", correct:true, feedback:"Otomatik tespit değişimi günler içinde işaretler; boşluğu güvenilir şekilde kısaltan tek şey budur." },
+                  { key:"tag", label:"Her kaynağı ekibe göre etiketle", correct:false, feedback:"Etiketleme sahibi söyler ama kimsenin daha erken bakmasını sağlamaz." }
+                ],
+                errorText:"Harcamayı sürekli izleyen hiçbir şey yok."
+              },
+              { id:"h-present", type:"action",
+                label:"Analizi sayılarla sun",
+                actionLabel:"Maliyet analizini yayınla", loadingLabel:"Derleniyor…", doneLabel:"Etken saptandı, CDN tasarrufu öngörüldü, taahhüt doğru reddedildi ve anomali uyarıları devrede.", loadingMs:800,
+                errorText:"Bulgular var ama kimseye ne sayı ne çözüm gösterildi."
+              }
+            ]
+          },
+          gcp:{
+            title:"Fatura üçe katlandı ve kimse sunuculara dokunmadı",
+            scenario:"Bu çeyrek trafik %20 büyüdü. Fatura %210 büyüdü. Sunucu sayısı geçen çeyrekle birebir aynı ve servisin sahibi ekip hiçbir şey dağıtmadıklarına yemin ediyor.",
+            consoleLabel:"Cloud Billing Raporları (simüle)",
+            actionBtn:"Maliyet analizini sun",
+            successText:"Gerçek etken saptandı, mimari onu çözecek şekilde değiştirildi ve bir sonraki çeyrek sonunda değil günler içinde yakalanacak bir korkuluk kuruldu.",
+            easySteps:[
+              { id:"e-find", type:"choice",
+                label:"Gerçekte neyin büyüdüğünü bul",
+                prompt:"Hesaplama sabit, depolama biraz artmış. Servis geçen çeyrek video önizleme özelliği ekledi. Önce nereye bakarsın?",
+                options:[
+                  { key:"compute", label:"Sunucu fiyatlarına — Google zam yapmış olmalı", correct:false, feedback:"Sağlayıcı liste fiyatları yukarı değil aşağı gider ve bir fiyat değişikliği oran değişimi olarak görünürdü." },
+                  { key:"egress", label:"Ağ egress'ine — video özelliği, ağdan çok daha fazla veri çıkması demek", correct:true, feedback:"Aynen. Video klasik egress çarpanıdır: aynı sunucular, aynı depolama, kat kat fazla bayt." },
+                  { key:"support", label:"Destek planı katmanına", correct:false, feedback:"Destek harcamanın bir yüzdesidir — artışın sebebi değil belirtisidir." }
+                ],
+                errorText:"İnceleme hâlâ değişmemiş kalemlere bakıyor."
+              },
+              { id:"e-confirm", type:"action",
+                label:"Faturalama verisinde doğrula",
+                actionLabel:"Maliyetleri SKU'ya göre grupla", loadingLabel:"Sorgulanıyor…", doneLabel:"Doğrulandı: ağ egress SKU'ları artık faturanın %71'i; geçen çeyrek %9'du.", loadingMs:700,
+                errorText:"Teori makul ve kanıtsız — analizin gerçek SKU dökümüne ihtiyacı var."
+              },
+              { id:"e-fix", type:"action",
+                label:"Videoları bir CDN'in arkasına al",
+                actionLabel:"Medyayı Cloud CDN ile sun", loadingLabel:"Dağıtılıyor…", doneLabel:"Medya artık uç önbelleklerden sunuluyor: kaynak egress'i keskin düştü.", loadingMs:700,
+                errorText:"Her video baytı hâlâ her izlemede kaynaktan tam egress fiyatıyla çıkıyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-direction", type:"choice",
+                label:"Asimetriyi ekibe açıkla",
+                prompt:"Bir mühendis videoları yüklemenin neden bedava, sunmanın neden pahalı olduğunu soruyor. Cevap ne?",
+                options:[
+                  { key:"size", label:"Yüklemeler ortalamada indirmelerden küçüktür", correct:false, feedback:"Mekanizma boyut değil — 4GB'lık bir yükleme yine bedava, 4GB'lık indirme yine faturalı." },
+                  { key:"asym", label:"Ingress her büyük sağlayıcıda ücretsiz; egress GB başına faturalanır", correct:true, feedback:"Doğru ve bu kasıtlı: veriyi içeri almak sürtünmesiz, dışarı çıkarmak paralıdır." },
+                  { key:"cache", label:"Yüklemeler önbelleklenir, indirmeler önbelleklenmez", correct:false, feedback:"Önbellekleme ne sıklıkta ödediğini etkiler, yönün faturalanabilir olup olmadığını değil." }
+                ],
+                errorText:"Ekip hâlâ aynı baytların neden yöne göre farklı fiyatlandığını anlamıyor."
+              },
+              { id:"h-discount", type:"choice",
+                label:"Bir taahhüdün burada işe yarayıp yaramadığına karar ver",
+                prompt:"Finans, faturayı düşürmek için 1 yıllık taahhütlü kullanım indirimi öneriyor. Bu sorunu çözer mi?",
+                options:[
+                  { key:"yes", label:"Evet — taahhüt indirimi faturanın geneline uygulanır", correct:false, feedback:"Taahhütlü kullanım indirimleri hesaplamaya (vCPU ve belleğe) uygulanır, ağ egress'ine değil." },
+                  { key:"no", label:"Hayır — taahhütler hesaplamayı indirir ve büyüyen hesaplama değil", correct:true, feedback:"Aynen. Egress sorununu hesaplama indirimiyle çözmeye çalışmak asıl etkeni tam fiyatta bırakır." },
+                  { key:"spot", label:"Hayır, ama Spot VM'ler bunu çözerdi", correct:false, feedback:"Spot da bir hesaplama indirimidir. Daha ucuz VM'ler gönderdikleri her bayt için yine tam fiyat öder." }
+                ],
+                errorText:"İndiremeyeceği bir kaleme karşı bir yıllık taahhüt imzalanmak üzere."
+              },
+              { id:"h-guard", type:"choice",
+                label:"Bir sonrakinin günler içinde yakalanmasını sağla",
+                prompt:"Bunun fark edilmesi tam bir çeyrek sürdü. Bunu gerçekten ne kısaltır?",
+                options:[
+                  { key:"monthly", label:"Aylık maliyet değerlendirme toplantısı", correct:false, feedback:"Üç aylıktan iyi ve yine 30 güne kadar fark edilmemiş yanma." },
+                  { key:"anomaly", label:"Bütçe uyarıları artı olağandışı harcamada çağrı yapan anomali tespiti", correct:true, feedback:"Otomatik tespit değişimi günler içinde işaretler; boşluğu güvenilir şekilde kısaltan tek şey budur." },
+                  { key:"tag", label:"Her kaynağı ekibe göre etiketle", correct:false, feedback:"Etiketler sahibi söyler ama kimsenin daha erken bakmasını sağlamaz." }
+                ],
+                errorText:"Harcamayı sürekli izleyen hiçbir şey yok."
+              },
+              { id:"h-present", type:"action",
+                label:"Analizi sayılarla sun",
+                actionLabel:"Maliyet analizini yayınla", loadingLabel:"Derleniyor…", doneLabel:"Etken saptandı, CDN tasarrufu öngörüldü, taahhüt doğru reddedildi ve anomali uyarıları devrede.", loadingMs:800,
+                errorText:"Bulgular var ama kimseye ne sayı ne çözüm gösterildi."
+              }
+            ]
+          }
+        },
+        cidr:{
+          aws:{
+            title:"Asla birleştirilemeyecek iki VPC",
+            scenario:"Şirket az önce küçük bir rakibi satın aldı. İki ağın konuşması gerekiyor. İkisi de 10.0.0.0/16 üzerine kurulmuş. Eşleştirme isteği anında reddediliyor ve canlı bir üretim ağını yeniden adreslemek masaya geldi.",
+            consoleLabel:"VPC Konsolu (simüle)",
+            actionBtn:"Ağ planını onayla",
+            successText:"Çakışma üretimi yeniden adreslemeden çözüldü ve hiçbir gelecekteki ekibin bunu yeniden yaratamayacağı bir tahsis planı kuruldu.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Eşleştirmenin neden reddedildiğini açıkla",
+                prompt:"İki VPC de 10.0.0.0/16 kullanıyor. Neden basitçe eşleştirilemiyorlar?",
+                options:[
+                  { key:"limit", label:"AWS kaç VPC'nin eşleştirilebileceğini sınırlıyor", correct:false, feedback:"Eşleştirme limitleri var ama ikiden çok yüksek ve buradaki hata kota değil adresleme hatası." },
+                  { key:"overlap", label:"10.0.3.7 gibi bir adres iki tarafta da var olurdu, yani yönlendirme belirsiz olur", correct:true, feedback:"Aynen. Yönlendirici her adres için tek bir hedefe ihtiyaç duyar; birebir aynı aralıklar bunu imkânsız kılar, bu yüzden çakışan CIDR'lar doğrudan reddedilir." },
+                  { key:"region", label:"VPC'ler farklı bölgelerde", correct:false, feedback:"Bölgeler arası eşleştirme desteklenir. Birebir aynı adres alanı desteklenmez." }
+                ],
+                errorText:"Reddedilme hâlâ adresleme değil kota ya da izin sorunu gibi görünüyor."
+              },
+              { id:"e-size", type:"choice",
+                label:"Yeni bloğu boyutlandır",
+                prompt:"Satın alınan şirketin birkaç alt ağa yayılmış yaklaşık 800 adrese ihtiyacı var. Mantıklı seçim hangisi?",
+                options:[
+                  { key:"24", label:"10.50.0.0/24 — 251 kullanılabilir adres", correct:false, feedback:"Bu, tek bir alt ağa bölmeden önce bile gereksinimden küçük. Aylar içinde yeniden adresliyor olurdun." },
+                  { key:"22", label:"10.50.0.0/22 — yaklaşık 1.000 adres, dört /24'e bölünecek kadar yer", correct:true, feedback:"Gereksinimi payla karşılar ve erişilebilirlik bölgesi başına alt ağlara temiz bölünür. Payla boyutlandırmak işin bütün disiplinidir." },
+                  { key:"8", label:"10.0.0.0/8 — tüm özel aralığı al", correct:false, feedback:"Tüm 10.x alanını sahiplenmek, bir sonraki satın almayla ya da iş ortağı VPN'iyle çakışmayı garantiler. Büyük olmak güvenli olmakla aynı şey değildir." }
+                ],
+                errorText:"Önerilen blok ya adresleri alamıyor ya da başka ağların ihtiyaç duyacağı adres alanını yutuyor."
+              },
+              { id:"e-apply", type:"action",
+                label:"Küçük ağı yeni bloğa yeniden adresle",
+                actionLabel:"10.50.0.0/22'ye taşı", loadingLabel:"Taşınıyor…", doneLabel:"Satın alınan VPC çakışmayan bir bloğa yeniden adreslendi ve eşleştirme kuruldu.", loadingMs:800,
+                errorText:"İki ağ da hâlâ aynı adresleri iddia ediyor, yani aralarında hiçbir şey yönlenemez."
+              }
+            ],
+            hardSteps:[
+              { id:"h-avoid", type:"choice",
+                label:"Mümkünse üretimi yeniden adreslemekten kaçın",
+                prompt:"Satın alınan ağı yeniden adreslemek, işin onaylamadığı bir kesinti demek. Bugün konuşması gereken servisler için pragmatik alternatif ne?",
+                options:[
+                  { key:"force", label:"Statik bir rotayla eşleştirmeyi zorla", correct:false, feedback:"Gerçek belirsizliği çözen bir rota yoktur — aynı adres tek bir yönlendirme tablosunda iki makine anlamına gelemez." },
+                  { key:"nat", label:"Aralarına bir NAT katmanı koy, böylece her taraf diğerini çakışmayan adreslerden görsün", correct:true, feedback:"Çeviri standart kaçış kapısıdır: uygun yeniden adresleme planlı bir takvimde yapılırken bugün çalışan bağlantı satın alır." },
+                  { key:"vpn", label:"Eşleştirme yerine VPN kullan", correct:false, feedback:"VPN aynı adreslerle aynı paketleri taşır — çakışma tünelin içine kadar peşinden gelir." }
+                ],
+                errorText:"Plan hâlâ iki servisin konuşabilmesi için onaylanmamış bir kesinti gerektiriyor."
+              },
+              { id:"h-subnet", type:"choice",
+                label:"Yeni bloğu doğru böl",
+                prompt:"10.50.0.0/22 içinde, üç erişilebilirlik bölgesine birer alt ağ gerekiyor. Temiz bölme ne?",
+                options:[
+                  { key:"three24", label:"Üç /24, dördüncü /24 yedekte kalsın", correct:true, feedback:"Bir /22 tam olarak dört /24'tür. Üçü kullanımda, biri saklıda: standart desen — yedek, dördüncü bölgeyi ya da gelecekteki bir katmanı emer." },
+                  { key:"three23", label:"Üç /23", correct:false, feedback:"Üç /23, bir /22'nin içerdiğinden fazla yer ister — 1.024 adreslik blokta 1.536 adres." },
+                  { key:"one22", label:"Üç bölgeye yayılan tek bir /22 alt ağı", correct:false, feedback:"Bir alt ağ tam olarak bir erişilebilirlik bölgesinde yaşar. Üç bölgeye yayılan tek alt ağ oluşturabileceğin bir şey değil." }
+                ],
+                errorText:"Alt ağ planı ya bloğa sığmıyor ya da erişilebilirlik bölgeleri arasında oluşturulamaz."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Bunun tekrarlanmasını engelle",
+                prompt:"İki ekip bağımsız olarak 10.0.0.0/16 seçti çünkü varsayılan gibi duruyor. Üçüncüsünü ne engeller?",
+                options:[
+                  { key:"doc", label:"Önerilen aralıkları wiki'ye yaz", correct:false, feedback:"Buna sebep olan ekipler bir politikaya karşı gelmiyordu — politikadan habersizlerdi. Wiki sayfası bir kontrol değildir." },
+                  { key:"ipam", label:"Blok dağıtan merkezî bir adres tahsis kaydı, hesap hattında zorunlu kılınmış", correct:true, feedback:"Tek bir otoriteden tahsis, çakışmayı sadece caydırmak yerine yapısal olarak imkânsız kılar; sağlama anında zorlamak da hiçbir şey kurulmadan yakalar." },
+                  { key:"big", label:"Herkes için 10.0.0.0/8'i standartlaştır", correct:false, feedback:"Tek dev paylaşımlı blok çakışmayı azaltmaz, artırır — artık herkes koordinatörsüz aynı alandan kesiyor." }
+                ],
+                errorText:"Bir sonraki ekibin ilk ikisi gibi 10.0.0.0/16 seçmesini hiçbir şey engellemiyor."
+              },
+              { id:"h-plan", type:"action",
+                label:"Tahsis planını yayınla",
+                actionLabel:"Blokları IPAM'e kaydet", loadingLabel:"Kaydediliyor…", doneLabel:"Mevcut her ağ kaydedildi, iş birimi başına yeni aralıklar ayrıldı ve sağlama artık kayıtsız CIDR'ları reddediyor.", loadingMs:800,
+                errorText:"Anlık çakışma çözüldü ve ona sebep olan pratik değişmedi."
+              }
+            ]
+          },
+          azure:{
+            title:"Asla birleştirilemeyecek iki VNet",
+            scenario:"Şirket az önce küçük bir rakibi satın aldı. İki ağın konuşması gerekiyor. İkisi de 10.0.0.0/16 üzerine kurulmuş. Eşleştirme isteği anında reddediliyor ve canlı bir üretim ağını yeniden adreslemek masaya geldi.",
+            consoleLabel:"Sanal Ağ Konsolu (simüle)",
+            actionBtn:"Ağ planını onayla",
+            successText:"Çakışma üretimi yeniden adreslemeden çözüldü ve hiçbir gelecekteki ekibin bunu yeniden yaratamayacağı bir tahsis planı kuruldu.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Eşleştirmenin neden reddedildiğini açıkla",
+                prompt:"İki VNet de 10.0.0.0/16 kullanıyor. Neden basitçe eşleştirilemiyorlar?",
+                options:[
+                  { key:"limit", label:"Azure kaç VNet'in eşleştirilebileceğini sınırlıyor", correct:false, feedback:"Eşleştirme limitleri var ama ikiden çok yüksek ve buradaki hata kota değil adresleme hatası." },
+                  { key:"overlap", label:"10.0.3.7 gibi bir adres iki tarafta da var olurdu, yani yönlendirme belirsiz olur", correct:true, feedback:"Aynen. Yönlendirici her adres için tek bir hedefe ihtiyaç duyar; birebir aynı aralıklar bunu imkânsız kılar." },
+                  { key:"region", label:"VNet'ler farklı bölgelerde", correct:false, feedback:"Küresel VNet eşleştirmesi desteklenir. Birebir aynı adres alanı desteklenmez." }
+                ],
+                errorText:"Reddedilme hâlâ adresleme değil kota ya da izin sorunu gibi görünüyor."
+              },
+              { id:"e-size", type:"choice",
+                label:"Yeni bloğu boyutlandır",
+                prompt:"Satın alınan şirketin birkaç alt ağa yayılmış yaklaşık 800 adrese ihtiyacı var. Mantıklı seçim hangisi?",
+                options:[
+                  { key:"24", label:"10.50.0.0/24 — yaklaşık 250 kullanılabilir adres", correct:false, feedback:"Bu, tek bir alt ağa bölmeden önce bile gereksinimden küçük." },
+                  { key:"22", label:"10.50.0.0/22 — yaklaşık 1.000 adres, dört /24'e bölünecek kadar yer", correct:true, feedback:"Gereksinimi payla karşılar ve alt ağlara temiz bölünür." },
+                  { key:"8", label:"10.0.0.0/8 — tüm özel aralığı al", correct:false, feedback:"Tüm 10.x alanını sahiplenmek çakışmayı garantiler. Büyük olmak güvenli olmakla aynı şey değildir." }
+                ],
+                errorText:"Önerilen blok ya adresleri alamıyor ya da başka ağların ihtiyaç duyacağı alanı yutuyor."
+              },
+              { id:"e-apply", type:"action",
+                label:"Küçük ağı yeni bloğa yeniden adresle",
+                actionLabel:"10.50.0.0/22'ye taşı", loadingLabel:"Taşınıyor…", doneLabel:"Satın alınan VNet çakışmayan bir bloğa yeniden adreslendi ve eşleştirme kuruldu.", loadingMs:800,
+                errorText:"İki ağ da hâlâ aynı adresleri iddia ediyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-avoid", type:"choice",
+                label:"Mümkünse üretimi yeniden adreslemekten kaçın",
+                prompt:"Satın alınan ağı yeniden adreslemek, işin onaylamadığı bir kesinti demek. Bugün konuşması gereken servisler için pragmatik alternatif ne?",
+                options:[
+                  { key:"force", label:"Kullanıcı tanımlı rotayla eşleştirmeyi zorla", correct:false, feedback:"Gerçek belirsizliği çözen bir rota yoktur." },
+                  { key:"nat", label:"Aralarına bir NAT katmanı koy, böylece her taraf diğerini çakışmayan adreslerden görsün", correct:true, feedback:"Çeviri standart kaçış kapısıdır: planlı yeniden adresleme yapılırken bugün çalışan bağlantı satın alır." },
+                  { key:"vpn", label:"Eşleştirme yerine VPN ağ geçidi kullan", correct:false, feedback:"VPN aynı adreslerle aynı paketleri taşır — çakışma tünele kadar peşinden gelir." }
+                ],
+                errorText:"Plan hâlâ onaylanmamış bir kesinti gerektiriyor."
+              },
+              { id:"h-subnet", type:"choice",
+                label:"Yeni bloğu doğru böl",
+                prompt:"10.50.0.0/22 içinde üç erişilebilirlik bölgesine ayrı alt ağlar gerekiyor. Temiz bölme ne?",
+                options:[
+                  { key:"three24", label:"Üç /24, dördüncü /24 yedekte kalsın", correct:true, feedback:"Bir /22 tam olarak dört /24'tür. Üçü kullanımda, biri saklıda — yedek dördüncü bölgeyi ya da gelecekteki bir katmanı emer." },
+                  { key:"three23", label:"Üç /23", correct:false, feedback:"Üç /23, bir /22'nin içerdiğinden fazla yer ister — 1.024 adreslik blokta 1.536 adres." },
+                  { key:"one22", label:"Üç bölgenin hepsinin kullandığı tek bir /22 alt ağı", correct:false, feedback:"Azure alt ağ başına beş adres ayırır, ama asıl sorun tek bir alt ağın bölge yalıtım sınırın olamamasıdır — bölgesel ayrım için bölge başına birer alt ağ gerekir." }
+                ],
+                errorText:"Alt ağ planı ya bloğa sığmıyor ya da sana bölge ayrımı vermiyor."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Bunun tekrarlanmasını engelle",
+                prompt:"İki ekip bağımsız olarak 10.0.0.0/16 seçti. Üçüncüsünü ne engeller?",
+                options:[
+                  { key:"doc", label:"Önerilen aralıkları wiki'ye yaz", correct:false, feedback:"Bu ekipler politikaya karşı gelmiyordu — ondan habersizlerdi. Wiki bir kontrol değildir." },
+                  { key:"ipam", label:"Blok dağıtan merkezî bir tahsis kaydı, dağıtımda Azure Policy ile zorunlu", correct:true, feedback:"Tek otoriteden tahsis çakışmayı yapısal olarak imkânsız kılar ve dağıtımda zorlamak hiçbir şey kurulmadan yakalar." },
+                  { key:"big", label:"Herkes için 10.0.0.0/8'i standartlaştır", correct:false, feedback:"Tek dev paylaşımlı blok çakışmayı artırır." }
+                ],
+                errorText:"Bir sonraki ekibi hiçbir şey engellemiyor."
+              },
+              { id:"h-plan", type:"action",
+                label:"Tahsis planını yayınla",
+                actionLabel:"Blokları merkezî kaydet", loadingLabel:"Kaydediliyor…", doneLabel:"Mevcut her ağ kaydedildi, iş birimi başına aralıklar ayrıldı ve dağıtım artık kayıtsız adres alanlarını reddediyor.", loadingMs:800,
+                errorText:"Anlık çakışma çözüldü ve ona sebep olan pratik değişmedi."
+              }
+            ]
+          },
+          gcp:{
+            title:"Asla birleştirilemeyecek iki VPC ağı",
+            scenario:"Şirket az önce küçük bir rakibi satın aldı. İki ağın konuşması gerekiyor. İkisi de 10.0.0.0/16 üzerine kurulmuş. Eşleştirme isteği anında reddediliyor ve canlı bir üretim ağını yeniden adreslemek masaya geldi.",
+            consoleLabel:"VPC Ağ Konsolu (simüle)",
+            actionBtn:"Ağ planını onayla",
+            successText:"Çakışma üretimi yeniden adreslemeden çözüldü ve hiçbir gelecekteki ekibin bunu yeniden yaratamayacağı bir tahsis planı kuruldu.",
+            easySteps:[
+              { id:"e-why", type:"choice",
+                label:"Eşleştirmenin neden reddedildiğini açıkla",
+                prompt:"İki ağ da 10.0.0.0/16 kullanıyor. Neden basitçe eşleştirilemiyorlar?",
+                options:[
+                  { key:"limit", label:"Google kaç ağın eşleştirilebileceğini sınırlıyor", correct:false, feedback:"Eşleştirme limitleri var ama ikiden çok yüksek ve buradaki hata kota değil adresleme hatası." },
+                  { key:"overlap", label:"10.0.3.7 gibi bir adres iki tarafta da var olurdu, yani yönlendirme belirsiz olur", correct:true, feedback:"Aynen. Yönlendirici her adres için tek bir hedefe ihtiyaç duyar; bu yüzden VPC eşleştirmesi çakışan alt ağları doğrudan reddeder." },
+                  { key:"region", label:"Ağlar farklı bölgelerde", correct:false, feedback:"VPC ağları küreseldir ve bölgeler arası eşleştirme desteklenir. Birebir aynı adres alanı desteklenmez." }
+                ],
+                errorText:"Reddedilme hâlâ adresleme değil kota ya da izin sorunu gibi görünüyor."
+              },
+              { id:"e-size", type:"choice",
+                label:"Yeni bloğu boyutlandır",
+                prompt:"Satın alınan şirketin birkaç alt ağa yayılmış yaklaşık 800 adrese ihtiyacı var. Mantıklı seçim hangisi?",
+                options:[
+                  { key:"24", label:"10.50.0.0/24 — yaklaşık 250 kullanılabilir adres", correct:false, feedback:"Bu, tek bir alt ağa bölmeden önce bile gereksinimden küçük." },
+                  { key:"22", label:"10.50.0.0/22 — yaklaşık 1.000 adres, dört /24'e bölünecek kadar yer", correct:true, feedback:"Gereksinimi payla karşılar ve bölge başına alt ağlara temiz bölünür." },
+                  { key:"8", label:"10.0.0.0/8 — tüm özel aralığı al", correct:false, feedback:"Tüm 10.x alanını sahiplenmek çakışmayı garantiler." }
+                ],
+                errorText:"Önerilen blok ya adresleri alamıyor ya da başka ağların ihtiyaç duyacağı alanı yutuyor."
+              },
+              { id:"e-apply", type:"action",
+                label:"Küçük ağı yeni bloğa yeniden adresle",
+                actionLabel:"10.50.0.0/22'ye taşı", loadingLabel:"Taşınıyor…", doneLabel:"Satın alınan ağ çakışmayan bir bloğa yeniden adreslendi ve eşleştirme kuruldu.", loadingMs:800,
+                errorText:"İki ağ da hâlâ aynı adresleri iddia ediyor."
+              }
+            ],
+            hardSteps:[
+              { id:"h-avoid", type:"choice",
+                label:"Mümkünse üretimi yeniden adreslemekten kaçın",
+                prompt:"Satın alınan ağı yeniden adreslemek, işin onaylamadığı bir kesinti demek. Bugün konuşması gereken servisler için pragmatik alternatif ne?",
+                options:[
+                  { key:"force", label:"Özel statik rotayla eşleştirmeyi zorla", correct:false, feedback:"Gerçek belirsizliği çözen bir rota yoktur." },
+                  { key:"nat", label:"Aralarına bir NAT katmanı koy, böylece her taraf diğerini çakışmayan adreslerden görsün", correct:true, feedback:"Çeviri standart kaçış kapısıdır: planlı yeniden adresleme yapılırken bugün çalışan bağlantı satın alır." },
+                  { key:"vpn", label:"Eşleştirme yerine Cloud VPN kullan", correct:false, feedback:"VPN aynı adreslerle aynı paketleri taşır — çakışma tünele kadar peşinden gelir." }
+                ],
+                errorText:"Plan hâlâ onaylanmamış bir kesinti gerektiriyor."
+              },
+              { id:"h-subnet", type:"choice",
+                label:"Yeni bloğu doğru böl",
+                prompt:"10.50.0.0/22 içinde üç bölge için ayrı alt ağlar gerekiyor. Temiz bölme ne?",
+                options:[
+                  { key:"three24", label:"Üç /24, dördüncü /24 yedekte kalsın", correct:true, feedback:"Bir /22 tam olarak dört /24'tür. Üçü kullanımda, biri saklıda — yedek dördüncü bölgeyi ya da gelecekteki bir katmanı emer." },
+                  { key:"three23", label:"Üç /23", correct:false, feedback:"Üç /23, bir /22'nin içerdiğinden fazla yer ister — 1.024 adreslik blokta 1.536 adres." },
+                  { key:"one22", label:"Üç bölgenin kullandığı tek bir /22 alt ağı", correct:false, feedback:"Bir alt ağ tam olarak bir bölgeye aittir. Üç bölge, boyutları ne olursa olsun üç alt ağ ister." }
+                ],
+                errorText:"Alt ağ planı ya bloğa sığmıyor ya da ihtiyacın olan bölgelere yayılamıyor."
+              },
+              { id:"h-policy", type:"choice",
+                label:"Bunun tekrarlanmasını engelle",
+                prompt:"İki ekip bağımsız olarak 10.0.0.0/16 seçti. Üçüncüsünü ne engeller?",
+                options:[
+                  { key:"doc", label:"Önerilen aralıkları wiki'ye yaz", correct:false, feedback:"Bu ekipler politikaya karşı gelmiyordu — ondan habersizlerdi. Wiki bir kontrol değildir." },
+                  { key:"ipam", label:"Blok dağıtan merkezî bir tahsis kaydı, oluşturmada Organization Policy ile zorunlu", correct:true, feedback:"Tek otoriteden tahsis çakışmayı yapısal olarak imkânsız kılar ve oluşturmada zorlamak hiçbir şey kurulmadan yakalar." },
+                  { key:"big", label:"Herkes için 10.0.0.0/8'i standartlaştır", correct:false, feedback:"Tek dev paylaşımlı blok çakışmayı artırır." }
+                ],
+                errorText:"Bir sonraki ekibi hiçbir şey engellemiyor."
+              },
+              { id:"h-plan", type:"action",
+                label:"Tahsis planını yayınla",
+                actionLabel:"Blokları merkezî kaydet", loadingLabel:"Kaydediliyor…", doneLabel:"Mevcut her ağ kaydedildi, iş birimi başına aralıklar ayrıldı ve oluşturma artık kayıtsız CIDR'ları reddediyor.", loadingMs:800,
+                errorText:"Anlık çakışma çözüldü ve ona sebep olan pratik değişmedi."
+              }
+            ]
+          }
+        },
         iac:{
           aws:{
             title:"Prod staging'le eşleşmiyor ve nedenini kimse bilmiyor",
@@ -12807,6 +14633,7 @@
         dek:"Her önemli servis birer satırda — ne işe yaradığı ve aynı şeyin AWS, Azure ve Google Cloud'daki adı. Üstteki sağlayıcı seçimi sizin sütununuzu vurgular.",
         searchPh:"Servis ara — \"SQL\", \"DDoS\", \"ambar\" deneyin…",
         colWhat:"Ne işe yarar",
+        learnIn:"{module} modülünde öğren →",
         noResults:"Bu aramayla eşleşen servis yok.",
         cat:{
           compute:"Hesaplama & Dağıtım", data:"Veri & Analitik", network:"Ağ & İçerik Dağıtımı",
@@ -13174,6 +15001,141 @@
           drainedDone:"kuyruk boşaldı — her sipariş kesintiden sağ çıktı"
         }
       },
+      shared:{
+        modId:"MODÜL 32", title:"Paylaşılan Sorumluluk: Neyi Kim Güvenceye Alır",
+        titleAzure:"Azure'da Paylaşılan Sorumluluk: Neyi Kim Güvenceye Alır", titleGcp:"Google Cloud'da Paylaşılan Sorumluluk: Neyi Kim Güvenceye Alır",
+        dek:"Sağlayıcının güvenceye aldığı ile senin aldığın arasındaki çizgi, ne kiraladığına göre kayar — ve neredeyse her bulut ihlali bu çizginin müşteri tarafında yaşanır.",
+        analogy:"Araba kiralamak, taksiye binmek ya da otobüse binmek. Kiralık arabada sen sürersin, benzini sen koyarsın, park cezasını sen ödersin — şirket yalnızca arabanın çalıştığını garanti eder. Takside başkası sürer ama gideceğin yeri yine sen seçersin. Otobüste güzergâh da şoför de tarife de senin yerine kararlaştırılmıştır; sen sadece koltuk seçer ve çantana bakarsın. Çantan senin verin — üçünde de senin.",
+        modelOnprem:"Şirket içi", modelIaas:"IaaS", modelPaas:"PaaS", modelSaas:"SaaS",
+        checkBtn:"Cevaplarımı kontrol et", revealBtn:"Doğru ayrımı göster", clearBtn:"Temizle",
+        statAssigned:"Atanan katman", statCorrect:"Doğru", statYours:"Senin güvenceleyeceğin", statModel:"Servis modeli",
+        youLabel:"Sen", providerLabel:"Sağlayıcı",
+        examples:{
+          onprem:"Kendi binandaki kendi sunucuların — hiçbir şey kiralık değil.",
+          iaas:"Makineyi kirala: EC2, Azure Sanal Makineler, Compute Engine.",
+          paas:"Platformu kirala: Elastic Beanstalk, App Service, App Engine.",
+          saas:"Bitmiş yazılımı kirala: Gmail, Microsoft 365, Salesforce."
+        },
+        layers:{
+          data:"Verilerin", access:"Kimin giriş yapabileceği (kimlik ve erişim)", appcode:"Uygulama kodu",
+          netcfg:"Ağ ve güvenlik duvarı yapılandırması", os:"İşletim sistemi ve yamalar",
+          virt:"Sanallaştırma / hipervizör", hardware:"Fiziksel sunucular ve depolama", facility:"Veri merkezi binası ve enerjisi"
+        },
+        note:"Bu, her sağlayıcının yayınladığı gerçek model ve sınav ifadesini ezberlemeye değer: sağlayıcı bulutUN güvenliğinden sorumludur (donanım, tesisler, hipervizör, yönetilen servisin kendisi); sen bulutTAKİ güvenlikten sorumlusun (verin, erişim kontrolün, yapılandırman ve modele göre işletim sistemin ve kodun). Ne kiralarsan kirala iki şey asla yer değiştirmez: verin ve kime erişim verdiğin. Bu uygulamadaki vaka çalışmalarındaki her büyük bulut ihlali o çizginin müşteri tarafında yaşandı.",
+        tryStep1:"IaaS altında her katmanı Sen ya da Sağlayıcı olarak ata, sonra cevaplarını kontrol et.",
+        tryStep2:"PaaS'a, sonra SaaS'a geç — çizginin yükselişini ve sorumluluklarının azalışını izle.",
+        tryStep3:"Her modelde sende kalan iki katmana dikkat et.",
+        incident:{
+          meta:"Capital One · Temmuz 2019",
+          body:"Bir saldırgan, Capital One'ın AWS ortamındaki yanlış yapılandırılmış bir web uygulaması güvenlik duvarını sömürdü, içindeki kimlik bilgilerini okudu ve bunlarla yaklaşık 100 milyon kişinin verisini indirdi. AWS'nin altyapısı hiç ihlal edilmedi — donanım, hipervizör ve S3 servisi tam da yapılmaları gerekeni yaptı. Arıza tamamen paylaşılan sorumluluk çizgisinin müşteri tarafındaydı: bir güvenlik duvarı kuralı ve aşırı geniş bir rol. Capital One 80 milyon dolar düzenleyici ceza ödedi ve 190 milyon dolara uzlaştı. AWS'ye kimse ceza kesmedi, çünkü AWS'nin sorumlu olduğu hiçbir şey arızalanmamıştı."
+        },
+        status:{ unassigned:"ATANMADI", partial:"DEVAM EDİYOR", perfect:"HEPSİ DOĞRU", wrong:"BAZILARI YANLIŞ" },
+        log:{
+          init:"bir servis modeli seç, sonra her katmanı ata",
+          model:"servis modeli → {model}",
+          assigned:"{layer} → {who}",
+          score:"{total} katmanın {correct} tanesi doğru",
+          perfect:"{model} için her katman doğru",
+          revealed:"{model} için doğru ayrım gösterildi",
+          cleared:"atamalar temizlendi"
+        }
+      },
+      dr:{
+        modId:"MODÜL 33", title:"Felaket Kurtarma: RTO, RPO ve Maliyeti",
+        titleAzure:"Azure'da Felaket Kurtarma: RTO, RPO ve Maliyeti", titleGcp:"Google Cloud'da Felaket Kurtarma: RTO, RPO ve Maliyeti",
+        dek:"Her kurtarma planı bir satın almadır. İki şeyi geri satın alırsın — kesinti dakikalarını (RTO) ve kaybolan veri dakikalarını (RPO) — ve ikisi sıfıra yaklaştıkça fiyat dikçe yükselir.",
+        analogy:"Bagajdaki stepne, garajdaki ikinci araba ya da motoru çalışır hâlde şoförüyle bekleyen ikinci araba. Stepne ucuzdur ama yol kenarında bir saat lastik değiştirirsin. Sıcak bekleyen araba sana her ay, sonsuza dek, bir araba daha maliyet çıkarır — ve saniyeler içinde yola dönersin. Hiçbiri 'doğru' değil; bir saat durmanın sana neye mal olduğuna bağlı.",
+        recoveryLabel:"Kurtarma",
+        failBtn:"Birincil bölgeyi yok et", resetBtn:"Onar ve sıfırla",
+        statRto:"RTO — kesinti", statRpo:"RPO — kaybolan veri", statCost:"Aylık maliyet", statOrders:"Kaybolan sipariş",
+        strategies:{
+          backup:{ name:"Yedekle ve Geri Yükle", desc:"Nesne depolamaya gecelik yedekler. Bölge ölünce her şeyi sıfırdan kurup son yedeği geri yüklersin." },
+          pilot:{ name:"Pilot Alev", desc:"Veritabanı ikinci bölgeye sürekli replike olur; sunucular şablon olarak vardır ama kapalıdır. Gerektiğinde başlatırsın." },
+          warm:{ name:"Ilık Yedek", desc:"İkinci bölgede küçültülmüş ama çalışan bir kopya. Büyütür ve trafiği oraya yönlendirirsin." },
+          multi:{ name:"Çok Bölgeli Aktif/Aktif", desc:"İki bölge de sürekli canlı trafik alır. Birini kaybetmek kapasiteyi azaltır, erişilebilirliği değil." }
+        },
+        note:"Bu dört strateji standart merdivendir ve takas hep aynıdır: maliyet, ne kadar boşta kapasiteye para vermeye razı olduğunla ölçeklenir. Yedekle-ve-geri-yükle neredeyse bedavadır ama saatlerle ölçülür; çok bölgeli, altyapını kabaca ikiye katlar ve saniyelerle ölçülür. RTO ne kadar kapalı kaldığın; RPO verinin ne kadar geriye sıçradığıdır — gecelik yedek, 24 saate kadar RPO demektir ve bu teknik değil ticari bir karardır. Hepsini mahveden tek şey, geri yüklemeyi hiç test etmemektir.",
+        tryStep1:"Bir şey bozulmadan önce her stratejiyi seç ve RTO, RPO ile aylık maliyetini karşılaştır.",
+        tryStep2:"Bölgeyi yok et ve kurtarma saatinin gerçek zamanlı işleyişini izle.",
+        tryStep3:"Her stratejinin kaç sipariş kaybettiğine bak — o sayı, para cinsinden RPO'dur.",
+        incident:{
+          meta:"OVHcloud · Mart 2021",
+          body:"Bir yangın OVHcloud'un Strazburg'daki SBG2 veri merkezini yok etti, yanındaki binaya da zarar verdi ve yaklaşık 3,6 milyon web sitesini çevrimdışı bıraktı. Çoğu günler içinde toparlandı. Çoğu hiç toparlanamadı — müşteriler yedeklerinin, yedekledikleri sunucularla aynı tesiste saklandığını fark etti; yangın aslıyla kopyasını birlikte yuttu. Tesis dışı olmak bir yedekleme stratejisinin ayrıntısı değil, stratejinin kendisidir. Üretimle aynı binayı paylaşan yedek, plan değil kopyadır."
+        },
+        status:{ healthy:"SAĞLIKLI", down:"BÖLGE ÇÖKTÜ", recovering:"KURTARILIYOR", recovered:"KURTARILDI" },
+        log:{
+          init:"birincil bölge sağlıklı — bir FK stratejisi seç",
+          picked:"strateji → {name} (RTO {rto}, RPO {rpo}, aylık {cost})",
+          none:"önce bir strateji seç",
+          fail:"BİRİNCİL BÖLGE KAYBEDİLDİ — {name} ile kurtarma başladı",
+          progress:"{elapsed} geçti…",
+          restored:"hizmet {rto} sonra geri geldi — {rpo} RPO penceresine {orders} sipariş kurban gitti",
+          reset:"birincil bölge yeniden kuruldu — sağlıklıya döndü"
+        }
+      },
+      pricing:{
+        modId:"MODÜL 34", title:"Fiyatlandırma: Fatura Aslında Nereden Geliyor",
+        titleAzure:"Azure Fiyatlandırması: Fatura Aslında Nereden Geliyor", titleGcp:"Google Cloud Fiyatlandırması: Fatura Aslında Nereden Geliyor",
+        dek:"Herkesin izlediği kalem hesaplamadır. Sürpriz yapan kalem nadiren odur — o genelde veriyi dışarı göndermenin bedelidir.",
+        analogy:"Kutularını saklamak için neredeyse hiçbir şey almayan, teslimat kabul etmek için hiçbir şey almayan, ama çıkan her kutu için ücret kesen bir depo. İmzalarken kimse o son maddeyi okumaz ve faturada çıkan da odur.",
+        totalLabel:"Tahmini aylık fatura",
+        instancesLabel:"Sunucu sayısı", hoursLabel:"Her biri günde kaç saat çalışıyor", storageLabel:"Depolama (GB)",
+        egressLabel:"İnternete gönderilen veri (GB/ay)", purchaseLabel:"Satın alma seçeneği",
+        optOnDemand:"İsteğe bağlı", optReserved:"Ayrılmış / 1 yıl taahhüt (−%40)", optSpot:"Spot (−%70, kesintiye açık)",
+        statBiggest:"En büyük kalem", statEgressShare:"Faturada egress payı", statAnnual:"Yıllık", statIdle:"Boşta harcanan",
+        lineCompute:"Hesaplama", lineStorage:"Depolama", lineEgress:"Egress", lineIngress:"Ingress (gelen)", lineRequests:"İstek ve işlemler",
+        note:"Buradaki sayılar sadeleştirilmiş ama şekil gerçek. Hesaplama çalıştığı sürece saniye başına faturalandırılır; bu yüzden geceleri ve hafta sonları boşta duran bir sunucu maliyetinin yaklaşık %76'sını israf eder. Depolama GB başına ucuzdur ve sessizce sonsuza dek büyür. Ingress — içeri gelen veri — her büyük sağlayıcıda ücretsizdir. Egress değildir ve video ya da indirme ağırlıklı bir ürünü pahalı hâle getiren kalem odur. Ayrılmış sunucular ve taahhütlü kullanım indirimleri esnekliği kabaca %40 indirime takas eder; Spot güvenilirliği %90'a varan indirime takas eder. İkisi de egress'e dokunmaz.",
+        tryStep1:"4 sunucuyu 24 saate ayarla ve hesaplama kalemine bak — insanların plan yaptığı sayı odur.",
+        tryStep2:"Şimdi egress'i 10.000 GB'ın üstüne sürükle ve faturayı hangi kalemin devraldığını izle.",
+        tryStep3:"Ayrılmış'a, sonra Spot'a geç — bir indirimin faturanın nesine ulaşıp nesine ulaşamadığını gör.",
+        incident:{
+          meta:"Pinterest · 2016",
+          body:"Pinterest, beklediği büyümeye göre ölçeklenmiş büyük ve çok yıllı bir bulut sözleşmesi imzaladı; gerçek kullanım plandan düşük kalınca o taahhüde bağlı yaklaşık 20 milyon dolarlık gider bildirdi. İndirimlerin öteki yüzündeki tuzak bu: ayrılmış kapasite ve taahhütlü kullanım sözleşmeleri birim başına gerçekten daha ucuzdur, ama o birimleri kullansan da kullanmasan da satın almışsındır. Taahhüt, cezası olan bir tahmindir; standart tavsiye de bu yüzden yalnız güvenilir tabanına taahhüt verip dalgalı kısmı isteğe bağlı bırakmaktır."
+        },
+        status:{ estimating:"HESAPLANIYOR", egressHeavy:"EGRESS AĞIRLIKLI", idleHeavy:"BOŞA ÖDEME" },
+        log:{
+          init:"fiyat modeli yüklendi — kaydırıcıları sürükle",
+          egressWarn:"egress artık bu faturanın en büyük kalemi",
+          idleWarn:"sunucular günde {hours} saat boşta — hesaplama harcamasının %{pct}'i hiçbir şey satın almıyor",
+          purchase:"satın alma seçeneği → {opt}"
+        }
+      },
+      cidr:{
+        modId:"MODÜL 35", title:"CIDR ve Alt Ağlar: Bir VPC'nin Matematiği",
+        titleAzure:"CIDR ve Alt Ağlar: Bir VNet'in Matematiği", titleGcp:"CIDR ve Alt Ağlar: Bir VPC Ağının Matematiği",
+        dek:"Her VPC bir adres bloğuyla ve onu nasıl böleceğine dair bir kararla başlar. Yanlış yaparsan bunu aylar sonra, artık ihtiyacın olan alt ağa yer kalmadığında öğrenirsin.",
+        analogy:"Kapı numaralarından oluşan bir sokak. /24 sana 256 haneli tek bir sokak verir; /16 ise 65.536 haneli koca bir semt. Bölü işaretinden sonraki sayı küçüldükçe bölge büyür — sayının kaç hanenin serbest olduğunu değil, kaç hanenin kilitli olduğunu saydığını fark edene kadar bu ters gelir.",
+        rangeLabel:"Aralık", hostsLabel:"Kullanılabilir adres", maskLabel:"Alt ağ maskesi",
+        quizLabel:"Alıştırma",
+        prefixLabel:"Önek uzunluğu /", testLabel:"Bu adres bloğun içinde mi?",
+        testBtn:"Adresi test et", nextBtn:"Yeni alıştırma sorusu",
+        statInside:"Adres testi", statSubnets:"Sığan /24 alt ağ", statScore:"Alıştırma puanı", statStreak:"Seri",
+        inside:"İÇİNDE", outside:"DIŞINDA", invalidIp:"IP DEĞİL",
+        note:"/n öneki ilk n biti kilitler, geriye adresler için 32−n bit kalır; yani blok 2^(32−n) adres tutar. Bulut sağlayıcıları her alt ağda bunlardan birkaçını ayırır — AWS beş tane alır (ağ, VPC yönlendirici, DNS, gelecek kullanım, yayın), bu yüzden /24 sana 254 değil 251 kullanılabilir adres verir. Gerçek projeleri kurtaran iki kural: bir gün eşleştirebileceğin ya da VPN'le bağlayabileceğin bir ağla çakışan blok seçme (10.0.0.0/16 dünyanın en çok çakışan bloğudur) ve her zaman yer bırak, çünkü içinde iş yükleri yaşamaya başladıktan sonra bir VPC'nin CIDR'ını değiştirmek acı vericidir.",
+        tryStep1:"Öneki /16'dan /24'e sürükle ve kullanılabilir adres sayısının çöküşünü izle.",
+        tryStep2:"10.0.42.7'yi önce /16'da, sonra /24'te test et — aynı adres, farklı cevap.",
+        tryStep3:"Seri sayacı yükselene kadar alıştırma sorularını çöz.",
+        incident:{
+          meta:"Çakışma sorunu · her yerde, sürekli",
+          body:"Bunun tek bir meşhur kesintisi yok, çünkü büyüyen neredeyse her şirkette sessizce yaşanıyor. İki ekip, varsayılan gibi duran 10.0.0.0/16 ile birer VPC kurar. Yıllar sonra şirket bunları eşleştirmek ister — ya da aynısını yapmış bir şirketi satın alır — ve iki ağın birbirine bağlanamayacağını keşfeder, çünkü 10.0.3.7 gibi bir adres artık iki farklı makine anlamına gelmektedir. Çözüm, canlı bir üretim ağını yeniden adreslemektir; yani çeyrekler yiyen türden bir göç. Başta on dakikalık adres planlaması bunu tamamen önler.",
+        },
+        status:{ ready:"HAZIR", inside:"ADRES İÇERİDE", outside:"ADRES DIŞARIDA" },
+        q:{
+          hosts:"{cidr} bu sağlayıcıda sana kaç kullanılabilir adres verir?",
+          contains:"{ip} adresi {cidr} bloğunun içinde mi?",
+          split:"{cidr} içine kaç tane /{sub} alt ağ sığar?",
+          bigger:"Hangi blok daha çok adres içerir?",
+          yes:"Evet", no:"Hayır"
+        },
+        log:{
+          init:"CIDR hesaplayıcı hazır",
+          prefix:"blok → {cidr} ({hosts} kullanılabilir adres)",
+          test:"{ip} adresi {cidr} bloğunun {verdict}",
+          bad:"bu geçerli bir IPv4 adresi değil",
+          right:"doğru — {why}",
+          wrong:"tam değil — {why}"
+        }
+      },
       chat:{
         title:"Konsola Sor", fabAria:"Bir soru sor", closeAria:"Kapat",
         setupIntro:"Bu tamamen tarayıcınızda, Groq'un ücretsiz API'si üzerinden çalışır — hiçbir şey Groq dışında bir yere gönderilmez. Etkinleştirmek için kendi anahtarınızı yapıştırın; sadece bu cihazda saklanır, hiçbir sunucuda değil.",
@@ -13193,7 +15155,7 @@
   let currentLang = localStorage.getItem(LANG_KEY) || (((navigator.language||"").toLowerCase().indexOf("tr")===0) ? "tr" : "en");
   let themeMode = localStorage.getItem(THEME_KEY) || "auto";
   let providerMode = localStorage.getItem(PROVIDER_KEY) || "aws";
-  const PROVIDER_MODULES=["auth","iam","vpc","ec2","s3","lambda","lb","beanstalk","route53","cache","consistency","failover","sns","cloudwatch","snowball","database","containers","cicd","secrets","threat","edge","identity","certs","analytics","hybrid","iac","govern","aiint"];
+  const PROVIDER_MODULES=["auth","iam","vpc","ec2","s3","lambda","lb","beanstalk","route53","cache","consistency","failover","sns","cloudwatch","snowball","database","containers","cicd","secrets","threat","edge","identity","certs","analytics","hybrid","iac","govern","aiint","shared","dr","pricing","cidr"];
   let stateEpoch = 0; // bumped by resetAllModules() so in-flight setTimeouts from before a reset become no-ops
 
   function t(path, vars){
@@ -14276,7 +16238,7 @@
   authUpdateStats();
 
   /* ============ QUESTS SECTION — generic engine ============ */
-  const QUEST_KEYS=["auth","iam","s3","vpc","route53","cloudwatch","database","containers","ec2","lambda","lb","beanstalk","cache","consistency","failover","sns","snowball","cicd","secrets","capstone1","capstone2","threat","edge","identity","certs","analytics","hybrid","iac","govern","aiint"];
+  const QUEST_KEYS=["auth","iam","s3","vpc","route53","cloudwatch","database","containers","ec2","lambda","lb","beanstalk","cache","consistency","failover","sns","snowball","cicd","secrets","capstone1","capstone2","threat","edge","identity","certs","analytics","hybrid","iac","govern","aiint","shared","dr","pricing","cidr"];
   let questState={};
   let questEls={};
 
@@ -15374,6 +17336,34 @@
     addLog($("#governLog"), t("govern.log.init"));
     governRender(); governUpdateStats();
 
+    sharedModel="iaas"; sharedPicks={}; sharedChecked=false;
+    Array.from(document.querySelectorAll("#sharedTabs .auth-tab")).forEach(function(x){ x.classList.toggle("active", x.dataset.model==="iaas"); });
+    $("#sharedLog").innerHTML=""; $("#sharedStatus").dataset.statusKey="";
+    addLog($("#sharedLog"), t("shared.log.init"));
+    sharedRender(); sharedUpdateStats();
+
+    if(drTimer){ clearInterval(drTimer); drTimer=null; }
+    drPicked=null; drState="healthy"; drElapsed=0;
+    $("#drTimeline").hidden=true; $("#drBar").style.width="0%"; $("#drClock").textContent="—";
+    $("#drLog").innerHTML=""; $("#drStatus").dataset.statusKey="";
+    addLog($("#drLog"), t("dr.log.init"));
+    drRender(); drUpdateStats();
+
+    $("#pricingInstances").value=4; $("#pricingHours").value=24;
+    $("#pricingStorage").value=500; $("#pricingEgress").value=200;
+    $("#pricingPurchase").value="ondemand";
+    $("#pricingLog").innerHTML=""; $("#pricingStatus").dataset.statusKey="";
+    addLog($("#pricingLog"), t("pricing.log.init"));
+    pricingRender();
+
+    $("#cidrPrefix").value=16; $("#cidrTestIp").value="10.0.42.7";
+    cidrScoreRight=0; cidrScoreTotal=0; cidrStreak=0;
+    $("#cidrInside").textContent="—";
+    $("#cidrLog").innerHTML=""; $("#cidrStatus").dataset.statusKey="";
+    addLog($("#cidrLog"), t("cidr.log.init"));
+    setStatus($("#cidrStatus"), $("#cidrLog"), "ready", "cidr.status", "good");
+    cidrRender(); cidrNewQuestion();
+
     aiIntents=0; aiDepth=0; aiProcessed=0; aiDraining=false;
     $("#aiintWorker").checked=true;
     $("#aiintBotInput").value=""; $("#aiintTtsInput").value="";
@@ -16154,6 +18144,411 @@
   addLog($("#aiintLog"), t("aiint.log.init"));
   aiintUpdateStats();
 
+  /* ============ MODULE 32 — shared responsibility ============ */
+  // "p" = provider secures it, "y" = you secure it. Straight from the
+  // published responsibility matrices: the line climbs as you rent more.
+  const SHARED_LAYERS=["data","access","appcode","netcfg","os","virt","hardware","facility"];
+  const SHARED_TRUTH={
+    onprem:{ data:"y", access:"y", appcode:"y", netcfg:"y", os:"y", virt:"y", hardware:"y", facility:"y" },
+    iaas:  { data:"y", access:"y", appcode:"y", netcfg:"y", os:"y", virt:"p", hardware:"p", facility:"p" },
+    paas:  { data:"y", access:"y", appcode:"y", netcfg:"p", os:"p", virt:"p", hardware:"p", facility:"p" },
+    saas:  { data:"y", access:"y", appcode:"p", netcfg:"p", os:"p", virt:"p", hardware:"p", facility:"p" }
+  };
+  let sharedModel="iaas", sharedPicks={}, sharedChecked=false;
+  function sharedModelName(m){ return t("shared.model"+m.charAt(0).toUpperCase()+m.slice(1)); }
+  function sharedRender(){
+    const wrap=$("#sharedStack");
+    wrap.innerHTML="";
+    $("#sharedExample").textContent=t("shared.examples."+sharedModel);
+    SHARED_LAYERS.forEach(function(layer){
+      const row=document.createElement("div");
+      row.className="stack-row";
+      const pick=sharedPicks[layer];
+      const truth=SHARED_TRUTH[sharedModel][layer];
+      if(sharedChecked && pick) row.classList.add(pick===truth ? "right" : "wrong");
+      const name=document.createElement("span");
+      name.className="stack-name";
+      name.textContent=t("shared.layers."+layer);
+      row.appendChild(name);
+      const group=document.createElement("span");
+      group.className="stack-pick";
+      [["y", t("shared.youLabel")],["p", t("shared.providerLabel")]].forEach(function(o){
+        const b=document.createElement("button");
+        b.type="button";
+        b.className="stack-btn"+(pick===o[0]?" picked":"");
+        b.textContent=o[1];
+        b.addEventListener("click", function(){
+          sharedPicks[layer]=o[0];
+          sharedChecked=false;
+          addLog($("#sharedLog"), t("shared.log.assigned",{layer:t("shared.layers."+layer), who:o[1]}));
+          sharedRender(); sharedUpdateStats();
+        });
+        group.appendChild(b);
+      });
+      row.appendChild(group);
+      if(sharedChecked && pick){
+        const v=document.createElement("span");
+        v.className="stack-verdict";
+        v.textContent = pick===truth ? "✓" : (truth==="y" ? t("shared.youLabel") : t("shared.providerLabel"));
+        row.appendChild(v);
+      }
+      wrap.appendChild(row);
+    });
+  }
+  function sharedScore(){
+    let correct=0, assigned=0;
+    SHARED_LAYERS.forEach(function(l){
+      if(sharedPicks[l]){ assigned++; if(sharedPicks[l]===SHARED_TRUTH[sharedModel][l]) correct++; }
+    });
+    return { correct:correct, assigned:assigned };
+  }
+  function sharedUpdateStats(){
+    const s=sharedScore();
+    const yours=SHARED_LAYERS.filter(function(l){ return SHARED_TRUTH[sharedModel][l]==="y"; }).length;
+    $("#sharedAssigned").textContent=s.assigned+" / "+SHARED_LAYERS.length;
+    $("#sharedCorrect").textContent = sharedChecked ? s.correct+" / "+s.assigned : "—";
+    $("#sharedYours").textContent = sharedChecked ? yours+" / "+SHARED_LAYERS.length : "—";
+    $("#sharedModel").textContent=sharedModelName(sharedModel);
+    let key="unassigned", cls="warn";
+    if(sharedChecked) { key = s.correct===SHARED_LAYERS.length ? "perfect" : "wrong"; cls = s.correct===SHARED_LAYERS.length ? "good" : "bad"; }
+    else if(s.assigned>0){ key="partial"; cls="warn"; }
+    setStatus($("#sharedStatus"), $("#sharedLog"), key, "shared.status", cls);
+  }
+  Array.from(document.querySelectorAll("#sharedTabs .auth-tab")).forEach(function(tab){
+    tab.addEventListener("click", function(){
+      sharedModel=tab.dataset.model;
+      sharedChecked=false;
+      Array.from(document.querySelectorAll("#sharedTabs .auth-tab")).forEach(function(x){ x.classList.toggle("active", x===tab); });
+      addLog($("#sharedLog"), t("shared.log.model",{model:sharedModelName(sharedModel)}));
+      sharedRender(); sharedUpdateStats();
+    });
+  });
+  $("#sharedCheckBtn").addEventListener("click", function(){
+    sharedChecked=true;
+    const s=sharedScore();
+    addLog($("#sharedLog"), t("shared.log.score",{correct:s.correct, total:SHARED_LAYERS.length}), s.correct===SHARED_LAYERS.length?"good":"warn");
+    if(s.correct===SHARED_LAYERS.length) addLog($("#sharedLog"), t("shared.log.perfect",{model:sharedModelName(sharedModel)}), "good");
+    sharedRender(); sharedUpdateStats();
+  });
+  $("#sharedRevealBtn").addEventListener("click", function(){
+    SHARED_LAYERS.forEach(function(l){ sharedPicks[l]=SHARED_TRUTH[sharedModel][l]; });
+    sharedChecked=true;
+    addLog($("#sharedLog"), t("shared.log.revealed",{model:sharedModelName(sharedModel)}));
+    sharedRender(); sharedUpdateStats();
+  });
+  $("#sharedClearBtn").addEventListener("click", function(){
+    sharedPicks={}; sharedChecked=false;
+    addLog($("#sharedLog"), t("shared.log.cleared"));
+    sharedRender(); sharedUpdateStats();
+  });
+  addLog($("#sharedLog"), t("shared.log.init"));
+  sharedRender(); sharedUpdateStats();
+
+  /* ============ MODULE 33 — disaster recovery ============ */
+  // rtoMin/rpoMin are the real orders of magnitude for each strategy;
+  // ORDERS_PER_MIN turns the RPO window into something a business can feel.
+  const DR_ORDERS_PER_MIN=8;
+  const DR_STRATEGIES=[
+    { id:"backup", rtoMin:480, rpoMin:720, cost:120 },
+    { id:"pilot",  rtoMin:45,  rpoMin:5,   cost:640 },
+    { id:"warm",   rtoMin:8,   rpoMin:1,   cost:1850 },
+    { id:"multi",  rtoMin:0,   rpoMin:0,   cost:3900 }
+  ];
+  let drPicked=null, drState="healthy", drTimer=null, drElapsed=0;
+  function drFmt(min){
+    if(min===0) return "~0";
+    if(min<60) return min+" min";
+    const h=min/60;
+    return (h%1===0 ? h : h.toFixed(1))+" h";
+  }
+  function drMoney(n){ return "$"+n.toLocaleString(currentLang==="tr"?"tr-TR":"en-US"); }
+  function drRender(){
+    const wrap=$("#drStrategies");
+    wrap.innerHTML="";
+    DR_STRATEGIES.forEach(function(s){
+      const b=document.createElement("button");
+      b.type="button";
+      b.className="dr-strategy"+(drPicked===s.id?" active":"");
+      const body=document.createElement("div");
+      body.className="dr-strategy-body";
+      const n=document.createElement("div");
+      n.className="dr-strategy-name";
+      n.textContent=t("dr.strategies."+s.id+".name");
+      const d=document.createElement("p");
+      d.className="dr-strategy-desc";
+      d.textContent=t("dr.strategies."+s.id+".desc");
+      body.appendChild(n); body.appendChild(d);
+      const nums=document.createElement("div");
+      nums.className="dr-strategy-nums";
+      nums.textContent="RTO "+drFmt(s.rtoMin)+" · RPO "+drFmt(s.rpoMin)+" · "+drMoney(s.cost);
+      b.appendChild(body); b.appendChild(nums);
+      b.addEventListener("click", function(){
+        if(drState!=="healthy") return;
+        drPicked=s.id;
+        addLog($("#drLog"), t("dr.log.picked",{name:t("dr.strategies."+s.id+".name"), rto:drFmt(s.rtoMin), rpo:drFmt(s.rpoMin), cost:drMoney(s.cost)}));
+        drRender(); drUpdateStats();
+      });
+      wrap.appendChild(b);
+    });
+  }
+  function drUpdateStats(){
+    const s=DR_STRATEGIES.find(function(x){ return x.id===drPicked; });
+    $("#drRto").textContent = s ? drFmt(s.rtoMin) : "—";
+    $("#drRpo").textContent = s ? drFmt(s.rpoMin) : "—";
+    $("#drCost").textContent = s ? drMoney(s.cost) : "—";
+    $("#drOrders").textContent = s ? (drState==="recovered" ? Math.round(s.rpoMin*DR_ORDERS_PER_MIN) : "—") : "—";
+    const cls = drState==="down" ? "bad" : drState==="recovering" ? "warn" : "good";
+    setStatus($("#drStatus"), $("#drLog"), drState, "dr.status", cls);
+  }
+  $("#drFailBtn").addEventListener("click", function(){
+    if(!drPicked){ addLog($("#drLog"), t("dr.log.none"), "warn"); return; }
+    if(drState!=="healthy") return;
+    const s=DR_STRATEGIES.find(function(x){ return x.id===drPicked; });
+    const epoch=stateEpoch;
+    drState="down"; drElapsed=0;
+    $("#drTimeline").hidden=false;
+    addLog($("#drLog"), t("dr.log.fail",{name:t("dr.strategies."+s.id+".name")}), "bad");
+    drUpdateStats();
+    if(drTimer) clearInterval(drTimer);
+    // Compress the real RTO into a few seconds of wall clock so the
+    // difference between 8 hours and 8 minutes is something you watch.
+    const totalTicks=Math.max(1, Math.round(6 + (s.rtoMin/480)*18));
+    drState="recovering";
+    drTimer=setInterval(function(){
+      if(epoch!==stateEpoch){ clearInterval(drTimer); drTimer=null; return; }
+      drElapsed++;
+      const pct=Math.min(100, Math.round((drElapsed/totalTicks)*100));
+      $("#drBar").style.width=pct+"%";
+      const shown=Math.round((drElapsed/totalTicks)*s.rtoMin);
+      $("#drClock").textContent=t("dr.log.progress",{elapsed:drFmt(shown)});
+      if(drElapsed>=totalTicks){
+        clearInterval(drTimer); drTimer=null;
+        drState="recovered";
+        const lost=Math.round(s.rpoMin*DR_ORDERS_PER_MIN);
+        $("#drBar").style.width="100%";
+        $("#drClock").textContent=t("dr.log.restored",{rto:drFmt(s.rtoMin), orders:lost, rpo:drFmt(s.rpoMin)});
+        addLog($("#drLog"), t("dr.log.restored",{rto:drFmt(s.rtoMin), orders:lost, rpo:drFmt(s.rpoMin)}), lost===0?"good":"warn");
+        drUpdateStats();
+      }
+    }, 260);
+    drUpdateStats();
+  });
+  $("#drResetBtn").addEventListener("click", function(){
+    if(drTimer){ clearInterval(drTimer); drTimer=null; }
+    drState="healthy"; drElapsed=0;
+    $("#drTimeline").hidden=true;
+    $("#drBar").style.width="0%";
+    $("#drClock").textContent="—";
+    addLog($("#drLog"), t("dr.log.reset"), "good");
+    drUpdateStats();
+  });
+  addLog($("#drLog"), t("dr.log.init"));
+  drRender(); drUpdateStats();
+
+  /* ============ MODULE 34 — pricing ============ */
+  const PRICE={ instanceHour:0.096, storageGbMo:0.023, egressGb:0.09, requests:14 };
+  const PRICE_DISCOUNT={ ondemand:1, reserved:0.6, spot:0.3 };
+  function pricingMoney(n){
+    return "$"+Math.round(n).toLocaleString(currentLang==="tr"?"tr-TR":"en-US");
+  }
+  function pricingCompute(){
+    const inst=Number($("#pricingInstances").value);
+    const hours=Number($("#pricingHours").value);
+    const storage=Number($("#pricingStorage").value);
+    const egress=Number($("#pricingEgress").value);
+    const opt=$("#pricingPurchase").value;
+    const compute=inst*hours*30*PRICE.instanceHour*PRICE_DISCOUNT[opt];
+    const store=storage*PRICE.storageGbMo;
+    const out=egress*PRICE.egressGb;
+    const lines=[
+      { key:"lineCompute", amt:compute },
+      { key:"lineStorage", amt:store },
+      { key:"lineEgress", amt:out },
+      { key:"lineIngress", amt:0 },
+      { key:"lineRequests", amt:PRICE.requests }
+    ];
+    const total=lines.reduce(function(m,l){ return m+l.amt; }, 0);
+    // What the same fleet would cost running 24/7 minus what it costs now,
+    // i.e. the money spent on hours nobody used.
+    const idleWaste=inst*(24-hours)*30*PRICE.instanceHour*PRICE_DISCOUNT[opt];
+    return { lines:lines, total:total, compute:compute, egress:out, idleWaste:idleWaste, hours:hours, opt:opt };
+  }
+  function pricingRender(){
+    const c=pricingCompute();
+    $("#pricingInstancesOut").textContent=$("#pricingInstances").value;
+    $("#pricingHoursOut").textContent=$("#pricingHours").value;
+    $("#pricingStorageOut").textContent=Number($("#pricingStorage").value).toLocaleString(currentLang==="tr"?"tr-TR":"en-US");
+    $("#pricingEgressOut").textContent=Number($("#pricingEgress").value).toLocaleString(currentLang==="tr"?"tr-TR":"en-US");
+    const max=Math.max.apply(null, c.lines.map(function(l){ return l.amt; })) || 1;
+    const biggest=c.lines.slice().sort(function(a,b){ return b.amt-a.amt; })[0];
+    const wrap=$("#pricingBill");
+    wrap.innerHTML="";
+    c.lines.forEach(function(l){
+      const row=document.createElement("div");
+      row.className="bill-row"+(l.key===biggest.key && l.amt>0 ? " dominant" : "");
+      const n=document.createElement("span");
+      n.className="bill-name";
+      n.textContent=t("pricing."+l.key);
+      const track=document.createElement("div");
+      track.className="bill-track";
+      const fill=document.createElement("span");
+      fill.style.width=Math.round((l.amt/max)*100)+"%";
+      track.appendChild(fill);
+      const amt=document.createElement("span");
+      amt.className="bill-amt";
+      amt.textContent=pricingMoney(l.amt);
+      row.appendChild(n); row.appendChild(track); row.appendChild(amt);
+      wrap.appendChild(row);
+    });
+    $("#pricingTotal").textContent=pricingMoney(c.total);
+    $("#pricingBiggest").textContent=t("pricing."+biggest.key);
+    const share=c.total ? Math.round((c.egress/c.total)*100) : 0;
+    $("#pricingEgressShare").textContent=share+"%";
+    $("#pricingAnnual").textContent=pricingMoney(c.total*12);
+    $("#pricingIdle").textContent=pricingMoney(c.idleWaste);
+    const egressDominant = biggest.key==="lineEgress" && c.egress>0;
+    const idleHeavy = c.idleWaste > c.compute*0.5 && c.idleWaste>0;
+    let key="estimating", cls="good";
+    if(egressDominant){ key="egressHeavy"; cls="warn"; }
+    else if(idleHeavy){ key="idleHeavy"; cls="warn"; }
+    setStatus($("#pricingStatus"), $("#pricingLog"), key, "pricing.status", cls);
+  }
+  ["pricingInstances","pricingHours","pricingStorage","pricingEgress"].forEach(function(id){
+    $("#"+id).addEventListener("input", pricingRender);
+  });
+  $("#pricingPurchase").addEventListener("change", function(){
+    addLog($("#pricingLog"), t("pricing.log.purchase",{opt:$("#pricingPurchase").selectedOptions[0].textContent}));
+    pricingRender();
+  });
+  addLog($("#pricingLog"), t("pricing.log.init"));
+  pricingRender();
+
+  /* ============ MODULE 35 — CIDR ============ */
+  // AWS/Azure/GCP all reserve addresses in every subnet; AWS reserves five.
+  const CIDR_RESERVED=5;
+  const CIDR_BASE=[10,0,0,0];
+  let cidrScoreRight=0, cidrScoreTotal=0, cidrStreak=0, cidrQuestion=null;
+  function cidrIpToInt(a){ return ((a[0]<<24)>>>0)+(a[1]<<16)+(a[2]<<8)+a[3]; }
+  function cidrIntToIp(n){ return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join("."); }
+  function cidrParse(str){
+    const m=String(str).trim().match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if(!m) return null;
+    const parts=[+m[1],+m[2],+m[3],+m[4]];
+    if(parts.some(function(p){ return p>255; })) return null;
+    return parts;
+  }
+  function cidrInfo(prefix){
+    const size=Math.pow(2, 32-prefix);
+    const netInt=(cidrIpToInt(CIDR_BASE) >>> (32-prefix)) << (32-prefix);
+    const maskInt=prefix===0 ? 0 : ((0xFFFFFFFF << (32-prefix)) >>> 0);
+    return {
+      prefix:prefix, size:size,
+      first:cidrIntToIp(netInt >>> 0),
+      last:cidrIntToIp((netInt+size-1) >>> 0),
+      usable:Math.max(0, size-CIDR_RESERVED),
+      mask:cidrIntToIp(maskInt),
+      netInt:netInt >>> 0,
+      label:cidrIntToIp(netInt >>> 0)+"/"+prefix
+    };
+  }
+  function cidrCurrent(){ return cidrInfo(Number($("#cidrPrefix").value)); }
+  function cidrRender(){
+    const i=cidrCurrent();
+    const locale=currentLang==="tr"?"tr-TR":"en-US";
+    $("#cidrPrefixOut").textContent=i.prefix;
+    $("#cidrBlock").textContent=i.label;
+    $("#cidrRange").textContent=i.first+" – "+i.last;
+    $("#cidrHosts").textContent=i.usable.toLocaleString(locale);
+    $("#cidrMask").textContent=i.mask;
+    $("#cidrSubnets").textContent = i.prefix<=24 ? Math.pow(2, 24-i.prefix).toLocaleString(locale) : "0";
+    $("#cidrScore").textContent=cidrScoreRight+" / "+cidrScoreTotal;
+    $("#cidrStreak").textContent=cidrStreak;
+  }
+  function cidrNewQuestion(){
+    const i=cidrCurrent();
+    const locale=currentLang==="tr"?"tr-TR":"en-US";
+    const kinds=["hosts","contains","split"];
+    const kind=kinds[Math.floor(Math.random()*kinds.length)];
+    let text="", options=[], correctIdx=0, why="";
+    if(kind==="hosts"){
+      const right=i.usable;
+      text=t("cidr.q.hosts",{cidr:i.label});
+      const wrong1=i.size, wrong2=Math.max(1, Math.floor(i.size/2));
+      options=[right, wrong1, wrong2].map(function(n){ return n.toLocaleString(locale); });
+      correctIdx=0;
+      why=t("cidr.note").slice(0,0)+i.size.toLocaleString(locale)+" − "+CIDR_RESERVED+" = "+right.toLocaleString(locale);
+    } else if(kind==="contains"){
+      const inside=Math.random()<0.5;
+      let ipInt;
+      if(inside) ipInt=(i.netInt + Math.floor(Math.random()*Math.max(1,i.size-1))) >>> 0;
+      else ipInt=(i.netInt + i.size + 1 + Math.floor(Math.random()*1000)) >>> 0;
+      const ip=cidrIntToIp(ipInt);
+      text=t("cidr.q.contains",{ip:ip, cidr:i.label});
+      options=[t("cidr.q.yes"), t("cidr.q.no")];
+      correctIdx=inside?0:1;
+      why=ip+" "+(inside?"≤":">")+" "+i.last+" ("+i.first+" – "+i.last+")";
+    } else {
+      const sub=Math.min(30, i.prefix+Math.max(1, Math.ceil(Math.random()*4)));
+      const right=Math.pow(2, sub-i.prefix);
+      text=t("cidr.q.split",{cidr:i.label, sub:sub});
+      options=[right, right*2, Math.max(1, right/2)].map(function(n){ return n.toLocaleString(locale); });
+      correctIdx=0;
+      why="2^("+sub+"−"+i.prefix+") = "+right.toLocaleString(locale);
+    }
+    // shuffle while tracking where the right answer lands
+    const paired=options.map(function(o,idx){ return { o:o, right:idx===correctIdx }; });
+    for(let k=paired.length-1;k>0;k--){ const j=Math.floor(Math.random()*(k+1)); const tmp=paired[k]; paired[k]=paired[j]; paired[j]=tmp; }
+    cidrQuestion={ why:why, rightIdx:paired.findIndex(function(p){ return p.right; }) };
+    $("#cidrQuestion").textContent=text;
+    const wrap=$("#cidrOptions");
+    wrap.innerHTML="";
+    $("#cidrFeedback").textContent="";
+    $("#cidrFeedback").className="quest-options-feedback";
+    paired.forEach(function(p, idx){
+      const b=document.createElement("button");
+      b.type="button";
+      b.className="quest-option-btn";
+      b.textContent=p.o;
+      b.addEventListener("click", function(){
+        if(b.disabled) return;
+        Array.from(wrap.children).forEach(function(c){ c.disabled=true; });
+        cidrScoreTotal++;
+        const right=idx===cidrQuestion.rightIdx;
+        if(right){ cidrScoreRight++; cidrStreak++; }
+        else cidrStreak=0;
+        const fb=$("#cidrFeedback");
+        fb.className="quest-options-feedback "+(right?"good":"bad");
+        fb.textContent=t(right?"cidr.log.right":"cidr.log.wrong",{why:cidrQuestion.why});
+        addLog($("#cidrLog"), t(right?"cidr.log.right":"cidr.log.wrong",{why:cidrQuestion.why}), right?"good":"bad");
+        cidrRender();
+      });
+      wrap.appendChild(b);
+    });
+  }
+  $("#cidrPrefix").addEventListener("input", function(){
+    const i=cidrCurrent();
+    cidrRender();
+    addLog($("#cidrLog"), t("cidr.log.prefix",{cidr:i.label, hosts:i.usable.toLocaleString(currentLang==="tr"?"tr-TR":"en-US")}));
+  });
+  $("#cidrTestBtn").addEventListener("click", function(){
+    const parts=cidrParse($("#cidrTestIp").value);
+    if(!parts){
+      $("#cidrInside").textContent=t("cidr.invalidIp");
+      addLog($("#cidrLog"), t("cidr.log.bad"), "bad");
+      setStatus($("#cidrStatus"), $("#cidrLog"), "ready", "cidr.status", "warn");
+      return;
+    }
+    const i=cidrCurrent();
+    const ipInt=cidrIpToInt(parts);
+    const inside = ipInt>=i.netInt && ipInt<=(i.netInt+i.size-1);
+    $("#cidrInside").textContent=t(inside?"cidr.inside":"cidr.outside");
+    addLog($("#cidrLog"), t("cidr.log.test",{ip:parts.join("."), verdict:t(inside?"cidr.inside":"cidr.outside"), cidr:i.label}), inside?"good":"warn");
+    setStatus($("#cidrStatus"), $("#cidrLog"), inside?"inside":"outside", "cidr.status", inside?"good":"warn");
+  });
+  $("#cidrNextBtn").addEventListener("click", cidrNewQuestion);
+  addLog($("#cidrLog"), t("cidr.log.init"));
+  cidrRender(); cidrNewQuestion();
+
   /* ============ MODULE 22 — service directory ============ */
   const SERVICE_DIRECTORY=[
     { id:"lambdaSvc", cat:"compute", aws:"AWS Lambda", azure:"Azure Functions", gcp:"Cloud Run Functions" },
@@ -16205,6 +18600,21 @@
     { id:"profservices", cat:"support", aws:"AWS Professional Services", azure:"Microsoft Industry Solutions", gcp:"Google Cloud Consulting" }
   ];
   const SERVICE_CATS=["compute","data","network","security","govern","migrate","ai","support"];
+  // Which module actually teaches each service, so the directory is a way in
+  // rather than a dead end. Services with no entry simply show no link.
+  const SERVICE_MODULE={
+    lambdaSvc:"lambda", fargate:"containers", beanstalkSvc:"beanstalk", outposts:"hybrid",
+    ondemand:"ec2", spot:"govern", rds:"database", dynamodb:"analytics", redshift:"analytics",
+    neptune:"analytics", athena:"analytics", quicksight:"analytics", versioningSvc:"s3",
+    cloudfront:"cache", s2svpn:"hybrid", directconnect:"hybrid", guardduty:"threat",
+    inspector:"threat", securityhub:"threat", macie:"certs", waf:"edge", shield:"edge",
+    kms:"secrets", cloudhsm:"secrets", secretsmanager:"secrets", acm:"certs",
+    sts:"identity", iamidc:"identity", cognito:"identity", credreport:"iam",
+    accessanalyzer:"iam", artifact:"govern", cloudformation:"iac", cloudtrail:"threat",
+    cloudwatchSvc:"cloudwatch", health:"govern", config:"govern", trustedadvisor:"govern",
+    controltower:"iac", wellarch:"govern", cli:"iac", dms:"hybrid", datasync:"hybrid",
+    lex:"aiint", polly:"aiint", mq:"aiint"
+  };
   let svcFilter="";
   function servicesRender(){
     const wrap=$("#svcGroups");
@@ -16251,7 +18661,24 @@
         });
         const td=document.createElement("td");
         td.className="svc-desc";
-        td.textContent=t("services.items."+s.id);
+        td.appendChild(document.createTextNode(t("services.items."+s.id)));
+        const modKey=SERVICE_MODULE[s.id];
+        if(modKey && document.getElementById(modKey)){
+          const a=document.createElement("a");
+          a.className="svc-modlink";
+          a.href="#"+modKey;
+          a.textContent=t("services.learnIn",{ module:t("common.nav."+modKey) });
+          a.addEventListener("click", function(e){
+            e.preventDefault();
+            const target=document.getElementById(modKey);
+            const topbarH=$(".topbar").getBoundingClientRect().height;
+            const top=target.getBoundingClientRect().top + window.pageYOffset - topbarH - 12;
+            const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            window.scrollTo({ top:Math.max(0, top), behavior: reduce ? "auto" : "smooth" });
+            history.pushState(null, "", "#"+modKey);
+          });
+          td.appendChild(a);
+        }
         tr.appendChild(td);
         tbody.appendChild(tr);
       });
@@ -16301,6 +18728,10 @@
     iacRender(); iacUpdateStats();
     governRender(); governUpdateStats();
     aiintUpdateStats();
+    sharedRender(); sharedUpdateStats();
+    drRender(); drUpdateStats();
+    pricingRender();
+    cidrRender(); cidrNewQuestion();
     applyProviderTitles();
     progressRender();
   }
