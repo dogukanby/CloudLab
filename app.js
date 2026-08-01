@@ -4,7 +4,7 @@
   // Keep in sync with package.json's "version" — there's no build step to
   // inject this automatically, so it's a manual mirror. Shown in the topbar
   // (and read as the desktop window title via app.getVersion() in main.js).
-  const APP_VERSION = "1.9.1";
+  const APP_VERSION = "1.9.2";
   $("#versionTag").textContent = "v"+APP_VERSION;
 
   /* ============ i18n dictionary ============ */
@@ -13,6 +13,8 @@
       common: {
         wordmark:"CloudLab",
         nav:{ cloud101:"00 What is the cloud?", auth:"01 Sign-in", iam:"02 IAM & permissions", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Load balancing", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Caching", consistency:"11 Consistency", failover:"12 Failover", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Databases", containers:"17 Containers", cicd:"18 CI/CD", secrets:"19 Secrets & KMS", capstone1:"20 Capstone: Outage", capstone2:"21 Capstone: Exposure", services:"22 Service directory", threat:"23 GuardDuty & Inspector", edge:"24 WAF & Shield", identity:"25 STS & Cognito", certs:"26 ACM & Macie", analytics:"27 Redshift & Athena", hybrid:"28 Direct Connect & DMS", iac:"29 CloudFormation", govern:"30 Trusted Advisor", aiint:"31 Lex, Polly & MQ" },
+        navAzure:{ iam:"02 Entra ID", vpc:"03 Virtual Network", ec2:"04 Virtual Machines", s3:"05 Blob Storage", lambda:"06 Azure Functions", beanstalk:"08 App Service", route53:"09 Azure DNS", sns:"13 Event Grid", cloudwatch:"14 Azure Monitor", snowball:"15 Data Box", secrets:"19 Key Vault", threat:"23 Defender for Cloud", edge:"24 Azure WAF & DDoS", identity:"25 Entra ID & SSO", certs:"26 Key Vault & Purview", analytics:"27 Synapse & Cosmos DB", hybrid:"28 ExpressRoute & DMS", iac:"29 ARM & Bicep", govern:"30 Azure Advisor", aiint:"31 Bot Service & Service Bus" },
+        navGcp:{ iam:"02 Cloud IAM", ec2:"04 Compute Engine", s3:"05 Cloud Storage", lambda:"06 Cloud Functions", beanstalk:"08 App Engine", route53:"09 Cloud DNS", sns:"13 Pub/Sub", cloudwatch:"14 Cloud Monitoring", snowball:"15 Transfer Appliance", secrets:"19 Cloud KMS", threat:"23 Security Command Center", edge:"24 Cloud Armor", identity:"25 Cloud Identity", certs:"26 Cert Manager & DLP", analytics:"27 BigQuery & Firestore", hybrid:"28 Interconnect & DMS", iac:"29 Infrastructure Manager", govern:"30 Recommender", aiint:"31 Dialogflow & Pub/Sub" },
         navCat:{ security:"Security", data:"Data & analytics", connect:"Hybrid & migration", ops:"Automation & governance", ai:"AI & integration" },
         themeAuto:"Theme: Auto", themeLight:"Theme: Light", themeDark:"Theme: Dark",
         pageTitle:"CloudLab",
@@ -6592,6 +6594,8 @@
       common: {
         wordmark:"CloudLab",
         nav:{ cloud101:"00 Bulut nedir?", auth:"01 Giriş", iam:"02 IAM ve izinler", vpc:"03 VPC", ec2:"04 EC2", s3:"05 S3", lambda:"06 Lambda", lb:"07 Yük dengeleme", beanstalk:"08 Beanstalk", route53:"09 Route 53", cache:"10 Önbellekleme", consistency:"11 Tutarlılık", failover:"12 Yük devretme", sns:"13 SNS", cloudwatch:"14 CloudWatch", snowball:"15 Snowball Edge", database:"16 Veritabanları", containers:"17 Konteynerler", cicd:"18 CI/CD", secrets:"19 Sırlar ve KMS", capstone1:"20 Final Görev: Kesinti", capstone2:"21 Final Görev: Sızıntı", services:"22 Servis rehberi", threat:"23 GuardDuty ve Inspector", edge:"24 WAF ve Shield", identity:"25 STS ve Cognito", certs:"26 ACM ve Macie", analytics:"27 Redshift ve Athena", hybrid:"28 Direct Connect ve DMS", iac:"29 CloudFormation", govern:"30 Trusted Advisor", aiint:"31 Lex, Polly ve MQ" },
+        navAzure:{ iam:"02 Entra ID", vpc:"03 Sanal Ağ", ec2:"04 Sanal Makineler", s3:"05 Blob Depolama", lambda:"06 Azure Functions", beanstalk:"08 App Service", route53:"09 Azure DNS", sns:"13 Event Grid", cloudwatch:"14 Azure Monitor", snowball:"15 Data Box", secrets:"19 Key Vault", threat:"23 Defender for Cloud", edge:"24 Azure WAF ve DDoS", identity:"25 Entra ID ve SSO", certs:"26 Key Vault ve Purview", analytics:"27 Synapse ve Cosmos DB", hybrid:"28 ExpressRoute ve DMS", iac:"29 ARM ve Bicep", govern:"30 Azure Advisor", aiint:"31 Bot Service ve Service Bus" },
+        navGcp:{ iam:"02 Cloud IAM", ec2:"04 Compute Engine", s3:"05 Cloud Storage", lambda:"06 Cloud Functions", beanstalk:"08 App Engine", route53:"09 Cloud DNS", sns:"13 Pub/Sub", cloudwatch:"14 Cloud Monitoring", snowball:"15 Transfer Appliance", secrets:"19 Cloud KMS", threat:"23 Security Command Center", edge:"24 Cloud Armor", identity:"25 Cloud Identity", certs:"26 Cert Manager ve DLP", analytics:"27 BigQuery ve Firestore", hybrid:"28 Interconnect ve DMS", iac:"29 Infrastructure Manager", govern:"30 Recommender", aiint:"31 Dialogflow ve Pub/Sub" },
         navCat:{ security:"Güvenlik", data:"Veri ve analitik", connect:"Hibrit ve taşıma", ops:"Otomasyon ve yönetişim", ai:"YZ ve entegrasyon" },
         themeAuto:"Tema: Otomatik", themeLight:"Tema: Açık", themeDark:"Tema: Koyu",
         pageTitle:"CloudLab",
@@ -16227,6 +16231,23 @@
       if(!el) return;
       const key = providerMode==="aws" ? mod+".title" : mod+".title"+(providerMode==="azure"?"Azure":"Gcp");
       el.textContent=t(key);
+    });
+    // Sidebar labels follow the provider too: navAzure/navGcp override the
+    // AWS-named entries; anything not listed there falls back to common.nav.
+    sidenavLinks.forEach(function(link){
+      const span=link.querySelector("span[data-i18n]");
+      if(!span) return;
+      const key=span.getAttribute("data-i18n");
+      if(key.indexOf("common.nav.")!==0) return;
+      const mod=key.slice("common.nav.".length);
+      let label=null;
+      if(providerMode!=="aws"){
+        const mapName = providerMode==="azure" ? "navAzure" : "navGcp";
+        const map=(dict[currentLang].common && dict[currentLang].common[mapName]) || {};
+        const fallbackMap=(dict.en.common && dict.en.common[mapName]) || {};
+        label = map[mod] || fallbackMap[mod] || null;
+      }
+      span.textContent = label || t("common.nav."+mod);
     });
   }
   function setProvider(provider){
