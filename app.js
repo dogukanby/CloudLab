@@ -4,7 +4,7 @@
   // Keep in sync with package.json's "version" — there's no build step to
   // inject this automatically, so it's a manual mirror. Shown in the topbar
   // (and read as the desktop window title via app.getVersion() in main.js).
-  const APP_VERSION = "1.9.2";
+  const APP_VERSION = "2.0.0";
   $("#versionTag").textContent = "v"+APP_VERSION;
 
   /* ============ i18n dictionary ============ */
@@ -48,6 +48,30 @@
         title:"Cloud systems, taken apart",
         p:"Twenty small, live simulations of the mechanisms that keep large systems running, plus two capstone incidents that tie several of them together — no real servers behind any of it, just the logic. Turn the dials and watch what actually happens under load, under a network partition, under a cache miss, under a failure.",
         meta:"33 modules · 32 incident-response quests · 47-service directory · runs entirely in your browser"
+      },
+      exam:{
+        label:"Exam mode",
+        blurb:"Questions pulled at random from every module, timed, with no feedback until the end — the opposite of the guided quests. Answer from memory; the explanation waits until you've committed.",
+        countLabel:"Questions", timeLabel:"Time limit", noLimit:"No limit",
+        startBtn:"Start exam", quitBtn:"End", prevBtn:"Back", nextBtn:"Next", submitBtn:"Finish & score",
+        resultLabel:"Result", againBtn:"Take another",
+        best:"Best: {pct}% ({date})",
+        source:"{module} · {provider}",
+        counter:"{n} / {total}",
+        unanswered:"{n} unanswered",
+        confirmSubmit:"Finish now? {n} question(s) are still unanswered.",
+        confirmQuit:"End this exam? Your answers so far will be discarded.",
+        timeUp:"Time is up — scoring what you answered.",
+        scoreLine:"{correct} / {total}",
+        passed:"Passed. A cloud certification typically wants around 70%, and you cleared it on questions drawn from {modules} different modules.",
+        failed:"Not there yet. Certifications usually want around 70%; the weakest areas below are where the marks went.",
+        perfect:"Every question correct, across {modules} different modules. There is nothing left for this exam to teach you — try a longer one.",
+        weakLabel:"Where you lost marks",
+        reviewLabel:"Every question, with the reasoning",
+        yourAnswer:"You chose: {answer}",
+        correctAnswer:"Correct: {answer}",
+        noneWrong:"Nothing missed — no weak areas to report.",
+        needMore:"Not enough questions available yet."
       },
       progress:{
         label:"Your progress",
@@ -7666,6 +7690,30 @@
         title:"Bulut sistemleri, parçalarına ayrıldı",
         p:"Büyük sistemleri ayakta tutan mekanizmaların yirmi küçük, canlı simülasyonu, ve bunlardan birkaçını bir araya getiren iki final görev olayı — arkasında gerçek sunucu yok, sadece mantık. Kadranları çevirin ve yük altında, bir ağ bölünmesinde, bir önbellek ıskalamasında, bir arızada gerçekte ne olduğunu izleyin.",
         meta:"33 modül · 32 olay müdahale görevi · 47 servislik rehber · tamamen tarayıcınızda çalışır"
+      },
+      exam:{
+        label:"Sınav modu",
+        blurb:"Her modülden rastgele çekilmiş, süreli sorular; sonuna kadar hiç geri bildirim yok — rehberli görevlerin tam tersi. Ezberden cevapla; açıklama, sen karar verene kadar bekler.",
+        countLabel:"Soru sayısı", timeLabel:"Süre sınırı", noLimit:"Sınırsız",
+        startBtn:"Sınavı başlat", quitBtn:"Bitir", prevBtn:"Geri", nextBtn:"İleri", submitBtn:"Bitir ve puanla",
+        resultLabel:"Sonuç", againBtn:"Bir tane daha",
+        best:"En iyi: %{pct} ({date})",
+        source:"{module} · {provider}",
+        counter:"{n} / {total}",
+        unanswered:"{n} cevapsız",
+        confirmSubmit:"Şimdi bitirilsin mi? {n} soru hâlâ cevapsız.",
+        confirmQuit:"Bu sınav bitirilsin mi? Şimdiye kadarki cevapların silinecek.",
+        timeUp:"Süre doldu — cevapladıkların puanlanıyor.",
+        scoreLine:"{correct} / {total}",
+        passed:"Geçtin. Bir bulut sertifikası genelde %70 civarı ister ve sen bunu {modules} farklı modülden çekilmiş sorularla aştın.",
+        failed:"Henüz değil. Sertifikalar genelde %70 civarı ister; puanların gittiği yerler aşağıdaki zayıf alanlar.",
+        perfect:"{modules} farklı modülden gelen her soru doğru. Bu sınavın sana öğretecek bir şeyi kalmadı — daha uzununu dene.",
+        weakLabel:"Puanı nerede kaybettin",
+        reviewLabel:"Her soru, gerekçesiyle",
+        yourAnswer:"Senin seçimin: {answer}",
+        correctAnswer:"Doğru: {answer}",
+        noneWrong:"Hiç kaçırılmadı — bildirilecek zayıf alan yok.",
+        needMore:"Henüz yeterli soru yok."
       },
       progress:{
         label:"İlerlemen",
@@ -18805,6 +18853,247 @@
   }
   $("#svcSearch").addEventListener("input", function(){ svcFilter=this.value; servicesRender(); });
 
+  /* ============ exam mode ============ */
+  // Recall under time pressure, built from the same quest content the guided
+  // tiers use — but drawn at random across every module and provider, with the
+  // explanation withheld until the paper is submitted.
+  const EXAM_BEST_KEY="csc-exam-best";
+  let examQs=[], examIdx=0, examAnswers={}, examTimer=null, examLeft=0, examLimit=0;
+
+  function examPool(){
+    const quests=dict[currentLang].quests;
+    // Group by the question itself, not by provider: several steps are worded
+    // identically across providers, and drawing two of them would look like
+    // the same question twice. One provider variant is picked per question.
+    const groups={};
+    QUEST_KEYS.forEach(function(qk){
+      const entry=quests[qk];
+      if(!entry) return;
+      ["aws","azure","gcp"].forEach(function(prov){
+        const data=entry[prov];
+        if(!data) return;
+        ["easySteps","hardSteps"].forEach(function(tier){
+          (data[tier]||[]).forEach(function(step){
+            if(step.type!=="choice" || !step.options || step.options.length<2) return;
+            if(!step.options.some(function(o){ return o.correct; })) return;
+            const gk=qk+"|"+tier+"|"+step.id;
+            (groups[gk]=groups[gk]||[]).push({ quest:qk, provider:prov, stepId:step.id, prompt:step.prompt, options:step.options });
+          });
+        });
+      });
+    });
+    const pool=[], seenPrompt={};
+    Object.keys(groups).forEach(function(gk){
+      const variants=groups[gk];
+      const pick=variants[Math.floor(Math.random()*variants.length)];
+      // last guard: two unrelated steps sharing a prompt would still read as a repeat
+      if(seenPrompt[pick.prompt]) return;
+      seenPrompt[pick.prompt]=true;
+      pool.push(pick);
+    });
+    return pool;
+  }
+  function examShuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      const t=arr[i]; arr[i]=arr[j]; arr[j]=t;
+    }
+    return arr;
+  }
+  function examProviderName(p){ return p==="aws" ? "AWS" : p==="azure" ? "Azure" : "Google Cloud"; }
+  function examModuleName(qk){ return t("common.nav."+qk).replace(/^\d+\s+/, ""); }
+  function examFmtClock(sec){
+    const m=Math.floor(sec/60), s=sec%60;
+    return m+":"+(s<10?"0":"")+s;
+  }
+  function examLoadBest(){
+    try{ return JSON.parse(localStorage.getItem(EXAM_BEST_KEY)||"null"); }catch(e){ return null; }
+  }
+  function examRenderBest(){
+    const b=examLoadBest();
+    $("#examBest").textContent = b && typeof b.pct==="number"
+      ? t("exam.best",{ pct:b.pct, date:new Date(b.at).toLocaleDateString(currentLang==="tr"?"tr-TR":"en-US") })
+      : "";
+  }
+  function examSetPhase(phase){
+    $("#examIntro").hidden = phase!=="intro";
+    $("#examRun").hidden = phase!=="run";
+    $("#examResult").hidden = phase!=="result";
+  }
+  function examStop(){
+    if(examTimer){ clearInterval(examTimer); examTimer=null; }
+  }
+  function examStart(){
+    const want=Number($("#examCount").value);
+    const pool=examPool();
+    if(pool.length<want){
+      $("#examBest").textContent=t("exam.needMore");
+      return;
+    }
+    examQs=examShuffle(pool).slice(0, want).map(function(q){
+      return { q:q, order:examShuffle(q.options.map(function(o){ return o.key; })) };
+    });
+    examAnswers={};
+    examIdx=0;
+    examLimit=Number($("#examTime").value);
+    examLeft=examLimit;
+    examSetPhase("run");
+    examRenderQuestion();
+    examStop();
+    if(examLimit>0){
+      const epoch=stateEpoch;
+      examTimer=setInterval(function(){
+        if(epoch!==stateEpoch){ examStop(); return; }
+        examLeft--;
+        examRenderClock();
+        if(examLeft<=0){ examStop(); examSubmit(true); }
+      }, 1000);
+    }
+    examRenderClock();
+  }
+  function examRenderClock(){
+    const el=$("#examClock");
+    if(examLimit<=0){ el.textContent="∞"; el.classList.remove("low"); return; }
+    el.textContent=examFmtClock(Math.max(0, examLeft));
+    el.classList.toggle("low", examLeft<=60);
+  }
+  function examRenderQuestion(){
+    const item=examQs[examIdx];
+    if(!item) return;
+    const q=item.q;
+    $("#examCounter").textContent=t("exam.counter",{ n:examIdx+1, total:examQs.length });
+    $("#examBar").style.width=Math.round(((examIdx+1)/examQs.length)*100)+"%";
+    $("#examSource").textContent=t("exam.source",{ module:examModuleName(q.quest), provider:examProviderName(q.provider) });
+    $("#examQuestion").textContent=q.prompt;
+    const wrap=$("#examOptions");
+    wrap.innerHTML="";
+    item.order.forEach(function(key){
+      const opt=q.options.find(function(o){ return o.key===key; });
+      if(!opt) return;
+      const b=document.createElement("button");
+      b.type="button";
+      b.className="quest-option-btn"+(examAnswers[examIdx]===key?" chosen":"");
+      b.textContent=opt.label;
+      b.addEventListener("click", function(){
+        examAnswers[examIdx]=key;
+        // advance automatically, but stop at the last question so the
+        // paper can be reviewed before it's submitted
+        if(examIdx < examQs.length-1){ examIdx++; examRenderQuestion(); }
+        else examRenderQuestion();
+      });
+      wrap.appendChild(b);
+    });
+    $("#examPrevBtn").disabled = examIdx===0;
+    $("#examNextBtn").disabled = examIdx===examQs.length-1;
+  }
+  function examSubmit(forced){
+    const unanswered=examQs.length-Object.keys(examAnswers).length;
+    if(!forced && unanswered>0){
+      if(!w_confirm(t("exam.confirmSubmit",{ n:unanswered }))) return;
+    }
+    examStop();
+    let correct=0;
+    const perModule={};
+    const review=[];
+    examQs.forEach(function(item, i){
+      const q=item.q;
+      const chosenKey=examAnswers[i];
+      const chosen=q.options.find(function(o){ return o.key===chosenKey; });
+      const right=q.options.find(function(o){ return o.correct; });
+      const isRight=!!chosen && !!chosen.correct;
+      if(isRight) correct++;
+      const m=perModule[q.quest]||(perModule[q.quest]={ right:0, total:0 });
+      m.total++; if(isRight) m.right++;
+      review.push({ q:q, chosen:chosen, right:right, isRight:isRight });
+    });
+    const pct=Math.round((correct/examQs.length)*100);
+    const modules=Object.keys(perModule).length;
+
+    const scoreEl=$("#examScore");
+    scoreEl.textContent=pct+"%  ·  "+t("exam.scoreLine",{ correct:correct, total:examQs.length });
+    scoreEl.className="exam-score "+(pct>=70?"pass":"fail");
+    $("#examVerdict").textContent = pct===100 ? t("exam.perfect",{ modules:modules })
+      : pct>=70 ? t("exam.passed",{ modules:modules })
+      : t("exam.failed");
+
+    // weakest modules first, only those with a miss
+    const weak=Object.keys(perModule)
+      .map(function(k){ return { key:k, r:perModule[k].right, t:perModule[k].total }; })
+      .filter(function(x){ return x.r<x.t; })
+      .sort(function(a,b){ return (a.r/a.t)-(b.r/b.t); });
+    const weakWrap=$("#examWeak");
+    weakWrap.innerHTML="";
+    const wl=document.createElement("p");
+    wl.className="eyebrow faint";
+    wl.textContent = weak.length ? t("exam.weakLabel") : t("exam.noneWrong");
+    weakWrap.appendChild(wl);
+    weak.forEach(function(x){
+      const row=document.createElement("div");
+      row.className="exam-weak-row";
+      const name=document.createElement("span");
+      name.className="exam-weak-name";
+      name.textContent=examModuleName(x.key);
+      const track=document.createElement("div");
+      track.className="bill-track";
+      const fill=document.createElement("span");
+      fill.style.width=Math.round(((x.t-x.r)/x.t)*100)+"%";
+      track.appendChild(fill);
+      const sc=document.createElement("span");
+      sc.className="exam-weak-score";
+      sc.textContent=x.r+"/"+x.t;
+      row.appendChild(name); row.appendChild(track); row.appendChild(sc);
+      weakWrap.appendChild(row);
+    });
+
+    const revWrap=$("#examReview");
+    revWrap.innerHTML="";
+    const rl=document.createElement("p");
+    rl.className="eyebrow faint";
+    rl.textContent=t("exam.reviewLabel");
+    revWrap.appendChild(rl);
+    review.forEach(function(r){
+      const d=document.createElement("div");
+      d.className="exam-review-item"+(r.isRight?" right":"");
+      const p1=document.createElement("p");
+      p1.className="exam-review-q";
+      p1.textContent=r.q.prompt;
+      d.appendChild(p1);
+      const p2=document.createElement("p");
+      p2.className="exam-review-a "+(r.isRight?"good":"bad");
+      p2.textContent = r.chosen ? t("exam.yourAnswer",{ answer:r.chosen.label }) : t("exam.unanswered",{ n:1 });
+      d.appendChild(p2);
+      if(!r.isRight && r.right){
+        const p3=document.createElement("p");
+        p3.className="exam-review-a good";
+        p3.textContent=t("exam.correctAnswer",{ answer:r.right.label });
+        d.appendChild(p3);
+      }
+      const p4=document.createElement("p");
+      p4.className="exam-review-a";
+      p4.textContent = (r.chosen && r.chosen.feedback) ? r.chosen.feedback : (r.right ? r.right.feedback : "");
+      d.appendChild(p4);
+      revWrap.appendChild(d);
+    });
+
+    const best=examLoadBest();
+    if(!best || pct>best.pct){
+      try{ localStorage.setItem(EXAM_BEST_KEY, JSON.stringify({ pct:pct, at:Date.now() })); }catch(e){}
+    }
+    examRenderBest();
+    examSetPhase("result");
+  }
+  $("#examStartBtn").addEventListener("click", examStart);
+  $("#examAgainBtn").addEventListener("click", function(){ examSetPhase("intro"); });
+  $("#examPrevBtn").addEventListener("click", function(){ if(examIdx>0){ examIdx--; examRenderQuestion(); } });
+  $("#examNextBtn").addEventListener("click", function(){ if(examIdx<examQs.length-1){ examIdx++; examRenderQuestion(); } });
+  $("#examSubmitBtn").addEventListener("click", function(){ examSubmit(false); });
+  $("#examQuitBtn").addEventListener("click", function(){
+    if(!w_confirm(t("exam.confirmQuit"))) return;
+    examStop();
+    examSetPhase("intro");
+  });
+  examSetPhase("intro");
+
   /* ============ language switching ============ */
   function setLang(lang){
     currentLang=lang;
@@ -18848,6 +19137,11 @@
     cidrRender(); cidrNewQuestion();
     applyProviderTitles();
     progressRender();
+    // Questions are drawn from the current language's dict, so an exam in
+    // flight can't survive a language switch — send it back to the start.
+    examStop();
+    examSetPhase("intro");
+    examRenderBest();
   }
   $("#langEnBtn").addEventListener("click", function(){ setLang("en"); });
   $("#langTrBtn").addEventListener("click", function(){ setLang("tr"); });

@@ -474,6 +474,41 @@ select, .btn{ font-size:0.82rem; padding:8px 10px; border-radius:var(--radius); 
 .cidr-question{ margin:0; font-size:0.86rem; }
 .cidr-options{ display:flex; flex-wrap:wrap; gap:8px; }
 
+/* exam mode */
+.exam-card{ background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 22px; margin-bottom:16px; display:flex; flex-direction:column; gap:12px; }
+.exam-best{ font-family:var(--font-mono); font-size:0.72rem; color:var(--ink-faint); }
+.exam-start-row{ display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; }
+.exam-opt{ display:flex; flex-direction:column; gap:5px; font-size:0.75rem; color:var(--ink-dim); }
+.exam-opt select{ font:inherit; font-size:0.82rem; padding:6px 9px; border-radius:var(--radius); border:1px solid var(--border-strong); background:var(--bg-panel-2); color:var(--ink); }
+.exam-runhead{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.exam-counter{ font-family:var(--font-mono); font-size:0.74rem; color:var(--ink-dim); flex:none; font-variant-numeric:tabular-nums; }
+.exam-progressbar{ flex:1; min-width:100px; }
+.exam-clock{ font-family:var(--font-mono); font-size:0.82rem; color:var(--accent); flex:none; font-variant-numeric:tabular-nums; }
+.exam-clock.low{ color:var(--bad); }
+.exam-quit{ font-size:0.7rem; padding:5px 10px; }
+.exam-source{ margin:0; font-family:var(--font-mono); font-size:0.66rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint); }
+.exam-question{ margin:0; font-size:0.98rem; line-height:1.55; text-wrap:balance; }
+.exam-options{ display:flex; flex-direction:column; gap:8px; }
+.exam-options .quest-option-btn{ text-align:left; font-family:var(--font-body); font-size:0.85rem; padding:10px 12px; }
+.exam-options .quest-option-btn.chosen{ border-color:var(--accent); background:var(--accent-soft); color:var(--ink); }
+.exam-nav{ display:flex; gap:10px; flex-wrap:wrap; }
+.exam-score{ margin:0; font-family:var(--font-display); font-weight:800; font-size:2.2rem; line-height:1.1; font-variant-numeric:tabular-nums; }
+.exam-score.pass{ color:var(--good); }
+.exam-score.fail{ color:var(--bad); }
+.exam-weak{ display:flex; flex-direction:column; gap:6px; }
+.exam-weak-row{ display:flex; align-items:center; gap:10px; font-size:0.8rem; }
+.exam-weak-row .exam-weak-name{ flex:none; width:190px; color:var(--ink-dim); }
+.exam-weak-row .bill-track{ flex:1; height:10px; border-radius:3px; background:var(--border); overflow:hidden; }
+.exam-weak-row .bill-track > span{ display:block; height:100%; background:var(--bad); }
+.exam-weak-row .exam-weak-score{ flex:none; width:54px; text-align:right; font-family:var(--font-mono); font-size:0.72rem; }
+.exam-review{ display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto; }
+.exam-review-item{ border-left:3px solid var(--bad); border-radius:var(--radius); background:var(--bg-panel-2); padding:9px 12px; font-size:0.8rem; }
+.exam-review-item.right{ border-left-color:var(--good); }
+.exam-review-q{ margin:0 0 4px; color:var(--ink); }
+.exam-review-a{ margin:0; color:var(--ink-faint); font-size:0.76rem; }
+.exam-review-a.good{ color:var(--good); }
+.exam-review-a.bad{ color:var(--bad); }
+
 /* progress card + sidebar completion marks */
 .progress-card{ background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 22px; margin-bottom:26px; display:flex; flex-direction:column; gap:12px; }
 .progress-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }

@@ -1,7 +1,7 @@
 {
   "name": "cloud-systems-console",
-  "version": "1.9.2",
-  "description": "Twenty-nine live, in-browser simulations of core cloud-systems concepts, twenty-eight of them with an Easy/Hard-tiered, real-consequence incident-response quest with AWS/Azure/GCP variants, plus two cross-module capstone incidents and a searchable 47-service AWS/Azure/GCP directory.",
+  "version": "2.0.0",
+  "description": "Thirty-three live, in-browser simulations of core cloud-systems concepts, thirty-two of them with an Easy/Hard-tiered, real-consequence incident-response quest with AWS/Azure/GCP variants, plus two cross-module capstone incidents, a searchable 47-service AWS/Azure/GCP directory, saved progress and a timed exam mode.",
   "main": "main.js",
   "private": true,
   "author": "Doğukan Bayrı",

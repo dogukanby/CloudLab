@@ -62,7 +62,7 @@
 <nav class="sidenav" id="sidenav" aria-label="Modules">
   <div class="sidenav-head">
     <span class="wordmark"><span class="dot"></span><span data-i18n="common.wordmark">Systems Console</span></span>
-    <span class="version-tag" id="versionTag">v1.9.2</span>
+    <span class="version-tag" id="versionTag">v2.0.0</span>
     <button type="button" class="sidenav-close" id="sidenavClose" data-i18n-aria="common.closeMenu" aria-label="Close menu">✕</button>
   </div>
   <div class="sidenav-links">
@@ -137,6 +137,51 @@
     <h1 data-i18n="intro.title">Cloud systems, taken apart</h1>
     <p data-i18n="intro.p">Twenty small, live simulations of the mechanisms that keep large systems running.</p>
     <div class="meta" data-i18n="intro.meta">20 modules · 19 incident-response quests · runs entirely in your browser</div>
+  </div>
+
+  <div class="exam-card" id="examCard">
+    <div class="exam-intro" id="examIntro">
+      <div class="progress-head">
+        <p class="eyebrow accent" data-i18n="exam.label">EXAM MODE</p>
+        <span class="exam-best" id="examBest"></span>
+      </div>
+      <p class="progress-summary" data-i18n="exam.blurb">Twenty questions pulled at random from every module, timed, with no feedback until the end — the opposite of the guided quests.</p>
+      <div class="exam-start-row">
+        <label class="exam-opt"><span data-i18n="exam.countLabel">Questions</span>
+          <select id="examCount"><option>10</option><option selected>20</option><option>40</option></select></label>
+        <label class="exam-opt"><span data-i18n="exam.timeLabel">Time limit</span>
+          <select id="examTime"><option value="0" data-i18n="exam.noLimit">No limit</option><option value="600" selected>10 min</option><option value="1200">20 min</option></select></label>
+        <button type="button" class="btn" id="examStartBtn" data-i18n="exam.startBtn">Start exam</button>
+      </div>
+    </div>
+
+    <div class="exam-run" id="examRun" hidden>
+      <div class="exam-runhead">
+        <span class="exam-counter" id="examCounter">1 / 20</span>
+        <div class="progress-bar exam-progressbar"><span id="examBar"></span></div>
+        <span class="exam-clock" id="examClock">10:00</span>
+        <button type="button" class="btn exam-quit" id="examQuitBtn" data-i18n="exam.quitBtn">End</button>
+      </div>
+      <p class="exam-source" id="examSource"></p>
+      <p class="exam-question" id="examQuestion"></p>
+      <div class="exam-options" id="examOptions"></div>
+      <div class="exam-nav">
+        <button type="button" class="btn" id="examPrevBtn" data-i18n="exam.prevBtn">Back</button>
+        <button type="button" class="btn" id="examNextBtn" data-i18n="exam.nextBtn">Next</button>
+        <button type="button" class="btn" id="examSubmitBtn" data-i18n="exam.submitBtn">Finish &amp; score</button>
+      </div>
+    </div>
+
+    <div class="exam-result" id="examResult" hidden>
+      <div class="progress-head">
+        <p class="eyebrow accent" data-i18n="exam.resultLabel">RESULT</p>
+        <button type="button" class="btn" id="examAgainBtn" data-i18n="exam.againBtn">Take another</button>
+      </div>
+      <p class="exam-score" id="examScore">—</p>
+      <p class="progress-summary" id="examVerdict"></p>
+      <div class="exam-weak" id="examWeak"></div>
+      <div class="exam-review" id="examReview"></div>
+    </div>
   </div>
 
   <div class="progress-card" id="progressCard">
